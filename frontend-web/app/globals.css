@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import 'tailwindcss';
+
+@source "./**/*.{js,jsx,ts,tsx,mdx}";
+@source "../lib/**/*.{js,jsx,ts,tsx,mdx}";
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  --color-ev-bg: #050b1a;
+  --color-ev-surface: #0d1626;
+  --color-ev-surface2: #142035;
+  --color-ev-border: #1e3a5f;
+  --color-ev-primary: #3b82f6;
+  --color-ev-primary-light: #60a5fa;
+  --color-ev-primary-dark: #2563eb;
+  --color-ev-accent: #f59e0b;
+  --color-ev-accent-light: #fbbf24;
+  --color-ev-text: #e2e8f0;
+  --color-ev-muted: #94a3b8;
+  --color-ev-subtle: #475569;
+  --color-ev-success: #10b981;
+  --color-ev-error: #ef4444;
+  --color-ev-warning: #f59e0b;
+
+  --background-image-gradient-ev: linear-gradient(135deg, #0d1626 0%, #1a2a4a 100%);
+  --background-image-gradient-primary: linear-gradient(135deg, #3b82f6, #2563eb);
+  --background-image-gradient-accent: linear-gradient(135deg, #f59e0b, #d97706);
+
+  --shadow-ev-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-ev-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-ev-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-ev-glow: 0 0 20px rgba(59, 130, 246, 0.25);
+  --shadow-ev-glow-accent: 0 0 20px rgba(245, 158, 11, 0.25);
+
+  --animate-fade-in: fadeIn 0.3s ease-in-out;
+  --animate-slide-up: slideUp 0.3s ease-out;
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-ev-bg text-ev-text font-sans antialiased;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-ev-bg;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ev-border rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ev-primary;
+  }
+
+  ::selection {
+    @apply bg-ev-primary/30 text-ev-text;
+  }
+}
+
+@layer components {
+  .ev-card {
+    @apply bg-ev-surface border border-ev-border rounded-2xl;
+  }
+
+  .ev-input {
+    @apply w-full bg-ev-surface2 border border-ev-border rounded-xl px-4 py-3
+           text-ev-text placeholder-ev-subtle text-sm
+           focus:outline-none focus:ring-2 focus:ring-ev-primary/50 focus:border-ev-primary
+           transition-all duration-200;
+  }
+
+  .ev-btn-primary {
+    @apply bg-gradient-primary text-white font-semibold px-6 py-3 rounded-xl
+           hover:opacity-90 active:scale-95 transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  .ev-btn-secondary {
+    @apply bg-ev-surface2 border border-ev-border text-ev-text font-medium px-6 py-3 rounded-xl
+           hover:border-ev-primary hover:text-ev-primary-light transition-all duration-150;
+  }
+
+  .ev-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .ev-label {
+    @apply block text-ev-muted text-sm font-medium mb-1.5;
+  }
+
+  .gradient-text {
+    @apply bg-linear-to-r from-ev-primary to-ev-primary-light bg-clip-text text-transparent;
+  }
+}

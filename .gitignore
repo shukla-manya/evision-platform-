@@ -1,0 +1,159 @@
+# =============================================================================
+# E Vision Platform — root .gitignore (monorepo)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Secrets & local env (never commit)
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+!.env*.example
+*.pem
+*.p12
+*.key
+*.crt
+*.cer
+secrets.json
+credentials.json
+.aws/credentials
+
+# -----------------------------------------------------------------------------
+# Dependencies
+# -----------------------------------------------------------------------------
+node_modules/
+
+# -----------------------------------------------------------------------------
+# NestJS / Node backend
+# -----------------------------------------------------------------------------
+backend/dist/
+backend/build/
+backend/coverage/
+backend/.nyc_output/
+*.tsbuildinfo
+
+# -----------------------------------------------------------------------------
+# Next.js frontend
+# -----------------------------------------------------------------------------
+frontend-web/.next/
+frontend-web/out/
+frontend-web/.vercel/
+frontend-web/.swc/
+
+# -----------------------------------------------------------------------------
+# React Native / Expo (future mobile/)
+# -----------------------------------------------------------------------------
+mobile/**/node_modules/
+mobile/**/.expo/
+mobile/**/.expo-shared/
+mobile/**/dist/
+mobile/**/web-build/
+mobile/**/.bundle/
+mobile/**/ios/Pods/
+mobile/**/ios/build/
+mobile/**/ios/*.xcworkspace/xcuserdata/
+mobile/**/ios/*.xcodeproj/xcuserdata/
+mobile/**/ios/*.xcodeproj/project.xcworkspace/xcshareddata/
+mobile/**/android/.gradle/
+mobile/**/android/build/
+mobile/**/android/app/build/
+mobile/**/android/local.properties
+mobile/**/android/.cxx/
+mobile/**/android/*.iml
+mobile/**/.kotlin/
+*.jks
+*.keystore
+
+# -----------------------------------------------------------------------------
+# Testing & coverage
+# -----------------------------------------------------------------------------
+coverage/
+.nyc_output/
+*.lcov
+junit.xml
+test-results/
+playwright-report/
+playwright/.cache/
+
+# -----------------------------------------------------------------------------
+# Logs & temp
+# -----------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+tmp/
+temp/
+*.tmp
+*.temp
+.cache/
+
+# -----------------------------------------------------------------------------
+# Package managers (keep lockfiles — do not ignore package-lock.json / yarn.lock)
+# -----------------------------------------------------------------------------
+.pnpm-store/
+
+# -----------------------------------------------------------------------------
+# OS
+# -----------------------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# -----------------------------------------------------------------------------
+# Editors & IDEs
+# -----------------------------------------------------------------------------
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# VS Code — ignore local overrides; commit shared settings if you add them later
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+
+# Cursor (local agent / UI state — optional; uncomment if you prefer not to track)
+# .cursor/
+
+# -----------------------------------------------------------------------------
+# Terraform / infra (if added later)
+# -----------------------------------------------------------------------------
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+crash.*.log
+
+# -----------------------------------------------------------------------------
+# Docker
+# -----------------------------------------------------------------------------
+.docker/
+
+# -----------------------------------------------------------------------------
+# Misc tooling
+# -----------------------------------------------------------------------------
+.turbo/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.pid
+*.seed
+*.pid.lock
+
+# -----------------------------------------------------------------------------
+# Generated / local tooling
+# -----------------------------------------------------------------------------
+*.local

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Approved</title>
+</head>
+<body style="margin:0;padding:0;background-color:#050b1a;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#050b1a;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+          <tr>
+            <td style="background:linear-gradient(135deg,#0d1626 0%,#1a2a4a 100%);border-radius:16px 16px 0 0;padding:36px 40px;text-align:center;border-bottom:2px solid #10b981;">
+              <div>
+                <span style="font-size:28px;">⚡</span>
+                <span style="color:#3b82f6;font-size:26px;font-weight:700;letter-spacing:-0.5px;"> E Vision</span>
+              </div>
+              <p style="color:#94a3b8;margin:8px 0 0;font-size:13px;">Pvt. Ltd. — Faridabad, Haryana</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#0d1626;padding:40px;">
+              <!-- Success icon -->
+              <div style="text-align:center;margin-bottom:28px;">
+                <div style="display:inline-block;background:#052e16;border:2px solid #10b981;border-radius:50%;width:64px;height:64px;line-height:64px;font-size:30px;">✅</div>
+              </div>
+
+              <h2 style="color:#10b981;margin:0 0 8px;font-size:22px;font-weight:700;text-align:center;">Congratulations, {{owner_name}}!</h2>
+              <p style="color:#94a3b8;margin:0 0 28px;font-size:14px;text-align:center;line-height:1.6;">
+                Your shop <strong style="color:#e2e8f0;">{{shop_name}}</strong> has been approved on the E Vision platform.<br/>
+                You can now log in and start listing your products.
+              </p>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a1f0f;border-radius:12px;border:1px solid #14532d;margin-bottom:28px;">
+                <tr>
+                  <td style="padding:20px 24px;">
+                    <p style="color:#86efac;font-size:13px;font-weight:600;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.5px;">What's next?</p>
+                    <ul style="color:#94a3b8;font-size:13px;line-height:2;margin:0;padding-left:18px;">
+                      <li>Log in to your admin panel</li>
+                      <li>Add your product catalogue with photos and pricing</li>
+                      <li>Configure stock and categories</li>
+                      <li>Go live and start receiving orders!</li>
+                    </ul>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="text-align:center;">
+                <a href="{{login_url}}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;">
+                  Go to Admin Panel →
+                </a>
+              </div>
+
+              <p style="color:#64748b;font-size:12px;margin-top:28px;text-align:center;line-height:1.6;">
+                Need help? Reply to this email or contact us at {{login_url}}
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#060d1c;padding:20px 40px;border-radius:0 0 16px 16px;text-align:center;border-top:1px solid #1e3a5f;">
+              <p style="color:#475569;font-size:12px;margin:0;">© 2024 E Vision Pvt. Ltd., Faridabad, Haryana</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
