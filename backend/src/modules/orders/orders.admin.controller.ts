@@ -21,6 +21,15 @@ export class OrdersAdminController {
     return this.orders.listForAdmin(user.id);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get one order for your shop with items and shipment info' })
+  getOne(
+    @CurrentUser() user: { id: string },
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.orders.getAdminOrderById(user.id, id);
+  }
+
   @Post(':id/ship')
   @ApiOperation({
     summary: 'Create Shiprocket shipment, save AWB + courier on order, email customer tracking details',
