@@ -33,7 +33,18 @@ export class AuthService {
       expires_at: expiresAt,
     });
 
-    // Send via Twilio
+    const raw = this.config.get<string>('OTP_CONSOLE_ONLY');
+    const consoleOnly =
+      raw === undefined ||
+      raw === '' ||
+      raw === '1' ||
+      raw.toLowerCase() === 'true';
+
+    if (consoleOnly) {
+      this.logger.log(`[OTP] ${phone} → ${otp} (valid 10 minutes)`);
+      return { message: 'OTP sent successfully' };
+    }
+
     try {
       const twilio = require('twilio')(
         this.config.get('TWILIO_ACCOUNT_SID'),
@@ -45,11 +56,10 @@ export class AuthService {
         to: phone,
       });
       this.logger.log(`OTP sent to ${phone}`);
-    } catch (err) {
-      this.logger.warn(`Twilio send failed for ${phone}: ${err.message}`);
-      // In development, log OTP to console
+    } catch (err: any) {
+      this.logger.warn(`Twilio send failed for ${phone}: ${err?.message ?? err}`);
       if (this.config.get('NODE_ENV') !== 'production') {
-        this.logger.debug(`[DEV] OTP for ${phone}: ${otp}`);
+        this.logger.log(`[OTP] ${phone} → ${otp} (fallback after Twilio failure)`);
       }
     }
 

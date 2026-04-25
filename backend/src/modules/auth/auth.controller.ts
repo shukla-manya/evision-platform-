@@ -15,7 +15,10 @@ export class AuthController {
 
   @Public()
   @Post('send-otp')
-  @ApiOperation({ summary: 'Send OTP to phone number via Twilio' })
+  @ApiOperation({
+    summary:
+      'Send OTP (logged to server console when OTP_CONSOLE_ONLY=true; otherwise Twilio SMS)',
+  })
   sendOtp(@Body() dto: SendOtpDto) {
     return this.authService.sendOtp(dto.phone);
   }
