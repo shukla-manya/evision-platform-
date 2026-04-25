@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -18,5 +18,17 @@ export class OrdersAdminController {
   @ApiOperation({ summary: 'List orders for your shop only' })
   list(@CurrentUser() user: { id: string }) {
     return this.orders.listForAdmin(user.id);
+  }
+
+  @Post(':id/ship')
+  @ApiOperation({
+    summary:
+      'Create shipment via Shiprocket, save AWB/courier on order, and email customer tracking details',
+  })
+  ship(
+    @CurrentUser() user: { id: string },
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.orders.shipOrderForAdmin(user.id, id);
   }
 }

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Shipped</title>
+</head>
+<body style="margin:0;padding:0;background:#050b1a;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 12px;background:#050b1a;">
+    <tr><td align="center">
+      <table width="620" cellpadding="0" cellspacing="0" style="max-width:620px;background:#0d1626;border:1px solid #1e3a5f;border-radius:14px;overflow:hidden;">
+        <tr><td style="padding:26px 26px 8px;color:#10b981;font-size:22px;font-weight:700;">Your order has been shipped</td></tr>
+        <tr><td style="padding:0 26px 8px;color:#94a3b8;font-size:14px;">Hi {{customer_name}}, order <strong style="color:#e2e8f0;">{{order_id}}</strong> is on the way.</td></tr>
+        <tr><td style="padding:0 26px 4px;color:#94a3b8;font-size:14px;">Courier: <strong style="color:#e2e8f0;">{{courier_name}}</strong></td></tr>
+        <tr><td style="padding:0 26px 18px;color:#94a3b8;font-size:14px;">Tracking Number: <strong style="color:#e2e8f0;">{{tracking_number}}</strong></td></tr>
+        <tr><td style="padding:0 26px 26px;"><a href="{{tracking_url}}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-size:14px;">Track Shipment</a></td></tr>
+        <tr><td style="padding:14px 26px;color:#64748b;font-size:12px;border-top:1px solid #1e3a5f;">E Vision Pvt. Ltd.</td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>

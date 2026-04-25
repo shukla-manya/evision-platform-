@@ -201,4 +201,63 @@ export class EmailService {
       trigger_event: 'order_cancelled',
     });
   }
+
+  async sendOrderShipped(
+    customerEmail: string,
+    data: {
+      customerName: string;
+      orderId: string;
+      trackingNumber: string;
+      courierName: string;
+      trackingUrl: string;
+    },
+  ) {
+    const html = this.interpolate(this.loadTemplate('order-shipped'), {
+      customer_name: data.customerName,
+      order_id: data.orderId,
+      tracking_number: data.trackingNumber,
+      courier_name: data.courierName,
+      tracking_url: data.trackingUrl,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: `Your order has been shipped — ${data.orderId}`,
+      html,
+      trigger_event: 'order_shipped',
+    });
+  }
+
+  async sendOrderStageUpdate(
+    customerEmail: string,
+    data: {
+      customerName: string;
+      orderId: string;
+      stage: 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered';
+      trackingNumber: string;
+      courierName: string;
+    },
+  ) {
+    const stageLabel = {
+      picked_up: 'Picked Up',
+      in_transit: 'In Transit',
+      out_for_delivery: 'Out for Delivery',
+      delivered: 'Delivered',
+    }[data.stage];
+    const html = this.interpolate(this.loadTemplate('order-stage-update'), {
+      customer_name: data.customerName,
+      order_id: data.orderId,
+      stage: stageLabel,
+      tracking_number: data.trackingNumber,
+      courier_name: data.courierName,
+      orders_url: `${this.config.get('FRONTEND_URL')}/orders`,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: `Order update (${stageLabel}) — ${data.orderId}`,
+      html,
+      trigger_event: data.stage,
+    });
+  }
 }
