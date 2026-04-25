@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Camera, User, Mail, Phone, Building2, ArrowRight, Loader2 } from 'lucide-react';
@@ -14,6 +14,14 @@ export default function RegisterPage() {
   const [otpSending, setOtpSending] = useState(false);
   const [role, setRole] = useState<'customer' | 'dealer' | 'electrician'>('customer');
   const [form, setForm] = useState({ name: '', email: '', phone: '', gst_no: '', address: '', otp: '' });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const q = new URLSearchParams(window.location.search).get('role');
+    if (q === 'dealer' || q === 'electrician' || q === 'customer') {
+      setRole(q);
+    }
+  }, []);
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));

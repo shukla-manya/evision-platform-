@@ -22,7 +22,7 @@ export default function HomePage() {
           </Link>
 
           <nav
-            className="flex items-center gap-4 sm:gap-6 text-sm text-white/75 overflow-x-auto max-w-[55vw] sm:max-w-none no-scrollbar"
+            className="flex items-center gap-4 sm:gap-6 text-sm text-white/75 overflow-x-auto max-w-[min(52vw,14rem)] sm:max-w-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             aria-label="Primary"
           >
             <Link href="/shop" className="hover:text-white whitespace-nowrap shrink-0 transition-colors">
@@ -36,24 +36,15 @@ export default function HomePage() {
             </Link>
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <Link
               href="/login"
-              className="text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition-colors hidden xs:inline"
+              className="text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition-colors whitespace-nowrap"
             >
               Sign in
             </Link>
-            <Link href="/register" className="text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition-colors sm:hidden">
+            <Link href="/register" className="ev-btn-primary text-sm py-2 px-4 whitespace-nowrap">
               Register
-            </Link>
-            <Link href="/login" className="text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition-colors sm:hidden">
-              Sign in
-            </Link>
-            <Link href="/register" className="ev-btn-primary text-sm py-2 px-4 hidden sm:inline-flex">
-              Register
-            </Link>
-            <Link href="/login" className="ev-btn-secondary text-sm py-2 px-4 hidden sm:inline-flex border-0">
-              Sign in
             </Link>
           </div>
         </div>
