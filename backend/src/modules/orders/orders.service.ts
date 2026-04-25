@@ -189,8 +189,17 @@ export class OrdersService {
 
   async shipOrderForAdmin(adminId: string, orderId: string): Promise<Record<string, unknown>> {
     const order = await this.assertAdminCanShip(adminId, orderId);
-    if (String(order.status || '').toLowerCase() === 'delivered') {
+    const currentStatus = String(order.status || '').toLowerCase();
+    if (currentStatus === 'delivered') {
       throw new BadRequestException('Order is already delivered');
+    }
+    if (
+      currentStatus === 'shipment_created' ||
+      currentStatus === 'picked_up' ||
+      currentStatus === 'in_transit' ||
+      currentStatus === 'out_for_delivery'
+    ) {
+      throw new BadRequestException('Shipment is already created for this order');
     }
 
     const user = await this.dynamo.get(this.usersTable(), { id: String(order.user_id) });
@@ -314,6 +323,9 @@ export class OrdersService {
 
     const order = await this.findOrderForShiprocketWebhook(payload);
     if (!order) return { ok: true, ignored: true, reason: 'order_not_found' };
+    if (String(order.status || '') === stage) {
+      return { ok: true, duplicate: true, order_id: order.id, status: stage };
+    }
 
     const now = new Date().toISOString();
     const updates: Record<string, unknown> = {
