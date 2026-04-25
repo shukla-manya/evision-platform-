@@ -133,6 +133,60 @@ export class EmailService {
     });
   }
 
+  async sendElectricianRegistered(
+    superadminEmail: string,
+    data: { name: string; email: string; phone: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('electrician-registered'), {
+      electrician_name: data.name,
+      electrician_email: data.email,
+      electrician_phone: data.phone,
+      review_url: `${this.config.get('FRONTEND_URL')}/superadmin/electricians`,
+    });
+    await this.send({
+      to: superadminEmail,
+      to_role: 'superadmin',
+      subject: `New Electrician Registration: ${data.name}`,
+      html,
+      trigger_event: 'electrician_registered',
+    });
+  }
+
+  async sendElectricianApproved(
+    electricianEmail: string,
+    data: { name: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('electrician-approved'), {
+      electrician_name: data.name,
+      login_url: `${this.config.get('FRONTEND_URL')}/login`,
+    });
+    await this.send({
+      to: electricianEmail,
+      to_role: 'electrician',
+      subject: 'Your electrician account has been approved',
+      html,
+      trigger_event: 'electrician_approved',
+    });
+  }
+
+  async sendElectricianRejected(
+    electricianEmail: string,
+    data: { name: string; reason: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('electrician-rejected'), {
+      electrician_name: data.name,
+      reason: data.reason,
+      support_email: this.config.get('EMAIL_FROM'),
+    });
+    await this.send({
+      to: electricianEmail,
+      to_role: 'electrician',
+      subject: 'Update on your electrician registration',
+      html,
+      trigger_event: 'electrician_rejected',
+    });
+  }
+
   async sendPaymentConfirmedCustomer(
     customerEmail: string,
     data: { customerName: string; orderGroupId: string; amount: number },

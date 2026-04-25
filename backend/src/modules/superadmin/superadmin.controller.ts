@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Delete, Param, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Put, Param, Body, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { IsString, IsOptional } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
@@ -9,6 +9,18 @@ import { Roles } from '../../common/decorators/roles.decorator';
 
 class RejectReasonDto {
   @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  reason?: string;
+}
+
+class ReviewElectricianDto {
+  @ApiPropertyOptional({ example: 'approve', description: 'approve or reject' })
+  @IsOptional()
+  @IsString()
+  action?: string;
+
+  @ApiPropertyOptional({ example: 'Aadhar verification failed' })
   @IsOptional()
   @IsString()
   reason?: string;
@@ -50,6 +62,22 @@ export class SuperadminController {
   @ApiOperation({ summary: 'Toggle suspend/reactivate an admin' })
   suspendAdmin(@Param('id') id: string) {
     return this.superadminService.suspendAdmin(id);
+  }
+
+  @Get('pending-electricians')
+  @ApiOperation({ summary: 'List all pending electrician registrations' })
+  getPendingElectricians() {
+    return this.superadminService.getPendingElectricians();
+  }
+
+  @Put('electrician/:id/approve')
+  @ApiOperation({ summary: 'Approve or reject electrician registration' })
+  approveElectrician(
+    @Param('id') id: string,
+    @Body() dto: ReviewElectricianDto,
+  ) {
+    const action = dto.action === 'reject' ? 'reject' : 'approve';
+    return this.superadminService.reviewElectrician(id, action, dto.reason);
   }
 
   @Get('analytics')

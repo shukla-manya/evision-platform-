@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { AdminService } from '../admin/admin.service';
+import { ElectricianService } from '../electrician/electrician.service';
 
 @Injectable()
 export class SuperadminService {
@@ -9,6 +10,7 @@ export class SuperadminService {
   constructor(
     private dynamo: DynamoService,
     private adminService: AdminService,
+    private electricianService: ElectricianService,
   ) {}
 
   async getPendingAdmins() {
@@ -31,6 +33,14 @@ export class SuperadminService {
     return this.adminService.suspend(id);
   }
 
+  async getPendingElectricians() {
+    return this.electricianService.getPendingElectricians();
+  }
+
+  async reviewElectrician(id: string, action: 'approve' | 'reject', reason?: string) {
+    return this.electricianService.reviewBySuperadmin(id, action, reason);
+  }
+
   async getAnalytics() {
     const [admins, users, emailLogs] = await Promise.all([
       this.dynamo.scan({ TableName: this.dynamo.tableName('admins') }),
@@ -50,6 +60,7 @@ export class SuperadminService {
       total: users.length,
       customers: users.filter(u => u.role === 'customer').length,
       dealers: users.filter(u => u.role === 'dealer').length,
+      electricians: users.filter(u => u.role === 'electrician').length,
     };
 
     const emailStats = {

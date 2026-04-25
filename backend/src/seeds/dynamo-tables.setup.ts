@@ -201,6 +201,219 @@ const TABLES = [
       },
     ],
   },
+  // ── Electrician & services ──────────────────────────────────────────────────
+  {
+    TableName: 'evision_electricians',
+    BillingMode: 'PAY_PER_REQUEST',
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    AttributeDefinitions: [
+      { AttributeName: 'id',      AttributeType: 'S' },
+      { AttributeName: 'phone',   AttributeType: 'S' },
+      { AttributeName: 'status',  AttributeType: 'S' },
+      { AttributeName: 'user_id', AttributeType: 'S' },
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'PhoneIndex',
+        KeySchema: [{ AttributeName: 'phone', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'StatusIndex',
+        KeySchema: [{ AttributeName: 'status', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'UserIndex',
+        KeySchema: [{ AttributeName: 'user_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+    ],
+  },
+  {
+    TableName: 'evision_service_requests',
+    BillingMode: 'PAY_PER_REQUEST',
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    AttributeDefinitions: [
+      { AttributeName: 'id',      AttributeType: 'S' },
+      { AttributeName: 'user_id', AttributeType: 'S' },
+      { AttributeName: 'status',  AttributeType: 'S' },
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'UserIndex',
+        KeySchema: [{ AttributeName: 'user_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'StatusIndex',
+        KeySchema: [{ AttributeName: 'status', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+    ],
+  },
+  {
+    TableName: 'evision_service_bookings',
+    BillingMode: 'PAY_PER_REQUEST',
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    AttributeDefinitions: [
+      { AttributeName: 'id',                 AttributeType: 'S' },
+      { AttributeName: 'service_request_id', AttributeType: 'S' },
+      { AttributeName: 'electrician_id',     AttributeType: 'S' },
+      { AttributeName: 'user_id',            AttributeType: 'S' },
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'RequestIndex',
+        KeySchema: [{ AttributeName: 'service_request_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'ElectricianIndex',
+        KeySchema: [{ AttributeName: 'electrician_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'UserIndex',
+        KeySchema: [{ AttributeName: 'user_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+    ],
+  },
+  {
+    TableName: 'evision_reviews',
+    BillingMode: 'PAY_PER_REQUEST',
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    AttributeDefinitions: [
+      { AttributeName: 'id',             AttributeType: 'S' },
+      { AttributeName: 'electrician_id', AttributeType: 'S' },
+      { AttributeName: 'user_id',        AttributeType: 'S' },
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'ElectricianIndex',
+        KeySchema: [{ AttributeName: 'electrician_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'UserIndex',
+        KeySchema: [{ AttributeName: 'user_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+    ],
+  },
+  {
+    TableName: 'evision_electricians',
+    BillingMode: 'PAY_PER_REQUEST',
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' },
+      { AttributeName: 'email', AttributeType: 'S' },
+      { AttributeName: 'status', AttributeType: 'S' },
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'EmailIndex',
+        KeySchema: [{ AttributeName: 'email', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'StatusIndex',
+        KeySchema: [{ AttributeName: 'status', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+    ],
+  },
+  {
+    TableName: 'evision_service_requests',
+    BillingMode: 'PAY_PER_REQUEST',
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' },
+      { AttributeName: 'customer_id', AttributeType: 'S' },
+      { AttributeName: 'electrician_id', AttributeType: 'S' },
+      { AttributeName: 'status', AttributeType: 'S' },
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'CustomerIndex',
+        KeySchema: [{ AttributeName: 'customer_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'ElectricianIndex',
+        KeySchema: [{ AttributeName: 'electrician_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'StatusIndex',
+        KeySchema: [{ AttributeName: 'status', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+    ],
+  },
+  {
+    TableName: 'evision_service_bookings',
+    BillingMode: 'PAY_PER_REQUEST',
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' },
+      { AttributeName: 'request_id', AttributeType: 'S' },
+      { AttributeName: 'customer_id', AttributeType: 'S' },
+      { AttributeName: 'electrician_id', AttributeType: 'S' },
+      { AttributeName: 'status', AttributeType: 'S' },
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'RequestIndex',
+        KeySchema: [{ AttributeName: 'request_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'CustomerIndex',
+        KeySchema: [{ AttributeName: 'customer_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'ElectricianIndex',
+        KeySchema: [{ AttributeName: 'electrician_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'StatusIndex',
+        KeySchema: [{ AttributeName: 'status', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+    ],
+  },
+  {
+    TableName: 'evision_reviews',
+    BillingMode: 'PAY_PER_REQUEST',
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    AttributeDefinitions: [
+      { AttributeName: 'id', AttributeType: 'S' },
+      { AttributeName: 'electrician_id', AttributeType: 'S' },
+      { AttributeName: 'customer_id', AttributeType: 'S' },
+      { AttributeName: 'booking_id', AttributeType: 'S' },
+    ],
+    GlobalSecondaryIndexes: [
+      {
+        IndexName: 'ElectricianIndex',
+        KeySchema: [{ AttributeName: 'electrician_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'CustomerIndex',
+        KeySchema: [{ AttributeName: 'customer_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'BookingIndex',
+        KeySchema: [{ AttributeName: 'booking_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+    ],
+  },
 ];
 
 async function setup() {
