@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
@@ -99,7 +100,9 @@ export default function AdminOrdersPage() {
                 {rows.map((row) => (
                   <tr key={row.id} className="hover:bg-ev-surface2/80 transition-colors">
                     <td className="px-4 py-3 font-mono text-xs text-ev-muted max-w-[180px] truncate">
-                      {row.id}
+                      <Link href={`/admin/orders/${row.id}`} className="hover:text-ev-primary underline-offset-2 hover:underline">
+                        {row.id}
+                      </Link>
                     </td>
                     <td className="px-4 py-3">
                       <span className={`ev-badge border text-[11px] font-semibold uppercase tracking-wide ${statusColors[row.status ?? ''] ?? 'bg-ev-subtle/20 text-ev-muted border-ev-border'}`}>

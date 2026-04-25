@@ -260,4 +260,35 @@ export class EmailService {
       trigger_event: data.stage,
     });
   }
+
+  async sendInvoiceGenerated(
+    customerEmail: string,
+    data: {
+      customerName: string;
+      orderId: string;
+      invoiceNumber: string;
+      customerInvoiceUrl: string;
+      dealerInvoiceUrl?: string;
+      gstInvoiceUrl?: string;
+    },
+    attachments: Array<{ filename: string; content: Buffer; contentType: string }>,
+  ) {
+    const html = this.interpolate(this.loadTemplate('invoice-generated'), {
+      customer_name: data.customerName,
+      order_id: data.orderId,
+      invoice_number: data.invoiceNumber,
+      customer_invoice_url: data.customerInvoiceUrl,
+      dealer_invoice_url: data.dealerInvoiceUrl || '',
+      gst_invoice_url: data.gstInvoiceUrl || '',
+      orders_url: `${this.config.get('FRONTEND_URL')}/orders`,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: `Invoice generated — ${data.invoiceNumber}`,
+      html,
+      trigger_event: 'invoice_generated',
+      attachments,
+    });
+  }
 }
