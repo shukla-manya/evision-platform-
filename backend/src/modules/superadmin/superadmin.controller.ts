@@ -1,7 +1,8 @@
-import { Controller, Get, Put, Param, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Put, Delete, Param, Body, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { IsString, IsOptional } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsOptional, IsNumber, Min, Max } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { SuperadminService } from './superadmin.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -24,6 +25,15 @@ class ReviewElectricianDto {
   @IsOptional()
   @IsString()
   reason?: string;
+}
+
+class PlatformCommissionDto {
+  @ApiProperty({ example: 10, description: 'Percent of each order retained by platform' })
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  platform_commission_pct: number;
 }
 
 @ApiTags('Superadmin')
@@ -64,6 +74,18 @@ export class SuperadminController {
     return this.superadminService.suspendAdmin(id);
   }
 
+  @Put('admin/:id/commission')
+  @ApiOperation({ summary: 'Set platform commission percent for a shop' })
+  setCommission(@Param('id') id: string, @Body() dto: PlatformCommissionDto) {
+    return this.superadminService.setPlatformCommission(id, dto.platform_commission_pct);
+  }
+
+  @Put('admin/:id/mark-settled')
+  @ApiOperation({ summary: 'Mark current settlement period as paid for a shop' })
+  markSettled(@Param('id') id: string) {
+    return this.superadminService.markShopSettled(id);
+  }
+
   @Get('pending-electricians')
   @ApiOperation({ summary: 'List all pending electrician registrations' })
   getPendingElectricians() {
@@ -86,10 +108,38 @@ export class SuperadminController {
     return this.superadminService.getAnalytics();
   }
 
+  @Get('settlements')
+  @ApiOperation({ summary: 'Payment settlements summary and per-shop rows' })
+  getSettlements() {
+    return this.superadminService.getSettlements();
+  }
+
+  @Get('reviews')
+  @ApiOperation({ summary: 'List all customer reviews (moderation)' })
+  listReviews() {
+    return this.superadminService.listReviews();
+  }
+
+  @Delete('reviews/:id')
+  @ApiOperation({ summary: 'Permanently delete a review' })
+  deleteReview(@Param('id') id: string) {
+    return this.superadminService.deleteReview(id);
+  }
+
   @Get('email-logs')
-  @ApiOperation({ summary: 'View all email logs' })
+  @ApiOperation({ summary: 'View email delivery history with optional filters' })
   @ApiQuery({ name: 'event', required: false })
-  getEmailLogs(@Query('event') event?: string) {
-    return this.superadminService.getEmailLogs(event);
+  @ApiQuery({ name: 'status', required: false, description: 'sent or failed' })
+  @ApiQuery({ name: 'to_role', required: false })
+  @ApiQuery({ name: 'date_from', required: false })
+  @ApiQuery({ name: 'date_to', required: false })
+  getEmailLogs(
+    @Query('event') event?: string,
+    @Query('status') status?: string,
+    @Query('to_role') to_role?: string,
+    @Query('date_from') date_from?: string,
+    @Query('date_to') date_to?: string,
+  ) {
+    return this.superadminService.getEmailLogs({ event, status, to_role, date_from, date_to });
   }
 }

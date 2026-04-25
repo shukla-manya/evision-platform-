@@ -91,7 +91,7 @@ export class EmailService {
       owner_name: adminData.ownerName,
       admin_email: adminData.email,
       admin_phone: adminData.phone,
-      dashboard_url: `${this.config.get('FRONTEND_URL')}/superadmin/admins`,
+      dashboard_url: `${this.config.get('FRONTEND_URL')}/super/shop-registrations`,
     });
     await this.send({
       to: superadminEmail,
@@ -141,7 +141,7 @@ export class EmailService {
       electrician_name: data.name,
       electrician_email: data.email,
       electrician_phone: data.phone,
-      review_url: `${this.config.get('FRONTEND_URL')}/superadmin/electricians`,
+      review_url: `${this.config.get('FRONTEND_URL')}/super/technicians`,
     });
     await this.send({
       to: superadminEmail,

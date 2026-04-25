@@ -17,7 +17,7 @@ api.interceptors.request.use((config) => {
 function loginPathFor401(): string {
   if (typeof window === 'undefined') return '/login';
   const p = window.location.pathname;
-  if (p.startsWith('/superadmin')) return '/superadmin/login';
+  if (p.startsWith('/super') || p.startsWith('/superadmin')) return '/super/signin';
   if (p.startsWith('/admin')) return '/admin/login';
   if (p.startsWith('/electrician')) return '/electrician/login';
   return '/login';
@@ -115,18 +115,30 @@ export const ordersApi = {
   cancelOrderGroup: (groupId: string) => api.post(`/orders/${groupId}/cancel`),
 };
 
-// ── Superadmin ─────────────────────────────────────────────────────────────
+// ── Superadmin (API path unchanged; UI lives at /super/* only) ─────────────
 export const superadminApi = {
   getPendingAdmins: () => api.get('/superadmin/pending-admins'),
   getAllAdmins: () => api.get('/superadmin/all-admins'),
   approveAdmin: (id: string) => api.put(`/superadmin/admin/${id}/approve`),
   rejectAdmin: (id: string, reason: string) => api.put(`/superadmin/admin/${id}/reject`, { reason }),
   suspendAdmin: (id: string) => api.put(`/superadmin/admin/${id}/suspend`),
+  setPlatformCommission: (id: string, platform_commission_pct: number) =>
+    api.put(`/superadmin/admin/${id}/commission`, { platform_commission_pct }),
+  markShopSettled: (id: string) => api.put(`/superadmin/admin/${id}/mark-settled`),
   getPendingElectricians: () => api.get('/superadmin/pending-electricians'),
   reviewElectrician: (id: string, body: { action: 'approve' | 'reject'; reason?: string }) =>
     api.put(`/superadmin/electrician/${id}/approve`, body),
   getAnalytics: () => api.get('/superadmin/analytics'),
-  getEmailLogs: (event?: string) => api.get('/superadmin/email-logs', { params: { event } }),
+  getSettlements: () => api.get('/superadmin/settlements'),
+  getReviews: () => api.get('/superadmin/reviews'),
+  deleteReview: (id: string) => api.delete(`/superadmin/reviews/${id}`),
+  getEmailLogs: (params?: {
+    event?: string;
+    status?: string;
+    to_role?: string;
+    date_from?: string;
+    date_to?: string;
+  }) => api.get('/superadmin/email-logs', { params }),
 };
 
 export const electricianApi = {

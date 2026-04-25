@@ -27,7 +27,7 @@ export function isLoggedIn(): boolean {
 
 export function redirectByRole(role: string): string {
   const routes: Record<string, string> = {
-    superadmin: '/superadmin/dashboard',
+    superadmin: '/super/dashboard',
     admin: '/admin/dashboard',
     customer: '/shop',
     dealer: '/dealer/dashboard',
