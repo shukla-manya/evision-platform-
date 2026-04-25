@@ -27,7 +27,8 @@ const nav = [
 export function SuperadminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [pendingCount, setPendingCount] = useState(0);
+  const [pendingAdminCount, setPendingAdminCount] = useState(0);
+  const [pendingElectricianCount, setPendingElectricianCount] = useState(0);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -35,9 +36,12 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
       router.replace('/superadmin/login');
       return;
     }
-    superadminApi
-      .getPendingAdmins()
-      .then((r) => setPendingCount(Array.isArray(r.data) ? r.data.length : 0))
+    Promise.all([
+      superadminApi.getPendingAdmins().then((r) => setPendingAdminCount(Array.isArray(r.data) ? r.data.length : 0)),
+      superadminApi
+        .getPendingElectricians()
+        .then((r) => setPendingElectricianCount(Array.isArray(r.data) ? r.data.length : 0)),
+    ])
       .catch(() => {})
       .finally(() => setReady(true));
   }, [router]);
@@ -68,7 +72,12 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {nav.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || (href !== '/superadmin/dashboard' && pathname.startsWith(href));
-            const badge = href === '/superadmin/pending-admins' ? pendingCount : 0;
+            const badge =
+              href === '/superadmin/pending-admins'
+                ? pendingAdminCount
+                : href === '/superadmin/pending-electricians'
+                  ? pendingElectricianCount
+                  : 0;
             return (
               <Link
                 key={href}
