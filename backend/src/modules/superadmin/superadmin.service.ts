@@ -117,6 +117,7 @@ export class SuperadminService {
     let platformRevenue = 0;
     let ordersToday = 0;
     const revenueByAdmin: Record<string, number> = {};
+    const orderCountByAdmin: Record<string, number> = {};
 
     for (const o of orders) {
       if (!isOrderCountable(String(o.status))) continue;
@@ -125,7 +126,10 @@ export class SuperadminService {
       const created = new Date(String(o.created_at || 0)).getTime();
       if (created >= todayMs) ordersToday += 1;
       const aid = String(o.admin_id || '');
-      if (aid) revenueByAdmin[aid] = (revenueByAdmin[aid] || 0) + amt;
+      if (aid) {
+        revenueByAdmin[aid] = (revenueByAdmin[aid] || 0) + amt;
+        orderCountByAdmin[aid] = (orderCountByAdmin[aid] || 0) + 1;
+      }
     }
 
     const revenue_by_shop = Object.entries(revenueByAdmin)
@@ -133,6 +137,7 @@ export class SuperadminService {
         admin_id,
         shop_name: String(adminById.get(admin_id)?.shop_name || 'Shop'),
         amount,
+        order_count: orderCountByAdmin[admin_id] || 0,
       }))
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 12);
