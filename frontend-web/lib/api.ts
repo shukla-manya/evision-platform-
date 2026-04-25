@@ -58,11 +58,9 @@ export const authApi = {
   me: () => api.get('/auth/me'),
 };
 
-/** Public multipart — no JSON Content-Type */
+/** Public multipart electrician self-registration */
 export async function registerElectricianFormData(formData: FormData) {
-  return api.post<{ message: string; electrician_id: string }>('/electrician/register', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  return api.post<{ message: string; electrician_id: string }>('/electrician/register', formData);
 }
 
 // ── Admin (shop) ───────────────────────────────────────────────────────────
