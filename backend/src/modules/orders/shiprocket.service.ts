@@ -1,150 +1,145 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DynamoService } from '../../common/dynamo/dynamo.service';
 
-type ShiprocketCreateShipmentInput = {
+export interface ShiprocketShipmentResult {
+  shiprocket_order_id: string;
+  shipment_id: string;
+  awb_number: string;
+  courier_name: string;
+}
+
+export interface ShiprocketShipParams {
   orderId: string;
-  orderDateIso: string;
-  pickupLocation: string;
+  orderDate: string; // YYYY-MM-DD
   customerName: string;
-  customerEmail: string;
   customerPhone: string;
-  billingAddress: string;
-  billingCity: string;
-  billingState: string;
-  billingPincode: string;
-  billingCountry: string;
-  paymentMethod: 'Prepaid' | 'COD';
-  subTotal: number;
+  deliveryAddress: string;
+  deliveryCity: string;
+  deliveryState: string;
+  deliveryPincode: string;
+  totalAmount: number;
+  weight: number; // kg
   items: Array<{ name: string; sku: string; units: number; selling_price: number }>;
-};
-
-type ShiprocketCreateShipmentResult = {
-  shiprocket_order_id: string | null;
-  shipment_id: string | null;
-  awb_number: string | null;
-  courier_name: string | null;
-  tracking_url: string | null;
-};
+}
 
 @Injectable()
 export class ShiprocketService {
   private readonly logger = new Logger(ShiprocketService.name);
+  private readonly apiBase: string;
   private token: string | null = null;
   private tokenExpiresAt = 0;
 
-  constructor(private config: ConfigService) {}
-
-  private baseUrl(): string {
-    return this.config.get<string>('SHIPROCKET_BASE_URL') || 'https://apiv2.shiprocket.in';
+  constructor(
+    private config: ConfigService,
+    private dynamo: DynamoService,
+  ) {
+    this.apiBase = `${config.get<string>('SHIPROCKET_BASE_URL', 'https://apiv2.shiprocket.in')}/v1/external`;
   }
 
-  private async request(path: string, init: RequestInit, requireAuth = true): Promise<any> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...(init.headers as Record<string, string> | undefined),
-    };
-    if (requireAuth) {
-      const token = await this.authToken();
-      headers.Authorization = `Bearer ${token}`;
-    }
-    const res = await fetch(`${this.baseUrl()}${path}`, {
-      ...init,
-      headers,
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      this.logger.error(`Shiprocket API error ${res.status} ${path}: ${JSON.stringify(data)}`);
-      throw new BadRequestException('Shiprocket request failed');
-    }
-    return data;
-  }
-
-  private async authToken(): Promise<string> {
-    const now = Date.now();
-    if (this.token && now < this.tokenExpiresAt) return this.token;
+  private async getToken(): Promise<string> {
+    if (this.token && Date.now() < this.tokenExpiresAt) return this.token;
 
     const email = this.config.get<string>('SHIPROCKET_EMAIL');
     const password = this.config.get<string>('SHIPROCKET_PASSWORD');
     if (!email || !password) {
-      throw new BadRequestException('Shiprocket credentials missing in env');
+      throw new BadRequestException('Shiprocket credentials not configured. Set SHIPROCKET_EMAIL and SHIPROCKET_PASSWORD.');
     }
-    const data = await this.request(
-      '/v1/external/auth/login',
-      {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      },
-      false,
-    );
+    const res = await fetch(`${this.apiBase}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
     const token = String(data.token || '');
-    if (!token) throw new BadRequestException('Shiprocket token not returned');
+    if (!token) {
+      throw new BadRequestException(`Shiprocket authentication failed: ${JSON.stringify(data)}`);
+    }
     this.token = token;
-    this.tokenExpiresAt = now + 1000 * 60 * 45;
+    this.tokenExpiresAt = Date.now() + 45 * 60 * 1000; // 45-minute safety margin (tokens last 10 days)
     return token;
   }
 
-  async createShipment(input: ShiprocketCreateShipmentInput): Promise<ShiprocketCreateShipmentResult> {
-    const payload = {
-      order_id: input.orderId,
-      order_date: input.orderDateIso,
-      pickup_location: input.pickupLocation,
-      channel_id: '',
-      comment: 'Order from E Vision',
-      billing_customer_name: input.customerName,
-      billing_last_name: '',
-      billing_address: input.billingAddress,
-      billing_address_2: '',
-      billing_city: input.billingCity,
-      billing_pincode: input.billingPincode,
-      billing_state: input.billingState,
-      billing_country: input.billingCountry,
-      billing_email: input.customerEmail,
-      billing_phone: input.customerPhone,
+  private async api<T>(path: string, method: 'GET' | 'POST', body?: Record<string, unknown>): Promise<T> {
+    const token = await this.getToken();
+    const res = await fetch(`${this.apiBase}${path}`, {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      this.logger.error(`Shiprocket ${method} ${path} → ${res.status}: ${JSON.stringify(data)}`);
+      throw new BadRequestException(`Shiprocket request failed: ${JSON.stringify(data)}`);
+    }
+    return data as T;
+  }
+
+  async createShipment(params: ShiprocketShipParams): Promise<ShiprocketShipmentResult> {
+    const pickupLocation = this.config.get<string>('SHIPROCKET_PICKUP_LOCATION', 'Primary');
+
+    const createRes = await this.api<Record<string, unknown>>('/orders/create/adhoc', 'POST', {
+      order_id: params.orderId,
+      order_date: params.orderDate,
+      pickup_location: pickupLocation,
+      billing_customer_name: params.customerName,
+      billing_phone: params.customerPhone,
+      billing_email: '',
+      billing_address: params.deliveryAddress,
+      billing_city: params.deliveryCity,
+      billing_state: params.deliveryState,
+      billing_country: 'India',
+      billing_pincode: params.deliveryPincode,
       shipping_is_billing: true,
-      order_items: input.items,
-      payment_method: input.paymentMethod,
+      order_items: params.items,
+      payment_method: 'Prepaid',
       shipping_charges: 0,
-      giftwrap_charges: 0,
-      transaction_charges: 0,
       total_discount: 0,
-      sub_total: input.subTotal,
+      sub_total: params.totalAmount,
       length: 10,
       breadth: 10,
       height: 10,
-      weight: 0.5,
-    };
-
-    const createRes = await this.request('/v1/external/orders/create/adhoc', {
-      method: 'POST',
-      body: JSON.stringify(payload),
+      weight: params.weight,
     });
 
-    const shiprocketOrderId = createRes.order_id != null ? String(createRes.order_id) : null;
-    const shipmentId = createRes.shipment_id != null ? String(createRes.shipment_id) : null;
-    let awb = createRes.awb_code != null ? String(createRes.awb_code) : null;
-    let courier = createRes.courier_name != null ? String(createRes.courier_name) : null;
+    const shiprocketOrderId = String(createRes.order_id || '');
+    const shipmentId = String(createRes.shipment_id || '');
 
-    if (shipmentId && !awb) {
-      const awbRes = await this.request('/v1/external/courier/assign/awb', {
-        method: 'POST',
-        body: JSON.stringify({ shipment_id: shipmentId }),
-      });
-      const carrierData = (awbRes.response && awbRes.response.data) || awbRes.data || awbRes;
-      awb = carrierData.awb_code != null ? String(carrierData.awb_code) : awb;
-      courier =
-        carrierData.courier_name != null
-          ? String(carrierData.courier_name)
-          : carrierData.courier_company_name != null
-            ? String(carrierData.courier_company_name)
-            : courier;
+    if (!shiprocketOrderId || !shipmentId) {
+      throw new BadRequestException(`Shiprocket order creation failed: ${JSON.stringify(createRes)}`);
     }
 
-    return {
-      shiprocket_order_id: shiprocketOrderId,
-      shipment_id: shipmentId,
-      awb_number: awb,
-      courier_name: courier,
-      tracking_url: awb ? `https://shiprocket.co/tracking/${awb}` : null,
-    };
+    // Auto-assign AWB
+    let awb = String(createRes.awb_code || '');
+    let courierName = String(createRes.courier_name || '');
+
+    if (!awb) {
+      const awbRes = await this.api<Record<string, unknown>>('/courier/assign/awb', 'POST', {
+        shipment_id: shipmentId,
+      });
+      const d = ((awbRes.response as Record<string, unknown>)?.data ?? awbRes) as Record<string, unknown>;
+      awb = String(d.awb_code || awbRes.awb_code || '');
+      courierName = String(d.courier_name ?? d.courier_company_name ?? awbRes.courier_name ?? 'Courier');
+    }
+
+    if (!awb) {
+      throw new BadRequestException(`AWB assignment failed: ${JSON.stringify({ shiprocketOrderId, shipmentId })}`);
+    }
+
+    this.logger.log(`Shipment created: order=${params.orderId} AWB=${awb} courier=${courierName}`);
+    return { shiprocket_order_id: shiprocketOrderId, shipment_id: shipmentId, awb_number: awb, courier_name: courierName };
+  }
+
+  async findOrderByAwb(awb: string): Promise<Record<string, unknown> | null> {
+    const items = await this.dynamo.scan({
+      TableName: this.dynamo.tableName('orders'),
+      FilterExpression: 'awb_number = :awb',
+      ExpressionAttributeValues: { ':awb': awb },
+    });
+    return (items[0] as Record<string, unknown>) ?? null;
+  }
+
+  trackingUrl(awb: string): string {
+    return `https://shiprocket.co/tracking/${awb}`;
   }
 }
