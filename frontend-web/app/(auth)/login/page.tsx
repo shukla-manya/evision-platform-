@@ -16,8 +16,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
+  const [adminOtp, setAdminOtp] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [adminLoginToken, setAdminLoginToken] = useState('');
 
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
@@ -63,13 +65,21 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await (mode === 'superadmin'
-        ? authApi.superadminLogin(email, password)
-        : authApi.adminLogin(email, password));
       const role = mode === 'superadmin' ? 'superadmin' : 'admin';
-      saveToken(data.access_token, role);
-      toast.success('Logged in!');
-      router.push(redirectByRole(role));
+      if (!adminLoginToken) {
+        const { data } = await (mode === 'superadmin'
+          ? authApi.superadminLogin(email, password)
+          : authApi.adminLogin(email, password));
+        setAdminLoginToken(data.login_token);
+        toast.success('OTP sent to your registered phone');
+      } else {
+        const { data } = await (mode === 'superadmin'
+          ? authApi.superadminLoginVerify(adminLoginToken, adminOtp)
+          : authApi.adminLoginVerify(adminLoginToken, adminOtp));
+        saveToken(data.access_token, role);
+        toast.success('Logged in!');
+        router.push(redirectByRole(role));
+      }
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Invalid credentials'));
     } finally {
@@ -101,13 +111,18 @@ export default function LoginPage() {
         {/* Tab switcher */}
         <div className="ev-card p-1 flex gap-1 mb-6">
           {[
-            { key: 'otp-phone', label: 'Customer / Dealer' },
+            { key: 'otp-phone', label: 'Customer / Dealer / Electrician' },
             { key: 'admin', label: 'Shop Admin' },
             { key: 'superadmin', label: 'Superadmin' },
           ].map(({ key, label }) => (
             <button
               key={key}
-              onClick={() => { setMode(key as Mode); setOtp(''); }}
+              onClick={() => {
+                setMode(key as Mode);
+                setOtp('');
+                setAdminOtp('');
+                setAdminLoginToken('');
+              }}
               className={`flex-1 py-2 px-3 rounded-xl text-xs font-medium transition-all duration-150 ${
                 mode === key || (key === 'otp-phone' && mode === 'otp-code')
                   ? 'bg-ev-primary text-white shadow-ev-glow'
@@ -181,41 +196,76 @@ export default function LoginPage() {
             </form>
           )}
 
-          {/* Admin / Superadmin — Email+Password */}
+          {/* Admin / Superadmin — Password then OTP */}
           {(mode === 'admin' || mode === 'superadmin') && (
             <form onSubmit={handleAdminLogin} className="space-y-5">
-              <div>
-                <label className="ev-label">Email Address</label>
-                <div className="relative">
-                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                  <input
-                    type="email"
-                    className="ev-input pl-10"
-                    placeholder="admin@yourshop.com"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="ev-label">Password</label>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                  <input
-                    type="password"
-                    className="ev-input pl-10"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                {loading ? <Loader2 size={16} className="animate-spin" /> : `Sign in as ${mode === 'superadmin' ? 'Superadmin' : 'Admin'}`}
-              </button>
-              {mode === 'admin' && (
+              {!adminLoginToken ? (
+                <>
+                  <div>
+                    <label className="ev-label">Email Address</label>
+                    <div className="relative">
+                      <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                      <input
+                        type="email"
+                        className="ev-input pl-10"
+                        placeholder="admin@yourshop.com"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="ev-label">Password</label>
+                    <div className="relative">
+                      <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                      <input
+                        type="password"
+                        className="ev-input pl-10"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : 'Continue to OTP'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="text-center mb-2">
+                    <p className="text-ev-muted text-sm">Password verified. Enter OTP sent to your phone.</p>
+                  </div>
+                  <div>
+                    <label className="ev-label">Enter 6-digit OTP</label>
+                    <input
+                      type="text"
+                      className="ev-input text-center text-xl tracking-[0.4em] font-mono"
+                      placeholder="• • • • • •"
+                      maxLength={6}
+                      value={adminOtp}
+                      onChange={e => setAdminOtp(e.target.value.replace(/\D/g, ''))}
+                      required
+                    />
+                  </div>
+                  <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
+                    {loading ? <Loader2 size={16} className="animate-spin" /> : `Verify OTP & Sign in`}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAdminLoginToken('');
+                      setAdminOtp('');
+                    }}
+                    className="w-full text-center text-ev-subtle text-sm hover:text-ev-muted"
+                  >
+                    ← Change credentials
+                  </button>
+                </>
+              )}
+              {mode === 'admin' && !adminLoginToken && (
                 <p className="text-center text-ev-subtle text-sm">
                   No account?{' '}
                   <Link href="/admin/register" className="text-ev-primary hover:text-ev-primary-light">

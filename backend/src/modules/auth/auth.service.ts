@@ -10,7 +10,12 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
-import { RegisterDto, AdminLoginDto, SuperadminLoginDto } from './dto/register.dto';
+import {
+  RegisterDto,
+  AdminLoginDto,
+  SuperadminLoginDto,
+  LoginOtpVerifyDto,
+} from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -67,18 +72,7 @@ export class AuthService {
   }
 
   async verifyOtp(phone: string, otp: string): Promise<{ access_token: string; is_registered: boolean }> {
-    const record = await this.dynamo.get(this.dynamo.tableName('otps'), { phone });
-
-    if (!record) throw new UnauthorizedException('OTP not found or expired');
-    if (record.otp !== otp) throw new UnauthorizedException('Invalid OTP');
-
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    if (record.expires_at < nowSeconds) {
-      await this.dynamo.delete(this.dynamo.tableName('otps'), { phone });
-      throw new UnauthorizedException('OTP has expired');
-    }
-
-    await this.dynamo.delete(this.dynamo.tableName('otps'), { phone });
+    await this.consumeOtp(phone, otp);
 
     // Check if user exists
     const existing = await this.findUserByPhone(phone);
@@ -97,6 +91,7 @@ export class AuthService {
 
   // ── Registration ──────────────────────────────────────────────────────────
   async register(dto: RegisterDto): Promise<{ access_token: string; user: any }> {
+    await this.consumeOtp(dto.phone, dto.otp);
     if (dto.role === 'dealer' && !dto.gst_no) {
       throw new BadRequestException('GST number is required for dealer accounts');
     }
@@ -129,7 +124,7 @@ export class AuthService {
   }
 
   // ── Admin Login (email + password) ────────────────────────────────────────
-  async adminLogin(dto: AdminLoginDto): Promise<{ access_token: string; admin: any }> {
+  async adminLogin(dto: AdminLoginDto): Promise<{ otp_sent: boolean; login_token: string }> {
     const admin = await this.findAdminByEmail(dto.email);
     if (!admin) throw new UnauthorizedException('Invalid credentials');
     if (admin.status !== 'approved') {
@@ -142,20 +137,82 @@ export class AuthService {
 
     const valid = await bcrypt.compare(dto.password, admin.password_hash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
+    if (!admin.phone) {
+      throw new BadRequestException('Admin phone is missing; cannot complete OTP login');
+    }
+    await this.sendOtp(String(admin.phone));
+    const login_token = this.jwt.sign(
+      {
+        sub: admin.id,
+        role: 'admin',
+        email: admin.email,
+        phone: admin.phone,
+        otp_login: 'admin',
+      },
+      { expiresIn: '10m' },
+    );
+    return { otp_sent: true, login_token };
+  }
 
+  async adminLoginVerify(dto: LoginOtpVerifyDto): Promise<{ access_token: string; admin: any }> {
+    let payload: Record<string, unknown>;
+    try {
+      payload = this.jwt.verify<Record<string, unknown>>(dto.login_token);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired login token');
+    }
+    if (payload.otp_login !== 'admin') throw new UnauthorizedException('Invalid login token');
+    const phone = String(payload.phone || '');
+    const adminId = String(payload.sub || '');
+    if (!phone || !adminId) throw new UnauthorizedException('Invalid login token payload');
+    await this.consumeOtp(phone, dto.otp);
+
+    const admin = await this.dynamo.get(this.dynamo.tableName('admins'), { id: adminId });
+    if (!admin) throw new UnauthorizedException('Admin not found');
     const token = this.signToken(admin.id, 'admin', admin.email);
     const { password_hash, ...safeAdmin } = admin;
     return { access_token: token, admin: safeAdmin };
   }
 
   // ── Superadmin Login ──────────────────────────────────────────────────────
-  async superadminLogin(dto: SuperadminLoginDto): Promise<{ access_token: string }> {
+  async superadminLogin(dto: SuperadminLoginDto): Promise<{ otp_sent: boolean; login_token: string }> {
     const sa = await this.dynamo.get(this.dynamo.tableName('superadmin'), { id: 'SUPERADMIN' });
     if (!sa) throw new UnauthorizedException('Superadmin not found');
 
     const valid = await bcrypt.compare(dto.password, sa.password_hash);
     if (!valid || sa.email !== dto.email) throw new UnauthorizedException('Invalid credentials');
+    const saPhone = String(sa.phone || this.config.get<string>('SUPERADMIN_PHONE') || '');
+    if (!saPhone) {
+      throw new BadRequestException('Superadmin phone is missing; set SUPERADMIN_PHONE in env');
+    }
+    await this.sendOtp(saPhone);
+    const login_token = this.jwt.sign(
+      {
+        sub: 'SUPERADMIN',
+        role: 'superadmin',
+        email: sa.email,
+        phone: saPhone,
+        otp_login: 'superadmin',
+      },
+      { expiresIn: '10m' },
+    );
+    return { otp_sent: true, login_token };
+  }
 
+  async superadminLoginVerify(dto: LoginOtpVerifyDto): Promise<{ access_token: string }> {
+    let payload: Record<string, unknown>;
+    try {
+      payload = this.jwt.verify<Record<string, unknown>>(dto.login_token);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired login token');
+    }
+    if (payload.otp_login !== 'superadmin') throw new UnauthorizedException('Invalid login token');
+    const phone = String(payload.phone || '');
+    if (!phone) throw new UnauthorizedException('Invalid login token payload');
+    await this.consumeOtp(phone, dto.otp);
+
+    const sa = await this.dynamo.get(this.dynamo.tableName('superadmin'), { id: 'SUPERADMIN' });
+    if (!sa) throw new UnauthorizedException('Superadmin not found');
     const token = this.signToken('SUPERADMIN', 'superadmin', sa.email);
     return { access_token: token };
   }
@@ -201,5 +258,20 @@ export class AuthService {
       Limit: 1,
     });
     return items[0] || null;
+  }
+
+  private async consumeOtp(phone: string, otp: string): Promise<void> {
+    const record = await this.dynamo.get(this.dynamo.tableName('otps'), { phone });
+
+    if (!record) throw new UnauthorizedException('OTP not found or expired');
+    if (record.otp !== otp) throw new UnauthorizedException('Invalid OTP');
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (record.expires_at < nowSeconds) {
+      await this.dynamo.delete(this.dynamo.tableName('otps'), { phone });
+      throw new UnauthorizedException('OTP has expired');
+    }
+
+    await this.dynamo.delete(this.dynamo.tableName('otps'), { phone });
   }
 }

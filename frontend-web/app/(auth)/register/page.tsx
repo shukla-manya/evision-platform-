@@ -6,16 +6,34 @@ import { Zap, User, Mail, Phone, Building2, ArrowRight, Loader2 } from 'lucide-r
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
-import { saveToken, parseJwt } from '@/lib/auth';
+import { saveToken, parseJwt, redirectByRole } from '@/lib/auth';
 
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'customer' | 'dealer'>('customer');
-  const [form, setForm] = useState({ name: '', email: '', phone: '', gst_no: '', address: '' });
+  const [otpSending, setOtpSending] = useState(false);
+  const [role, setRole] = useState<'customer' | 'dealer' | 'electrician'>('customer');
+  const [form, setForm] = useState({ name: '', email: '', phone: '', gst_no: '', address: '', otp: '' });
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
+
+  async function handleSendOtp() {
+    const phone = form.phone.startsWith('+') ? form.phone : `+91${form.phone}`;
+    if (!phone || phone.length < 11) {
+      toast.error('Enter a valid mobile number first');
+      return;
+    }
+    setOtpSending(true);
+    try {
+      await authApi.sendOtp(phone);
+      toast.success('OTP sent to your phone');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Failed to send OTP'));
+    } finally {
+      setOtpSending(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,7 +44,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const phone = form.phone.startsWith('+') ? form.phone : `+91${form.phone}`;
-      const { data } = await authApi.register({ ...form, phone, role });
+      const { data } = await authApi.register({ ...form, phone, role, otp: form.otp });
       const payload = parseJwt(data.access_token);
       if (!payload || typeof payload.role !== 'string') {
         toast.error('Invalid session');
@@ -34,7 +52,7 @@ export default function RegisterPage() {
       }
       saveToken(data.access_token, payload.role);
       toast.success('Account created!');
-      router.push('/shop');
+      router.push(redirectByRole(payload.role));
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Registration failed'));
     } finally {
@@ -65,10 +83,11 @@ export default function RegisterPage() {
           {[
             { key: 'customer', label: 'Customer', desc: 'Personal orders' },
             { key: 'dealer', label: 'Dealer', desc: 'Bulk + GST' },
+            { key: 'electrician', label: 'Electrician', desc: 'Service purchase' },
           ].map(({ key, label, desc }) => (
             <button
               key={key}
-              onClick={() => setRole(key as 'customer' | 'dealer')}
+              onClick={() => setRole(key as 'customer' | 'dealer' | 'electrician')}
               className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-medium transition-all duration-150 ${
                 role === key ? 'bg-ev-primary text-white shadow-ev-glow' : 'text-ev-muted hover:text-ev-text'
               }`}
@@ -93,10 +112,31 @@ export default function RegisterPage() {
 
             <div>
               <label className="ev-label">Mobile Number</label>
-              <div className="relative">
+              <div className="relative mb-2">
                 <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
                 <input type="tel" className="ev-input pl-10" placeholder="+91 98765 43210" value={form.phone} onChange={set('phone')} required />
               </div>
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                className="text-sm text-ev-primary hover:text-ev-primary-light"
+                disabled={otpSending}
+              >
+                {otpSending ? 'Sending OTP...' : 'Send OTP'}
+              </button>
+            </div>
+
+            <div>
+              <label className="ev-label">Enter OTP</label>
+              <input
+                type="text"
+                className="ev-input text-center text-lg tracking-[0.35em] font-mono"
+                placeholder="• • • • • •"
+                maxLength={6}
+                value={form.otp}
+                onChange={e => setForm(f => ({ ...f, otp: e.target.value.replace(/\D/g, '') }))}
+                required
+              />
             </div>
 
             <div>

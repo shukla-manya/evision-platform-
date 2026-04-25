@@ -42,7 +42,11 @@ export const authApi = {
   verifyOtp: (phone: string, otp: string) => api.post('/auth/verify-otp', { phone, otp }),
   register: (data: Record<string, unknown>) => api.post('/auth/register', data),
   adminLogin: (email: string, password: string) => api.post('/auth/admin/login', { email, password }),
+  adminLoginVerify: (login_token: string, otp: string) =>
+    api.post('/auth/admin/login/verify', { login_token, otp }),
   superadminLogin: (email: string, password: string) => api.post('/auth/superadmin/login', { email, password }),
+  superadminLoginVerify: (login_token: string, otp: string) =>
+    api.post('/auth/superadmin/login/verify', { login_token, otp }),
   me: () => api.get('/auth/me'),
 };
 

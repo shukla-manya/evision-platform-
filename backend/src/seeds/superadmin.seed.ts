@@ -25,6 +25,7 @@ async function seedSuperadmin() {
   const email = process.env.SUPERADMIN_EMAIL;
   const password = process.env.SUPERADMIN_PASSWORD;
   const name = process.env.SUPERADMIN_NAME || 'Super Admin';
+  const phone = process.env.SUPERADMIN_PHONE || null;
 
   if (!email || !password) {
     console.error('✗ SUPERADMIN_EMAIL and SUPERADMIN_PASSWORD must be set in .env');
@@ -52,6 +53,7 @@ async function seedSuperadmin() {
         id: 'SUPERADMIN',
         name,
         email,
+        phone,
         password_hash,
         role: 'superadmin',
         created_at: new Date().toISOString(),

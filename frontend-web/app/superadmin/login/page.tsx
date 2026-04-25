@@ -13,16 +13,24 @@ export default function SuperadminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
+  const [loginToken, setLoginToken] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await authApi.superadminLogin(email, password);
-      saveToken(data.access_token, 'superadmin');
-      toast.success('Signed in');
-      router.push('/superadmin/dashboard');
+      if (!loginToken) {
+        const { data } = await authApi.superadminLogin(email, password);
+        setLoginToken(data.login_token);
+        toast.success('OTP sent to your registered phone');
+      } else {
+        const { data } = await authApi.superadminLoginVerify(loginToken, otp);
+        saveToken(data.access_token, 'superadmin');
+        toast.success('Signed in');
+        router.push('/superadmin/dashboard');
+      }
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Invalid credentials'));
     } finally {
@@ -48,39 +56,72 @@ export default function SuperadminLoginPage() {
         </div>
         <div className="ev-card p-8">
           <form onSubmit={onSubmit} className="space-y-5">
-            <div>
-              <label className="ev-label">Email</label>
-              <div className="relative">
-                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                <input
-                  type="email"
-                  className="ev-input pl-10"
-                  placeholder="superadmin@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="ev-label">Password</label>
-              <div className="relative">
-                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                <input
-                  type="password"
-                  className="ev-input pl-10"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
-            </div>
-            <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-              {loading ? <Loader2 size={18} className="animate-spin" /> : <>Continue <ArrowRight size={16} /></>}
-            </button>
+            {!loginToken ? (
+              <>
+                <div>
+                  <label className="ev-label">Email</label>
+                  <div className="relative">
+                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                    <input
+                      type="email"
+                      className="ev-input pl-10"
+                      placeholder="superadmin@company.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="ev-label">Password</label>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                    <input
+                      type="password"
+                      className="ev-input pl-10"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                    />
+                  </div>
+                </div>
+                <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : <>Continue <ArrowRight size={16} /></>}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-ev-muted text-center">Password verified. Enter OTP sent to your phone.</p>
+                <div>
+                  <label className="ev-label">OTP</label>
+                  <input
+                    type="text"
+                    className="ev-input text-center text-lg tracking-[0.35em] font-mono"
+                    placeholder="• • • • • •"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    maxLength={6}
+                    required
+                  />
+                </div>
+                <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : <>Verify OTP <ArrowRight size={16} /></>}
+                </button>
+                <button
+                  type="button"
+                  className="text-sm text-ev-subtle hover:text-ev-muted w-full"
+                  onClick={() => {
+                    setLoginToken('');
+                    setOtp('');
+                  }}
+                >
+                  ← Change email/password
+                </button>
+              </>
+            )}
             <p className="text-center text-sm text-ev-muted">
               <Link href="/login" className="text-ev-primary hover:text-ev-primary-light">
                 Other sign-in options

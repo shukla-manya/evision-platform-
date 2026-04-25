@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsEnum, IsOptional, Matches, MinLength } from 'class-validator';
+import { IsString, IsEmail, IsEnum, IsOptional, Matches, MinLength, Length } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -16,9 +16,15 @@ export class RegisterDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ enum: ['customer', 'dealer'] })
-  @IsEnum(['customer', 'dealer'])
-  role: 'customer' | 'dealer';
+  @ApiProperty({ enum: ['customer', 'dealer', 'electrician'] })
+  @IsEnum(['customer', 'dealer', 'electrician'])
+  role: 'customer' | 'dealer' | 'electrician';
+
+  @ApiProperty({ example: '482931', description: 'OTP sent to the same phone via /auth/send-otp' })
+  @IsString()
+  @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
+  @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
+  otp: string;
 
   @ApiPropertyOptional({ example: '07AABCU9603R1ZP', description: 'Required for dealers' })
   @IsOptional()
@@ -51,4 +57,16 @@ export class SuperadminLoginDto {
   @IsString()
   @MinLength(8)
   password: string;
+}
+
+export class LoginOtpVerifyDto {
+  @ApiProperty({ description: 'Temporary token returned from admin/superadmin login step 1' })
+  @IsString()
+  login_token: string;
+
+  @ApiProperty({ example: '482931' })
+  @IsString()
+  @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
+  @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
+  otp: string;
 }
