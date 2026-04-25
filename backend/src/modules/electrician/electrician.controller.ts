@@ -7,11 +7,12 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
   ApiBearerAuth,
@@ -31,6 +32,7 @@ import { ElectricianService } from './electrician.service';
 import { ServiceService } from '../service/service.service';
 import { RespondBookingDto } from '../service/dto/respond-booking.dto';
 import { UpdateJobStatusDto } from '../service/dto/update-job-status.dto';
+import { UpdateElectricianAvailabilityDto } from '../service/dto/update-electrician-availability.dto';
 import { ReviewsService } from '../reviews/reviews.service';
 
 @ApiTags('Electrician')
@@ -160,5 +162,59 @@ export class ElectricianController {
     @Body() dto: UpdateJobStatusDto,
   ) {
     return this.service.updateJobStatus(user.id, bookingId, dto);
+  }
+
+  @Get('bookings/pending')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List pending service bookings for current electrician' })
+  listPendingBookings(@CurrentUser() user: { id: string }) {
+    return this.service.listElectricianBookings(user.id, 'pending');
+  }
+
+  @Get('bookings/active')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List active service jobs for current electrician' })
+  listActiveBookings(@CurrentUser() user: { id: string }) {
+    return this.service.listElectricianBookings(user.id, 'active');
+  }
+
+  @Get('bookings/history')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List completed service jobs for current electrician' })
+  listHistoryBookings(@CurrentUser() user: { id: string }) {
+    return this.service.listElectricianBookings(user.id, 'history');
+  }
+
+  @Put('me/availability')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Set electrician online/offline availability' })
+  setAvailability(
+    @CurrentUser() user: { id: string },
+    @Body() dto: UpdateElectricianAvailabilityDto,
+  ) {
+    return this.service.setElectricianAvailability(user.id, dto.online);
+  }
+
+  @Post('job/:id/photo')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload work completion photo for a booking' })
+  @UseInterceptors(FileInterceptor('photo'))
+  uploadJobPhoto(
+    @CurrentUser() user: { id: string },
+    @Param('id') bookingId: string,
+    @UploadedFile() photo: Express.Multer.File,
+  ) {
+    return this.service.uploadJobPhoto(user.id, bookingId, photo);
   }
 }
