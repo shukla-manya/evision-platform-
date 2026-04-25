@@ -226,20 +226,12 @@ export class OrdersService {
 
     const user = await this.dynamo.get(this.usersTable(), { id: String(order.user_id) });
     if (user?.email) {
-      const courierName = String(order.courier_name || payload.courier_name || 'Courier');
-      const trackingNumber = awb;
-      const stageLabel: Record<string, 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered'> = {
-        picked_up: 'picked_up',
-        in_transit: 'in_transit',
-        out_for_delivery: 'out_for_delivery',
-        delivered: 'delivered',
-      };
       await this.email.sendOrderStageUpdate(String(user.email), {
         customerName: String(user.name || 'Customer'),
         orderId: String(order.id),
-        stage: stageLabel[internalStatus],
-        trackingNumber,
-        courierName,
+        stage: internalStatus as 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered',
+        trackingNumber: awb,
+        courierName: String(order.courier_name || payload.courier_name || 'Courier'),
       });
     }
 
