@@ -23,7 +23,7 @@ import { setApiTokenGetter, authApi, productApi, cartApi, checkoutApi, ordersApi
 import { clearToken, getToken, setToken } from './src/services/storage';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { openRazorpayCheckout } from './src/services/razorpay';
-import { ServiceTrackingScreen } from './src/screens/ServiceTrackingScreen';
+import { TrackingScreen } from './src/screens/TrackingScreen';
 import { ElectricianFlow } from './src/electrician/ElectricianFlow';
 
 type RootStackParamList = {
@@ -715,11 +715,7 @@ function MainTabs({ user, onLogout, fcmToken }: { user: AppUser | null; onLogout
       <Tab.Screen name="Home" component={homeScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
       <Tab.Screen name="Orders" component={MyOrdersScreen} options={{ title: 'My Orders' }} />
-      <Tab.Screen
-        name="ServiceTracking"
-        component={ServiceTrackingScreen}
-        options={{ title: 'Track Electrician' }}
-      />
+      <Tab.Screen name="ServiceTracking" component={TrackingScreen} options={{ title: 'Track Electrician' }} />
       {user?.role === 'dealer' && (
         <Tab.Screen
           name="DealerDashboard"
