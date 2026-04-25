@@ -204,8 +204,15 @@ export const electricianRegisterApi = {
 
 export const adminApi = {
   me: () => api.get('/admin/me'),
-  products: () => api.get<any[]>('/admin/products'),
-  product: (id: string) => api.get<any>(`/admin/products/${id}`),
+  uploadLogo: (file: { uri: string; name: string; type: string }) => {
+    const fd = new FormData();
+    fd.append('logo', file as never);
+    return api.post('/admin/upload-logo', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  getProducts: () => api.get<any[]>('/admin/products'),
+  getProduct: (id: string) => api.get<any>(`/admin/products/${id}`),
   createProduct: (payload: Record<string, unknown>) => api.post('/admin/products', payload),
   updateProduct: (id: string, payload: Record<string, unknown>) =>
     api.put(`/admin/products/${id}`, payload),
@@ -217,9 +224,13 @@ export const adminApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
-  orders: () => api.get<any[]>('/admin/orders'),
-  order: (id: string) => api.get<any>(`/admin/orders/${id}`),
+  getOrders: () => api.get<any[]>('/admin/orders'),
+  getOrder: (id: string) => api.get<any>(`/admin/orders/${id}`),
   shipOrder: (id: string, payload?: Record<string, unknown>) =>
     api.post(`/admin/orders/${id}/ship`, payload || {}),
-  invoices: () => api.get<any[]>('/admin/invoices'),
+  getInvoices: () => api.get<any[]>('/admin/invoices'),
+};
+
+export const catalogApi = {
+  getCategories: () => api.get<any[]>('/categories'),
 };
