@@ -108,10 +108,15 @@ export default function ShopPage() {
           </Link>
           <div className="flex items-center gap-2 shrink-0">
             {canAddToCart ? (
-              <Link href="/cart" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5">
-                <ShoppingCart size={15} />
-                Cart
-              </Link>
+              <>
+                <Link href="/orders" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5">
+                  Orders
+                </Link>
+                <Link href="/cart" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5">
+                  <ShoppingCart size={15} />
+                  Cart
+                </Link>
+              </>
             ) : null}
             <Link href="/login" className="text-ev-muted hover:text-ev-text text-sm hidden sm:inline">
               Sign in
@@ -195,7 +200,9 @@ export default function ShopPage() {
                   </div>
                   <div className="p-5 flex-1 flex flex-col">
                     <p className="text-ev-subtle text-xs uppercase tracking-wide mb-1 truncate">{p.shop_name || 'Partner shop'}</p>
-                    <h2 className="text-ev-text font-semibold text-lg leading-snug line-clamp-2">{p.name}</h2>
+                    <Link href={`/shop/${p.id}`} className="text-ev-text font-semibold text-lg leading-snug line-clamp-2 hover:text-ev-primary transition-colors">
+                      {p.name}
+                    </Link>
                     {p.brand ? <p className="text-ev-muted text-xs mt-1">{p.brand}</p> : null}
                     <p className="text-ev-muted text-sm mt-2 line-clamp-2 flex-1">{p.description}</p>
                     <div className="mt-4 flex items-end justify-between gap-3">
