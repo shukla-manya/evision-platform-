@@ -38,11 +38,8 @@ function OtpCells({
   );
 
   useEffect(() => {
-    if (disabled) return;
-    const firstEmpty = cells.findIndex((c) => !c);
-    const idx = firstEmpty === -1 ? 5 : firstEmpty;
-    refs.current[idx]?.focus();
-  }, [cells, disabled]);
+    refs.current[0]?.focus();
+  }, []);
 
   return (
     <div className="flex justify-center gap-2 sm:gap-3" role="group" aria-label="One-time password">
@@ -95,6 +92,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [phoneDigits, setPhoneDigits] = useState('');
   const [otpCells, setOtpCells] = useState<string[]>(['', '', '', '', '', '']);
+  const [otpMountId, setOtpMountId] = useState(0);
   const [resendSeconds, setResendSeconds] = useState(0);
   const [adminOtp, setAdminOtp] = useState('');
   const [email, setEmail] = useState('');
@@ -121,6 +119,7 @@ export default function LoginPage() {
       await authApi.sendOtp(formatted);
       toast.success('OTP sent to your phone');
       setOtpCells(['', '', '', '', '', '']);
+      setOtpMountId((n) => n + 1);
       setMode('otp-code');
       setResendSeconds(30);
     } catch (err: unknown) {
@@ -279,7 +278,7 @@ export default function LoginPage() {
             <form onSubmit={handleVerifyOtp} className="space-y-6">
               <div>
                 <label className="ev-label text-center block">Enter OTP (sent to your phone)</label>
-                <OtpCells cells={otpCells} onCellsChange={setOtpCells} disabled={loading} />
+                <OtpCells key={otpMountId} cells={otpCells} onCellsChange={setOtpCells} disabled={loading} />
               </div>
               <button
                 type="submit"
