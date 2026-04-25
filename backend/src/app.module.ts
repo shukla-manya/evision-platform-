@@ -8,6 +8,8 @@ import { AdminModule } from './modules/admin/admin.module';
 import { SuperadminModule } from './modules/superadmin/superadmin.module';
 import { EmailModule } from './modules/emails/email.module';
 import { ProductsModule } from './modules/products/products.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { InvoicesModule } from './modules/invoices/invoices.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { ProductsModule } from './modules/products/products.module';
     AdminModule,
     SuperadminModule,
     ProductsModule,
+    OrdersModule,
+    InvoicesModule,
   ],
 })
 export class AppModule {}
