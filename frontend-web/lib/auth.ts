@@ -30,7 +30,7 @@ export function redirectByRole(role: string): string {
     superadmin: '/superadmin/dashboard',
     admin: '/admin/dashboard',
     customer: '/shop',
-    dealer: '/shop',
+    dealer: '/dealer/dashboard',
     electrician: '/electrician/dashboard',
   };
   return routes[role] || '/';

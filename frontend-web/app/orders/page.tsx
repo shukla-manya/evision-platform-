@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Loader2, PackageCheck, ChevronDown, ChevronUp, Ban } from 'lucide-react';
+import { Loader2, PackageCheck, ChevronDown, ChevronUp, Ban, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ordersApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
@@ -22,6 +22,9 @@ type SubOrder = {
   status?: string;
   total_amount?: number;
   items: OrderItem[];
+  customer_invoice_url?: string | null;
+  dealer_invoice_url?: string | null;
+  gst_invoice_url?: string | null;
 };
 
 type OrderGroup = {
@@ -155,6 +158,25 @@ export default function MyOrdersPage() {
                             </div>
                           ))}
                         </div>
+                        {(role === 'dealer' || role === 'customer') && (() => {
+                          const invoices = [sub.dealer_invoice_url, sub.gst_invoice_url, sub.customer_invoice_url].filter((u): u is string => !!u);
+                          return invoices.length > 0 ? (
+                            <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-ev-border">
+                              {invoices.map((url, i) => (
+                                <a
+                                  key={i}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 text-xs text-ev-primary border border-ev-primary/20 rounded-lg px-3 py-1.5 hover:bg-ev-primary/5 transition-colors"
+                                >
+                                  <Download size={11} />
+                                  Invoice {i + 1}
+                                </a>
+                              ))}
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
                     ))}
                     {cancelableStatuses.has(String(group.status || '')) ? (
