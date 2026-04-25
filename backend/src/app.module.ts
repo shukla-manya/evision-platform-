@@ -17,6 +17,7 @@ import { PushModule } from './modules/push/push.module';
 import { ElectricianModule } from './modules/electrician/electrician.module';
 import { ServiceModule } from './modules/service/service.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
+import { LocationModule } from './modules/location/location.module';
 
 @Module({
   imports: [
