@@ -76,10 +76,11 @@ export default function AdminProductNewPage() {
         <Link href="/admin/products" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-4">
           <ArrowLeft size={14} /> Products
         </Link>
-        <h1 className="text-2xl font-bold text-ev-text mb-6">New product</h1>
+        <h1 className="text-2xl font-bold text-ev-text mb-2">Add new product</h1>
+        <p className="text-ev-muted text-sm mb-6">List items for your LensCart catalogue.</p>
         <form onSubmit={onSubmit} className="ev-card p-6 sm:p-8 space-y-5">
           <div>
-            <label className="ev-label">Name</label>
+            <label className="ev-label">Product name</label>
             <input
               className="ev-input"
               value={form.name}
@@ -95,6 +96,32 @@ export default function AdminProductNewPage() {
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               required
+            />
+          </div>
+          <div>
+            <label className="ev-label">Category</label>
+            <select
+              className="ev-input"
+              value={form.category_id}
+              onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
+              required
+            >
+              <option value="">Select category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.parent_id ? `↳ ${c.name}` : c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="ev-label">Upload images (multiple)</label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="text-ev-muted text-sm w-full"
+              onChange={(e) => setFiles(Array.from(e.target.files || []))}
             />
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -123,9 +150,13 @@ export default function AdminProductNewPage() {
               />
             </div>
           </div>
+          <div className="rounded-xl border border-ev-border bg-ev-surface2/60 p-4 text-sm text-ev-muted leading-relaxed">
+            <span className="font-semibold text-ev-text">Price note:</span> Customer price and dealer price are separate fields.
+            Customers only see the customer price. Dealers only see the dealer price in their catalogue.
+          </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className="ev-label">Stock</label>
+              <label className="ev-label">Stock quantity</label>
               <input
                 type="number"
                 min={0}
@@ -136,7 +167,7 @@ export default function AdminProductNewPage() {
               />
             </div>
             <div>
-              <label className="ev-label">Low stock alert at</label>
+              <label className="ev-label">Low stock alert at (units)</label>
               <input
                 type="number"
                 min={0}
@@ -147,34 +178,8 @@ export default function AdminProductNewPage() {
             </div>
           </div>
           <div>
-            <label className="ev-label">Category</label>
-            <select
-              className="ev-input"
-              value={form.category_id}
-              onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
-              required
-            >
-              <option value="">Select category</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.parent_id ? `↳ ${c.name}` : c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
             <label className="ev-label">Brand (optional)</label>
             <input className="ev-input" value={form.brand} onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} />
-          </div>
-          <div>
-            <label className="ev-label">Images (optional)</label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="text-ev-muted text-sm w-full"
-              onChange={(e) => setFiles(Array.from(e.target.files || []))}
-            />
           </div>
           <label className="flex items-center gap-2 text-sm text-ev-text cursor-pointer">
             <input

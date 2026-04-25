@@ -40,9 +40,12 @@ export default function AdminRegisterPage() {
     }
     setLoading(true);
     try {
-      const phone = form.phone.startsWith('+') ? form.phone : `+91${form.phone.replace(/\D/g, '').slice(-10)}`;
+      const raw = form.phone.trim();
+      const phone = raw.startsWith('+')
+        ? raw.replace(/\s/g, '')
+        : `+91${raw.replace(/\D/g, '').replace(/^91/, '').slice(-10)}`;
       if (!/^\+[1-9]\d{9,14}$/.test(phone)) {
-        toast.error('Enter a valid phone number (include country code, e.g. +91…) ');
+        toast.error('Enter a valid phone number (e.g. +91 98765 43210)');
         setLoading(false);
         return;
       }
