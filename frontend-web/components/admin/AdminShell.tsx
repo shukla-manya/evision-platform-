@@ -43,16 +43,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     }
     adminApi
       .getMe()
-      .then((r) => {
-        const me = r.data as AdminMe;
-        setAdmin(me);
-        if (me?.status === 'pending' && pathname !== '/admin/dashboard') {
-          router.replace('/admin/dashboard');
-        }
-      })
+      .then((r) => setAdmin(r.data as AdminMe))
       .catch(() => router.replace('/admin/login'))
       .finally(() => setLoading(false));
-  }, [pathname, router]);
+  }, [router]);
+
+  useEffect(() => {
+    if (admin?.status === 'pending' && pathname !== '/admin/dashboard') {
+      router.replace('/admin/dashboard');
+    }
+  }, [admin, pathname, router]);
 
   if (loading) {
     return (
