@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useMemo, useState } from 'react';
+import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Plus, ShoppingCart } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -52,14 +52,24 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [product, setProduct] = useState<Product | null>(null);
   const [activeImage, setActiveImage] = useState(0);
 
-  useEffect(() => {
+  const loadProduct = useCallback(async () => {
     setLoading(true);
-    catalogApi
-      .getProduct(id)
-      .then((r) => setProduct((r.data || null) as Product | null))
-      .catch(() => toast.error('Could not load product'))
-      .finally(() => setLoading(false));
+    try {
+      const r = await catalogApi.getProduct(id);
+      setProduct((r.data || null) as Product | null);
+    } catch {
+      toast.error('Could not load product');
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void loadProduct();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [loadProduct]);
 
   return (
     <div className="min-h-screen bg-ev-bg">

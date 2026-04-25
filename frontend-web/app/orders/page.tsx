@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Loader2, PackageCheck, ChevronDown, ChevronUp, Ban, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -53,7 +53,7 @@ export default function MyOrdersPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await ordersApi.myOrders();
@@ -63,12 +63,15 @@ export default function MyOrdersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     if (!canUseOrders) return;
-    void load();
-  }, [canUseOrders]);
+    const timer = setTimeout(() => {
+      void load();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [canUseOrders, load]);
 
   async function cancel(groupId: string) {
     if (!confirm('Cancel this entire order group?')) return;

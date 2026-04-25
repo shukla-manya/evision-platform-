@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, ShoppingCart, Loader2, Package } from 'lucide-react';
@@ -58,15 +58,25 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [adding, setAdding] = useState(false);
 
-  useEffect(() => {
+  const loadProduct = useCallback(async () => {
     if (!id) return;
     setLoading(true);
-    catalogApi
-      .getProduct(id)
-      .then(({ data }) => setProduct(data as Product))
-      .catch(() => toast.error('Failed to load product'))
-      .finally(() => setLoading(false));
+    try {
+      const { data } = await catalogApi.getProduct(id);
+      setProduct(data as Product);
+    } catch {
+      toast.error('Failed to load product');
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void loadProduct();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [loadProduct]);
 
   async function addToCart() {
     if (!product) return;
