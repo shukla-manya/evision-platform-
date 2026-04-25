@@ -27,31 +27,33 @@
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
 
-  --color-ev-bg: #050b1a;
-  --color-ev-surface: #0d1626;
-  --color-ev-surface2: #142035;
-  --color-ev-border: #1e3a5f;
-  --color-ev-primary: #3b82f6;
-  --color-ev-primary-light: #60a5fa;
-  --color-ev-primary-dark: #2563eb;
-  --color-ev-accent: #f59e0b;
+  --color-ev-bg: #f8fafc;
+  --color-ev-surface: #ffffff;
+  --color-ev-surface2: #f1f5f9;
+  --color-ev-border: #e2e8f0;
+  --color-ev-primary: #4f46e5;
+  --color-ev-primary-light: #a78bfa;
+  --color-ev-primary-dark: #4f46e5;
+  --color-ev-accent: #ec4899;
   --color-ev-accent-light: #fbbf24;
-  --color-ev-text: #e2e8f0;
-  --color-ev-muted: #94a3b8;
-  --color-ev-subtle: #475569;
-  --color-ev-success: #10b981;
+  --color-ev-soft: #a78bfa;
+  --color-ev-highlight: #fbbf24;
+  --color-ev-text: #0f172a;
+  --color-ev-muted: #475569;
+  --color-ev-subtle: #94a3b8;
+  --color-ev-success: #059669;
   --color-ev-error: #ef4444;
   --color-ev-warning: #f59e0b;
 
-  --background-image-gradient-ev: linear-gradient(135deg, #0d1626 0%, #1a2a4a 100%);
-  --background-image-gradient-primary: linear-gradient(135deg, #3b82f6, #2563eb);
-  --background-image-gradient-accent: linear-gradient(135deg, #f59e0b, #d97706);
+  --background-image-gradient-ev: linear-gradient(135deg, #4f46e5 0%, #a78bfa 55%, #ec4899 100%);
+  --background-image-gradient-primary: linear-gradient(135deg, #4f46e5, #a78bfa);
+  --background-image-gradient-accent: linear-gradient(135deg, #ec4899, #fbbf24);
 
-  --shadow-ev-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-ev-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-ev-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-ev-glow: 0 0 20px rgba(59, 130, 246, 0.25);
-  --shadow-ev-glow-accent: 0 0 20px rgba(245, 158, 11, 0.25);
+  --shadow-ev-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-ev-md: 0 8px 20px rgba(15, 23, 42, 0.1);
+  --shadow-ev-lg: 0 16px 36px rgba(15, 23, 42, 0.12);
+  --shadow-ev-glow: 0 0 20px rgba(79, 70, 229, 0.25);
+  --shadow-ev-glow-accent: 0 0 20px rgba(236, 72, 153, 0.22);
 
   --animate-fade-in: fadeIn 0.3s ease-in-out;
   --animate-slide-up: slideUp 0.3s ease-out;
@@ -104,18 +106,34 @@
   }
 
   .ev-btn-primary {
-    @apply bg-gradient-primary text-white font-semibold px-6 py-3 rounded-xl
+    @apply bg-ev-primary text-white font-semibold px-6 py-3 rounded-xl
            hover:opacity-90 active:scale-95 transition-all duration-150
            disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
   }
 
   .ev-btn-secondary {
-    @apply bg-ev-surface2 border border-ev-border text-ev-text font-medium px-6 py-3 rounded-xl
-           hover:border-ev-primary hover:text-ev-primary-light transition-all duration-150;
+    @apply bg-ev-surface border border-ev-border text-ev-text font-medium px-6 py-3 rounded-xl
+           hover:border-ev-primary hover:text-ev-primary transition-all duration-150;
   }
 
   .ev-badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .ev-badge-offer {
+    @apply bg-ev-highlight text-ev-text;
+  }
+
+  .ev-status-success {
+    @apply bg-ev-success/10 text-ev-success border border-ev-success/25;
+  }
+
+  .ev-status-pending {
+    @apply bg-ev-warning/10 text-ev-warning border border-ev-warning/25;
+  }
+
+  .ev-status-error {
+    @apply bg-ev-error/10 text-ev-error border border-ev-error/25;
   }
 
   .ev-label {

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -22,14 +22,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#0d1626',
-              color: '#e2e8f0',
-              border: '1px solid #1e3a5f',
+              background: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
               borderRadius: '12px',
               fontSize: '14px',
             },
-            success: { iconTheme: { primary: '#10b981', secondary: '#0d1626' } },
-            error: { iconTheme: { primary: '#ef4444', secondary: '#0d1626' } },
+            success: { iconTheme: { primary: '#059669', secondary: '#ffffff' } },
+            error: { iconTheme: { primary: '#ef4444', secondary: '#ffffff' } },
           }}
         />
       </body>

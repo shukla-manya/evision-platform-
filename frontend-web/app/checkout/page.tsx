@@ -109,7 +109,7 @@ export default function CheckoutPage() {
         modal: {
           ondismiss: () => toast('Payment window closed'),
         },
-        theme: { color: '#3b82f6' },
+        theme: { color: '#4F46E5' },
       });
       rp.on('payment.failed', () => toast.error('Payment failed'));
       rp.open();

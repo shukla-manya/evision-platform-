@@ -93,7 +93,7 @@ export default function RegisterPage() {
               }`}
             >
               {label}
-              <span className={`block text-xs font-normal mt-0.5 ${role === key ? 'text-blue-100' : 'text-ev-subtle'}`}>
+              <span className={`block text-xs font-normal mt-0.5 ${role === key ? 'text-white/80' : 'text-ev-subtle'}`}>
                 {desc}
               </span>
             </button>

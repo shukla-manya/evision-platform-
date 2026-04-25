@@ -178,9 +178,9 @@ export default function ProductDetailPage() {
 
             <div className="flex items-center gap-2">
               <span
-                className={`inline-block w-2 h-2 rounded-full ${inStock ? 'bg-green-500' : 'bg-ev-error'}`}
+                className={`inline-block w-2 h-2 rounded-full ${inStock ? 'bg-ev-success' : 'bg-ev-error'}`}
               />
-              <span className={`text-sm ${inStock ? 'text-green-400' : 'text-ev-error'}`}>
+              <span className={`text-sm ${inStock ? 'text-ev-success' : 'text-ev-error'}`}>
                 {inStock
                   ? product.stock != null
                     ? `${product.stock} in stock`
