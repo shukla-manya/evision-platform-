@@ -170,6 +170,8 @@ export const serviceApi = {
 
 export const electricianApi = {
   me: () => api.get<ElectricianProfile>('/electrician/me'),
+  myBookings: () => api.get<ServiceBooking[]>('/electrician/my/bookings'),
+  myActiveBooking: () => api.get<ServiceBooking | null>('/electrician/my/active-booking'),
   pendingBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/pending'),
   activeBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/active'),
   historyBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/history'),
@@ -180,6 +182,7 @@ export const electricianApi = {
     status: 'on_the_way' | 'reached' | 'work_started' | 'completed',
   ) => api.put(`/electrician/job/${bookingId}/status`, { status }),
   setAvailability: (online: boolean) => api.put('/electrician/me/availability', { online }),
+  saveDeviceToken: (fcmToken: string) => api.post('/electrician/my/device-token', { fcm_token: fcmToken }),
   uploadWorkPhoto: (bookingId: string, formData: FormData) =>
     api.post(`/electrician/job/${bookingId}/photo`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

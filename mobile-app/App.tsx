@@ -18,8 +18,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { StatusBar } from 'expo-status-bar';
+import * as ImagePicker from 'expo-image-picker';
 import { Buffer } from 'buffer';
-import { setApiTokenGetter, authApi, productApi, cartApi, checkoutApi, ordersApi, Product, CartResponse, CheckoutResponse, API_BASE_URL } from './src/services/api';
+import { setApiTokenGetter, authApi, electricianApi, productApi, cartApi, checkoutApi, ordersApi, electricianRegisterApi, Product, CartResponse, CheckoutResponse, API_BASE_URL } from './src/services/api';
 import { clearToken, getToken, setToken } from './src/services/storage';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { openRazorpayCheckout } from './src/services/razorpay';
@@ -30,7 +31,7 @@ import { statusColor } from './src/theme/status';
 
 type RootStackParamList = {
   Auth: undefined;
-  Register: { phone?: string };
+  Register: { email?: string };
   Main: undefined;
   ProductDetail: { product: Product };
   Checkout: undefined;
@@ -95,20 +96,40 @@ function normalizePhone(phone: string) {
   return `+91${trimmed}`;
 }
 
-function LoginOtpScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string, user: AppUser) => void; navigation: any }) {
-  const [phone, setPhone] = useState('');
+async function pickImageAsset(label: string) {
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== 'granted') {
+    Alert.alert('Permission denied', `Please allow media access to upload ${label}.`);
+    return null;
+  }
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: false,
+    quality: 0.8,
+  });
+  if (result.canceled || !result.assets.length) return null;
+  return result.assets[0];
+}
+
+function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string, user: AppUser) => void; navigation: any }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [loginToken, setLoginToken] = useState('');
+  const [phoneHint, setPhoneHint] = useState('');
+  const [step, setStep] = useState<'credentials' | 'otp'>('credentials');
   const [loading, setLoading] = useState(false);
 
-  const sendOtp = async () => {
+  const startLogin = async () => {
     try {
       setLoading(true);
-      await authApi.sendOtp(normalizePhone(phone));
+      const { data } = await authApi.mobileLogin(email.trim().toLowerCase(), password);
+      setLoginToken(data.login_token);
+      setPhoneHint(data.phone);
       setStep('otp');
-      Alert.alert('OTP sent', 'Check your phone for verification code.');
+      Alert.alert('OTP sent', `Verification code sent to ${data.phone}.`);
     } catch (err) {
-      Alert.alert('Error', asApiError(err, 'Unable to send OTP.'));
+      Alert.alert('Login failed', asApiError(err, 'Unable to start login.'));
     } finally {
       setLoading(false);
     }
@@ -117,21 +138,21 @@ function LoginOtpScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string
   const verifyOtp = async () => {
     try {
       setLoading(true);
-      const { data } = await authApi.verifyOtp(normalizePhone(phone), otp);
-      if (!data.is_registered) {
-        navigation.navigate('Register', { phone: normalizePhone(phone) });
-        return;
-      }
+      const { data } = await authApi.mobileLoginVerify(loginToken, otp);
       const payload = parseJwt(data.access_token);
-      if (!payload?.sub || !payload?.role) {
+      const profile = data.profile || {};
+      const userId = String((profile as Record<string, unknown>).id || payload?.sub || '');
+      const role = String(data.role || payload?.role || '');
+      if (!userId || !role) {
         Alert.alert('Error', 'Invalid token payload.');
         return;
       }
       onLoggedIn(data.access_token, {
-        id: String(payload.sub),
-        role: String(payload.role),
-        email: payload.email ? String(payload.email) : undefined,
-        phone: payload.phone ? String(payload.phone) : undefined,
+        id: userId,
+        role,
+        email: String((profile as Record<string, unknown>).email || payload?.email || '') || undefined,
+        phone: String((profile as Record<string, unknown>).phone || payload?.phone || '') || undefined,
+        name: String((profile as Record<string, unknown>).name || '') || undefined,
       });
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'OTP verification failed.'));
@@ -143,17 +164,28 @@ function LoginOtpScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.centerBox}>
-        <Text style={styles.title}>E Vision Customer App</Text>
-        <Text style={styles.subtitle}>Login with OTP</Text>
-
+        <Text style={styles.title}>E Vision App</Text>
+        <Text style={styles.subtitle}>Universal login: email + password + OTP</Text>
         <TextInput
           style={styles.input}
-          placeholder="+91 9876543210"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
+          placeholder="Email"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
         />
+        {step === 'credentials' && (
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+        )}
         {step === 'otp' && (
+          <>
+          <Text style={styles.cardMeta}>Sent to: {phoneHint || '-'}</Text>
           <TextInput
             style={styles.input}
             placeholder="Enter 6-digit OTP"
@@ -162,16 +194,20 @@ function LoginOtpScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string
             onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
             maxLength={6}
           />
+          </>
         )}
 
         <Pressable
           style={styles.button}
           disabled={loading}
-          onPress={step === 'phone' ? sendOtp : verifyOtp}
+          onPress={step === 'credentials' ? startLogin : verifyOtp}
         >
           <Text style={styles.buttonText}>
-            {loading ? 'Please wait...' : step === 'phone' ? 'Send OTP' : 'Verify OTP'}
+            {loading ? 'Please wait...' : step === 'credentials' ? 'Continue' : 'Verify OTP'}
           </Text>
+        </Pressable>
+        <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('Register', { email })}>
+          <Text style={styles.buttonSecondaryText}>New user? Register</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -180,11 +216,17 @@ function LoginOtpScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string
 
 function RegisterScreen({ route, onLoggedIn }: { route: RouteProp<RootStackParamList, 'Register'>; onLoggedIn: (token: string, user: AppUser) => void }) {
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState(route.params?.phone || '');
+  const [email, setEmail] = useState(route.params?.email || '');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [address, setAddress] = useState('');
   const [gstNo, setGstNo] = useState('');
+  const [lat, setLat] = useState('');
+  const [lng, setLng] = useState('');
+  const [skills, setSkills] = useState('');
+  const [aadharAsset, setAadharAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [photoAsset, setPhotoAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [role, setRole] = useState<'customer' | 'dealer' | 'electrician'>('customer');
   const [sendingOtp, setSendingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -202,16 +244,59 @@ function RegisterScreen({ route, onLoggedIn }: { route: RouteProp<RootStackParam
   };
 
   const submit = async () => {
+    if (!password.trim() || password.length < 6) {
+      Alert.alert('Password required', 'Use at least 6 characters.');
+      return;
+    }
     if (role === 'dealer' && !gstNo.trim()) {
       Alert.alert('GST required', 'GST number is required for dealer accounts.');
       return;
     }
+    if (role === 'electrician') {
+      if (!lat.trim() || !lng.trim()) {
+        Alert.alert('Location required', 'Latitude and longitude are required for electrician registration.');
+        return;
+      }
+      if (!aadharAsset || !photoAsset) {
+        Alert.alert('Documents required', 'Aadhar and profile photo are required for electrician registration.');
+        return;
+      }
+    }
     try {
       setLoading(true);
+      if (role === 'electrician') {
+        const fd = new FormData();
+        fd.append('name', name.trim());
+        fd.append('phone', normalizePhone(phone));
+        fd.append('email', email.trim().toLowerCase());
+        fd.append('password', password);
+        fd.append('lat', lat.trim());
+        fd.append('lng', lng.trim());
+        if (address.trim()) fd.append('address', address.trim());
+        if (skills.trim()) fd.append('skills', skills.trim());
+        fd.append('aadhar', {
+          uri: aadharAsset.uri,
+          name: aadharAsset.fileName || `aadhar-${Date.now()}.jpg`,
+          type: aadharAsset.mimeType || 'image/jpeg',
+        } as never);
+        fd.append('photo', {
+          uri: photoAsset.uri,
+          name: photoAsset.fileName || `photo-${Date.now()}.jpg`,
+          type: photoAsset.mimeType || 'image/jpeg',
+        } as never);
+        await electricianRegisterApi.register(fd);
+        Alert.alert(
+          'Registration submitted',
+          'Electrician registration is pending approval. Login will work after approval.',
+          [{ text: 'OK', onPress: () => navigation.navigate('Auth') }],
+        );
+        return;
+      }
       const { data } = await authApi.register({
         name: name.trim(),
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         phone: normalizePhone(phone),
+        password,
         otp,
         role,
         gst_no: role === 'dealer' ? gstNo.trim() : undefined,
@@ -240,10 +325,11 @@ function RegisterScreen({ route, onLoggedIn }: { route: RouteProp<RootStackParam
       <ScrollView contentContainerStyle={styles.listPad}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Create Account</Text>
-          <Text style={styles.subtitle}>Customer and dealer registration in one app.</Text>
+          <Text style={styles.subtitle}>All app roles register in one mobile app.</Text>
           <TextInput style={styles.input} placeholder="Full name" value={name} onChangeText={setName} />
           <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" value={email} onChangeText={setEmail} autoCapitalize="none" />
           <TextInput style={styles.input} placeholder="+91 9876543210" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+          <TextInput style={styles.input} placeholder="Password (min 6 chars)" secureTextEntry value={password} onChangeText={setPassword} />
           <View style={styles.roleRow}>
             {(['customer', 'dealer', 'electrician'] as const).map((option) => (
               <Pressable
@@ -266,20 +352,43 @@ function RegisterScreen({ route, onLoggedIn }: { route: RouteProp<RootStackParam
               autoCapitalize="characters"
             />
           )}
+          {role === 'electrician' && (
+            <>
+              <TextInput style={styles.input} placeholder="Latitude" keyboardType="decimal-pad" value={lat} onChangeText={setLat} />
+              <TextInput style={styles.input} placeholder="Longitude" keyboardType="decimal-pad" value={lng} onChangeText={setLng} />
+              <TextInput style={styles.input} placeholder="Skills (comma-separated)" value={skills} onChangeText={setSkills} />
+              <Pressable style={styles.buttonSecondary} onPress={async () => setAadharAsset(await pickImageAsset('Aadhar document'))}>
+                <Text style={styles.buttonSecondaryText}>
+                  {aadharAsset ? `Aadhar: ${aadharAsset.fileName || 'selected'}` : 'Upload Aadhar document'}
+                </Text>
+              </Pressable>
+              <Pressable style={styles.buttonSecondary} onPress={async () => setPhotoAsset(await pickImageAsset('profile photo'))}>
+                <Text style={styles.buttonSecondaryText}>
+                  {photoAsset ? `Photo: ${photoAsset.fileName || 'selected'}` : 'Upload profile photo'}
+                </Text>
+              </Pressable>
+            </>
+          )}
           <TextInput style={styles.input} placeholder="Address (optional)" value={address} onChangeText={setAddress} />
-          <TextInput
-            style={styles.input}
-            placeholder="6-digit OTP"
-            keyboardType="number-pad"
-            maxLength={6}
-            value={otp}
-            onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
-          />
-          <Pressable style={styles.buttonSecondary} onPress={sendOtp} disabled={sendingOtp}>
-            <Text style={styles.buttonSecondaryText}>{sendingOtp ? 'Sending OTP...' : 'Send OTP'}</Text>
-          </Pressable>
+          {role !== 'electrician' && (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="6-digit OTP"
+                keyboardType="number-pad"
+                maxLength={6}
+                value={otp}
+                onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
+              />
+              <Pressable style={styles.buttonSecondary} onPress={sendOtp} disabled={sendingOtp}>
+                <Text style={styles.buttonSecondaryText}>{sendingOtp ? 'Sending OTP...' : 'Send OTP'}</Text>
+              </Pressable>
+            </>
+          )}
           <Pressable style={styles.button} onPress={submit} disabled={loading}>
-            <Text style={styles.buttonText}>{loading ? 'Creating account...' : 'Register'}</Text>
+            <Text style={styles.buttonText}>
+              {loading ? 'Creating account...' : role === 'electrician' ? 'Submit Electrician Registration' : 'Register'}
+            </Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -794,13 +903,17 @@ function AppShell() {
     const syncFcmToken = async () => {
       if (!token || !fcmToken) return;
       try {
-        await authApi.saveDeviceToken(fcmToken);
+        if (user?.role === 'electrician') {
+          await electricianApi.saveDeviceToken(fcmToken);
+        } else {
+          await authApi.saveDeviceToken(fcmToken);
+        }
       } catch {
         // Non-blocking: token sync can retry on next app start/login.
       }
     };
     void syncFcmToken();
-  }, [token, fcmToken]);
+  }, [token, fcmToken, user?.role]);
 
   const handleLoggedIn = async (nextToken: string, nextUser: AppUser) => {
     await setToken(nextToken);
@@ -855,7 +968,7 @@ function AppShell() {
         {!token ? (
           <>
             <RootStack.Screen name="Auth" options={{ headerShown: false }}>
-              {(props) => <LoginOtpScreen {...props} onLoggedIn={handleLoggedIn} />}
+              {(props) => <UniversalLoginScreen {...props} onLoggedIn={handleLoggedIn} />}
             </RootStack.Screen>
             <RootStack.Screen name="Register" options={{ title: 'Register' }}>
               {(props) => <RegisterScreen {...props} onLoggedIn={handleLoggedIn} />}
