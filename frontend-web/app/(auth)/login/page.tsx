@@ -17,31 +17,32 @@ function formatPhoneForApi(digits: string) {
 }
 
 function OtpCells({
-  value,
-  onChange,
+  cells,
+  onCellsChange,
   disabled,
 }: {
-  value: string;
-  onChange: (next: string) => void;
+  cells: string[];
+  onCellsChange: (next: string[]) => void;
   disabled?: boolean;
 }) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const setChar = useCallback(
-    (index: number, char: string) => {
-      const digits = value.replace(/\D/g, '').slice(0, 6).split('');
-      while (digits.length < 6) digits.push('');
-      digits[index] = char;
-      onChange(digits.join('').replace(/\D/g, '').slice(0, 6));
+  const setAt = useCallback(
+    (index: number, digit: string) => {
+      const d = digit.replace(/\D/g, '').slice(-1);
+      const next = [...cells];
+      next[index] = d;
+      onCellsChange(next);
     },
-    [onChange, value],
+    [cells, onCellsChange],
   );
 
   useEffect(() => {
-    if (!disabled && value.length < 6) {
-      refs.current[value.length]?.focus();
-    }
-  }, [disabled, value.length]);
+    if (disabled) return;
+    const firstEmpty = cells.findIndex((c) => !c);
+    const idx = firstEmpty === -1 ? 5 : firstEmpty;
+    refs.current[idx]?.focus();
+  }, [cells, disabled]);
 
   return (
     <div className="flex justify-center gap-2 sm:gap-3" role="group" aria-label="One-time password">
@@ -58,22 +59,27 @@ function OtpCells({
           disabled={disabled}
           className="w-10 h-12 sm:w-11 sm:h-14 text-center text-lg font-semibold rounded-xl border border-ev-border bg-ev-surface2 text-ev-text
                      focus:outline-none focus:ring-2 focus:ring-ev-primary/40 focus:border-ev-primary transition-shadow"
-          value={value[i] ?? ''}
+          value={cells[i] ?? ''}
           onChange={(e) => {
             const raw = e.target.value.replace(/\D/g, '');
-            const char = raw.slice(-1);
             if (raw.length > 1) {
-              const pasted = raw.slice(0, 6);
-              onChange(pasted);
-              refs.current[Math.min(5, pasted.length)]?.focus();
+              const filled = raw.slice(0, 6).split('');
+              const next = Array.from({ length: 6 }, (_, j) => filled[j] ?? '');
+              onCellsChange(next);
+              refs.current[Math.min(5, filled.length)]?.focus();
               return;
             }
-            setChar(i, char);
-            if (char && i < 5) refs.current[i + 1]?.focus();
+            setAt(i, raw);
+            if (raw && i < 5) refs.current[i + 1]?.focus();
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Backspace' && !(value[i] ?? '') && i > 0) {
-              refs.current[i - 1]?.focus();
+            if (e.key === 'Backspace') {
+              if (cells[i]) {
+                setAt(i, '');
+              } else if (i > 0) {
+                refs.current[i - 1]?.focus();
+                setAt(i - 1, '');
+              }
             }
           }}
           onFocus={(e) => e.target.select()}
@@ -88,7 +94,7 @@ export default function LoginPage() {
   const [mode, setMode] = useState<Mode>('otp-phone');
   const [loading, setLoading] = useState(false);
   const [phoneDigits, setPhoneDigits] = useState('');
-  const [otp, setOtp] = useState('');
+  const [otpCells, setOtpCells] = useState<string[]>(['', '', '', '', '', '']);
   const [resendSeconds, setResendSeconds] = useState(0);
   const [adminOtp, setAdminOtp] = useState('');
   const [email, setEmail] = useState('');
@@ -114,7 +120,7 @@ export default function LoginPage() {
     try {
       await authApi.sendOtp(formatted);
       toast.success('OTP sent to your phone');
-      setOtp('');
+      setOtpCells(['', '', '', '', '', '']);
       setMode('otp-code');
       setResendSeconds(30);
     } catch (err: unknown) {
@@ -126,6 +132,7 @@ export default function LoginPage() {
 
   async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault();
+    const otp = otpCells.join('');
     if (otp.length !== 6) {
       toast.error('Enter the 6-digit OTP');
       return;
@@ -220,7 +227,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => {
                 setMode(key);
-                setOtp('');
+                setOtpCells(['', '', '', '', '', '']);
                 setResendSeconds(0);
                 setAdminOtp('');
                 setAdminLoginToken('');
@@ -272,12 +279,12 @@ export default function LoginPage() {
             <form onSubmit={handleVerifyOtp} className="space-y-6">
               <div>
                 <label className="ev-label text-center block">Enter OTP (sent to your phone)</label>
-                <OtpCells value={otp} onChange={setOtp} disabled={loading} />
+                <OtpCells cells={otpCells} onCellsChange={setOtpCells} disabled={loading} />
               </div>
               <button
                 type="submit"
                 className="ev-btn-primary w-full flex items-center justify-center gap-2"
-                disabled={loading || otp.length !== 6}
+                disabled={loading || otpCells.join('').length !== 6}
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : (
                   <>
@@ -311,7 +318,7 @@ export default function LoginPage() {
                 type="button"
                 onClick={() => {
                   setMode('otp-phone');
-                  setOtp('');
+                  setOtpCells(['', '', '', '', '', '']);
                   setResendSeconds(0);
                 }}
                 className="w-full text-center text-ev-subtle text-sm hover:text-ev-muted"
