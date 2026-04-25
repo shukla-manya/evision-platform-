@@ -2,14 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import {
-  ArrowUpRight,
-  Store,
-  ShoppingBag,
-  Clock,
-  ChevronRight,
-  Loader2,
-} from 'lucide-react';
+import { Store, ShoppingBag, Mail, ChevronRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { superadminApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
@@ -18,31 +11,26 @@ import { getToken, parseJwt } from '@/lib/auth';
 
 type AnalyticsSnapshot = {
   admins: { total: number; pending: number; approved: number; rejected: number; suspended: number };
-  users: { total: number; customers: number; dealers: number };
+  users: { total: number; customers: number; dealers: number; electricians?: number };
   emails: { total: number; sent: number; failed: number };
+  orders?: { platform_revenue: number; orders_today: number; total_count?: number };
+  revenue_by_shop?: { admin_id: string; shop_name: string; amount: number }[];
+  recent_orders?: {
+    id: string;
+    group_id: string;
+    customer: string;
+    shop: string;
+    amount: number;
+    status: string;
+    created_at: string;
+  }[];
+  recent_emails?: { trigger: string; recipient: string; to_role: string; status: string; time: string }[];
+  active_electricians?: number;
   generated_at?: string;
 };
 
-type AdminRow = { id: string; shop_name?: string; owner_name?: string; email?: string };
-type ElectricianRow = { id: string; name?: string; email?: string };
-
-const DEMO_REVENUE_TOTAL = 420000;
-const DEMO_ORDERS_TODAY = 38;
-const DEMO_ORDERS_DELTA = 8;
-
-const DEMO_RECENT_ORDERS = [
-  { id: 'G1042', customer: 'Priya S.', shop: 'CamZone', amount: 62490, status: 'Delivered', statusTone: 'success' as const },
-  { id: 'G1041', customer: 'Rohit M.', shop: 'LensKart', amount: 18200, status: 'In transit', statusTone: 'pending' as const },
-  { id: 'G1040', customer: 'Sneha D.', shop: 'ShutterHub', amount: 44000, status: 'Confirmed', statusTone: 'muted' as const },
-  { id: 'G1039', customer: 'Arjun P.', shop: 'OpticWorld', amount: 8500, status: 'Payment failed', statusTone: 'error' as const },
-];
-
-const FALLBACK_SHOP_REVENUE = [
-  { name: 'CamZone', amount: 140000 },
-  { name: 'LensKart', amount: 110000 },
-  { name: 'ShutterHub', amount: 90000 },
-  { name: 'OpticWorld', amount: 80000 },
-];
+type AdminRow = { id: string; shop_name?: string; owner_name?: string; email?: string; created_at?: string };
+type ElectricianRow = { id: string; name?: string; email?: string; created_at?: string };
 
 function formatINR(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
@@ -62,7 +50,7 @@ function greetingLabel() {
 }
 
 function displayNameFromEmail(email: string) {
-  if (!email) return 'Manya';
+  if (!email) return 'there';
   const local = email.split('@')[0] || '';
   return local
     .split(/[._-]+/)
@@ -76,16 +64,25 @@ function initialsFromEmail(email: string) {
   const parts = name.split(/\s+/).filter(Boolean);
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
   if (parts.length === 1 && parts[0].length >= 2) return parts[0].slice(0, 2).toUpperCase();
-  return 'MS';
+  return 'SA';
 }
 
-export default function SuperadminDashboardPage() {
+function orderStatusTone(status: string): 'success' | 'error' | 'pending' | 'muted' {
+  const s = status.toLowerCase();
+  if (s.includes('deliver') || s.includes('complete')) return 'success';
+  if (s.includes('fail') || s.includes('cancel')) return 'error';
+  if (s.includes('transit') || s.includes('ship') || s.includes('process')) return 'pending';
+  return 'muted';
+}
+
+export default function SuperDashboardPage() {
   const [analytics, setAnalytics] = useState<AnalyticsSnapshot | null>(null);
   const [pendingAdmins, setPendingAdmins] = useState<AdminRow[]>([]);
   const [pendingElectricians, setPendingElectricians] = useState<ElectricianRow[]>([]);
-  const [approvedShops, setApprovedShops] = useState<{ name: string; amount: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [rejecting, setRejecting] = useState<{ id: string; type: 'Admin' | 'Electrician' } | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const token = typeof window !== 'undefined' ? getToken() : undefined;
   const payload = token ? parseJwt(token) : null;
@@ -107,30 +104,14 @@ export default function SuperadminDashboardPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [anRes, paRes, peRes, allRes] = await Promise.all([
+      const [anRes, paRes, peRes] = await Promise.all([
         superadminApi.getAnalytics(),
         superadminApi.getPendingAdmins(),
         superadminApi.getPendingElectricians(),
-        superadminApi.getAllAdmins(),
       ]);
       setAnalytics(anRes.data as AnalyticsSnapshot);
       setPendingAdmins(Array.isArray(paRes.data) ? (paRes.data as AdminRow[]) : []);
       setPendingElectricians(Array.isArray(peRes.data) ? (peRes.data as ElectricianRow[]) : []);
-
-      const all = Array.isArray(allRes.data) ? (allRes.data as { shop_name?: string; status?: string }[]) : [];
-      const approved = all.filter((a) => String(a.status) === 'approved' && a.shop_name);
-      const slice = approved.slice(0, 4);
-      const amounts = FALLBACK_SHOP_REVENUE.map((f) => f.amount);
-      if (slice.length > 0) {
-        setApprovedShops(
-          slice.map((s, i) => ({
-            name: String(s.shop_name),
-            amount: amounts[i % amounts.length],
-          })),
-        );
-      } else {
-        setApprovedShops(FALLBACK_SHOP_REVENUE);
-      }
     } catch {
       toast.error('Could not load overview');
     } finally {
@@ -145,14 +126,24 @@ export default function SuperadminDashboardPage() {
   const pendingTotal = pendingAdmins.length + pendingElectricians.length;
 
   const approvalPreview = useMemo(() => {
-    const rows: { id: string; name: string; type: 'Admin' | 'Electrician' }[] = [];
+    const rows: { id: string; name: string; type: 'Admin' | 'Electrician'; submitted: string }[] = [];
     pendingAdmins.forEach((a) =>
-      rows.push({ id: a.id, name: String(a.shop_name || a.owner_name || a.email || 'Shop'), type: 'Admin' }),
+      rows.push({
+        id: a.id,
+        name: String(a.shop_name || a.owner_name || a.email || 'Shop'),
+        type: 'Admin',
+        submitted: a.created_at ? new Date(a.created_at).toLocaleDateString('en-IN') : '—',
+      }),
     );
     pendingElectricians.forEach((e) =>
-      rows.push({ id: e.id, name: String(e.name || e.email || 'Electrician'), type: 'Electrician' }),
+      rows.push({
+        id: e.id,
+        name: String(e.name || e.email || 'Technician'),
+        type: 'Electrician',
+        submitted: e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '—',
+      }),
     );
-    return rows.slice(0, 6);
+    return rows.slice(0, 8);
   }, [pendingAdmins, pendingElectricians]);
 
   async function approveRow(row: { id: string; type: 'Admin' | 'Electrician' }) {
@@ -160,10 +151,10 @@ export default function SuperadminDashboardPage() {
     try {
       if (row.type === 'Admin') {
         await superadminApi.approveAdmin(row.id);
-        toast.success('Shop approved');
+        toast.success('Shop admin approved');
       } else {
         await superadminApi.reviewElectrician(row.id, { action: 'approve' });
-        toast.success('Electrician approved');
+        toast.success('Technician approved');
       }
       await load();
     } catch (e: unknown) {
@@ -173,7 +164,37 @@ export default function SuperadminDashboardPage() {
     }
   }
 
-  const maxShopRev = approvedShops.length > 0 ? Math.max(...approvedShops.map((s) => s.amount), 1) : 1;
+  async function confirmReject() {
+    if (!rejecting || !rejectReason.trim()) {
+      toast.error('Enter a rejection reason');
+      return;
+    }
+    setActionId(rejecting.id);
+    try {
+      if (rejecting.type === 'Admin') {
+        await superadminApi.rejectAdmin(rejecting.id, rejectReason.trim());
+        toast.success('Registration rejected');
+      } else {
+        await superadminApi.reviewElectrician(rejecting.id, { action: 'reject', reason: rejectReason.trim() });
+        toast.success('Registration rejected');
+      }
+      setRejecting(null);
+      setRejectReason('');
+      await load();
+    } catch (e: unknown) {
+      toast.error(getApiErrorMessage(e, 'Reject failed'));
+    } finally {
+      setActionId(null);
+    }
+  }
+
+  const revenueByShop = analytics?.revenue_by_shop?.length ? analytics.revenue_by_shop : [];
+  const maxShopRev = revenueByShop.length > 0 ? Math.max(...revenueByShop.map((s) => s.amount), 1) : 1;
+  const recentOrders = analytics?.recent_orders ?? [];
+  const recentEmails = analytics?.recent_emails ?? [];
+  const platformRevenue = analytics?.orders?.platform_revenue ?? 0;
+  const ordersToday = analytics?.orders?.orders_today ?? 0;
+  const activeElectricians = analytics?.active_electricians ?? analytics?.users?.electricians ?? 0;
 
   return (
     <SuperadminShell>
@@ -190,7 +211,7 @@ export default function SuperadminDashboardPage() {
                 <p className="text-ev-muted text-sm mb-1">
                   {greetingLabel()}, <span className="text-ev-text font-semibold">{greetName}</span>
                 </p>
-                <h1 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight">Platform overview</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight">Dashboard — Overview</h1>
                 <p className="text-ev-muted text-sm mt-1">{todayLabel}</p>
               </div>
               <div
@@ -201,48 +222,60 @@ export default function SuperadminDashboardPage() {
               </div>
             </header>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
-              <div className="ev-card p-6 border-ev-border">
-                <p className="text-ev-muted text-sm font-medium">Total revenue</p>
-                <p className="text-3xl font-bold text-ev-text mt-2">{formatCompactINR(DEMO_REVENUE_TOTAL)}</p>
-                <p className="text-ev-success text-sm font-medium mt-2 inline-flex items-center gap-1">
-                  <ArrowUpRight size={16} aria-hidden />
-                  12% this month
-                </p>
-                <p className="text-ev-subtle text-xs mt-3">Illustrative total — wire live orders to replace.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-10">
+              <div className="ev-card p-5 border-ev-border">
+                <p className="text-ev-muted text-sm font-medium">Total platform revenue</p>
+                <p className="text-2xl font-bold text-ev-text mt-2">{formatCompactINR(platformRevenue)}</p>
+                <p className="text-ev-subtle text-xs mt-2">From payable orders across shops</p>
               </div>
-              <div className="ev-card p-6 border-ev-border">
+              <div className="ev-card p-5 border-ev-border">
                 <p className="text-ev-muted text-sm font-medium">Orders today</p>
-                <p className="text-3xl font-bold text-ev-text mt-2">{DEMO_ORDERS_TODAY}</p>
-                <p className="text-ev-success text-sm font-medium mt-2 inline-flex items-center gap-1">
-                  <ArrowUpRight size={16} aria-hidden />↑ {DEMO_ORDERS_DELTA} vs yesterday
-                </p>
-                <p className="text-ev-subtle text-xs mt-3">Sample pulse — connect live order feed.</p>
+                <p className="text-2xl font-bold text-ev-text mt-2">{ordersToday}</p>
+                <p className="text-ev-subtle text-xs mt-2">Shop order rows created today</p>
               </div>
-              <div className="ev-card p-6 border-ev-border">
+              <div className="ev-card p-5 border-ev-border">
                 <p className="text-ev-muted text-sm font-medium">Active shops</p>
-                <p className="text-3xl font-bold text-ev-text mt-2">{analytics?.admins.approved ?? '—'}</p>
-                <p className="text-ev-muted text-sm mt-2">All approved</p>
+                <p className="text-2xl font-bold text-ev-text mt-2">{analytics?.admins.approved ?? '—'}</p>
+                <p className="text-ev-muted text-sm mt-1">Approved registrations</p>
               </div>
-              <div className="ev-card p-6 border-ev-border border-ev-warning/25 bg-ev-warning/5">
+              <div className="ev-card p-5 border-ev-border border-ev-warning/25 bg-ev-warning/5">
                 <p className="text-ev-muted text-sm font-medium">Pending approvals</p>
-                <p className="text-3xl font-bold text-ev-text mt-2">{pendingTotal}</p>
-                <p className="text-ev-muted text-sm mt-2">
-                  {pendingAdmins.length} admin{pendingAdmins.length !== 1 ? 's' : ''} · {pendingElectricians.length} elec.
+                <p className="text-2xl font-bold text-ev-text mt-2">{pendingTotal}</p>
+                <p className="text-ev-muted text-sm mt-1">
+                  {pendingAdmins.length} shop · {pendingElectricians.length} technician
                 </p>
+              </div>
+              <div className="ev-card p-5 border-ev-border">
+                <p className="text-ev-muted text-sm font-medium">Active electricians</p>
+                <p className="text-2xl font-bold text-ev-text mt-2">{activeElectricians}</p>
+                <p className="text-ev-subtle text-xs mt-2">Approved technician accounts</p>
+              </div>
+              <div className="ev-card p-5 border-ev-border">
+                <p className="text-ev-muted text-sm font-medium">Total users</p>
+                <p className="text-2xl font-bold text-ev-text mt-2">{analytics?.users.total ?? '—'}</p>
+                <p className="text-ev-muted text-sm mt-1">All roles in platform</p>
               </div>
             </div>
 
             <section className="mb-10">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-ev-text">Pending approvals</h2>
-                <Link
-                  href="/superadmin/approvals"
-                  className="text-sm font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1"
-                >
-                  View all
-                  <ChevronRight size={16} />
-                </Link>
+                <div className="flex gap-3 text-sm">
+                  <Link
+                    href="/super/shop-registrations"
+                    className="font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1"
+                  >
+                    Shop queue
+                    <ChevronRight size={16} />
+                  </Link>
+                  <Link
+                    href="/super/technicians"
+                    className="font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1"
+                  >
+                    Technicians
+                    <ChevronRight size={16} />
+                  </Link>
+                </div>
               </div>
               <div className="ev-card overflow-hidden border-ev-border">
                 <div className="overflow-x-auto">
@@ -251,13 +284,14 @@ export default function SuperadminDashboardPage() {
                       <tr className="border-b border-ev-border bg-ev-surface2 text-left text-ev-muted">
                         <th className="px-4 py-3 font-semibold">Name</th>
                         <th className="px-4 py-3 font-semibold">Type</th>
-                        <th className="px-4 py-3 font-semibold text-right">Action</th>
+                        <th className="px-4 py-3 font-semibold">Submitted</th>
+                        <th className="px-4 py-3 font-semibold text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {approvalPreview.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="px-4 py-10 text-center text-ev-muted">
+                          <td colSpan={4} className="px-4 py-10 text-center text-ev-muted">
                             No pending approvals
                           </td>
                         </tr>
@@ -266,14 +300,26 @@ export default function SuperadminDashboardPage() {
                           <tr key={`${row.type}-${row.id}`} className="border-b border-ev-border last:border-0">
                             <td className="px-4 py-3 font-medium text-ev-text">{row.name}</td>
                             <td className="px-4 py-3 text-ev-muted">{row.type}</td>
-                            <td className="px-4 py-3 text-right">
+                            <td className="px-4 py-3 text-ev-muted">{row.submitted}</td>
+                            <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                               <button
                                 type="button"
                                 disabled={actionId === row.id}
                                 onClick={() => void approveRow(row)}
-                                className="text-sm font-semibold text-ev-primary hover:text-ev-primary-light disabled:opacity-50"
+                                className="text-sm font-semibold text-emerald-600 hover:text-emerald-500 disabled:opacity-50"
                               >
-                                {actionId === row.id ? '…' : 'Approve'}
+                                Approve
+                              </button>
+                              <button
+                                type="button"
+                                disabled={actionId === row.id}
+                                onClick={() => {
+                                  setRejecting({ id: row.id, type: row.type });
+                                  setRejectReason('');
+                                }}
+                                className="text-sm font-semibold text-red-600 hover:text-red-500 disabled:opacity-50"
+                              >
+                                Reject
                               </button>
                             </td>
                           </tr>
@@ -285,6 +331,34 @@ export default function SuperadminDashboardPage() {
               </div>
             </section>
 
+            {rejecting ? (
+              <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/50">
+                <div className="ev-card max-w-md w-full p-6 space-y-4">
+                  <h3 className="font-bold text-ev-text">Reject {rejecting.type === 'Admin' ? 'shop admin' : 'technician'}</h3>
+                  <label className="block text-sm text-ev-muted">Reason for rejection</label>
+                  <textarea
+                    className="ev-input min-h-[100px] py-3"
+                    value={rejectReason}
+                    onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="e.g. GST document unreadable — please resubmit"
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <button type="button" className="ev-btn-secondary text-sm py-2 px-4" onClick={() => setRejecting(null)}>
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="text-sm py-2 px-4 rounded-xl bg-red-600 text-white font-medium hover:bg-red-500 disabled:opacity-50"
+                      disabled={!rejectReason.trim() || actionId === rejecting.id}
+                      onClick={() => void confirmReject()}
+                    >
+                      Send rejection
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
               <section>
                 <h2 className="text-lg font-bold text-ev-text mb-4 flex items-center gap-2">
@@ -292,31 +366,32 @@ export default function SuperadminDashboardPage() {
                   Revenue by shop
                 </h2>
                 <div className="ev-card p-5 space-y-4 border-ev-border">
-                  {approvedShops.map((s) => (
-                    <div key={s.name}>
-                      <div className="flex justify-between text-sm mb-1.5">
-                        <span className="font-medium text-ev-text">{s.name}</span>
-                        <span className="text-ev-muted font-semibold">{formatCompactINR(s.amount)}</span>
+                  {revenueByShop.length === 0 ? (
+                    <p className="text-ev-muted text-sm">No order revenue recorded yet.</p>
+                  ) : (
+                    revenueByShop.map((s) => (
+                      <div key={s.admin_id}>
+                        <div className="flex justify-between text-sm mb-1.5">
+                          <span className="font-medium text-ev-text">{s.shop_name}</span>
+                          <span className="text-ev-muted font-semibold">{formatCompactINR(s.amount)}</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-ev-surface2 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-gradient-primary"
+                            style={{ width: `${Math.round((s.amount / maxShopRev) * 100)}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="h-2 rounded-full bg-ev-surface2 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gradient-primary"
-                          style={{ width: `${Math.round((s.amount / maxShopRev) * 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </section>
 
               <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-bold text-ev-text flex items-center gap-2">
-                    <ShoppingBag size={18} className="text-ev-primary" />
-                    Recent orders — all shops
-                  </h2>
-                  <span className="text-xs text-ev-subtle">Sample rows</span>
-                </div>
+                <h2 className="text-lg font-bold text-ev-text flex items-center gap-2 mb-4">
+                  <ShoppingBag size={18} className="text-ev-primary" />
+                  Recent orders — all shops
+                </h2>
                 <div className="ev-card overflow-hidden border-ev-border">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -330,29 +405,40 @@ export default function SuperadminDashboardPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {DEMO_RECENT_ORDERS.map((o) => (
-                          <tr key={o.id} className="border-b border-ev-border last:border-0">
-                            <td className="px-4 py-3 font-mono text-ev-text">#{o.id}</td>
-                            <td className="px-4 py-3 text-ev-text">{o.customer}</td>
-                            <td className="px-4 py-3 text-ev-muted">{o.shop}</td>
-                            <td className="px-4 py-3 font-medium text-ev-text">{formatINR(o.amount)}</td>
-                            <td className="px-4 py-3">
-                              <span
-                                className={
-                                  o.statusTone === 'success'
-                                    ? 'text-ev-success font-medium'
-                                    : o.statusTone === 'error'
-                                      ? 'text-ev-error font-medium'
-                                      : o.statusTone === 'pending'
-                                        ? 'text-ev-warning font-medium'
-                                        : 'text-ev-muted font-medium'
-                                }
-                              >
-                                {o.status}
-                              </span>
+                        {recentOrders.length === 0 ? (
+                          <tr>
+                            <td colSpan={5} className="px-4 py-10 text-center text-ev-muted">
+                              No orders yet
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          recentOrders.map((o) => {
+                            const tone = orderStatusTone(o.status);
+                            return (
+                              <tr key={o.id} className="border-b border-ev-border last:border-0">
+                                <td className="px-4 py-3 font-mono text-xs text-ev-text">#{o.id.slice(0, 8)}</td>
+                                <td className="px-4 py-3 text-ev-text">{o.customer}</td>
+                                <td className="px-4 py-3 text-ev-muted">{o.shop}</td>
+                                <td className="px-4 py-3 font-medium text-ev-text">{formatINR(o.amount)}</td>
+                                <td className="px-4 py-3">
+                                  <span
+                                    className={
+                                      tone === 'success'
+                                        ? 'text-ev-success font-medium'
+                                        : tone === 'error'
+                                          ? 'text-ev-error font-medium'
+                                          : tone === 'pending'
+                                            ? 'text-ev-warning font-medium'
+                                            : 'text-ev-muted font-medium'
+                                    }
+                                  >
+                                    {o.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -360,16 +446,69 @@ export default function SuperadminDashboardPage() {
               </section>
             </div>
 
+            <section className="mb-10">
+              <h2 className="text-lg font-bold text-ev-text mb-4 flex items-center gap-2">
+                <Mail size={18} className="text-ev-primary" />
+                Recent emails sent
+              </h2>
+              <div className="ev-card overflow-hidden border-ev-border">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-ev-border bg-ev-surface2 text-left text-ev-muted">
+                        <th className="px-4 py-3 font-semibold">Trigger</th>
+                        <th className="px-4 py-3 font-semibold">Recipient</th>
+                        <th className="px-4 py-3 font-semibold">Status</th>
+                        <th className="px-4 py-3 font-semibold">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentEmails.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-10 text-center text-ev-muted">
+                            No email history
+                          </td>
+                        </tr>
+                      ) : (
+                        recentEmails.map((e, i) => (
+                          <tr key={`${e.time}-${i}`} className="border-b border-ev-border last:border-0">
+                            <td className="px-4 py-3 font-mono text-xs text-ev-text">{e.trigger}</td>
+                            <td className="px-4 py-3 text-ev-muted truncate max-w-[200px]" title={e.recipient}>
+                              {e.recipient}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span
+                                className={
+                                  e.status === 'sent' ? 'text-ev-success font-medium' : 'text-ev-error font-medium'
+                                }
+                              >
+                                {e.status}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-ev-muted text-xs whitespace-nowrap">
+                              {e.time ? new Date(e.time).toLocaleString('en-IN') : '—'}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
             <div className="flex flex-wrap gap-3">
-              <Link href="/superadmin/approvals" className="ev-btn-secondary text-sm py-2.5 px-4 inline-flex items-center gap-2">
-                <Clock size={16} />
-                Approvals queue
+              <Link href="/super/shop-registrations" className="ev-btn-secondary text-sm py-2.5 px-4">
+                Shop registrations
               </Link>
-              <Link href="/superadmin/shops" className="ev-btn-secondary text-sm py-2.5 px-4">
+              <Link href="/super/shops" className="ev-btn-secondary text-sm py-2.5 px-4">
                 All shops
               </Link>
-              <Link href="/superadmin/analytics" className="ev-btn-secondary text-sm py-2.5 px-4">
-                Full report
+              <Link href="/super/settlements" className="ev-btn-secondary text-sm py-2.5 px-4">
+                Settlements
+              </Link>
+              <Link href="/super/analytics" className="ev-btn-secondary text-sm py-2.5 px-4">
+                Raw analytics
               </Link>
             </div>
           </>
