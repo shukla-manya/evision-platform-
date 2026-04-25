@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   Post,
   UploadedFile,
@@ -52,5 +53,13 @@ export class ServiceController {
     @Body() dto: BookServiceDto,
   ) {
     return this.service.bookElectrician(user.id, electricianId, dto);
+  }
+
+  @Get('my/bookings/active')
+  @Roles('customer', 'dealer')
+  @ApiOperation({ summary: 'List active bookings for the logged in customer/dealer' })
+  async listMyActiveBookings(@CurrentUser() user: { id: string }) {
+    const allForElectrician = await this.service.listElectricianBookings(user.id, 'active');
+    return allForElectrician.filter((booking) => String(booking.customer_id || '') === user.id);
   }
 }

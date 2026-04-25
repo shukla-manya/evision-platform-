@@ -56,6 +56,19 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
     return this.dynamo.tableName('electricians');
   }
 
+  private async getElectricianByUserId(userId: string): Promise<Record<string, unknown> | null> {
+    const byId = await this.dynamo.get(this.electriciansTable(), { id: userId });
+    if (byId) return byId;
+    const byUserIndex = await this.dynamo.query({
+      TableName: this.electriciansTable(),
+      IndexName: 'UserIndex',
+      KeyConditionExpression: 'user_id = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      Limit: 1,
+    });
+    return byUserIndex[0] || null;
+  }
+
   async createRequest(
     userId: string,
     dto: CreateServiceRequestDto,
@@ -343,5 +356,101 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
       },
     });
     return { booking_id: bookingId, job_status: dto.status };
+  }
+
+  async listElectricianBookings(
+    electricianUserId: string,
+    scope: 'pending' | 'active' | 'history',
+  ): Promise<Record<string, unknown>[]> {
+    const rows = await this.dynamo.query({
+      TableName: this.bookingsTable(),
+      IndexName: 'ElectricianIndex',
+      KeyConditionExpression: 'electrician_id = :electricianId',
+      ExpressionAttributeValues: { ':electricianId': electricianUserId },
+    });
+    const filtered = rows.filter((row) => {
+      const status = String(row.status || '');
+      const jobStatus = String(row.job_status || '');
+      if (scope === 'pending') return status === 'pending';
+      if (scope === 'active') {
+        return status === 'accepted' && jobStatus !== 'completed';
+      }
+      return status === 'accepted' && jobStatus === 'completed';
+    });
+    filtered.sort(
+      (a, b) =>
+        new Date(String(b.updated_at || b.created_at || 0)).getTime() -
+        new Date(String(a.updated_at || a.created_at || 0)).getTime(),
+    );
+    return filtered;
+  }
+
+  async listCustomerActiveBookings(customerId: string): Promise<Record<string, unknown>[]> {
+    const bookings = await this.dynamo.query({
+      TableName: this.bookingsTable(),
+      IndexName: 'UserIndex',
+      KeyConditionExpression: 'user_id = :uid',
+      ExpressionAttributeValues: { ':uid': customerId },
+    });
+    return bookings
+      .filter(
+        (row) => String(row.status || '') === 'accepted' && String(row.job_status || '') !== 'completed',
+      )
+      .sort(
+        (a, b) =>
+          new Date(String(b.updated_at || b.created_at || 0)).getTime() -
+          new Date(String(a.updated_at || a.created_at || 0)).getTime(),
+      );
+  }
+
+  async setElectricianAvailability(
+    electricianUserId: string,
+    online: boolean,
+  ): Promise<{ online: boolean }> {
+    const electrician = await this.getElectricianByUserId(electricianUserId);
+    if (!electrician) throw new NotFoundException('Electrician profile not found');
+    await this.dynamo.update(
+      this.electriciansTable(),
+      { id: String(electrician.id) },
+      { available: online, updated_at: new Date().toISOString() },
+    );
+    return { online };
+  }
+
+  async uploadJobPhoto(
+    electricianUserId: string,
+    bookingId: string,
+    photo: Express.Multer.File,
+  ): Promise<{ booking_id: string; photo_url: string }> {
+    if (!photo) throw new BadRequestException('photo is required');
+    const booking = await this.dynamo.get(this.bookingsTable(), { id: bookingId });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (String(booking.electrician_id) !== electricianUserId) {
+      throw new BadRequestException('Booking does not belong to this electrician');
+    }
+    const photoUrl = await this.s3.upload(photo.buffer, photo.mimetype, 'service-work-photos');
+    await this.dynamo.update(this.bookingsTable(), { id: bookingId }, {
+      work_photo_url: photoUrl,
+      updated_at: new Date().toISOString(),
+    });
+    return { booking_id: bookingId, photo_url: photoUrl };
+  }
+
+  async canJoinTrackingRoom(userId: string, role: string, bookingId: string): Promise<boolean> {
+    const booking = await this.dynamo.get(this.bookingsTable(), { id: bookingId });
+    if (!booking) return false;
+    if (role === 'electrician') return String(booking.electrician_id) === userId;
+    if (role === 'customer' || role === 'dealer') return String(booking.customer_id) === userId;
+    return false;
+  }
+
+  async canPublishTrackingLocation(electricianUserId: string, bookingId: string): Promise<boolean> {
+    const booking = await this.dynamo.get(this.bookingsTable(), { id: bookingId });
+    if (!booking) return false;
+    return (
+      String(booking.electrician_id) === electricianUserId &&
+      String(booking.status) === 'accepted' &&
+      String(booking.job_status) === 'on_the_way'
+    );
   }
 }
