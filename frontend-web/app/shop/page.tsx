@@ -26,8 +26,28 @@ function formatInr(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 }
 
-function displayPrice(p: Product) {
-  const v = p.price_dealer ?? p.price_customer;
+function displayPrice(p: Product, role?: string | null) {
+  if (role === 'dealer') {
+    const v = p.price_dealer;
+    if (v == null || Number.isNaN(Number(v))) return '—';
+    return formatInr(Number(v));
+  }
+  if (role === 'admin' || role === 'superadmin') {
+    const c = p.price_customer;
+    const d = p.price_dealer;
+    if (
+      c != null &&
+      d != null &&
+      !Number.isNaN(Number(c)) &&
+      !Number.isNaN(Number(d))
+    ) {
+      return `${formatInr(Number(c))} retail · ${formatInr(Number(d))} dealer`;
+    }
+    const v = c ?? d;
+    if (v == null || Number.isNaN(Number(v))) return '—';
+    return formatInr(Number(v));
+  }
+  const v = p.price_customer;
   if (v == null || Number.isNaN(Number(v))) return '—';
   return formatInr(Number(v));
 }
@@ -68,6 +88,7 @@ export default function ShopPage() {
 
   const priceHint = useMemo(() => {
     if (role === 'dealer') return 'Dealer pricing';
+    if (role === 'admin' || role === 'superadmin') return 'Retail & dealer pricing';
     return 'Retail pricing';
   }, [role]);
 
@@ -123,7 +144,7 @@ export default function ShopPage() {
                 <option value="">All categories</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name}
+                    {c.parent_id ? `↳ ${c.name}` : c.name}
                   </option>
                 ))}
               </select>
@@ -172,7 +193,7 @@ export default function ShopPage() {
                     <p className="text-ev-muted text-sm mt-2 line-clamp-2 flex-1">{p.description}</p>
                     <div className="mt-4 flex items-end justify-between gap-3">
                       <div>
-                        <p className="text-2xl font-bold text-ev-text">{displayPrice(p)}</p>
+                        <p className="text-2xl font-bold text-ev-text">{displayPrice(p, role)}</p>
                         {p.stock != null ? (
                           <p className="text-ev-subtle text-xs mt-0.5">{p.stock > 0 ? `${p.stock} in stock` : 'Out of stock'}</p>
                         ) : null}
