@@ -201,3 +201,25 @@ export const electricianRegisterApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
 };
+
+export const adminApi = {
+  me: () => api.get('/admin/me'),
+  products: () => api.get<any[]>('/admin/products'),
+  product: (id: string) => api.get<any>(`/admin/products/${id}`),
+  createProduct: (payload: Record<string, unknown>) => api.post('/admin/products', payload),
+  updateProduct: (id: string, payload: Record<string, unknown>) =>
+    api.put(`/admin/products/${id}`, payload),
+  deleteProduct: (id: string) => api.delete(`/admin/products/${id}`),
+  uploadProductImages: (files: { uri: string; name: string; type: string }[]) => {
+    const fd = new FormData();
+    files.forEach((f) => fd.append('images', f as never));
+    return api.post('/admin/products/images/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  orders: () => api.get<any[]>('/admin/orders'),
+  order: (id: string) => api.get<any>(`/admin/orders/${id}`),
+  shipOrder: (id: string, payload?: Record<string, unknown>) =>
+    api.post(`/admin/orders/${id}/ship`, payload || {}),
+  invoices: () => api.get<any[]>('/admin/invoices'),
+};

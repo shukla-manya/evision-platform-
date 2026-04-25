@@ -26,6 +26,7 @@ import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/servi
 import { openRazorpayCheckout } from './src/services/razorpay';
 import { TrackingScreen } from './src/screens/TrackingScreen';
 import { ElectricianFlow } from './src/electrician/ElectricianFlow';
+import { AdminFlow } from './src/admin/AdminFlow';
 import { colors } from './src/theme/colors';
 import { statusColor } from './src/theme/status';
 
@@ -1133,6 +1134,17 @@ function AppShell() {
     ),
     [token, logout, fcmToken],
   );
+  const adminFlow = useMemo(
+    () => (props: any) => (
+      <AdminFlow
+        onLogout={logout}
+        onOpenPasswordReset={(phone?: string) =>
+          props.navigation.navigate('PasswordReset', { role: 'admin', phone })
+        }
+      />
+    ),
+    [logout],
+  );
 
   if (hydrating) return <Loader text="Preparing app..." />;
 
@@ -1153,10 +1165,16 @@ function AppShell() {
           <>
             <RootStack.Screen
               name="Main"
-              component={user?.role === 'electrician' ? electricianFlow : mainTabs}
+              component={
+                user?.role === 'electrician'
+                  ? electricianFlow
+                  : user?.role === 'admin'
+                  ? adminFlow
+                  : mainTabs
+              }
               options={{ headerShown: false }}
             />
-            {user?.role !== 'electrician' && (
+            {user?.role !== 'electrician' && user?.role !== 'admin' && (
               <>
                 <RootStack.Screen name="ProductDetail" component={productDetailScreen} options={{ title: 'Product Detail' }} />
                 <RootStack.Screen name="Checkout" component={CheckoutScreen} />

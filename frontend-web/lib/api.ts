@@ -19,6 +19,7 @@ function loginPathFor401(): string {
   const p = window.location.pathname;
   if (p.startsWith('/superadmin')) return '/superadmin/login';
   if (p.startsWith('/admin')) return '/admin/login';
+  if (p.startsWith('/electrician')) return '/electrician/login';
   return '/login';
 }
 
@@ -118,4 +119,27 @@ export const superadminApi = {
   suspendAdmin: (id: string) => api.put(`/superadmin/admin/${id}/suspend`),
   getAnalytics: () => api.get('/superadmin/analytics'),
   getEmailLogs: (event?: string) => api.get('/superadmin/email-logs', { params: { event } }),
+};
+
+export const electricianApi = {
+  me: () => api.get('/electrician/me'),
+  myBookings: () => api.get('/electrician/my/bookings'),
+  pendingBookings: () => api.get('/electrician/bookings/pending'),
+  activeBookings: () => api.get('/electrician/bookings/active'),
+  historyBookings: () => api.get('/electrician/bookings/history'),
+  getBookingProfile: (id: string) => api.get(`/electrician/${id}/profile`),
+  respondBooking: (bookingId: string, action: 'accept' | 'decline') =>
+    api.put(`/electrician/booking/${bookingId}/respond`, { action }),
+  updateJobStatus: (
+    bookingId: string,
+    status: 'on_the_way' | 'reached' | 'work_started' | 'completed',
+  ) => api.put(`/electrician/job/${bookingId}/status`, { status }),
+  setAvailability: (online: boolean) => api.put('/electrician/me/availability', { online }),
+  uploadWorkPhoto: (bookingId: string, file: File) => {
+    const fd = new FormData();
+    fd.append('photo', file);
+    return api.post(`/electrician/job/${bookingId}/photo`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
