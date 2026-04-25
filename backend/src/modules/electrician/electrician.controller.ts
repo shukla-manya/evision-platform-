@@ -45,6 +45,15 @@ export class ElectricianController {
     private reviews: ReviewsService,
   ) {}
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current electrician profile' })
+  getMe(@CurrentUser() user: { id: string }) {
+    return this.electrician.getMe(user.id);
+  }
+
   @Public()
   @Get('nearby')
   @ApiQuery({ name: 'lat', required: true, example: '28.4089' })
