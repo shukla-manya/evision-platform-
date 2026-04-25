@@ -3,15 +3,19 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
   const configService = app.get(ConfigService);
 
+  app.useWebSocketAdapter(new IoAdapter(app));
+
   app.enableCors({
     origin: [
       configService.get('FRONTEND_URL', 'http://localhost:3000'),
       'http://localhost:3001',
+      'http://localhost:8081', // Expo dev server
     ],
     credentials: true,
   });
