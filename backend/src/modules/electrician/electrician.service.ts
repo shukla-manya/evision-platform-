@@ -251,8 +251,12 @@ export class ElectricianService {
     electricianId: string,
     fcmToken: string,
   ): Promise<{ updated: boolean }> {
+    const token = String(fcmToken || '').trim();
+    if (!token) {
+      throw new BadRequestException('fcm_token is required');
+    }
     await this.dynamo.update(this.table(), { id: electricianId }, {
-      fcm_token: fcmToken,
+      fcm_token: token,
       updated_at: new Date().toISOString(),
     });
     return { updated: true };

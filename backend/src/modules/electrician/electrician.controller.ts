@@ -34,6 +34,7 @@ import { RespondBookingDto } from '../service/dto/respond-booking.dto';
 import { UpdateJobStatusDto } from '../service/dto/update-job-status.dto';
 import { UpdateElectricianAvailabilityDto } from '../service/dto/update-electrician-availability.dto';
 import { ReviewsService } from '../reviews/reviews.service';
+import { UpdateElectricianDeviceTokenDto } from './dto/update-device-token.dto';
 
 @ApiTags('Electrician')
 @Controller(['electrician', 'electricians'])
@@ -191,6 +192,24 @@ export class ElectricianController {
     return this.service.listElectricianBookings(user.id, 'active');
   }
 
+  @Get('my/bookings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List all bookings for current electrician' })
+  listMyBookings(@CurrentUser() user: { id: string }) {
+    return this.electrician.getMyBookings(user.id);
+  }
+
+  @Get('my/active-booking')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get currently active booking for current electrician' })
+  getMyActiveBooking(@CurrentUser() user: { id: string }) {
+    return this.electrician.getMyActiveBooking(user.id);
+  }
+
   @Get('bookings/history')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('electrician')
@@ -210,6 +229,18 @@ export class ElectricianController {
     @Body() dto: UpdateElectricianAvailabilityDto,
   ) {
     return this.service.setElectricianAvailability(user.id, dto.online);
+  }
+
+  @Post('my/device-token')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Save electrician device FCM token' })
+  updateDeviceToken(
+    @CurrentUser() user: { id: string },
+    @Body() dto: UpdateElectricianDeviceTokenDto,
+  ) {
+    return this.electrician.updateFcmToken(user.id, dto.fcm_token);
   }
 
   @Post('job/:id/photo')
