@@ -303,7 +303,7 @@ function UploadPhotoScreen({ route, navigation }: any) {
   };
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Upload Completion Photo</Text>
         <Text style={styles.meta}>Booking: {bookingId}</Text>
@@ -311,7 +311,7 @@ function UploadPhotoScreen({ route, navigation }: any) {
       <Pressable style={styles.primaryButton} onPress={() => void pickAndUpload()}>
         <Text style={styles.primaryButtonText}>Choose Photo</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }
 
