@@ -26,7 +26,12 @@ function formatSkills(skills: ElectricianRow['skills']): string {
   return '—';
 }
 
-export default function SuperadminPendingElectriciansPage() {
+function extractPincode(addr: string): string {
+  const m = addr.match(/\b\d{6}\b/);
+  return m ? m[0] : '—';
+}
+
+export default function TechnicianRegistrationsPage() {
   const [pending, setPending] = useState<ElectricianRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -86,8 +91,8 @@ export default function SuperadminPendingElectriciansPage() {
   return (
     <SuperadminShell>
       <main className="p-6 sm:p-10">
-        <h1 className="text-2xl font-bold text-ev-text mb-1">Pending electricians</h1>
-        <p className="text-ev-muted text-sm mb-8">Review KYC, skills, and approve or reject with a reason.</p>
+        <h1 className="text-2xl font-bold text-ev-text mb-1">Technician registrations</h1>
+        <p className="text-ev-muted text-sm mb-8">Pending applications only. Approve or reject with a clear reason.</p>
 
         {loading ? (
           <div className="flex justify-center py-20">
