@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { setApiTokenGetter } from './src/services/api';
 import { clearSession, getToken } from './src/services/storage';
 import { AuthNavigator, MainNavigator } from './src/navigation/AppNavigator';
+import { colors } from './src/theme/colors';
 
 export default function App() {
   const [token, setToken] = useState<string | null>(null);
@@ -34,7 +35,7 @@ export default function App() {
   if (booting) {
     return (
       <View style={styles.loaderWrap}>
-        <ActivityIndicator size="large" color="#2563eb" />
+        <ActivityIndicator size="large" color={colors.brandPrimary} />
       </View>
     );
   }
@@ -55,6 +56,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.background,
   },
 });

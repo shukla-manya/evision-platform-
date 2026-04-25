@@ -4,6 +4,7 @@ import * as Location from 'expo-location';
 import { AxiosError } from 'axios';
 import { Booking, bookingsApi } from '../services/api';
 import { connectSocket, disconnectSocket, emitLocation, joinRoom } from '../services/socket';
+import { colors } from '../theme/colors';
 
 function apiError(err: unknown, fallback: string) {
   const e = err as AxiosError<{ message?: string | string[] }>;
@@ -121,24 +122,24 @@ export default function ActiveJobScreen({ token, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f8fafc', padding: 14 },
+  screen: { flex: 1, backgroundColor: colors.background, padding: 14 },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
     gap: 6,
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#0f172a' },
-  meta: { color: '#475569', fontSize: 13 },
+  title: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+  meta: { color: colors.textSecondary, fontSize: 13 },
   button: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.brandPrimary,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
     marginBottom: 8,
   },
-  buttonText: { color: '#fff', fontWeight: '700' },
+  buttonText: { color: colors.surface, fontWeight: '700' },
 });

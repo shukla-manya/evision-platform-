@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { AxiosError } from 'axios';
 import { bookingsApi, Booking, profileApi } from '../services/api';
+import { colors } from '../theme/colors';
 
 function apiError(err: unknown, fallback: string) {
   const e = err as AxiosError<{ message?: string | string[] }>;
@@ -97,27 +98,29 @@ export default function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f8fafc', padding: 14 },
+  screen: { flex: 1, backgroundColor: colors.background, padding: 14 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   row: { flexDirection: 'row', gap: 8, marginBottom: 10 },
-  heading: { fontSize: 18, fontWeight: '700', color: '#0f172a', marginBottom: 8 },
+  heading: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
     gap: 6,
   },
-  cardTitle: { fontWeight: '700', color: '#0f172a', fontSize: 15 },
-  meta: { color: '#475569', fontSize: 13 },
+  cardTitle: { fontWeight: '700', color: colors.textPrimary, fontSize: 15 },
+  meta: { color: colors.textSecondary, fontSize: 13 },
   quickBtn: {
     flex: 1,
-    backgroundColor: '#e2e8f0',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: 'center',
   },
-  quickBtnText: { color: '#0f172a', fontWeight: '600' },
+  quickBtnText: { color: colors.textPrimary, fontWeight: '600' },
 });

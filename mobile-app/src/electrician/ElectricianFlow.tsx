@@ -14,6 +14,7 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { electricianApi, ServiceBooking } from '../services/api';
 import { createTrackingSocket } from '../services/trackingSocket';
+import { colors } from '../theme/colors';
 
 type ElectricianStackParamList = {
   Home: undefined;
@@ -362,39 +363,41 @@ export function ElectricianFlow({ token }: { token: string }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f8fafc', padding: 14 },
+  screen: { flex: 1, backgroundColor: colors.background, padding: 14 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#0f172a', marginBottom: 10 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 10 },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
     gap: 6,
   },
-  cardTitle: { fontWeight: '700', color: '#0f172a', fontSize: 15 },
-  meta: { color: '#475569', fontSize: 13 },
+  cardTitle: { fontWeight: '700', color: colors.textPrimary, fontSize: 15 },
+  meta: { color: colors.textSecondary, fontSize: 13 },
   primaryButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.brandPrimary,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
     marginBottom: 8,
   },
-  primaryButtonText: { color: '#fff', fontWeight: '700' },
+  primaryButtonText: { color: colors.surface, fontWeight: '700' },
   secondaryButton: {
-    backgroundColor: '#e2e8f0',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
     alignItems: 'center',
   },
-  secondaryButtonText: { color: '#0f172a', fontWeight: '600' },
+  secondaryButtonText: { color: colors.textPrimary, fontWeight: '600' },
   dangerButton: {
-    backgroundColor: '#dc2626',
+    backgroundColor: colors.error,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
@@ -402,12 +405,12 @@ const styles = StyleSheet.create({
   },
   bookingChip: {
     borderWidth: 1,
-    borderColor: '#cbd5e1',
+    borderColor: colors.border,
     borderRadius: 999,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  bookingChipActive: { borderColor: '#2563eb', backgroundColor: '#dbeafe' },
-  bookingChipText: { color: '#1e293b', fontSize: 12, fontWeight: '700' },
+  bookingChipActive: { borderColor: colors.brandPrimary, backgroundColor: colors.softPanel },
+  bookingChipText: { color: colors.textPrimary, fontSize: 12, fontWeight: '700' },
 });

@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { serviceApi, ServiceBooking } from '../services/api';
 import { getToken } from '../services/storage';
 import { createTrackingSocket } from '../services/trackingSocket';
+import { colors } from '../theme/colors';
 
 export function ServiceTrackingScreen() {
   const [bookings, setBookings] = useState<ServiceBooking[]>([]);
@@ -123,19 +124,19 @@ export function ServiceTrackingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 12, backgroundColor: '#f8fafc', gap: 10 },
-  title: { fontSize: 18, fontWeight: '700', color: '#0f172a' },
-  subtitle: { color: '#475569', fontSize: 13 },
+  container: { flex: 1, padding: 12, backgroundColor: colors.background, gap: 10 },
+  title: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
+  subtitle: { color: colors.textSecondary, fontSize: 13 },
   row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   bookingChip: {
     borderWidth: 1,
-    borderColor: '#cbd5e1',
-    backgroundColor: '#fff',
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  bookingChipActive: { borderColor: '#2563eb', backgroundColor: '#dbeafe' },
-  bookingChipText: { fontSize: 12, color: '#1e293b', fontWeight: '600' },
+  bookingChipActive: { borderColor: colors.brandPrimary, backgroundColor: colors.softPanel },
+  bookingChipText: { fontSize: 12, color: colors.textPrimary, fontWeight: '600' },
   map: { flex: 1, borderRadius: 12, overflow: 'hidden' },
 });
