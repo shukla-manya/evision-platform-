@@ -344,7 +344,7 @@ function ProfileScreen({
   }, [loadProfile]);
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>{profile?.name || 'My Profile'}</Text>
         {loading ? (
@@ -371,7 +371,7 @@ function ProfileScreen({
       <Pressable style={styles.dangerButton} onPress={onLogout}>
         <Text style={styles.primaryButtonText}>Logout</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }
 
