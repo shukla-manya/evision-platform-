@@ -37,6 +37,11 @@ export class ShiprocketService {
     this.apiBase = `${config.get<string>('SHIPROCKET_BASE_URL', 'https://apiv2.shiprocket.in')}/v1/external`;
   }
 
+  private isMockEnabled(): boolean {
+    const raw = String(this.config.get<string>('SHIPROCKET_MOCK', 'false')).toLowerCase().trim();
+    return raw === '1' || raw === 'true' || raw === 'yes';
+  }
+
   private async getToken(): Promise<string> {
     if (this.token && Date.now() < this.tokenExpiresAt) return this.token;
 
@@ -76,6 +81,21 @@ export class ShiprocketService {
   }
 
   async createShipment(params: ShiprocketShipParams): Promise<ShiprocketShipmentResult> {
+    if (this.isMockEnabled()) {
+      const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
+      const awb = `MOCKAWB${Date.now().toString().slice(-6)}${suffix}`;
+      const mock = {
+        shiprocket_order_id: `mock-order-${params.orderId.slice(0, 8)}`,
+        shipment_id: `mock-shipment-${params.orderId.slice(0, 8)}`,
+        awb_number: awb,
+        courier_name: 'Mock Courier',
+      };
+      this.logger.warn(
+        `SHIPROCKET_MOCK enabled: returning fake shipment for order ${params.orderId} (AWB ${awb})`,
+      );
+      return mock;
+    }
+
     const pickupLocation = this.config.get<string>('SHIPROCKET_PICKUP_LOCATION', 'Primary');
 
     const createRes = await this.api<Record<string, unknown>>('/orders/create/adhoc', 'POST', {
