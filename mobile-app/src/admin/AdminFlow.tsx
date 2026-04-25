@@ -33,6 +33,13 @@ type AdminStackParamList = {
 
 const Stack = createNativeStackNavigator<AdminStackParamList>();
 
+const stackHeaderOptions = {
+  headerStyle: { backgroundColor: colors.navbar },
+  headerTintColor: '#FFFFFF' as const,
+  headerTitleStyle: { color: '#FFFFFF', fontWeight: '600' as const },
+  contentStyle: { backgroundColor: colors.background },
+};
+
 type Category = { id: string; name: string; parent_id?: string | null };
 
 type ShipForm = {
@@ -1141,7 +1148,7 @@ export function AdminFlow({
   );
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={stackHeaderOptions}>
       <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'Dashboard' }} />
       <Stack.Screen name="Products" component={ProductsScreen} options={{ title: 'Products' }} />
       <Stack.Screen name="ProductForm" component={ProductFormScreen} options={{ title: 'Product' }} />
@@ -1166,7 +1173,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.softPanel,
     color: colors.textPrimary,
   },
   label: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },

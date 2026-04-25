@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 10,
     padding: 12,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.softPanel,
     color: colors.textPrimary,
     minHeight: 44,
   },
