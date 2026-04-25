@@ -226,6 +226,16 @@ export default function LoginPage() {
             </form>
           )}
         </div>
+        <p className="text-center text-ev-muted text-xs mt-6">
+          Direct links:{' '}
+          <Link href="/admin/login" className="text-ev-primary hover:underline">
+            Shop admin
+          </Link>
+          {' · '}
+          <Link href="/superadmin/login" className="text-ev-primary hover:underline">
+            Superadmin
+          </Link>
+        </p>
       </div>
     </div>
   );
