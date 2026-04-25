@@ -757,7 +757,7 @@ function PaymentScreen({ route, navigation, user }: { route: RouteProp<RootStack
   );
 }
 
-function MyOrdersScreen({ navigation }: any) {
+function MyOrdersScreen({ navigation, userRole }: { navigation: any; userRole?: string }) {
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -784,7 +784,10 @@ function MyOrdersScreen({ navigation }: any) {
         data={groups}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
-          <Pressable style={styles.card} onPress={() => navigation.navigate('OrderDetail', { group: item })}>
+          <Pressable
+            style={styles.card}
+            onPress={() => navigation.navigate('OrderDetail', { group: item, userRole })}
+          >
             <Text style={styles.cardTitle}>Order Group #{item.id}</Text>
             <Text style={styles.cardMeta}>
               Status:{' '}
@@ -881,7 +884,13 @@ function DealerDashboardScreen() {
 }
 
 function OrderDetailScreen({ route }: { route: RouteProp<RootStackParamList, 'OrderDetail'> }) {
-  const { group } = route.params;
+  const { group, userRole } = route.params;
+  const navigation = useNavigation<any>();
+  const subs = (group.sub_orders || []) as any[];
+  const allDelivered =
+    subs.length > 0 && subs.every((s) => String(s.status || '').toLowerCase() === 'delivered');
+  const canRequestService =
+    (userRole === 'customer' || userRole === 'dealer') && allDelivered;
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -894,6 +903,14 @@ function OrderDetailScreen({ route }: { route: RouteProp<RootStackParamList, 'Or
               {String(group.status || '-')}
             </Text>
           </Text>
+          {canRequestService ? (
+            <Pressable
+              style={[styles.button, { marginTop: 12 }]}
+              onPress={() => navigation.navigate('ServiceRequest', { orderGroupId: String(group.id) })}
+            >
+              <Text style={styles.buttonText}>Request Service</Text>
+            </Pressable>
+          ) : null}
         </View>
 
         {(group.sub_orders || []).map((subOrder: any) => (
