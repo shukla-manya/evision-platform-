@@ -125,4 +125,80 @@ export class EmailService {
       trigger_event: 'admin_rejected',
     });
   }
+
+  async sendPaymentConfirmedCustomer(
+    customerEmail: string,
+    data: { customerName: string; orderGroupId: string; amount: number },
+  ) {
+    const html = this.interpolate(this.loadTemplate('payment-confirmed'), {
+      customer_name: data.customerName,
+      order_group_id: data.orderGroupId,
+      amount: String(data.amount.toFixed(2)),
+      orders_url: `${this.config.get('FRONTEND_URL')}/orders`,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: `Payment confirmed — order ${data.orderGroupId}`,
+      html,
+      trigger_event: 'payment_confirmed',
+    });
+  }
+
+  async sendPaymentConfirmedAdmin(
+    adminEmail: string,
+    data: { shopName: string; orderGroupId: string; amount: number },
+  ) {
+    const html = this.interpolate(this.loadTemplate('payment-confirmed'), {
+      customer_name: data.shopName,
+      order_group_id: data.orderGroupId,
+      amount: String(data.amount.toFixed(2)),
+      orders_url: `${this.config.get('FRONTEND_URL')}/admin/orders`,
+    });
+    await this.send({
+      to: adminEmail,
+      to_role: 'admin',
+      subject: `New paid order received — ${data.orderGroupId}`,
+      html,
+      trigger_event: 'payment_confirmed',
+    });
+  }
+
+  async sendPaymentFailedCustomer(
+    customerEmail: string,
+    data: { customerName: string; orderGroupId: string; reason: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('payment-failed'), {
+      customer_name: data.customerName,
+      order_group_id: data.orderGroupId,
+      reason: data.reason,
+      retry_url: `${this.config.get('FRONTEND_URL')}/cart`,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: `Payment failed — order ${data.orderGroupId}`,
+      html,
+      trigger_event: 'payment_failed',
+    });
+  }
+
+  async sendOrderCancelled(
+    toEmail: string,
+    toRole: 'customer' | 'admin',
+    data: { recipientName: string; orderGroupId: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('order-cancelled'), {
+      recipient_name: data.recipientName,
+      order_group_id: data.orderGroupId,
+      support_email: this.config.get('EMAIL_FROM'),
+    });
+    await this.send({
+      to: toEmail,
+      to_role: toRole,
+      subject: `Order cancelled — ${data.orderGroupId}`,
+      html,
+      trigger_event: 'order_cancelled',
+    });
+  }
 }

@@ -156,4 +156,16 @@ export class CartService {
     if (!row) throw new NotFoundException('Cart item not found');
     await this.dynamo.delete(this.cartTable(), { user_id: userId, id: itemId });
   }
+
+  async clear(userId: string): Promise<void> {
+    const items = await this.listUserItems(userId);
+    await Promise.all(
+      items.map((item) =>
+        this.dynamo.delete(this.cartTable(), {
+          user_id: userId,
+          id: String(item.id),
+        }),
+      ),
+    );
+  }
 }
