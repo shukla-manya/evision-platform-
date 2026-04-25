@@ -70,8 +70,15 @@ export class EmailService {
 
   // ── Template helpers ──────────────────────────────────────────────────────
   private loadTemplate(name: string): string {
-    const templatePath = path.join(__dirname, 'templates', `${name}.html`);
-    return fs.readFileSync(templatePath, 'utf-8');
+    const candidates = [
+      path.join(__dirname, 'templates', `${name}.html`),
+      path.join(process.cwd(), 'src/modules/emails/templates', `${name}.html`),
+      path.join(process.cwd(), 'dist/modules/emails/templates', `${name}.html`),
+    ];
+    for (const p of candidates) {
+      if (fs.existsSync(p)) return fs.readFileSync(p, 'utf-8');
+    }
+    throw new Error(`Email template not found: ${name}`);
   }
 
   private interpolate(template: string, vars: Record<string, string>): string {
