@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Camera, Phone, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Camera, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
@@ -10,24 +11,112 @@ import { saveToken, parseJwt, redirectByRole } from '@/lib/auth';
 
 type Mode = 'otp-phone' | 'otp-code' | 'admin';
 
+function formatPhoneForApi(digits: string) {
+  const d = digits.replace(/\D/g, '').slice(-10);
+  return `+91${d}`;
+}
+
+function OtpCells({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  disabled?: boolean;
+}) {
+  const refs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const setChar = useCallback(
+    (index: number, char: string) => {
+      const digits = value.replace(/\D/g, '').slice(0, 6).split('');
+      while (digits.length < 6) digits.push('');
+      digits[index] = char;
+      onChange(digits.join('').replace(/\D/g, '').slice(0, 6));
+    },
+    [onChange, value],
+  );
+
+  useEffect(() => {
+    if (!disabled && value.length < 6) {
+      refs.current[value.length]?.focus();
+    }
+  }, [disabled, value.length]);
+
+  return (
+    <div className="flex justify-center gap-2 sm:gap-3" role="group" aria-label="One-time password">
+      {Array.from({ length: 6 }, (_, i) => (
+        <input
+          key={i}
+          ref={(el) => {
+            refs.current[i] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          autoComplete={i === 0 ? 'one-time-code' : 'off'}
+          maxLength={1}
+          disabled={disabled}
+          className="w-10 h-12 sm:w-11 sm:h-14 text-center text-lg font-semibold rounded-xl border border-ev-border bg-ev-surface2 text-ev-text
+                     focus:outline-none focus:ring-2 focus:ring-ev-primary/40 focus:border-ev-primary transition-shadow"
+          value={value[i] ?? ''}
+          onChange={(e) => {
+            const raw = e.target.value.replace(/\D/g, '');
+            const char = raw.slice(-1);
+            if (raw.length > 1) {
+              const pasted = raw.slice(0, 6);
+              onChange(pasted);
+              refs.current[Math.min(5, pasted.length)]?.focus();
+              return;
+            }
+            setChar(i, char);
+            if (char && i < 5) refs.current[i + 1]?.focus();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Backspace' && !(value[i] ?? '') && i > 0) {
+              refs.current[i - 1]?.focus();
+            }
+          }}
+          onFocus={(e) => e.target.select()}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('otp-phone');
   const [loading, setLoading] = useState(false);
-  const [phone, setPhone] = useState('');
+  const [phoneDigits, setPhoneDigits] = useState('');
   const [otp, setOtp] = useState('');
+  const [resendSeconds, setResendSeconds] = useState(0);
   const [adminOtp, setAdminOtp] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [adminLoginToken, setAdminLoginToken] = useState('');
 
-  async function handleSendOtp(e: React.FormEvent) {
-    e.preventDefault();
+  const isOtpFlow = mode === 'otp-phone' || mode === 'otp-code';
+
+  useEffect(() => {
+    if (mode !== 'otp-code' || resendSeconds <= 0) return;
+    const id = window.setTimeout(() => setResendSeconds((s) => s - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [mode, resendSeconds]);
+
+  async function handleSendOtp(e?: React.FormEvent) {
+    e?.preventDefault();
+    const formatted = formatPhoneForApi(phoneDigits);
+    if (formatted.length < 12) {
+      toast.error('Enter a valid 10-digit mobile number');
+      return;
+    }
     setLoading(true);
     try {
-      await authApi.sendOtp(phone.startsWith('+') ? phone : `+91${phone}`);
+      await authApi.sendOtp(formatted);
       toast.success('OTP sent to your phone');
+      setOtp('');
       setMode('otp-code');
+      setResendSeconds(30);
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Failed to send OTP'));
     } finally {
@@ -37,9 +126,13 @@ export default function LoginPage() {
 
   async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault();
+    if (otp.length !== 6) {
+      toast.error('Enter the 6-digit OTP');
+      return;
+    }
     setLoading(true);
     try {
-      const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+      const formattedPhone = formatPhoneForApi(phoneDigits);
       const { data } = await authApi.verifyOtp(formattedPhone, otp);
       if (!data.is_registered) {
         saveToken(data.access_token, 'unregistered');
@@ -84,14 +177,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-ev-bg flex items-center justify-center px-4 py-12">
-      {/* Background glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-ev-primary/6 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/3 w-80 h-80 bg-ev-accent/5 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-md relative z-10 animate-slide-up">
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
             <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
@@ -99,21 +190,38 @@ export default function LoginPage() {
             </div>
             <span className="text-ev-text font-bold text-xl">LensCart</span>
           </Link>
-          <h1 className="text-2xl font-bold text-ev-text">Welcome back</h1>
-          <p className="text-ev-muted text-sm mt-1">Sign in to your account</p>
+
+          {isOtpFlow ? (
+            <>
+              <p className="text-ev-muted text-sm font-medium tracking-wide mb-2">Customer / Dealer / Electrician — sign in</p>
+              <p className="text-4xl mb-3" aria-hidden>
+                👋
+              </p>
+              <h1 className="text-2xl font-bold text-ev-text">Welcome back</h1>
+              {mode === 'otp-phone' && (
+                <p className="text-ev-muted text-sm mt-2">Enter your mobile number to get OTP</p>
+              )}
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold text-ev-text">Welcome back</h1>
+              <p className="text-ev-muted text-sm mt-1">Shop admin sign in</p>
+            </>
+          )}
         </div>
 
-        {/* Tab switcher */}
         <div className="ev-card p-1 flex gap-1 mb-6">
           {[
-            { key: 'otp-phone', label: 'Customer / Dealer / Electrician' },
-            { key: 'admin', label: 'Shop Admin' },
+            { key: 'otp-phone' as const, label: 'Customer / Dealer / Electrician' },
+            { key: 'admin' as const, label: 'Shop Admin' },
           ].map(({ key, label }) => (
             <button
               key={key}
+              type="button"
               onClick={() => {
-                setMode(key as Mode);
+                setMode(key);
                 setOtp('');
+                setResendSeconds(0);
                 setAdminOtp('');
                 setAdminLoginToken('');
               }}
@@ -128,66 +236,84 @@ export default function LoginPage() {
           ))}
         </div>
 
-        {/* Forms */}
         <div className="ev-card p-8">
-          {/* OTP — Phone */}
           {mode === 'otp-phone' && (
             <form onSubmit={handleSendOtp} className="space-y-5">
               <div>
-                <label className="ev-label">Mobile Number</label>
-                <div className="relative">
-                  <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                <label className="ev-label">Mobile number</label>
+                <div className="flex rounded-xl border border-ev-border bg-ev-surface2 overflow-hidden focus-within:ring-2 focus-within:ring-ev-primary/40 focus-within:border-ev-primary transition-all">
+                  <span className="flex items-center px-4 text-ev-muted text-sm font-semibold border-r border-ev-border shrink-0 select-none">
+                    +91
+                  </span>
                   <input
                     type="tel"
-                    className="ev-input pl-10"
-                    placeholder="+91 98765 43210"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
+                    className="flex-1 min-w-0 bg-transparent px-4 py-3 text-ev-text placeholder-ev-subtle text-base outline-none"
+                    placeholder="9876543210"
+                    maxLength={10}
+                    value={phoneDigits}
+                    onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    autoComplete="tel-national"
                     required
                   />
                 </div>
               </div>
               <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                {loading ? <Loader2 size={16} className="animate-spin" /> : <><span>Send OTP</span><ArrowRight size={16} /></>}
+                {loading ? <Loader2 size={16} className="animate-spin" /> : (
+                  <>
+                    <span>Send OTP</span>
+                    <ArrowRight size={16} />
+                  </>
+                )}
               </button>
-              <p className="text-center text-ev-subtle text-sm">
-                <Link href="/reset-password" className="text-ev-primary hover:text-ev-primary-light">
-                  Forgot password?
-                </Link>
-              </p>
-              <p className="text-center text-ev-subtle text-sm">
-                New here?{' '}
-                <Link href="/register" className="text-ev-primary hover:text-ev-primary-light">
-                  Create account
-                </Link>
-              </p>
             </form>
           )}
 
-          {/* OTP — Code */}
           {mode === 'otp-code' && (
-            <form onSubmit={handleVerifyOtp} className="space-y-5">
-              <div className="text-center mb-2">
-                <p className="text-ev-muted text-sm">OTP sent to <strong className="text-ev-text">{phone}</strong></p>
-              </div>
+            <form onSubmit={handleVerifyOtp} className="space-y-6">
               <div>
-                <label className="ev-label">Enter 6-digit OTP</label>
-                <input
-                  type="text"
-                  className="ev-input text-center text-xl tracking-[0.4em] font-mono"
-                  placeholder="• • • • • •"
-                  maxLength={6}
-                  value={otp}
-                  onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
-                  required
-                />
+                <label className="ev-label text-center block">Enter OTP (sent to your phone)</label>
+                <OtpCells value={otp} onChange={setOtp} disabled={loading} />
               </div>
-              <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                {loading ? <Loader2 size={16} className="animate-spin" /> : 'Verify & Sign In'}
+              <button
+                type="submit"
+                className="ev-btn-primary w-full flex items-center justify-center gap-2"
+                disabled={loading || otp.length !== 6}
+              >
+                {loading ? <Loader2 size={16} className="animate-spin" /> : (
+                  <>
+                    <span>Verify and sign in</span>
+                    <ArrowRight size={18} />
+                  </>
+                )}
               </button>
+              <p className="text-center text-ev-subtle text-sm leading-relaxed">
+                {resendSeconds > 0 ? (
+                  <span>Resend OTP in {resendSeconds} sec</span>
+                ) : (
+                  <button
+                    type="button"
+                    className="text-ev-primary hover:text-ev-primary-light font-medium disabled:opacity-50"
+                    disabled={loading}
+                    onClick={() => void handleSendOtp()}
+                  >
+                    Resend OTP
+                  </button>
+                )}
+                <span className="text-ev-border"> · </span>
+                <span>
+                  New user?{' '}
+                  <Link href="/register" className="text-ev-primary hover:text-ev-primary-light font-medium">
+                    Register
+                  </Link>
+                </span>
+              </p>
               <button
                 type="button"
-                onClick={() => setMode('otp-phone')}
+                onClick={() => {
+                  setMode('otp-phone');
+                  setOtp('');
+                  setResendSeconds(0);
+                }}
                 className="w-full text-center text-ev-subtle text-sm hover:text-ev-muted"
               >
                 ← Change number
@@ -195,7 +321,6 @@ export default function LoginPage() {
             </form>
           )}
 
-          {/* Shop admin — password then OTP */}
           {mode === 'admin' && (
             <form onSubmit={handleAdminLogin} className="space-y-5">
               {!adminLoginToken ? (
@@ -209,7 +334,7 @@ export default function LoginPage() {
                         className="ev-input pl-10"
                         placeholder="admin@yourshop.com"
                         value={email}
-                        onChange={e => setEmail(e.target.value)}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                       />
                     </div>
@@ -223,7 +348,7 @@ export default function LoginPage() {
                         className="ev-input pl-10"
                         placeholder="••••••••"
                         value={password}
-                        onChange={e => setPassword(e.target.value)}
+                        onChange={(e) => setPassword(e.target.value)}
                         required
                       />
                     </div>
@@ -250,7 +375,7 @@ export default function LoginPage() {
                       placeholder="• • • • • •"
                       maxLength={6}
                       value={adminOtp}
-                      onChange={e => setAdminOtp(e.target.value.replace(/\D/g, ''))}
+                      onChange={(e) => setAdminOtp(e.target.value.replace(/\D/g, ''))}
                       required
                     />
                   </div>
@@ -280,6 +405,7 @@ export default function LoginPage() {
             </form>
           )}
         </div>
+
         <p className="text-center text-ev-muted text-xs mt-6">
           Other sign-in:{' '}
           <Link href="/admin/login" className="text-ev-primary hover:underline">
