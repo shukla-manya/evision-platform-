@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AxiosError } from 'axios';
 import { Electrician, electricianAuthApi } from '../services/api';
+import { colors } from '../theme/colors';
 
 function apiError(err: unknown, fallback: string) {
   const e = err as AxiosError<{ message?: string | string[] }>;
@@ -50,31 +51,33 @@ export default function ProfileScreen({ onLogout }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f8fafc', padding: 14 },
+  screen: { flex: 1, backgroundColor: colors.background, padding: 14 },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
     gap: 6,
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#0f172a' },
-  meta: { color: '#475569', fontSize: 13 },
+  title: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+  meta: { color: colors.textSecondary, fontSize: 13 },
   secondaryButton: {
-    backgroundColor: '#e2e8f0',
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
     marginBottom: 8,
   },
-  secondaryText: { color: '#0f172a', fontWeight: '700' },
+  secondaryText: { color: colors.textPrimary, fontWeight: '700' },
   logoutButton: {
-    backgroundColor: '#dc2626',
+    backgroundColor: colors.error,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
   },
-  logoutText: { color: '#fff', fontWeight: '700' },
+  logoutText: { color: colors.surface, fontWeight: '700' },
 });
