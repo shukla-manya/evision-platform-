@@ -30,6 +30,7 @@ import { RegisterElectricianDto } from './dto/register-electrician.dto';
 import { ElectricianService } from './electrician.service';
 import { ServiceService } from '../service/service.service';
 import { RespondBookingDto } from '../service/dto/respond-booking.dto';
+import { UpdateJobStatusDto } from '../service/dto/update-job-status.dto';
 
 @ApiTags('Electrician')
 @Controller(['electrician', 'electricians'])
@@ -134,5 +135,21 @@ export class ElectricianController {
     @Body() dto: RespondBookingDto,
   ) {
     return this.service.respondToBooking(user.id, bookingId, dto);
+  }
+
+  @Put('job/:id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Update job status (on_the_way/reached/work_started/completed) and notify client',
+  })
+  updateJobStatus(
+    @CurrentUser() user: { id: string },
+    @Param('id') bookingId: string,
+    @Body() dto: UpdateJobStatusDto,
+  ) {
+    return this.service.updateJobStatus(user.id, bookingId, dto);
   }
 }

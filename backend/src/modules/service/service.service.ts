@@ -14,6 +14,7 @@ import { PushService } from '../push/push.service';
 import { CreateServiceRequestDto } from './dto/create-service-request.dto';
 import { BookServiceDto } from './dto/book-service.dto';
 import { RespondBookingDto } from './dto/respond-booking.dto';
+import { UpdateJobStatusDto } from './dto/update-job-status.dto';
 
 @Injectable()
 export class ServiceService implements OnModuleInit, OnModuleDestroy {
@@ -110,6 +111,7 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
       customer_id: customerId,
       electrician_id: electricianId,
       status: 'pending',
+      job_status: null,
       expires_at: expiresAt,
       created_at: now.toISOString(),
       updated_at: now.toISOString(),
@@ -178,6 +180,7 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
     if (dto.action === 'accept') {
       await this.dynamo.update(this.bookingsTable(), { id: bookingId }, {
         status: 'accepted',
+        job_status: 'accepted',
         accepted_at: now,
         updated_at: now,
       });
@@ -204,6 +207,7 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
 
     await this.dynamo.update(this.bookingsTable(), { id: bookingId }, {
       status: 'declined',
+      job_status: null,
       declined_at: now,
       updated_at: now,
     });
@@ -249,6 +253,7 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
         const requestId = String(booking.request_id || '');
         await this.dynamo.update(this.bookingsTable(), { id: bookingId }, {
           status: 'expired',
+          job_status: null,
           expired_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
@@ -276,5 +281,67 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
     );
     this.logger.log(`Expired ${expired.length} pending service booking(s)`);
     return { expired: expired.length };
+  }
+
+  async updateJobStatus(
+    electricianUserId: string,
+    bookingId: string,
+    dto: UpdateJobStatusDto,
+  ): Promise<Record<string, unknown>> {
+    const booking = await this.dynamo.get(this.bookingsTable(), { id: bookingId });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (String(booking.electrician_id) !== electricianUserId) {
+      throw new BadRequestException('Booking does not belong to this electrician');
+    }
+    if (String(booking.status) !== 'accepted') {
+      throw new BadRequestException('Job status can be updated only for accepted bookings');
+    }
+
+    const [customer, electrician, request] = await Promise.all([
+      this.dynamo.get(this.usersTable(), { id: String(booking.customer_id) }),
+      this.dynamo.get(this.electriciansTable(), { id: electricianUserId }),
+      this.dynamo.get(this.requestsTable(), { id: String(booking.request_id) }),
+    ]);
+
+    const now = new Date().toISOString();
+    await this.dynamo.update(this.bookingsTable(), { id: bookingId }, {
+      job_status: dto.status,
+      updated_at: now,
+    });
+    if (dto.status === 'completed' && request) {
+      await this.dynamo.update(this.requestsTable(), { id: String(request.id) }, {
+        status: 'completed',
+        completed_at: now,
+        updated_at: now,
+      });
+    }
+
+    const readableStatus = dto.status.replace(/_/g, ' ');
+    if (customer?.email) {
+      await this.email.sendClientJobStatusUpdate(String(customer.email), {
+        customerName: String(customer.name || 'Customer'),
+        electricianName: String(electrician?.name || 'Electrician'),
+        status: readableStatus,
+      });
+      if (dto.status === 'completed') {
+        await this.email.sendClientReviewPrompt(String(customer.email), {
+          customerName: String(customer.name || 'Customer'),
+          electricianName: String(electrician?.name || 'Electrician'),
+        });
+      }
+    }
+    await this.push.sendToToken(String(customer?.fcm_token || ''), {
+      title: `Job update: ${readableStatus}`,
+      body:
+        dto.status === 'completed'
+          ? `Work completed by ${String(electrician?.name || 'electrician')}. Please add a review.`
+          : `${String(electrician?.name || 'Electrician')} is now ${readableStatus}.`,
+      data: {
+        type: dto.status === 'completed' ? 'job_completed_review_prompt' : 'job_status_update',
+        booking_id: bookingId,
+        status: dto.status,
+      },
+    });
+    return { booking_id: bookingId, job_status: dto.status };
   }
 }
