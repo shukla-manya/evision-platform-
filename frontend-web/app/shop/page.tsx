@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Zap, Search, SlidersHorizontal, ShoppingBag, Loader2, ShoppingCart, Plus } from 'lucide-react';
+import { Camera, Search, SlidersHorizontal, ShoppingBag, Loader2, ShoppingCart, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
