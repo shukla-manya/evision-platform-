@@ -65,21 +65,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-ev-bg flex">
-      <aside className="w-60 sm:w-64 bg-ev-surface border-r border-ev-border flex flex-col fixed inset-y-0 z-30">
-        <div className="p-5 border-b border-ev-border">
+      <aside className="ev-sidebar w-60 sm:w-64 flex flex-col fixed inset-y-0 z-30">
+        <div className="p-5 border-b ev-sidebar-border">
           <Link href="/admin/dashboard" className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
               <Zap size={18} className="text-white" />
             </div>
             <div className="min-w-0">
-              <p className="text-ev-text font-bold text-sm truncate">E Vision</p>
-              <p className="text-ev-subtle text-xs">Shop Admin</p>
+              <p className="text-white font-bold text-sm truncate">LensCart</p>
+              <p className="ev-sidebar-muted text-xs">Shop Admin</p>
             </div>
           </Link>
           {admin ? (
-            <div className="mt-4 rounded-xl bg-ev-surface2 p-3 border border-ev-border">
-              <p className="text-ev-text text-sm font-semibold truncate">{admin.shop_name}</p>
-              <p className="text-ev-muted text-xs truncate">{admin.owner_name}</p>
+            <div className="mt-4 rounded-xl bg-white/5 p-3 border ev-sidebar-border">
+              <p className="text-white text-sm font-semibold truncate">{admin.shop_name}</p>
+              <p className="text-white/60 text-xs truncate">{admin.owner_name}</p>
               <span
                 className={`inline-block mt-2 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
                   admin.status === 'approved'

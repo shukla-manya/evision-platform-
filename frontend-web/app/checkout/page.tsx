@@ -103,7 +103,7 @@ export default function CheckoutPage() {
         amount: d.amount_paise,
         currency: d.currency || 'INR',
         order_id: d.razorpay_order_id,
-        name: 'E Vision',
+        name: 'LensCart',
         description: 'Order payment',
         handler: () => {
           toast.success('Payment submitted. Confirming order...');
@@ -112,7 +112,7 @@ export default function CheckoutPage() {
         modal: {
           ondismiss: () => toast('Payment window closed'),
         },
-        theme: { color: '#4F46E5' },
+        theme: { color: '#E8532A' },
       });
       rp.on('payment.failed', () => toast.error('Payment failed'));
       rp.open();
@@ -126,11 +126,11 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-ev-bg">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
-      <header className="border-b border-ev-border bg-ev-surface/90 backdrop-blur-md sticky top-0 z-40">
+      <header className="ev-header">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-ev-text font-bold text-base sm:text-lg">Checkout</h1>
-            <p className="text-ev-subtle text-xs">Single payment, auto-split by shop after success</p>
+            <h1 className="text-white font-bold text-base sm:text-lg">Checkout</h1>
+            <p className="text-white/50 text-xs">Single payment, auto-split by shop after success</p>
           </div>
           <Link href="/cart" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5">
             <ArrowLeft size={14} />

@@ -35,10 +35,10 @@ export function ElectricianShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-ev-bg">
-      <header className="border-b border-ev-border bg-ev-surface/90 backdrop-blur-md sticky top-0 z-40">
+      <header className="ev-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-ev-text">Electrician</span>
+            <span className="font-bold text-white">Electrician</span>
           </div>
           <nav className="hidden md:flex items-center gap-2">
             {NAV_ITEMS.map((item) => (
@@ -46,7 +46,7 @@ export function ElectricianShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={`text-sm px-3 py-1.5 rounded-lg ${
-                  pathname === item.href ? 'bg-ev-primary text-white' : 'text-ev-muted hover:text-ev-text'
+                  pathname === item.href ? 'bg-ev-primary text-white' : 'text-white/70 hover:text-white'
                 }`}
               >
                 {item.label}

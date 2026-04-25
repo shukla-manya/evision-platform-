@@ -95,15 +95,15 @@ export default function ShopPage() {
 
   return (
     <div className="min-h-screen bg-ev-bg">
-      <header className="border-b border-ev-border bg-ev-surface/90 backdrop-blur-md sticky top-0 z-40">
+      <header className="ev-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
             <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
-              <Zap size={18} className="text-white" />
+              <Camera size={18} className="text-white" />
             </div>
             <div className="min-w-0">
-              <p className="text-ev-text font-bold text-sm truncate">Shop</p>
-              <p className="text-ev-subtle text-[11px] truncate">{priceHint}</p>
+              <p className="text-white font-bold text-sm truncate">Shop</p>
+              <p className="text-white/50 text-[11px] truncate">{priceHint}</p>
             </div>
           </Link>
           <div className="flex items-center gap-2 shrink-0">
@@ -118,7 +118,7 @@ export default function ShopPage() {
                 </Link>
               </>
             ) : null}
-            <Link href="/login" className="text-ev-muted hover:text-ev-text text-sm hidden sm:inline">
+            <Link href="/login" className="text-white/70 hover:text-white text-sm hidden sm:inline transition-colors">
               Sign in
             </Link>
             <Link href="/" className="ev-btn-secondary text-sm py-2 px-3">
@@ -131,9 +131,9 @@ export default function ShopPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight">Electrical catalogue</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight">Camera &amp; gear catalogue</h1>
             <p className="text-ev-muted text-sm mt-1 max-w-xl">
-              Browse products from partner shops. Prices reflect your account type when signed in.
+              Browse listings from partner shops. Prices reflect your account type when signed in.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">

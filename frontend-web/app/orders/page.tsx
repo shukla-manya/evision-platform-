@@ -97,11 +97,11 @@ export default function MyOrdersPage() {
 
   return (
     <div className="min-h-screen bg-ev-bg">
-      <header className="border-b border-ev-border bg-ev-surface/90 backdrop-blur-md sticky top-0 z-40">
+      <header className="ev-header">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div>
-            <h1 className="text-ev-text font-bold text-base sm:text-lg">My orders</h1>
-            <p className="text-ev-subtle text-xs">Order groups with per-shop tracking</p>
+            <h1 className="text-white font-bold text-base sm:text-lg">My orders</h1>
+            <p className="text-white/50 text-xs">Order groups with per-shop tracking</p>
           </div>
           <div className="flex items-center gap-2">
             <Link href={`/reset-password?role=${role === 'dealer' ? 'dealer' : 'customer'}`} className="ev-btn-secondary py-2 px-3 text-sm">

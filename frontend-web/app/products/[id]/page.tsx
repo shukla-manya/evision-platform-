@@ -115,12 +115,12 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-ev-bg">
-      <header className="border-b border-ev-border bg-ev-surface/90 backdrop-blur-md sticky top-0 z-40">
+      <header className="ev-header">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
-          <Link href="/shop" className="text-ev-muted hover:text-ev-text transition-colors">
+          <Link href="/shop" className="text-white/70 hover:text-white transition-colors">
             <ArrowLeft size={20} />
           </Link>
-          <span className="text-ev-text font-semibold text-sm sm:text-base truncate">{product.name}</span>
+          <span className="text-white font-semibold text-sm sm:text-base truncate">{product.name}</span>
           {canBuy && (
             <Link href="/cart" className="ml-auto ev-btn-secondary py-2 px-3 text-sm flex items-center gap-1.5">
               <ShoppingCart size={15} />

@@ -73,7 +73,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="min-h-screen bg-ev-bg">
-      <header className="border-b border-ev-border bg-ev-surface/90 backdrop-blur-md sticky top-0 z-40">
+      <header className="ev-header">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5">
             <ArrowLeft size={14} />

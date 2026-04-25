@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Zap,
+  Camera,
   TrendingUp,
   Package,
   Receipt,
@@ -128,15 +128,15 @@ export default function DealerDashboardPage() {
 
   return (
     <div className="min-h-screen bg-ev-bg">
-      <header className="border-b border-ev-border bg-ev-surface/90 backdrop-blur-md sticky top-0 z-40">
+      <header className="ev-header">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
-              <Zap size={18} className="text-white" />
+              <Camera size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-ev-text font-bold text-sm">Dealer Dashboard</p>
-              <p className="text-ev-subtle text-[11px]">Spend analytics &amp; invoices</p>
+              <p className="text-white font-bold text-sm">Dealer Dashboard</p>
+              <p className="text-white/50 text-[11px]">Spend analytics &amp; invoices</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
