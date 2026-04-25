@@ -1,23 +1,29 @@
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class ShipOrderDto {
+  @IsOptional()
   @IsString()
-  delivery_name: string;
+  delivery_name?: string;
 
+  @IsOptional()
   @IsString()
-  delivery_phone: string;
+  delivery_phone?: string;
 
+  @IsOptional()
   @IsString()
-  delivery_address: string;
+  delivery_address?: string;
 
+  @IsOptional()
   @IsString()
-  delivery_city: string;
+  delivery_city?: string;
 
+  @IsOptional()
   @IsString()
-  delivery_state: string;
+  delivery_state?: string;
 
+  @IsOptional()
   @IsString()
-  delivery_pincode: string;
+  delivery_pincode?: string;
 
   @IsOptional()
   @IsNumber()
