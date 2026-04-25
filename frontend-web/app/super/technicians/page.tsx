@@ -135,11 +135,23 @@ export default function TechnicianRegistrationsPage() {
                         <span className="text-ev-text">{row.phone || '—'}</span>
                       </div>
                       <div>
-                        <span className="text-ev-muted block text-xs">City / location</span>
+                        <span className="text-ev-muted block text-xs">City / area</span>
+                        <span className="text-ev-text">{row.address ? String(row.address).split(',')[0].trim() : '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-ev-muted block text-xs">Pincode</span>
+                        <span className="text-ev-text">{row.address ? extractPincode(String(row.address)) : '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-ev-muted block text-xs">Experience (years)</span>
+                        <span className="text-ev-text">—</span>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="text-ev-muted block text-xs">Full address</span>
                         <span className="text-ev-text">{row.address || '—'}</span>
                       </div>
                       <div className="sm:col-span-2">
-                        <span className="text-ev-muted block text-xs">Skills</span>
+                        <span className="text-ev-muted block text-xs">Skills listed</span>
                         <span className="text-ev-text">{formatSkills(row.skills)}</span>
                       </div>
                       <div>
@@ -191,14 +203,17 @@ export default function TechnicianRegistrationsPage() {
                         {actionLoading === row.id + '_approve' ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
                         Approve
                       </button>
-                      <div className="flex gap-2 flex-1">
+                      <div className="flex flex-col gap-1 flex-1">
+                        <label className="text-xs text-ev-muted">Reason for rejection</label>
                         <input
                           type="text"
                           className="ev-input flex-1 py-2 text-sm"
-                          placeholder="Rejection reason…"
+                          placeholder='e.g. "Aadhar image unclear, please resubmit"'
                           value={rejectReason[row.id] || ''}
                           onChange={(e) => setRejectReason((r) => ({ ...r, [row.id]: e.target.value }))}
                         />
+                      </div>
+                      <div className="flex gap-2 shrink-0 items-end">
                         <button
                           type="button"
                           onClick={() => reject(row.id)}
