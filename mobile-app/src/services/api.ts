@@ -97,6 +97,24 @@ export type ServiceBooking = {
   created_at?: string;
 };
 
+export type ElectricianProfile = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address?: string;
+  lat: number;
+  lng: number;
+  available: boolean;
+  rating_avg: number;
+  rating_count: number;
+  total_reviews?: number;
+  skills: string[];
+  photo_url?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  fcm_token?: string;
+};
+
 export const authApi = {
   sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
   verifyOtp: (phone: string, otp: string) =>
@@ -133,6 +151,7 @@ export const serviceApi = {
 };
 
 export const electricianApi = {
+  me: () => api.get<ElectricianProfile>('/electrician/me'),
   pendingBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/pending'),
   activeBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/active'),
   historyBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/history'),

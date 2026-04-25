@@ -823,11 +823,11 @@ function AppShell() {
     }
   };
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await clearToken();
     setAuthToken(null);
     setUser(null);
-  };
+  }, []);
 
   const paymentScreen = useMemo(
     () => (props: any) => <PaymentScreen {...props} user={user} />,
@@ -842,8 +842,8 @@ function AppShell() {
     [user, fcmToken],
   );
   const electricianFlow = useMemo(
-    () => () => <ElectricianFlow token={token || ''} />,
-    [token],
+    () => () => <ElectricianFlow token={token || ''} onLogout={logout} fcmToken={fcmToken} />,
+    [token, logout, fcmToken],
   );
 
   if (hydrating) return <Loader text="Preparing app..." />;

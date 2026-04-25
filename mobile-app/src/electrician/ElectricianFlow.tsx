@@ -12,7 +12,7 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
-import { electricianApi, ServiceBooking } from '../services/api';
+import { API_BASE_URL, electricianApi, ElectricianProfile, ServiceBooking } from '../services/api';
 import { createTrackingSocket } from '../services/trackingSocket';
 import { colors } from '../theme/colors';
 import { statusColor } from '../theme/status';
@@ -314,13 +314,57 @@ function UploadPhotoScreen({ route, navigation }: any) {
   );
 }
 
-function ProfileScreen() {
+function ProfileScreen({
+  onLogout,
+  fcmToken,
+}: {
+  onLogout: () => void;
+  fcmToken: string | null;
+}) {
+  const [profile, setProfile] = useState<ElectricianProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data } = await electricianApi.me();
+      setProfile(data || null);
+    } catch (err) {
+      Alert.alert('Error', asErrorMessage(err, 'Could not load profile.'));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadProfile();
+  }, [loadProfile]);
+
   return (
     <View style={styles.screen}>
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>My Profile</Text>
-        <Text style={styles.meta}>Use this as electrician profile base screen.</Text>
+        <Text style={styles.cardTitle}>{profile?.name || 'My Profile'}</Text>
+        {loading ? (
+          <Text style={styles.meta}>Loading profile...</Text>
+        ) : (
+          <>
+            <Text style={styles.meta}>Email: {profile?.email || '-'}</Text>
+            <Text style={styles.meta}>Phone: {profile?.phone || '-'}</Text>
+            <Text style={styles.meta}>
+              Rating: {Number(profile?.rating_avg || 0).toFixed(1)} ({profile?.rating_count || 0})
+            </Text>
+            <Text style={styles.meta}>Status: {profile?.status || '-'}</Text>
+            <Text style={styles.meta}>API: {API_BASE_URL}</Text>
+            <Text style={styles.meta} numberOfLines={2}>FCM Token: {fcmToken || 'Not registered yet'}</Text>
+          </>
+        )}
       </View>
+      <Pressable style={styles.secondaryButton} onPress={() => void loadProfile()}>
+        <Text style={styles.secondaryButtonText}>Refresh</Text>
+      </Pressable>
+      <Pressable style={styles.dangerButton} onPress={onLogout}>
+        <Text style={styles.primaryButtonText}>Logout</Text>
+      </Pressable>
     </View>
   );
 }
@@ -360,7 +404,15 @@ function EarningsHistoryScreen() {
   );
 }
 
-export function ElectricianFlow({ token }: { token: string }) {
+export function ElectricianFlow({
+  token,
+  onLogout,
+  fcmToken,
+}: {
+  token: string;
+  onLogout: () => void;
+  fcmToken: string | null;
+}) {
   const activeJobScreen = useMemo(
     () => (props: any) => <ActiveJobScreen {...props} token={token} />,
     [token],
@@ -371,7 +423,9 @@ export function ElectricianFlow({ token }: { token: string }) {
       <Stack.Screen name="BookingDetail" component={BookingDetailScreen} options={{ title: 'Booking Detail' }} />
       <Stack.Screen name="ActiveJob" component={activeJobScreen} options={{ title: 'Active Job' }} />
       <Stack.Screen name="UploadPhoto" component={UploadPhotoScreen} options={{ title: 'Upload Photo' }} />
-      <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'My Profile' }} />
+      <Stack.Screen name="Profile" options={{ title: 'My Profile' }}>
+        {() => <ProfileScreen onLogout={onLogout} fcmToken={fcmToken} />}
+      </Stack.Screen>
       <Stack.Screen name="EarningsHistory" component={EarningsHistoryScreen} options={{ title: 'Earnings & History' }} />
     </Stack.Navigator>
   );
