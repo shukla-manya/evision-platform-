@@ -8,7 +8,7 @@ import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { saveToken, parseJwt, redirectByRole } from '@/lib/auth';
 
-type Mode = 'otp-phone' | 'otp-code' | 'admin' | 'superadmin';
+type Mode = 'otp-phone' | 'otp-code' | 'admin';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -65,20 +65,15 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const role = mode === 'superadmin' ? 'superadmin' : 'admin';
       if (!adminLoginToken) {
-        const { data } = await (mode === 'superadmin'
-          ? authApi.superadminLogin(email, password)
-          : authApi.adminLogin(email, password));
+        const { data } = await authApi.adminLogin(email, password);
         setAdminLoginToken(data.login_token);
         toast.success('OTP sent to your registered phone');
       } else {
-        const { data } = await (mode === 'superadmin'
-          ? authApi.superadminLoginVerify(adminLoginToken, adminOtp)
-          : authApi.adminLoginVerify(adminLoginToken, adminOtp));
-        saveToken(data.access_token, role);
+        const { data } = await authApi.adminLoginVerify(adminLoginToken, adminOtp);
+        saveToken(data.access_token, 'admin');
         toast.success('Logged in!');
-        router.push(redirectByRole(role));
+        router.push(redirectByRole('admin'));
       }
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Invalid credentials'));
@@ -113,7 +108,6 @@ export default function LoginPage() {
           {[
             { key: 'otp-phone', label: 'Customer / Dealer / Electrician' },
             { key: 'admin', label: 'Shop Admin' },
-            { key: 'superadmin', label: 'Superadmin' },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -201,8 +195,8 @@ export default function LoginPage() {
             </form>
           )}
 
-          {/* Admin / Superadmin — Password then OTP */}
-          {(mode === 'admin' || mode === 'superadmin') && (
+          {/* Shop admin — password then OTP */}
+          {mode === 'admin' && (
             <form onSubmit={handleAdminLogin} className="space-y-5">
               {!adminLoginToken ? (
                 <>
@@ -237,13 +231,11 @@ export default function LoginPage() {
                   <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
                     {loading ? <Loader2 size={16} className="animate-spin" /> : 'Continue to OTP'}
                   </button>
-                  {mode !== 'superadmin' && (
-                    <p className="text-center text-ev-subtle text-sm">
-                      <Link href={`/reset-password?role=${mode === 'admin' ? 'admin' : 'electrician'}`} className="text-ev-primary hover:text-ev-primary-light">
-                        Forgot password?
-                      </Link>
-                    </p>
-                  )}
+                  <p className="text-center text-ev-subtle text-sm">
+                    <Link href="/reset-password?role=admin" className="text-ev-primary hover:text-ev-primary-light">
+                      Forgot password?
+                    </Link>
+                  </p>
                 </>
               ) : (
                 <>
@@ -289,13 +281,9 @@ export default function LoginPage() {
           )}
         </div>
         <p className="text-center text-ev-muted text-xs mt-6">
-          Direct links:{' '}
+          Other sign-in:{' '}
           <Link href="/admin/login" className="text-ev-primary hover:underline">
-            Shop admin
-          </Link>
-          {' · '}
-          <Link href="/superadmin/login" className="text-ev-primary hover:underline">
-            Superadmin
+            Shop admin (dedicated page)
           </Link>
           {' · '}
           <Link href="/electrician/login" className="text-ev-primary hover:underline">
