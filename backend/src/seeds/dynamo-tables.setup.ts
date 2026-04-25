@@ -267,6 +267,7 @@ const TABLES = [
       { AttributeName: 'service_request_id', AttributeType: 'S' },
       { AttributeName: 'electrician_id',     AttributeType: 'S' },
       { AttributeName: 'user_id',            AttributeType: 'S' },
+      { AttributeName: 'status',             AttributeType: 'S' },
     ],
     GlobalSecondaryIndexes: [
       {
@@ -282,6 +283,11 @@ const TABLES = [
       {
         IndexName: 'UserIndex',
         KeySchema: [{ AttributeName: 'user_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'StatusIndex',
+        KeySchema: [{ AttributeName: 'status', KeyType: 'HASH' }],
         Projection: { ProjectionType: 'ALL' },
       },
     ],

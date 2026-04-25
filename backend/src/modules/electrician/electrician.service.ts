@@ -203,4 +203,18 @@ export class ElectricianService {
     nearby.sort((a, b) => Number(b.rating_avg || 0) - Number(a.rating_avg || 0));
     return nearby;
   }
+
+  async getPublicProfile(
+    electricianId: string,
+    reviewsService: { listForElectrician: (id: string) => Promise<Record<string, unknown>[]> },
+  ): Promise<Record<string, unknown>> {
+    const electrician = await this.dynamo.get(this.table(), { id: electricianId });
+    if (!electrician) throw new NotFoundException('Electrician not found');
+    if (String(electrician.status) !== 'approved') {
+      throw new NotFoundException('Electrician not found');
+    }
+    const { password_hash, reject_reason, ...safe } = electrician;
+    const reviews = await reviewsService.listForElectrician(electricianId);
+    return { ...safe, reviews };
+  }
 }

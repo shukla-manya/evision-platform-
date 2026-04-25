@@ -291,6 +291,60 @@ export class EmailService {
     });
   }
 
+  async sendClientJobStatusUpdate(
+    customerEmail: string,
+    data: { customerName: string; electricianName: string; status: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('service-job-status-client'), {
+      customer_name: data.customerName,
+      electrician_name: data.electricianName,
+      status: data.status,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: `Service job update: ${data.status}`,
+      html,
+      trigger_event: 'service_job_status_update',
+    });
+  }
+
+  async sendClientReviewPrompt(
+    customerEmail: string,
+    data: { customerName: string; electricianName: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('service-review-prompt-client'), {
+      customer_name: data.customerName,
+      electrician_name: data.electricianName,
+      reviews_url: `${this.config.get('FRONTEND_URL')}/reviews`,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: 'How was your service experience?',
+      html,
+      trigger_event: 'service_review_prompt',
+    });
+  }
+
+  async sendElectricianReviewReceived(
+    electricianEmail: string,
+    data: { electricianName: string; rating: number; comment: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('electrician-review-received'), {
+      electrician_name: data.electricianName,
+      rating: String(data.rating),
+      comment: data.comment || 'No comment provided',
+    });
+    await this.send({
+      to: electricianEmail,
+      to_role: 'electrician',
+      subject: 'You received a new review',
+      html,
+      trigger_event: 'electrician_review_received',
+    });
+  }
+
   async sendPaymentConfirmedCustomer(
     customerEmail: string,
     data: { customerName: string; orderGroupId: string; amount: number },

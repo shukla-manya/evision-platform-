@@ -31,6 +31,7 @@ import { ElectricianService } from './electrician.service';
 import { ServiceService } from '../service/service.service';
 import { RespondBookingDto } from '../service/dto/respond-booking.dto';
 import { UpdateJobStatusDto } from '../service/dto/update-job-status.dto';
+import { ReviewsService } from '../reviews/reviews.service';
 
 @ApiTags('Electrician')
 @Controller(['electrician', 'electricians'])
@@ -39,6 +40,7 @@ export class ElectricianController {
     private electrician: ElectricianService,
     private s3: S3Service,
     private service: ServiceService,
+    private reviews: ReviewsService,
   ) {}
 
   @Public()
@@ -59,6 +61,13 @@ export class ElectricianController {
       throw new BadRequestException('lat and lng query params are required');
     }
     return this.electrician.findNearbyApprovedAvailable(lat, lng, 10);
+  }
+
+  @Public()
+  @Get(':id/profile')
+  @ApiOperation({ summary: 'Public electrician profile with all reviews' })
+  async profile(@Param('id') electricianId: string) {
+    return this.electrician.getPublicProfile(electricianId, this.reviews);
   }
 
   @Public()
