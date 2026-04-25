@@ -3,20 +3,20 @@ import { API_BASE_URL } from './api';
 
 let socket: Socket | null = null;
 
-function normalizeSocketBaseUrl() {
-  return API_BASE_URL.replace(/\/+$/, '');
+function socketUrl() {
+  return `${API_BASE_URL.replace(/\/+$/, '')}/location`;
 }
 
+// Called by ServiceTrackingScreen for a one-off connection
 export function createTrackingSocket(token: string): Socket {
-  return io(`${normalizeSocketBaseUrl()}/service-tracking`, {
-    transports: ['websocket'],
-    auth: { token },
-  });
+  const s = io(socketUrl(), { transports: ['websocket'], auth: { token } });
+  s.on('connect', () => s.emit('join_room', { booking_id: (s as any).__bookingId }));
+  return s;
 }
 
 export function connectSocket(token: string): Socket {
   if (socket?.connected) return socket;
-  socket = io(`${normalizeSocketBaseUrl()}/service-tracking`, {
+  socket = io(socketUrl(), {
     auth: { token },
     transports: ['websocket'],
     reconnection: true,
@@ -35,28 +35,22 @@ export function getSocket(): Socket | null {
   return socket;
 }
 
-export function emitLocation(bookingId: string, lat: number, lng: number) {
-  socket?.emit('electrician_location_update', {
-    booking_id: bookingId,
-    lat,
-    lng,
-    sent_at: new Date().toISOString(),
-  });
+export function joinRoom(bookingId: string) {
+  socket?.emit('join_room', { booking_id: bookingId });
 }
 
-export function joinRoom(bookingId: string) {
-  socket?.emit('join_booking_room', { booking_id: bookingId });
+export function leaveRoom(bookingId: string) {
+  socket?.emit('leave_room', { booking_id: bookingId });
 }
 
 export type LocationUpdate = {
-  electrician_id?: string;
   lat: number;
   lng: number;
   booking_id: string;
-  sent_at: string;
+  timestamp: string;
 };
 
 export function onElectricianLocation(callback: (data: LocationUpdate) => void): () => void {
-  socket?.on('booking_location_update', callback);
-  return () => socket?.off('booking_location_update', callback);
+  socket?.on('electrician_location', callback);
+  return () => socket?.off('electrician_location', callback);
 }

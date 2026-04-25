@@ -39,18 +39,16 @@ export function ServiceTrackingScreen() {
       if (!selectedBookingId) return;
       const token = await getToken();
       if (!token) return;
-      const socket = createTrackingSocket(token);
-      socket.emit('join_booking_room', { booking_id: selectedBookingId });
-      socket.on('booking_location_update', (payload: { booking_id: string; lat: number; lng: number }) => {
+      const sock = createTrackingSocket(token);
+      sock.on('connect', () => sock.emit('join_room', { booking_id: selectedBookingId }));
+      sock.on('electrician_location', (payload: { booking_id: string; lat: number; lng: number }) => {
         if (String(payload?.booking_id) === selectedBookingId) {
           setLocation({ lat: Number(payload.lat), lng: Number(payload.lng) });
         }
       });
-      socket.on('tracking_error', () => {
-        // Keep UI responsive even if room join fails.
-      });
       return () => {
-        socket.disconnect();
+        sock.emit('leave_room', { booking_id: selectedBookingId });
+        sock.disconnect();
       };
     };
 
