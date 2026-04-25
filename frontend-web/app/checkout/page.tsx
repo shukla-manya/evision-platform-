@@ -73,7 +73,10 @@ export default function CheckoutPage() {
       router.replace('/login');
       return;
     }
-    void loadCart();
+    const timer = setTimeout(() => {
+      void loadCart();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [canUseCart, loadCart, router]);
 
   async function payNow() {
