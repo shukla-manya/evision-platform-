@@ -40,7 +40,15 @@ export default function AdminDashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (admin?.status === 'pending') {
+  if (loading || !admin) {
+    return (
+      <AdminShell>
+        <main className="p-10 text-ev-muted text-sm">Loading dashboard…</main>
+      </AdminShell>
+    );
+  }
+
+  if (admin.status === 'pending') {
     return (
       <AdminShell>
         <main className="p-6 sm:p-10 flex items-center justify-center min-h-[60vh]">
