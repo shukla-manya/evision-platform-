@@ -29,14 +29,23 @@ export class S3Service {
     this.s3Endpoint = (config.get('S3_ENDPOINT') || '').trim() || undefined;
     this.s3PublicBase = (config.get('S3_PUBLIC_BASE_URL') || '').trim() || undefined;
     const isLocal = Boolean(this.s3Endpoint);
-    const accessKeyId = config.get('AWS_ACCESS_KEY_ID') || (isLocal ? 'minioadmin' : '');
-    const secretAccessKey = config.get('AWS_SECRET_ACCESS_KEY') || (isLocal ? 'minioadmin' : '');
+    const accessKeyId = config.get<string>('AWS_ACCESS_KEY_ID');
+    const secretAccessKey = config.get<string>('AWS_SECRET_ACCESS_KEY');
+    const credentials =
+      isLocal
+        ? {
+            accessKeyId: accessKeyId || 'minioadmin',
+            secretAccessKey: secretAccessKey || 'minioadmin',
+          }
+        : accessKeyId && secretAccessKey
+          ? { accessKeyId, secretAccessKey }
+          : undefined;
 
     this.s3 = new S3Client({
       region: this.region,
       endpoint: this.s3Endpoint,
       forcePathStyle: isLocal,
-      credentials: { accessKeyId, secretAccessKey },
+      ...(credentials ? { credentials } : {}),
     });
     this.cloudfrontDomain = (config.get('CLOUDFRONT_DOMAIN') || '').replace(/\/$/, '') || null;
 

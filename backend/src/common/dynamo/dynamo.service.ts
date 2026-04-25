@@ -26,12 +26,21 @@ export class DynamoService implements OnModuleInit {
       this.config.get('DYNAMO_ENDPOINT') ||
       undefined;
     const isLocal = Boolean(endpoint);
+    const accessKeyId = this.config.get<string>('AWS_ACCESS_KEY_ID');
+    const secretAccessKey = this.config.get<string>('AWS_SECRET_ACCESS_KEY');
+    const credentials =
+      isLocal
+        ? {
+            accessKeyId: accessKeyId || 'local',
+            secretAccessKey: secretAccessKey || 'local',
+          }
+        : accessKeyId && secretAccessKey
+          ? { accessKeyId, secretAccessKey }
+          : undefined;
+
     const raw = new DynamoDBClient({
       region: this.config.get('AWS_REGION', 'ap-south-1'),
-      credentials: {
-        accessKeyId: this.config.get('AWS_ACCESS_KEY_ID', isLocal ? 'local' : ''),
-        secretAccessKey: this.config.get('AWS_SECRET_ACCESS_KEY', isLocal ? 'local' : ''),
-      },
+      ...(credentials ? { credentials } : {}),
       ...(endpoint ? { endpoint } : {}),
     });
     this.client = DynamoDBDocumentClient.from(raw, {

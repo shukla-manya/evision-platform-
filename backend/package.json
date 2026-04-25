@@ -11,7 +11,8 @@
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
     "setup:tables": "ts-node -r tsconfig-paths/register src/seeds/dynamo-tables.setup.ts",
-    "seed:superadmin": "ts-node -r tsconfig-paths/register src/seeds/superadmin.seed.ts"
+    "seed:superadmin": "ts-node -r tsconfig-paths/register src/seeds/superadmin.seed.ts",
+    "docker:local": "docker compose -f docker-compose.local.yml up -d"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
