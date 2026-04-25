@@ -41,7 +41,7 @@ frontend-web/.vercel/
 frontend-web/.swc/
 
 # -----------------------------------------------------------------------------
-# React Native / Expo (future mobile/)
+# React Native / Expo (mobile apps)
 # -----------------------------------------------------------------------------
 mobile/**/node_modules/
 mobile/**/.expo/
@@ -61,6 +61,43 @@ mobile/**/android/local.properties
 mobile/**/android/.cxx/
 mobile/**/android/*.iml
 mobile/**/.kotlin/
+
+# Current app folder name
+mobile-app/node_modules/
+mobile-app/.expo/
+mobile-app/.expo-shared/
+mobile-app/dist/
+mobile-app/web-build/
+mobile-app/.bundle/
+mobile-app/ios/Pods/
+mobile-app/ios/build/
+mobile-app/ios/*.xcworkspace/xcuserdata/
+mobile-app/ios/*.xcodeproj/xcuserdata/
+mobile-app/ios/*.xcodeproj/project.xcworkspace/xcshareddata/
+mobile-app/android/.gradle/
+mobile-app/android/build/
+mobile-app/android/app/build/
+mobile-app/android/local.properties
+mobile-app/android/.cxx/
+mobile-app/android/*.iml
+mobile-app/.kotlin/
+
+# Native package manager caches generated inside RN native folders
+mobile-app/ios/.symlinks/
+mobile-app/ios/DerivedData/
+mobile-app/android/captures/
+mobile-app/android/.idea/
+
+# Firebase native config/secrets (keep sample placeholders only)
+google-services.json
+GoogleService-Info.plist
+mobile-app/google-services.json
+mobile-app/GoogleService-Info.plist
+
+# EAS / Expo local state
+.expo/
+.eas/
+.expo-shared/
 *.jks
 *.keystore
 
