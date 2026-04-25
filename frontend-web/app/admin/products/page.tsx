@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Package, Loader2, Pencil } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Plus, Package, Loader2, Pencil, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-errors';
 import { AdminShell } from '@/components/admin/AdminShell';
 
 type Product = {
@@ -16,34 +18,56 @@ type Product = {
   active?: boolean;
   images?: string[];
   is_low_stock?: boolean;
+  category_name?: string;
 };
 
 export default function AdminProductsPage() {
+  const router = useRouter();
   const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setLoading(true);
     adminApi
       .getProducts()
-      .then((r) => setItems(r.data || []))
+      .then((r) => setItems((r.data as Product[]) || []))
       .catch(() => toast.error('Failed to load products'))
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function removeProduct(id: string, name: string) {
+    if (!window.confirm(`Delete “${name}”? This cannot be undone.`)) return;
+    setDeleting(id);
+    try {
+      await adminApi.deleteProduct(id);
+      toast.success('Product deleted');
+      load();
+    } catch (e: unknown) {
+      toast.error(getApiErrorMessage(e, 'Delete failed'));
+    } finally {
+      setDeleting(null);
+    }
+  }
+
   return (
     <AdminShell>
-      <main className="p-6 sm:p-10">
+      <main className="p-6 sm:p-10 max-w-6xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-ev-text">Products</h1>
-            <p className="text-ev-muted text-sm mt-0.5">Retail and dealer prices, stock, and images</p>
+            <h1 className="text-2xl font-bold text-ev-text">My products</h1>
+            <p className="text-ev-muted text-sm mt-0.5">Customer and dealer prices, stock, and visibility</p>
           </div>
           <Link
             href="/admin/products/new"
             className="ev-btn-primary inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm shrink-0"
           >
             <Plus size={18} />
-            Add product
+            Add new product
           </Link>
         </div>
 
@@ -59,60 +83,83 @@ export default function AdminProductsPage() {
             <p className="text-sm mb-4">Create your first product with customer and dealer prices.</p>
             <Link href="/admin/products/new" className="ev-btn-primary inline-flex items-center gap-2 py-2 px-4 text-sm">
               <Plus size={16} />
-              Add product
+              Add new product
             </Link>
           </div>
         ) : (
-          <div className="grid gap-4">
-            {items.map((p) => (
-              <div key={p.id} className="ev-card p-4 flex gap-4 flex-col sm:flex-row sm:items-center">
-                <div className="relative w-full sm:w-28 h-36 sm:h-28 shrink-0 rounded-xl overflow-hidden bg-ev-surface2 border border-ev-border">
-                  {p.images?.[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-ev-subtle text-xs">No image</div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
-                    <h2 className="text-ev-text font-semibold truncate">{p.name}</h2>
-                    {p.is_low_stock ? (
-                      <span className="text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-ev-warning/15 text-ev-warning border border-ev-warning/25">
-                        Low stock
+          <div className="ev-card overflow-x-auto border-ev-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-ev-border bg-ev-surface2/80 text-left text-ev-muted">
+                  <th className="px-4 py-3 font-semibold w-16"> </th>
+                  <th className="px-4 py-3 font-semibold">Name</th>
+                  <th className="px-4 py-3 font-semibold">Category</th>
+                  <th className="px-4 py-3 font-semibold text-right">Customer (₹)</th>
+                  <th className="px-4 py-3 font-semibold text-right">Dealer (₹)</th>
+                  <th className="px-4 py-3 font-semibold text-right">Stock</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-ev-border">
+                {items.map((p) => (
+                  <tr key={p.id} className="hover:bg-ev-surface2/40">
+                    <td className="px-4 py-3">
+                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-ev-border bg-ev-surface2 shrink-0">
+                        {p.images?.[0] ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.images[0]} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-ev-subtle">—</div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 font-medium text-ev-text max-w-[200px]">
+                      <span className="truncate block" title={p.name}>
+                        {p.name}
                       </span>
-                    ) : null}
-                    {p.active === false ? (
-                      <span className="text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-ev-subtle/30 text-ev-muted border border-ev-border">
-                        Inactive
+                    </td>
+                    <td className="px-4 py-3 text-ev-muted">{p.category_name || '—'}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">₹{Number(p.price_customer).toLocaleString('en-IN')}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">₹{Number(p.price_dealer).toLocaleString('en-IN')}</td>
+                    <td className="px-4 py-3 text-right tabular-nums font-medium">{p.stock}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
+                          p.active === false
+                            ? 'bg-ev-subtle/20 text-ev-muted border-ev-border'
+                            : 'bg-ev-success/10 text-ev-success border-ev-success/25'
+                        }`}
+                      >
+                        {p.active === false ? 'Inactive' : 'Active'}
                       </span>
-                    ) : null}
-                  </div>
-                  <p className="text-ev-muted text-xs font-mono truncate mb-2">{p.id}</p>
-                  <div className="flex flex-wrap gap-4 text-sm">
-                    <div>
-                      <span className="text-ev-subtle block text-xs">Customer price</span>
-                      <span className="text-ev-text font-semibold">₹{Number(p.price_customer).toLocaleString('en-IN')}</span>
-                    </div>
-                    <div>
-                      <span className="text-ev-subtle block text-xs">Dealer price</span>
-                      <span className="text-ev-text font-semibold">₹{Number(p.price_dealer).toLocaleString('en-IN')}</span>
-                    </div>
-                    <div>
-                      <span className="text-ev-subtle block text-xs">Stock</span>
-                      <span className="text-ev-text font-semibold">{p.stock}</span>
-                    </div>
-                  </div>
-                </div>
-                <Link
-                  href={`/admin/products/${p.id}/edit`}
-                  className="ev-btn-secondary inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm shrink-0 self-start sm:self-center"
-                >
-                  <Pencil size={16} />
-                  Edit
-                </Link>
-              </div>
-            ))}
+                      {p.is_low_stock ? (
+                        <span className="ml-1 text-[10px] font-semibold text-ev-warning">Low</span>
+                      ) : null}
+                    </td>
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/admin/products/${p.id}/edit`)}
+                        className="text-ev-primary text-xs font-semibold hover:underline inline-flex items-center gap-1 mr-3"
+                      >
+                        <Pencil size={12} />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        disabled={deleting === p.id}
+                        onClick={() => void removeProduct(p.id, p.name)}
+                        className="text-red-600 text-xs font-semibold hover:underline inline-flex items-center gap-1 disabled:opacity-40"
+                      >
+                        <Trash2 size={12} />
+                        {deleting === p.id ? '…' : 'Delete'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </main>
