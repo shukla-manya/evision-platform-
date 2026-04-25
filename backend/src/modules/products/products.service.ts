@@ -2,7 +2,6 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
-  BadRequestException,
   Logger,
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,7 +31,19 @@ export class ProductsService {
     return this.dynamo.tableName('admins');
   }
 
-  async assertApprovedAdmin(adminId: string): Promise<any> {
+  /** Rewrites `images[]` and `shop_logo_url` to CloudFront when configured. */
+  private applyCdnToProductPayload(p: Record<string, unknown>): void {
+    const imgs = p.images;
+    if (Array.isArray(imgs)) {
+      p.images = this.s3.mapPublicImageUrls(imgs as string[]) ?? imgs;
+    }
+    const logo = p.shop_logo_url;
+    if (typeof logo === 'string' && logo) {
+      p.shop_logo_url = this.s3.rewriteToConfiguredCdn(logo) ?? logo;
+    }
+  }
+
+  async assertApprovedAdmin(adminId: string): Promise<Record<string, unknown>> {
     const admin = await this.dynamo.get(this.adminsTable(), { id: adminId });
     if (!admin) throw new ForbiddenException('Admin not found');
     if (admin.status !== 'approved') {
@@ -41,7 +52,7 @@ export class ProductsService {
     return admin;
   }
 
-  async create(adminId: string, dto: CreateProductDto, files?: Express.Multer.File[]): Promise<any> {
+  async create(adminId: string, dto: CreateProductDto, files?: Express.Multer.File[]): Promise<Record<string, unknown>> {
     await this.assertApprovedAdmin(adminId);
     await this.categories.requireCategory(dto.category_id);
 
@@ -82,7 +93,7 @@ export class ProductsService {
     productId: string,
     dto: UpdateProductDto,
     files?: Express.Multer.File[],
-  ): Promise<any> {
+  ): Promise<Record<string, unknown>> {
     await this.assertApprovedAdmin(adminId);
     const existing = await this.dynamo.get(this.productsTable(), { id: productId });
     if (!existing) throw new NotFoundException('Product not found');
@@ -98,8 +109,8 @@ export class ProductsService {
           )
         : [];
 
-    const updates: Record<string, any> = { updated_at: new Date().toISOString() };
-    const assign = (k: string, v: any) => {
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const assign = (k: string, v: unknown) => {
       if (v !== undefined) updates[k] = v;
     };
 
@@ -130,11 +141,21 @@ export class ProductsService {
     if (existing.admin_id !== adminId) {
       throw new ForbiddenException('You can only delete products for your own shop');
     }
+
+    const urls: string[] = Array.isArray(existing.images) ? existing.images : [];
+    await Promise.all(
+      urls.map((u) =>
+        typeof u === 'string'
+          ? this.s3.delete(u).catch((err) => this.logger.warn(`S3 delete failed for ${u}: ${err?.message}`))
+          : Promise.resolve(),
+      ),
+    );
+
     await this.dynamo.delete(this.productsTable(), { id: productId });
     this.logger.log(`Product deleted: ${productId}`);
   }
 
-  async listMine(adminId: string): Promise<any[]> {
+  async listMine(adminId: string): Promise<Record<string, unknown>[]> {
     await this.assertApprovedAdmin(adminId);
     const items = await this.dynamo.query({
       TableName: this.productsTable(),
@@ -147,26 +168,35 @@ export class ProductsService {
       .map((p) => this.withAdminFlags(p));
   }
 
-  async findRawById(id: string): Promise<any | null> {
-    return this.dynamo.get(this.productsTable(), { id });
+  async getMineById(adminId: string, productId: string): Promise<Record<string, unknown>> {
+    await this.assertApprovedAdmin(adminId);
+    const p = await this.dynamo.get(this.productsTable(), { id: productId });
+    if (!p || p.admin_id !== adminId) throw new NotFoundException('Product not found');
+    return this.withAdminFlags(p);
   }
 
-  async findByIdForRole(id: string, role: PriceViewerRole): Promise<any> {
+  async findRawById(id: string): Promise<Record<string, unknown> | null> {
+    const row = await this.dynamo.get(this.productsTable(), { id });
+    return row || null;
+  }
+
+  async findByIdForRole(id: string, role: PriceViewerRole): Promise<Record<string, unknown>> {
     const p = await this.findRawById(id);
     if (!p) throw new NotFoundException('Product not found');
     if (!p.active && !['admin', 'superadmin'].includes(role)) {
       throw new NotFoundException('Product not found');
     }
     const enriched = await this.enrichShop([p]);
-    const raw = enriched[0];
-    const serialized = serializeProductForRole(raw, role);
+    const raw = enriched[0] as Record<string, unknown>;
+    const serialized = serializeProductForRole(raw, role) as Record<string, unknown>;
+    this.applyCdnToProductPayload(serialized);
     return this.withStockFlag(serialized, role, raw);
   }
 
   async listForRole(
     role: PriceViewerRole,
     query: ListProductsQueryDto,
-  ): Promise<any[]> {
+  ): Promise<Record<string, unknown>[]> {
     const scan = await this.dynamo.scan({ TableName: this.productsTable() });
     let items = scan.filter((p) => p.active !== false);
 
@@ -198,52 +228,66 @@ export class ProductsService {
     }
 
     const enriched = await this.enrichShop(items);
-    const serialized = serializeProductsForRole(enriched, role);
+    const serialized = serializeProductsForRole(
+      enriched as Record<string, unknown>[],
+      role,
+    ) as Record<string, unknown>[];
     return serialized
-      .map((p, i) => this.withStockFlag(p, role, enriched[i]))
-      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      .map((p, i) => {
+        this.applyCdnToProductPayload(p);
+        return this.withStockFlag(p, role, enriched[i] as Record<string, unknown>);
+      })
+      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
   }
 
-  private stripForAdminResponse(p: any) {
+  private stripForAdminResponse(p: Record<string, unknown>): Record<string, unknown> {
     const { price_customer, price_dealer, ...rest } = p;
-    return {
+    const out: Record<string, unknown> = {
       ...rest,
       price_customer: Number(price_customer),
       price_dealer: Number(price_dealer),
     };
+    this.applyCdnToProductPayload(out);
+    return out;
   }
 
-  private withAdminFlags(p: any) {
-    const low = p.low_stock_threshold ?? 10;
+  private withAdminFlags(p: Record<string, unknown>): Record<string, unknown> {
+    const low = (p.low_stock_threshold as number) ?? 10;
+    const base = this.stripForAdminResponse(p);
     return {
-      ...this.stripForAdminResponse(p),
-      is_low_stock: Number(p.stock) <= low,
+      ...base,
+      is_low_stock: Number(p.stock) <= Number(low),
     };
   }
 
-  private withStockFlag(serialized: any, role: PriceViewerRole, raw?: any) {
+  private withStockFlag(
+    serialized: Record<string, unknown>,
+    role: PriceViewerRole,
+    raw?: Record<string, unknown>,
+  ): Record<string, unknown> {
     const stock = raw?.stock ?? serialized.stock;
     const low = raw?.low_stock_threshold ?? serialized.low_stock_threshold ?? 10;
-    const out = { ...serialized, stock: Number(stock) };
+    const out: Record<string, unknown> = { ...serialized, stock: Number(stock) };
     if (role === 'admin' || role === 'superadmin') {
       out.is_low_stock = Number(stock) <= Number(low);
     }
     return out;
   }
 
-  private async enrichShop(products: any[]): Promise<any[]> {
+  private async enrichShop(products: Record<string, unknown>[]): Promise<Record<string, unknown>[]> {
     if (!products.length) return products;
-    const adminIds = [...new Set(products.map((p) => p.admin_id).filter(Boolean))];
+    const adminIds = [...new Set(products.map((p) => p.admin_id).filter(Boolean))] as string[];
     const admins = await Promise.all(
       adminIds.map((id) => this.dynamo.get(this.adminsTable(), { id })),
     );
-    const map = new Map(admins.filter(Boolean).map((a: any) => [a.id, a]));
+    const map = new Map(admins.filter(Boolean).map((a: Record<string, unknown>) => [a.id, a]));
     return products.map((p) => {
-      const a = map.get(p.admin_id);
+      const a = map.get(p.admin_id) as Record<string, unknown> | undefined;
+      const shop_logo_url = typeof a?.logo_url === 'string' ? a.logo_url : null;
       return {
         ...p,
-        shop_name: a?.shop_name || null,
-        shop_logo_url: a?.logo_url || null,
+        shop_name: a?.shop_name ?? null,
+        shop_logo_url,
       };
     });
   }

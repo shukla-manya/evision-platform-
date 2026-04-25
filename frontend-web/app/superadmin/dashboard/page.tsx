@@ -7,9 +7,38 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { superadminApi } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-errors';
 import { clearAuth, getRole } from '@/lib/auth';
 
 type Tab = 'overview' | 'admins' | 'emails';
+
+type AdminRow = {
+  id: string;
+  shop_name?: string;
+  owner_name?: string;
+  email?: string;
+  phone?: string;
+  gst_no?: string;
+  created_at?: string;
+  address?: string;
+  status?: string;
+};
+
+type AnalyticsSnapshot = {
+  admins: { total: number; pending: number; approved: number; rejected: number; suspended: number };
+  users: { total: number; customers: number; dealers: number };
+  emails: { total: number; sent: number; failed: number };
+};
+
+type EmailLogRow = {
+  id: string;
+  trigger_event?: string;
+  to_email?: string;
+  to_role?: string;
+  subject?: string;
+  status?: string;
+  sent_at?: string;
+};
 
 const statusColors: Record<string, string> = {
   pending: 'bg-ev-warning/10 text-ev-warning border border-ev-warning/20',
@@ -21,18 +50,13 @@ const statusColors: Record<string, string> = {
 export default function SuperadminDashboard() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('overview');
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [admins, setAdmins] = useState<any[]>([]);
-  const [emailLogs, setEmailLogs] = useState<any[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsSnapshot | null>(null);
+  const [admins, setAdmins] = useState<AdminRow[]>([]);
+  const [emailLogs, setEmailLogs] = useState<EmailLogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState<Record<string, string>>({});
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (getRole() !== 'superadmin') { router.push('/auth/login'); return; }
-    loadAll();
-  }, []);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -42,9 +66,9 @@ export default function SuperadminDashboard() {
         superadminApi.getAllAdmins(),
         superadminApi.getEmailLogs(),
       ]);
-      setAnalytics(analyticsRes.data);
-      setAdmins(adminsRes.data);
-      setEmailLogs(emailRes.data);
+      setAnalytics(analyticsRes.data as AnalyticsSnapshot);
+      setAdmins(adminsRes.data as AdminRow[]);
+      setEmailLogs(emailRes.data as EmailLogRow[]);
     } catch {
       toast.error('Failed to load data');
     } finally {
@@ -52,14 +76,23 @@ export default function SuperadminDashboard() {
     }
   }, []);
 
+  useEffect(() => {
+    if (getRole() !== 'superadmin') {
+      router.push('/login');
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount fetch via shared loader
+    void loadAll();
+  }, [router, loadAll]);
+
   async function approve(id: string) {
     setActionLoading(id + '_approve');
     try {
       await superadminApi.approveAdmin(id);
       toast.success('Admin approved');
       loadAll();
-    } catch (e: any) {
-      toast.error(e.response?.data?.message || 'Failed');
+    } catch (e: unknown) {
+      toast.error(getApiErrorMessage(e, 'Failed'));
     } finally {
       setActionLoading(null);
     }
@@ -73,8 +106,8 @@ export default function SuperadminDashboard() {
       await superadminApi.rejectAdmin(id, reason);
       toast.success('Admin rejected');
       loadAll();
-    } catch (e: any) {
-      toast.error(e.response?.data?.message || 'Failed');
+    } catch (e: unknown) {
+      toast.error(getApiErrorMessage(e, 'Failed'));
     } finally {
       setActionLoading(null);
     }
@@ -137,7 +170,7 @@ export default function SuperadminDashboard() {
 
           <div className="p-4 border-t border-ev-border">
             <button
-              onClick={() => { clearAuth(); router.push('/auth/login'); }}
+              onClick={() => { clearAuth(); router.push('/login'); }}
               className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-ev-muted hover:text-ev-error hover:bg-ev-error/5 text-sm transition-all"
             >
               <LogOut size={16} /> Sign Out
@@ -252,7 +285,7 @@ export default function SuperadminDashboard() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className={`ev-badge ${statusColors[admin.status] || ''}`}>
+                          <span className={`ev-badge ${statusColors[admin.status ?? ''] || ''}`}>
                             {admin.status}
                           </span>
                           {expandedRow === admin.id ? <ChevronUp size={16} className="text-ev-muted" /> : <ChevronDown size={16} className="text-ev-muted" />}
@@ -264,7 +297,12 @@ export default function SuperadminDashboard() {
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
                             <div><span className="text-ev-muted block">Phone</span><span className="text-ev-text">{admin.phone}</span></div>
                             <div><span className="text-ev-muted block">GST No.</span><span className="text-ev-text">{admin.gst_no}</span></div>
-                            <div><span className="text-ev-muted block">Registered</span><span className="text-ev-text">{new Date(admin.created_at).toLocaleDateString()}</span></div>
+                            <div>
+                              <span className="text-ev-muted block">Registered</span>
+                              <span className="text-ev-text">
+                                {admin.created_at ? new Date(admin.created_at).toLocaleDateString() : '—'}
+                              </span>
+                            </div>
                             <div><span className="text-ev-muted block">Address</span><span className="text-ev-text">{admin.address}</span></div>
                           </div>
 
@@ -300,7 +338,7 @@ export default function SuperadminDashboard() {
 
                           {admin.status === 'approved' && (
                             <button
-                              onClick={() => toggleSuspend(admin.id, admin.status)}
+                              onClick={() => toggleSuspend(admin.id, admin.status ?? 'approved')}
                               disabled={!!actionLoading}
                               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-ev-warning/10 border border-ev-warning/20 text-ev-warning text-sm font-medium hover:bg-ev-warning/20 transition-colors"
                             >
@@ -310,7 +348,7 @@ export default function SuperadminDashboard() {
 
                           {admin.status === 'suspended' && (
                             <button
-                              onClick={() => toggleSuspend(admin.id, admin.status)}
+                              onClick={() => toggleSuspend(admin.id, admin.status ?? 'suspended')}
                               disabled={!!actionLoading}
                               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-ev-success/10 border border-ev-success/20 text-ev-success text-sm font-medium hover:bg-ev-success/20 transition-colors"
                             >
@@ -351,7 +389,7 @@ export default function SuperadminDashboard() {
                               </span>
                             </td>
                             <td className="px-5 py-3.5 text-ev-muted whitespace-nowrap text-xs">
-                              {new Date(log.sent_at).toLocaleString()}
+                              {log.sent_at ? new Date(log.sent_at).toLocaleString() : '—'}
                             </td>
                           </tr>
                         ))}

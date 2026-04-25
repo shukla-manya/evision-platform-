@@ -23,13 +23,19 @@ export class CreateProductDto {
   @MinLength(1)
   description: string;
 
-  @ApiProperty({ example: 450 })
+  @ApiProperty({
+    example: 450,
+    description: 'Retail price shown to customers & guests. Never returned to dealer role.',
+  })
   @Type(() => Number)
   @IsNumber()
   @Min(0)
   price_customer: number;
 
-  @ApiProperty({ example: 380 })
+  @ApiProperty({
+    example: 380,
+    description: 'Wholesale price for verified dealers only. Never returned to customer role.',
+  })
   @Type(() => Number)
   @IsNumber()
   @Min(0)
@@ -56,7 +62,11 @@ export class CreateProductDto {
   @IsBoolean()
   active?: boolean;
 
-  @ApiPropertyOptional({ description: 'Existing S3 URLs', type: [String] })
+  @ApiPropertyOptional({
+    description:
+      'Existing image URLs (typically from POST /admin/products/images/upload). Stored in DynamoDB; served via CloudFront when CLOUDFRONT_DOMAIN is set.',
+    type: [String],
+  })
   @IsOptional()
   @IsArray()
   @IsUrl({}, { each: true })

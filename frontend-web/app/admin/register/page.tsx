@@ -1,13 +1,12 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Zap, Store, User, Mail, Phone, Building2, MapPin, Lock, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-errors';
 
 export default function AdminRegisterPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [form, setForm] = useState({
@@ -29,8 +28,8 @@ export default function AdminRegisterPage() {
       const phone = form.phone.startsWith('+') ? form.phone : `+91${form.phone}`;
       await adminApi.register({ ...form, phone, confirm_password: undefined });
       setDone(true);
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Registration failed');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Registration failed'));
     } finally {
       setLoading(false);
     }
@@ -159,7 +158,10 @@ export default function AdminRegisterPage() {
 
             <div className="bg-ev-surface2 border border-ev-border rounded-xl p-4 text-sm text-ev-muted">
               <p className="font-medium text-ev-text mb-1">What happens next?</p>
-              <p>Your registration will be reviewed by our superadmin. You'll receive an email within 24 hours with the decision. Once approved, you can log in and start listing products.</p>
+              <p>
+                Your registration will be reviewed by our superadmin. You will receive an email within 24 hours with
+                the decision. Once approved, you can log in and start listing products.
+              </p>
             </div>
 
             <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2 py-3.5" disabled={loading}>
@@ -169,7 +171,7 @@ export default function AdminRegisterPage() {
 
           <p className="text-center text-ev-subtle text-sm mt-6">
             Already approved?{' '}
-            <Link href="/auth/login" className="text-ev-primary hover:text-ev-primary-light">Sign in</Link>
+            <Link href="/login" className="text-ev-primary hover:text-ev-primary-light">Sign in</Link>
           </p>
         </div>
       </div>

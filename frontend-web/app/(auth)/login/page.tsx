@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Zap, Phone, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-errors';
 import { saveToken, parseJwt, redirectByRole } from '@/lib/auth';
 
 type Mode = 'otp-phone' | 'otp-code' | 'admin' | 'superadmin';
@@ -25,8 +26,8 @@ export default function LoginPage() {
       await authApi.sendOtp(phone.startsWith('+') ? phone : `+91${phone}`);
       toast.success('OTP sent to your phone');
       setMode('otp-code');
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to send OTP');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Failed to send OTP'));
     } finally {
       setLoading(false);
     }
@@ -40,15 +41,19 @@ export default function LoginPage() {
       const { data } = await authApi.verifyOtp(formattedPhone, otp);
       if (!data.is_registered) {
         saveToken(data.access_token, 'unregistered');
-        router.push('/auth/register');
+        router.push('/register');
         return;
       }
       const payload = parseJwt(data.access_token);
+      if (!payload || typeof payload.role !== 'string') {
+        toast.error('Invalid session');
+        return;
+      }
       saveToken(data.access_token, payload.role);
       toast.success('Welcome back!');
       router.push(redirectByRole(payload.role));
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Invalid OTP');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Invalid OTP'));
     } finally {
       setLoading(false);
     }
@@ -65,8 +70,8 @@ export default function LoginPage() {
       saveToken(data.access_token, role);
       toast.success('Logged in!');
       router.push(redirectByRole(role));
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Invalid credentials');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Invalid credentials'));
     } finally {
       setLoading(false);
     }
@@ -138,7 +143,7 @@ export default function LoginPage() {
               </button>
               <p className="text-center text-ev-subtle text-sm">
                 New here?{' '}
-                <Link href="/auth/register" className="text-ev-primary hover:text-ev-primary-light">
+                <Link href="/register" className="text-ev-primary hover:text-ev-primary-light">
                   Create account
                 </Link>
               </p>

@@ -36,7 +36,7 @@ export default function HomePage() {
             <Link href="/admin/register" className="text-ev-muted hover:text-ev-text text-sm transition-colors">
               Register Shop
             </Link>
-            <Link href="/auth/login" className="ev-btn-primary text-sm py-2 px-5">
+            <Link href="/login" className="ev-btn-primary text-sm py-2 px-5">
               Sign In
             </Link>
           </div>
@@ -68,7 +68,7 @@ export default function HomePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/register" className="ev-btn-primary flex items-center justify-center gap-2 text-base py-3.5 px-8">
+            <Link href="/register" className="ev-btn-primary flex items-center justify-center gap-2 text-base py-3.5 px-8">
               Get Started <ArrowRight size={18} />
             </Link>
             <Link href="/admin/register" className="ev-btn-secondary flex items-center justify-center gap-2 text-base py-3.5 px-8">

@@ -26,7 +26,7 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     if (getRole() !== 'admin') {
-      router.push('/auth/login');
+      router.push('/login');
       return;
     }
     adminApi
@@ -58,7 +58,7 @@ export default function AdminProductsPage() {
             type="button"
             onClick={() => {
               clearAuth();
-              router.push('/auth/login');
+              router.push('/login');
             }}
             className="text-ev-muted text-sm hover:text-ev-error"
           >

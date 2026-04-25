@@ -36,10 +36,11 @@ export function redirectByRole(role: string): string {
   return routes[role] || '/';
 }
 
-export function parseJwt(token: string): any {
+export function parseJwt(token: string): Record<string, unknown> | null {
   try {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(base64));
+    const parsed: unknown = JSON.parse(atob(base64));
+    return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : null;
   } catch {
     return null;
   }

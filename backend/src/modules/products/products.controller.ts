@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Request } from 'express';
 import { Public } from '../../common/decorators/public.decorator';
@@ -7,7 +7,7 @@ import { ProductsService } from './products.service';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
 import type { PriceViewerRole } from './utils/product-serializer';
 
-function priceRoleFromRequest(user?: { role: string }): PriceViewerRole {
+function priceRoleFromRequest(user?: { role?: string }): PriceViewerRole {
   if (!user?.role) return 'guest';
   return user.role as PriceViewerRole;
 }
@@ -25,7 +25,7 @@ export class ProductsController {
   })
   @ApiBearerAuth()
   list(@Query() query: ListProductsQueryDto, @Req() req: Request) {
-    return this.products.listForRole(priceRoleFromRequest(req.user as any), query);
+    return this.products.listForRole(priceRoleFromRequest(req.user), query);
   }
 
   @Public()
@@ -33,7 +33,7 @@ export class ProductsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get one product by id' })
   @ApiBearerAuth()
-  getOne(@Param('id') id: string, @Req() req: Request) {
-    return this.products.findByIdForRole(id, priceRoleFromRequest(req.user as any));
+  getOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
+    return this.products.findByIdForRole(id, priceRoleFromRequest(req.user));
   }
 }

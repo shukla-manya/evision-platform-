@@ -19,7 +19,7 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       Cookies.remove('ev_token');
-      if (typeof window !== 'undefined') window.location.href = '/auth/login';
+      if (typeof window !== 'undefined') window.location.href = '/login';
     }
     return Promise.reject(err);
   },
@@ -29,7 +29,7 @@ api.interceptors.response.use(
 export const authApi = {
   sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
   verifyOtp: (phone: string, otp: string) => api.post('/auth/verify-otp', { phone, otp }),
-  register: (data: any) => api.post('/auth/register', data),
+  register: (data: Record<string, unknown>) => api.post('/auth/register', data),
   adminLogin: (email: string, password: string) => api.post('/auth/admin/login', { email, password }),
   superadminLogin: (email: string, password: string) => api.post('/auth/superadmin/login', { email, password }),
   me: () => api.get('/auth/me'),
@@ -37,7 +37,7 @@ export const authApi = {
 
 // ── Admin ──────────────────────────────────────────────────────────────────
 export const adminApi = {
-  register: (data: any) => api.post('/admin/register', data),
+  register: (data: Record<string, unknown>) => api.post('/admin/register', data),
   getMe: () => api.get('/admin/me'),
   getProducts: () => api.get('/admin/products'),
 };

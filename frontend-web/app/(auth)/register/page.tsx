@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Zap, User, Mail, Phone, Building2, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-errors';
 import { saveToken, parseJwt } from '@/lib/auth';
 
 export default function RegisterPage() {
@@ -27,11 +28,15 @@ export default function RegisterPage() {
       const phone = form.phone.startsWith('+') ? form.phone : `+91${form.phone}`;
       const { data } = await authApi.register({ ...form, phone, role });
       const payload = parseJwt(data.access_token);
+      if (!payload || typeof payload.role !== 'string') {
+        toast.error('Invalid session');
+        return;
+      }
       saveToken(data.access_token, payload.role);
       toast.success('Account created!');
       router.push('/shop');
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Registration failed');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Registration failed'));
     } finally {
       setLoading(false);
     }
@@ -120,7 +125,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-ev-subtle text-sm mt-6">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-ev-primary hover:text-ev-primary-light">Sign in</Link>
+            <Link href="/login" className="text-ev-primary hover:text-ev-primary-light">Sign in</Link>
           </p>
         </div>
       </div>

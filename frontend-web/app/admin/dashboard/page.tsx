@@ -7,18 +7,28 @@ import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
 
+type AdminMe = {
+  shop_name?: string;
+  owner_name?: string;
+  status?: string;
+};
+
 export default function AdminDashboard() {
   const router = useRouter();
-  const [admin, setAdmin] = useState<any>(null);
+  const [admin, setAdmin] = useState<AdminMe | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (getRole() !== 'admin') { router.push('/auth/login'); return; }
-    adminApi.getMe()
-      .then(r => setAdmin(r.data))
+    if (getRole() !== 'admin') {
+      router.push('/login');
+      return;
+    }
+    adminApi
+      .getMe()
+      .then((r) => setAdmin(r.data as AdminMe))
       .catch(() => toast.error('Failed to load profile'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   if (loading) {
     return (
@@ -41,7 +51,7 @@ export default function AdminDashboard() {
           <h2 className="text-xl font-bold text-ev-text mb-3">Awaiting Approval</h2>
           <p className="text-ev-muted text-sm leading-relaxed">
             Your shop registration for <strong className="text-ev-text">{admin.shop_name}</strong> is under review.
-            You'll receive an email once the superadmin approves your account.
+            You will receive an email once the superadmin approves your account.
           </p>
         </div>
       </div>
@@ -96,7 +106,7 @@ export default function AdminDashboard() {
 
         <div className="p-4 border-t border-ev-border">
           <button
-            onClick={() => { clearAuth(); router.push('/auth/login'); }}
+            onClick={() => { clearAuth(); router.push('/login'); }}
             className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-ev-muted hover:text-ev-error hover:bg-ev-error/5 text-sm transition-all"
           >
             <LogOut size={16} /> Sign Out

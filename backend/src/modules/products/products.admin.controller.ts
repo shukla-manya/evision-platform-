@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   BadRequestException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
@@ -35,8 +36,16 @@ export class ProductsAdminController {
 
   @Get()
   @ApiOperation({ summary: 'List products for your shop (both prices, stock flags)' })
-  listMine(@CurrentUser() user: any) {
+  listMine(@CurrentUser() user: { id: string }) {
     return this.products.listMine(user.id);
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get one product by id (your shop only). Always returns both price_customer and price_dealer.',
+  })
+  getMineById(@CurrentUser() user: { id: string }, @Param('id', ParseUUIDPipe) id: string) {
+    return this.products.getMineById(user.id, id);
   }
 
   @Post()
@@ -44,7 +53,7 @@ export class ProductsAdminController {
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({ summary: 'Create product (JSON body, or multipart with image files field `images`)' })
   create(
-    @CurrentUser() user: any,
+    @CurrentUser() user: { id: string },
     @Body() dto: CreateProductDto,
     @UploadedFiles() files?: Express.Multer.File[],
   ) {
@@ -56,8 +65,8 @@ export class ProductsAdminController {
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({ summary: 'Update product (append images when multipart files sent; body.images replaces list when provided)' })
   update(
-    @CurrentUser() user: any,
-    @Param('id') id: string,
+    @CurrentUser() user: { id: string },
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProductDto,
     @UploadedFiles() files?: Express.Multer.File[],
   ) {
@@ -65,15 +74,18 @@ export class ProductsAdminController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete product' })
-  remove(@CurrentUser() user: any, @Param('id') id: string) {
+  @ApiOperation({ summary: 'Delete product and remove its images from S3' })
+  remove(@CurrentUser() user: { id: string }, @Param('id', ParseUUIDPipe) id: string) {
     return this.products.remove(user.id, id).then(() => ({ deleted: true, id }));
   }
 
   @Post('images/upload')
   @UseInterceptors(FilesInterceptor('images', 12))
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Upload one or more images to S3; returns URLs for JSON create/update payloads' })
+  @ApiOperation({
+    summary:
+      'Upload product images to S3 (multipart field `images`). Returns public URLs (CloudFront when CLOUDFRONT_DOMAIN is configured) to pass in `images` on create/update.',
+  })
   async uploadImages(@UploadedFiles() files?: Express.Multer.File[]) {
     if (!files?.length) throw new BadRequestException('No image files (field name: images)');
     const urls = await Promise.all(

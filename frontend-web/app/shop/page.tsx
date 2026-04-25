@@ -85,7 +85,7 @@ export default function ShopPage() {
             </div>
           </Link>
           <div className="flex items-center gap-2 shrink-0">
-            <Link href="/auth/login" className="text-ev-muted hover:text-ev-text text-sm hidden sm:inline">
+            <Link href="/login" className="text-ev-muted hover:text-ev-text text-sm hidden sm:inline">
               Sign in
             </Link>
             <Link href="/" className="ev-btn-secondary text-sm py-2 px-3">
