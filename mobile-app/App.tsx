@@ -467,17 +467,33 @@ function PaymentScreen({ route, navigation, user }: { route: RouteProp<RootStack
   const payNow = async () => {
     try {
       setLoading(true);
-      await openRazorpayCheckout({
+      const paymentResult = await openRazorpayCheckout({
         key: checkoutData.key_id,
         amountPaise: checkoutData.amount_paise,
         orderId: checkoutData.razorpay_order_id,
         prefillEmail: user?.email,
         prefillContact: user?.phone,
       });
-      Alert.alert('Payment initiated', 'Payment captured webhook will create your orders.');
+      await checkoutApi.confirm({
+        status: 'success',
+        razorpay_order_id: String(paymentResult.razorpay_order_id || checkoutData.razorpay_order_id),
+        razorpay_payment_id: String(paymentResult.razorpay_payment_id || ''),
+        razorpay_signature: String(paymentResult.razorpay_signature || ''),
+      });
+      Alert.alert('Payment successful', 'Your order is being finalized.');
       navigation.navigate('Main', { screen: 'Orders' });
     } catch (err) {
-      Alert.alert('Payment failed', asApiError(err, 'Could not complete payment.'));
+      const errorDescription = asApiError(err, 'Could not complete payment.');
+      try {
+        await checkoutApi.confirm({
+          status: 'failure',
+          razorpay_order_id: checkoutData.razorpay_order_id,
+          failure_reason: errorDescription,
+        });
+      } catch {
+        // Webhook flow can still mark payment outcome even if confirm fails.
+      }
+      Alert.alert('Payment failed', errorDescription);
     } finally {
       setLoading(false);
     }
@@ -687,11 +703,22 @@ function Loader({ text }: { text: string }) {
 }
 
 function MainTabs({ user, onLogout, fcmToken }: { user: AppUser | null; onLogout: () => void; fcmToken: string | null }) {
+  const homeScreen = useMemo(
+    () => (props: any) => <HomeScreen {...props} userRole={user?.role} />,
+    [user?.role],
+  );
   return (
     <Tab.Navigator>
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Home" component={homeScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
       <Tab.Screen name="Orders" component={MyOrdersScreen} options={{ title: 'My Orders' }} />
+      {user?.role === 'dealer' && (
+        <Tab.Screen
+          name="DealerDashboard"
+          component={DealerDashboardScreen}
+          options={{ title: 'Dealer Dashboard' }}
+        />
+      )}
       <Tab.Screen name="Profile">
         {() => <ProfileScreen user={user} onLogout={onLogout} fcmToken={fcmToken} />}
       </Tab.Screen>
@@ -768,6 +795,10 @@ function AppShell() {
     () => (props: any) => <PaymentScreen {...props} user={user} />,
     [user],
   );
+  const productDetailScreen = useMemo(
+    () => (props: any) => <ProductDetailScreen {...props} userRole={user?.role} />,
+    [user?.role],
+  );
   const mainTabs = useMemo(
     () => (props: any) => <MainTabs {...props} user={user} onLogout={logout} fcmToken={fcmToken} />,
     [user, fcmToken],
@@ -780,13 +811,18 @@ function AppShell() {
       <StatusBar style="dark" />
       <RootStack.Navigator>
         {!token ? (
-          <RootStack.Screen name="Auth" options={{ headerShown: false }}>
-            {() => <LoginOtpScreen onLoggedIn={handleLoggedIn} />}
-          </RootStack.Screen>
+          <>
+            <RootStack.Screen name="Auth" options={{ headerShown: false }}>
+              {(props) => <LoginOtpScreen {...props} onLoggedIn={handleLoggedIn} />}
+            </RootStack.Screen>
+            <RootStack.Screen name="Register" options={{ title: 'Register' }}>
+              {(props) => <RegisterScreen {...props} onLoggedIn={handleLoggedIn} />}
+            </RootStack.Screen>
+          </>
         ) : (
           <>
             <RootStack.Screen name="Main" component={mainTabs} options={{ headerShown: false }} />
-            <RootStack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: 'Product Detail' }} />
+            <RootStack.Screen name="ProductDetail" component={productDetailScreen} options={{ title: 'Product Detail' }} />
             <RootStack.Screen name="Checkout" component={CheckoutScreen} />
             <RootStack.Screen name="Payment" component={paymentScreen} />
             <RootStack.Screen name="OrderDetail" component={OrderDetailScreen} options={{ title: 'Order Detail' }} />
@@ -828,6 +864,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 6,
   },
+  buttonSecondary: {
+    width: '100%',
+    backgroundColor: '#e2e8f0',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  buttonSecondaryText: { color: '#0f172a', fontWeight: '600' },
   buttonDisabled: { opacity: 0.5 },
   buttonText: { color: '#fff', fontWeight: '600' },
   card: {
@@ -844,6 +889,17 @@ const styles = StyleSheet.create({
   bigPrice: { fontSize: 20, fontWeight: '700', color: '#1d4ed8' },
   empty: { textAlign: 'center', color: '#64748b', marginTop: 40 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  roleRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  roleChip: {
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  roleChipActive: { borderColor: '#2563eb', backgroundColor: '#dbeafe' },
+  roleChipText: { color: '#334155', fontSize: 12, textTransform: 'capitalize' },
+  roleChipTextActive: { color: '#1d4ed8', fontWeight: '600' },
   remove: { color: '#dc2626', fontWeight: '600' },
   shopTotal: { marginTop: 8, fontWeight: '700', color: '#0f172a' },
   link: { marginTop: 6, color: '#2563eb', fontWeight: '600' },
