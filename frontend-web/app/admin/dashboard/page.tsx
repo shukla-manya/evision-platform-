@@ -78,26 +78,22 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        {loading ? (
-          <p className="text-ev-muted text-sm">Loading stats…</p>
-        ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-            {[
-              { label: 'Products', value: productCount ?? '—', icon: Package, href: '/admin/products', color: 'text-ev-primary', bg: 'bg-ev-primary/10' },
-              { label: 'Orders', value: orderCount ?? '—', icon: ShoppingCart, href: '/admin/orders', color: 'text-ev-warning', bg: 'bg-ev-warning/10' },
-              { label: 'Invoices', value: invoiceCount ?? '—', icon: FileText, href: '/admin/invoices', color: 'text-ev-accent', bg: 'bg-ev-accent/10' },
-              { label: 'Status', value: admin?.status === 'approved' ? 'Live' : '—', icon: CheckCircle, href: '/admin/settings', color: 'text-ev-success', bg: 'bg-ev-success/10' },
-            ].map(({ label, value, icon: Icon, href, color, bg }) => (
-              <Link key={label} href={href} className="ev-card p-6 hover:border-ev-primary/30 transition-colors block">
-                <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center mb-3`}>
-                  <Icon size={20} className={color} />
-                </div>
-                <p className="text-2xl font-bold text-ev-text">{value}</p>
-                <p className="text-ev-muted text-sm mt-1">{label}</p>
-              </Link>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          {[
+            { label: 'Products', value: productCount ?? '—', icon: Package, href: '/admin/products', color: 'text-ev-primary', bg: 'bg-ev-primary/10' },
+            { label: 'Orders', value: orderCount ?? '—', icon: ShoppingCart, href: '/admin/orders', color: 'text-ev-warning', bg: 'bg-ev-warning/10' },
+            { label: 'Invoices', value: invoiceCount ?? '—', icon: FileText, href: '/admin/invoices', color: 'text-ev-accent', bg: 'bg-ev-accent/10' },
+            { label: 'Status', value: admin.status === 'approved' ? 'Live' : '—', icon: CheckCircle, href: '/admin/settings', color: 'text-ev-success', bg: 'bg-ev-success/10' },
+          ].map(({ label, value, icon: Icon, href, color, bg }) => (
+            <Link key={label} href={href} className="ev-card p-6 hover:border-ev-primary/30 transition-colors block">
+              <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center mb-3`}>
+                <Icon size={20} className={color} />
+              </div>
+              <p className="text-2xl font-bold text-ev-text">{value}</p>
+              <p className="text-ev-muted text-sm mt-1">{label}</p>
+            </Link>
+          ))}
+        </div>
 
         <div className="ev-card p-6">
           <h3 className="text-ev-text font-semibold mb-4 flex items-center gap-2">
