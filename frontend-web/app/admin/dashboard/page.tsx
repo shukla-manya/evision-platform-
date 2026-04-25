@@ -1,11 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Package, ShoppingCart, FileText, Clock, CheckCircle, BarChart3 } from 'lucide-react';
+import {
+  ArrowRight,
+  BarChart3,
+  Clock,
+  Package,
+  Plus,
+  ShoppingCart,
+  TrendingUp,
+  Truck,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { orderNeedsShipment } from '@/lib/admin-orders';
 
 type AdminMe = {
   shop_name?: string;
@@ -13,11 +23,90 @@ type AdminMe = {
   status?: string;
 };
 
+type ListOrder = {
+  id: string;
+  status?: string;
+  total?: number;
+  total_amount?: number;
+  created_at?: string;
+  delivered_at?: string;
+  user_id?: string;
+};
+
+type OrderItemRow = { product_name?: string; quantity?: number };
+
+type OrderDetail = {
+  customer?: { name?: string; email?: string; role?: string } | null;
+  items?: OrderItemRow[];
+};
+
+type ProductRow = {
+  id: string;
+  name: string;
+  stock: number;
+  low_stock_threshold?: number;
+  is_low_stock?: boolean;
+};
+
+function initials(name?: string) {
+  const t = name?.trim();
+  if (!t) return '?';
+  const parts = t.split(/\s+/);
+  const a = parts[0]?.[0] ?? '';
+  const b = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? '') : (parts[0]?.[1] ?? '');
+  return (a + b).toUpperCase().slice(0, 2);
+}
+
+function calendarDayKey(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function dayKeyFromIso(iso: string) {
+  return calendarDayKey(new Date(iso));
+}
+
+function startOfWeekMonday(d = new Date()) {
+  const x = new Date(d);
+  const dw = x.getDay();
+  const diff = dw === 0 ? -6 : 1 - dw;
+  x.setDate(x.getDate() + diff);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function endOfWeekSunday(start: Date) {
+  const e = new Date(start);
+  e.setDate(e.getDate() + 6);
+  e.setHours(23, 59, 59, 999);
+  return e;
+}
+
+function fmtInrShort(n: number) {
+  if (!Number.isFinite(n) || n <= 0) return '₹0';
+  if (n >= 1e7) return `₹${(n / 1e7).toFixed(1)}Cr`;
+  if (n >= 1e5) return `₹${(n / 1e5).toFixed(1)}L`;
+  if (n >= 1e3) return `₹${(n / 1e3).toFixed(0)}k`;
+  return `₹${Math.round(n).toLocaleString('en-IN')}`;
+}
+
+function orderDisplayRef(id: string) {
+  const digits = id.replace(/\D/g, '');
+  const tail = digits.slice(-4).padStart(4, '0');
+  return `#${tail}`;
+}
+
+function packStatusLabel(_order: ListOrder) {
+  return 'To pack';
+}
+
 export default function AdminDashboardPage() {
   const [admin, setAdmin] = useState<AdminMe | null>(null);
-  const [productCount, setProductCount] = useState<number | null>(null);
-  const [orderCount, setOrderCount] = useState<number | null>(null);
-  const [invoiceCount, setInvoiceCount] = useState<number | null>(null);
+  const [orders, setOrders] = useState<ListOrder[]>([]);
+  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [shipRows, setShipRows] = useState<Array<{ list: ListOrder; detail: OrderDetail | null }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,15 +121,28 @@ export default function AdminDashboardPage() {
           setLoading(false);
           return;
         }
-        const [prod, ord, inv] = await Promise.all([
-          adminApi.getProducts().catch(() => ({ data: [] })),
+        const [ordRes, prodRes] = await Promise.all([
           adminApi.getOrders().catch(() => ({ data: [] })),
-          adminApi.getInvoices().catch(() => ({ data: [] })),
+          adminApi.getProducts().catch(() => ({ data: [] })),
         ]);
         if (cancelled) return;
-        setProductCount(Array.isArray(prod.data) ? prod.data.length : 0);
-        setOrderCount(Array.isArray(ord.data) ? ord.data.length : 0);
-        setInvoiceCount(Array.isArray(inv.data) ? inv.data.length : 0);
+        const ordList = Array.isArray(ordRes.data) ? (ordRes.data as ListOrder[]) : [];
+        const prodList = Array.isArray(prodRes.data) ? (prodRes.data as ProductRow[]) : [];
+        setOrders(ordList);
+        setProducts(prodList);
+
+        const toShip = ordList.filter((o) => orderNeedsShipment(o.status)).slice(0, 8);
+        const enriched = await Promise.all(
+          toShip.map(async (o) => {
+            try {
+              const { data } = await adminApi.getOrder(o.id);
+              return { list: o, detail: data as OrderDetail };
+            } catch {
+              return { list: o, detail: null };
+            }
+          }),
+        );
+        if (!cancelled) setShipRows(enriched);
       } catch {
         if (!cancelled) toast.error('Failed to load dashboard');
       } finally {
@@ -51,6 +153,82 @@ export default function AdminDashboardPage() {
       cancelled = true;
     };
   }, []);
+
+  const shopName = admin?.shop_name?.trim() || 'Your shop';
+
+  const metrics = useMemo(() => {
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    const lastMonthDate = new Date(thisYear, thisMonth - 1, 1);
+
+    const monthSum = (year: number, month: number) =>
+      orders
+        .filter((o) => String(o.status || '').toLowerCase() === 'delivered' && o.delivered_at)
+        .reduce((acc, o) => {
+          const d = new Date(o.delivered_at!);
+          if (d.getFullYear() === year && d.getMonth() === month) {
+            return acc + Number(o.total_amount ?? o.total ?? 0);
+          }
+          return acc;
+        }, 0);
+
+    const revThis = monthSum(thisYear, thisMonth);
+    const revLast = monthSum(lastMonthDate.getFullYear(), lastMonthDate.getMonth());
+    const revDeltaPct = revLast > 0 ? Math.round(((revThis - revLast) / revLast) * 100) : revThis > 0 ? 100 : 0;
+
+    const toShipCount = orders.filter((o) => orderNeedsShipment(o.status)).length;
+    const lowStockCount = products.filter((p) => {
+      const thr = p.low_stock_threshold ?? 10;
+      return p.stock <= thr;
+    }).length;
+
+    const tKey = calendarDayKey(new Date());
+    const yd = new Date();
+    yd.setDate(yd.getDate() - 1);
+    const yKey = calendarDayKey(yd);
+    let deliveredToday = 0;
+    let deliveredYesterday = 0;
+    for (const o of orders) {
+      if (String(o.status || '').toLowerCase() !== 'delivered' || !o.delivered_at) continue;
+      const k = dayKeyFromIso(o.delivered_at);
+      if (k === tKey) deliveredToday += 1;
+      if (k === yKey) deliveredYesterday += 1;
+    }
+
+    const weekStart = startOfWeekMonday();
+    const weekEnd = endOfWeekSunday(weekStart);
+    const weekBuckets = [0, 0, 0, 0, 0, 0, 0];
+    for (const o of orders) {
+      if (!o.created_at) continue;
+      const dt = new Date(o.created_at);
+      if (dt < weekStart || dt > weekEnd) continue;
+      const idx = (dt.getDay() + 6) % 7;
+      weekBuckets[idx] += Number(o.total_amount ?? o.total ?? 0);
+    }
+    const weekMax = Math.max(...weekBuckets, 1);
+
+    const lowStockProducts = [...products]
+      .filter((p) => {
+        const thr = p.low_stock_threshold ?? 10;
+        return p.stock <= thr;
+      })
+      .sort((a, b) => a.stock - b.stock)
+      .slice(0, 4);
+
+    return {
+      revThis,
+      revDeltaPct,
+      toShipCount,
+      lowStockCount,
+      deliveredToday,
+      deliveredYesterday,
+      weekBuckets,
+      weekMax,
+      lowStockProducts,
+      productTotal: products.length,
+    };
+  }, [orders, products]);
 
   if (loading || !admin) {
     return (
@@ -79,54 +257,268 @@ export default function AdminDashboardPage() {
     );
   }
 
+  const deliveredDelta = metrics.deliveredToday - metrics.deliveredYesterday;
+  const weekLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
   return (
     <AdminShell>
-      <main className="p-6 sm:p-10">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-ev-text">Dashboard</h1>
-          <p className="text-ev-muted text-sm mt-0.5">
-            {admin?.shop_name ?? 'Your shop'} —{' '}
-            {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          {[
-            { label: 'Products', value: productCount ?? '—', icon: Package, href: '/admin/products', color: 'text-ev-primary', bg: 'bg-ev-primary/10' },
-            { label: 'Orders', value: orderCount ?? '—', icon: ShoppingCart, href: '/admin/orders', color: 'text-ev-warning', bg: 'bg-ev-warning/10' },
-            { label: 'Invoices', value: invoiceCount ?? '—', icon: FileText, href: '/admin/invoices', color: 'text-ev-accent', bg: 'bg-ev-accent/10' },
-            { label: 'Status', value: admin.status === 'approved' ? 'Live' : '—', icon: CheckCircle, href: '/admin/settings', color: 'text-ev-success', bg: 'bg-ev-success/10' },
-          ].map(({ label, value, icon: Icon, href, color, bg }) => (
-            <Link key={label} href={href} className="ev-card p-6 hover:border-ev-primary/30 transition-colors block">
-              <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center mb-3`}>
-                <Icon size={20} className={color} />
-              </div>
-              <p className="text-2xl font-bold text-ev-text">{value}</p>
-              <p className="text-ev-muted text-sm mt-1">{label}</p>
-            </Link>
-          ))}
-        </div>
-
-        <div className="ev-card p-6">
-          <h3 className="text-ev-text font-semibold mb-4 flex items-center gap-2">
-            <BarChart3 size={18} className="text-ev-primary" />
-            Quick actions
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Link href="/admin/products/new" className="ev-btn-secondary flex items-center justify-center gap-2 py-3 text-sm">
-              <Package size={16} />
+      <main className="p-6 sm:p-10 max-w-6xl mx-auto space-y-8">
+        <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-ev-text tracking-tight">{shopName} Dashboard</h1>
+            <p className="text-ev-muted text-sm mt-1">
+              {metrics.toShipCount > 0 ? (
+                <span className="text-ev-warning font-medium">{metrics.toShipCount} orders need attention</span>
+              ) : (
+                <span>All caught up on shipping</span>
+              )}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/admin/products/new"
+              className="ev-btn-primary inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl"
+            >
+              <Plus size={18} />
               Add product
             </Link>
-            <Link href="/admin/orders" className="ev-btn-secondary flex items-center justify-center gap-2 py-3 text-sm">
-              <ShoppingCart size={16} />
-              View orders
-            </Link>
-            <Link href="/admin/invoices" className="ev-btn-secondary flex items-center justify-center gap-2 py-3 text-sm">
-              <FileText size={16} />
-              Invoices
-            </Link>
+            <div
+              className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-white text-sm font-bold shadow-ev-md border border-white/10"
+              title={admin.owner_name || 'Owner'}
+            >
+              {initials(admin.owner_name)}
+            </div>
           </div>
+        </header>
+
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="ev-card p-5">
+            <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">My revenue</p>
+            <p className="text-2xl font-bold text-ev-text tabular-nums">{fmtInrShort(metrics.revThis)}</p>
+            <p className="text-ev-muted text-xs mt-2 flex items-center gap-1">
+              {metrics.revThis > 0 || metrics.revDeltaPct !== 0 ? (
+                <>
+                  <TrendingUp size={14} className={metrics.revDeltaPct >= 0 ? 'text-ev-success' : 'text-ev-error'} />
+                  <span className={metrics.revDeltaPct >= 0 ? 'text-ev-success' : 'text-ev-error'}>
+                    {metrics.revDeltaPct >= 0 ? '↑' : '↓'} {Math.abs(metrics.revDeltaPct)}%
+                  </span>
+                  <span> vs last month (delivered)</span>
+                </>
+              ) : (
+                <span>Delivered orders this month</span>
+              )}
+            </p>
+          </div>
+          <Link href="/admin/orders" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
+            <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Orders to ship</p>
+            <p className="text-2xl font-bold text-ev-text tabular-nums">{metrics.toShipCount}</p>
+            <p className="text-ev-muted text-xs mt-2">Need shipment</p>
+          </Link>
+          <Link href="/admin/inventory" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
+            <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Total products</p>
+            <p className="text-2xl font-bold text-ev-text tabular-nums">{metrics.productTotal}</p>
+            <p className="text-ev-muted text-xs mt-2">
+              {metrics.lowStockCount > 0 ? (
+                <span className="text-ev-warning font-medium">{metrics.lowStockCount} low stock</span>
+              ) : (
+                'Stock healthy'
+              )}
+            </p>
+          </Link>
+          <div className="ev-card p-5">
+            <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Delivered today</p>
+            <p className="text-2xl font-bold text-ev-text tabular-nums">{metrics.deliveredToday}</p>
+            <p className="text-ev-muted text-xs mt-2">
+              {deliveredDelta !== 0 ? (
+                <span className={deliveredDelta >= 0 ? 'text-ev-success' : 'text-ev-error'}>
+                  {deliveredDelta >= 0 ? '↑' : '↓'} {Math.abs(deliveredDelta)} vs yesterday
+                </span>
+              ) : (
+                'vs yesterday'
+              )}
+            </p>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <section className="lg:col-span-3 ev-card overflow-hidden">
+            <div className="px-5 py-4 border-b border-ev-border flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-ev-text font-semibold">Orders to ship</h2>
+                <p className="text-ev-muted text-xs mt-0.5">Pack and generate shipment</p>
+              </div>
+              <Link href="/admin/orders" className="text-sm text-ev-primary font-medium inline-flex items-center gap-1 hover:underline">
+                View all orders
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-ev-border text-left bg-ev-surface2/50">
+                    {(
+                      [
+                        ['order', 'Order'],
+                        ['buyer', 'Buyer'],
+                        ['items', 'Items'],
+                        ['amount', 'Amount'],
+                        ['status', 'Status'],
+                        ['ship', ''],
+                      ] as const
+                    ).map(([key, h]) => (
+                      <th
+                        key={key}
+                        className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-ev-border">
+                  {shipRows.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-10 text-center text-ev-muted">
+                        No orders waiting to ship.
+                      </td>
+                    </tr>
+                  ) : (
+                    shipRows.map(({ list: o, detail }) => {
+                      const cust = detail?.customer;
+                      const role = String(cust?.role || '').toLowerCase();
+                      const buyerName = cust?.name || cust?.email || 'Customer';
+                      const buyer =
+                        role === 'dealer' && cust?.name ? `Dealer: ${cust.name}` : buyerName;
+                      const items = detail?.items?.length
+                        ? detail.items
+                            .map((it) => `${it.product_name ?? 'Item'} ×${it.quantity ?? 1}`)
+                            .join(', ')
+                        : '—';
+                      const amt = Number(o.total_amount ?? o.total ?? 0);
+                      return (
+                        <tr key={o.id} className="hover:bg-ev-surface2/40">
+                          <td className="px-4 py-3 font-mono text-xs text-ev-text">{orderDisplayRef(o.id)}</td>
+                          <td className="px-4 py-3 text-ev-text max-w-[140px] truncate" title={buyer}>
+                            {buyer}
+                          </td>
+                          <td className="px-4 py-3 text-ev-muted max-w-[200px] truncate" title={items}>
+                            {items}
+                          </td>
+                          <td className="px-4 py-3 font-semibold whitespace-nowrap tabular-nums">
+                            ₹{amt.toLocaleString('en-IN')}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full border border-ev-border bg-ev-surface2 text-ev-muted">
+                              {packStatusLabel(o)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Link
+                              href={`/admin/orders/${o.id}`}
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-white bg-ev-primary hover:bg-ev-primary-dark px-3 py-1.5 rounded-lg transition-colors"
+                            >
+                              <Truck size={14} />
+                              Ship
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="lg:col-span-2 ev-card p-5 flex flex-col">
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <h2 className="text-ev-text font-semibold">Low stock alert</h2>
+              <Link href="/admin/inventory" className="text-xs text-ev-primary font-medium hover:underline">
+                Manage inventory
+              </Link>
+            </div>
+            <div className="space-y-3 flex-1">
+              {metrics.lowStockProducts.length === 0 ? (
+                <p className="text-ev-muted text-sm py-6 text-center">No low-stock SKUs right now.</p>
+              ) : (
+                metrics.lowStockProducts.map((p) => {
+                  const thr = p.low_stock_threshold ?? 10;
+                  const critical = p.stock <= Math.max(1, Math.floor(thr / 2));
+                  return (
+                    <div
+                      key={p.id}
+                      className="flex gap-3 rounded-xl border border-ev-border bg-ev-surface2/40 p-3 items-start"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-ev-primary/10 flex items-center justify-center shrink-0">
+                        <Package size={18} className="text-ev-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-ev-text text-sm font-medium truncate">{p.name}</p>
+                        <p className="text-ev-muted text-xs mt-0.5">
+                          Only {p.stock} unit{p.stock === 1 ? '' : 's'} left
+                        </p>
+                      </div>
+                      <span
+                        className={`shrink-0 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
+                          critical
+                            ? 'bg-ev-error/10 text-ev-error border-ev-error/25'
+                            : 'bg-ev-warning/10 text-ev-warning border-ev-warning/25'
+                        }`}
+                      >
+                        {critical ? 'Critical' : 'Low'}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </section>
         </div>
+
+        <section className="ev-card p-5">
+          <h2 className="text-ev-text font-semibold mb-4 flex items-center gap-2">
+            <BarChart3 size={18} className="text-ev-primary" />
+            Sales this week
+          </h2>
+          <p className="text-ev-muted text-xs mb-4">Order value by day (created this week, all statuses)</p>
+          <div className="flex items-end justify-between gap-2 min-h-[9rem] px-1">
+            {metrics.weekBuckets.map((v, i) => {
+              const pct = Math.round((v / metrics.weekMax) * 100);
+              const h = Math.max(pct, v > 0 ? 8 : 4);
+              return (
+                <div key={weekLabels[i]} className="flex-1 flex flex-col items-center gap-2 min-w-0 max-w-[56px] mx-auto">
+                  <div
+                    className="w-full h-28 flex items-end rounded-t-md border border-ev-border bg-ev-surface2 overflow-hidden"
+                    title={`₹${Math.round(v).toLocaleString('en-IN')}`}
+                  >
+                    <div
+                      className="w-full bg-gradient-to-t from-ev-primary-dark to-ev-primary rounded-t-sm transition-all min-h-[3px]"
+                      style={{ height: `${h}%` }}
+                    />
+                  </div>
+                  <span className="text-[11px] text-ev-muted font-medium">{weekLabels[i]}</span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="flex flex-wrap gap-3">
+          <Link
+            href="/admin/products"
+            className="ev-btn-secondary inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl"
+          >
+            <Package size={16} />
+            Products
+          </Link>
+          <Link
+            href="/admin/orders"
+            className="ev-btn-secondary inline-flex items-center gap-2 text-sm px-4 py-2.5 rounded-xl"
+          >
+            <ShoppingCart size={16} />
+            Orders
+          </Link>
+        </section>
       </main>
     </AdminShell>
   );

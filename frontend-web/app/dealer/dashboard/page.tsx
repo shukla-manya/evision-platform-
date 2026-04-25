@@ -2,21 +2,24 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Camera,
-  TrendingUp,
-  Package,
-  Receipt,
+  LayoutDashboard,
+  Store,
+  ShoppingBag,
+  FileText,
+  LifeBuoy,
+  UserRound,
   Download,
   Loader2,
-  ShoppingBag,
   LogOut,
-  ChevronRight,
+  ArrowRight,
+  TrendingUp,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { ordersApi } from '@/lib/api';
-import { clearAuth, getRole } from '@/lib/auth';
+import { catalogApi, ordersApi } from '@/lib/api';
+import { clearAuth, getRole, getToken, parseJwt } from '@/lib/auth';
 
 type OrderItem = {
   id: string;
@@ -27,11 +30,9 @@ type OrderItem = {
 
 type SubOrder = {
   id: string;
-  admin_id: string;
-  shop_name?: string | null;
   status?: string;
   total_amount?: number;
-  items: OrderItem[];
+  items?: OrderItem[];
   customer_invoice_url?: string | null;
   dealer_invoice_url?: string | null;
   gst_invoice_url?: string | null;
@@ -42,7 +43,14 @@ type OrderGroup = {
   status?: string;
   total_amount?: number;
   created_at?: string;
-  sub_orders: SubOrder[];
+  sub_orders?: SubOrder[];
+};
+
+type CatalogProduct = {
+  id: string;
+  name?: string;
+  price_customer?: number;
+  price_dealer?: number;
 };
 
 function formatInr(n: number) {
@@ -50,22 +58,60 @@ function formatInr(n: number) {
     style: 'currency',
     currency: 'INR',
     maximumFractionDigits: 0,
-  }).format(n);
+  }).format(Number(n || 0));
+}
+
+function initials(text: string) {
+  const parts = text.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return 'DL';
+  const a = parts[0]?.[0] ?? '';
+  const b = parts[1]?.[0] ?? (parts[0]?.[1] ?? '');
+  return (a + b).toUpperCase() || 'DL';
+}
+
+function dealerNameFromEmail(email?: string) {
+  if (!email) return 'Dealer account';
+  const local = email.split('@')[0].replace(/[._-]+/g, ' ').trim();
+  if (!local) return 'Dealer account';
+  return local
+    .split(/\s+/)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(' ');
+}
+
+function orderLabel(id: string) {
+  return `#D${id.replace(/\D/g, '').slice(-4).padStart(4, '0')}`;
+}
+
+function normalizeStatus(status?: string) {
+  const s = String(status || '').toLowerCase();
+  if (!s) return '—';
+  if (s === 'in_transit') return 'In transit';
+  if (s === 'out_for_delivery') return 'Out for delivery';
+  if (s === 'order_received') return 'Order received';
+  if (s === 'payment_confirmed') return 'Confirmed';
+  return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export default function DealerDashboardPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderGroup[]>([]);
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [downloading, setDownloading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await ordersApi.myOrders();
-      setOrders(Array.isArray(data) ? (data as OrderGroup[]) : []);
+      const [ordersRes, productsRes] = await Promise.all([
+        ordersApi.myOrders(),
+        catalogApi.getProducts().catch(() => ({ data: [] })),
+      ]);
+      setOrders(Array.isArray(ordersRes.data) ? (ordersRes.data as OrderGroup[]) : []);
+      setProducts(Array.isArray(productsRes.data) ? (productsRes.data as CatalogProduct[]) : []);
     } catch {
-      toast.error('Failed to load dashboard data');
+      toast.error('Failed to load dealer dashboard');
     } finally {
       setLoading(false);
     }
@@ -87,226 +133,352 @@ export default function DealerDashboardPage() {
     return () => clearTimeout(timer);
   }, [router, load]);
 
-  const analytics = useMemo(() => {
-    const confirmed = orders.filter((g) => g.status !== 'payment_failed');
-    const totalSpend = confirmed.reduce((sum, g) => sum + Number(g.total_amount || 0), 0);
-    const totalOrders = confirmed.length;
-    const avgOrderValue = totalOrders ? totalSpend / totalOrders : 0;
+  const dealerIdentity = useMemo(() => {
+    const token = getToken();
+    const payload = token ? parseJwt(token) : null;
+    const email = String(payload?.email || '');
+    const company = dealerNameFromEmail(email);
+    const branded = company === 'Dealer account' ? company : `${company} Cameras`;
+    return { company: branded, initials: initials(company), email };
+  }, []);
+
+  const computed = useMemo(() => {
+    const successful = orders.filter((o) => String(o.status || '').toLowerCase() !== 'payment_failed');
+    const totalSpent = successful.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+
+    const now = new Date();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+    const prev = new Date(year, month - 1, 1);
+
+    const spentForMonth = (y: number, m: number) =>
+      successful.reduce((sum, o) => {
+        if (!o.created_at) return sum;
+        const d = new Date(o.created_at);
+        if (d.getFullYear() === y && d.getMonth() === m) return sum + Number(o.total_amount || 0);
+        return sum;
+      }, 0);
+
+    const thisMonthSpend = spentForMonth(year, month);
+    const prevMonthSpend = spentForMonth(prev.getFullYear(), prev.getMonth());
+    const spendDelta = prevMonthSpend > 0 ? Math.round(((thisMonthSpend - prevMonthSpend) / prevMonthSpend) * 100) : 0;
+
+    const allSubOrders = successful.flatMap((o) => o.sub_orders || []);
+    const activeSub = allSubOrders.filter((s) => {
+      const st = String(s.status || '').toLowerCase();
+      return !['delivered', 'order_cancelled', 'payment_failed'].includes(st);
+    });
+    const inTransit = allSubOrders.filter((s) => {
+      const st = String(s.status || '').toLowerCase();
+      return st === 'in_transit' || st === 'out_for_delivery';
+    }).length;
+
+    const gstInvoices = Array.from(
+      new Set(
+        allSubOrders
+          .map((s) => s.gst_invoice_url)
+          .filter((u): u is string => !!u),
+      ),
+    );
 
     const invoiceUrls = Array.from(
       new Set(
-        confirmed.flatMap((g) =>
-          (g.sub_orders || []).flatMap((sub) =>
-            [sub.dealer_invoice_url, sub.gst_invoice_url, sub.customer_invoice_url].filter(
-              (u): u is string => !!u,
-            ),
+        allSubOrders.flatMap((s) =>
+          [s.gst_invoice_url, s.dealer_invoice_url, s.customer_invoice_url].filter(
+            (u): u is string => !!u,
           ),
         ),
       ),
     );
 
-    return { totalSpend, totalOrders, avgOrderValue, invoiceUrls };
-  }, [orders]);
+    const priceMap = new Map(
+      products
+        .filter((p) => p.name)
+        .map((p) => [
+          String(p.name).toLowerCase().trim(),
+          {
+            retail: Number(p.price_customer || 0),
+            dealer: Number(p.price_dealer || 0),
+          },
+        ]),
+    );
+
+    const estimatedSavings = successful.reduce((sum, o) => {
+      const sub = o.sub_orders || [];
+      for (const s of sub) {
+        for (const it of s.items || []) {
+          const key = String(it.product_name || '').toLowerCase().trim();
+          const pricing = priceMap.get(key);
+          if (!pricing) continue;
+          const diff = pricing.retail - pricing.dealer;
+          if (diff > 0) sum += diff * Number(it.quantity || 1);
+        }
+      }
+      return sum;
+    }, 0);
+
+    const recentRows = successful.slice(0, 6).map((o) => {
+      const sub = (o.sub_orders || [])[0];
+      const firstItem = (sub?.items || [])[0];
+      const qty = (sub?.items || []).reduce((sum, i) => sum + Number(i.quantity || 0), 0);
+      const invoice = sub?.gst_invoice_url || sub?.dealer_invoice_url || null;
+      return {
+        id: o.id,
+        product: firstItem?.product_name || 'Mixed products',
+        qty: qty || Number(firstItem?.quantity || 1),
+        amount: Number(sub?.total_amount ?? o.total_amount ?? 0),
+        status: normalizeStatus(sub?.status || o.status),
+        invoice,
+      };
+    });
+
+    const topProducts = products
+      .filter((p) => Number(p.price_customer || 0) > 0 && Number(p.price_dealer || 0) > 0)
+      .map((p) => {
+        const retail = Number(p.price_customer || 0);
+        const dealer = Number(p.price_dealer || 0);
+        return {
+          id: p.id,
+          name: p.name || 'Product',
+          retail,
+          dealer,
+          save: Math.max(0, retail - dealer),
+        };
+      })
+      .sort((a, b) => b.save - a.save)
+      .slice(0, 3);
+
+    return {
+      totalSpent,
+      thisMonthSpend,
+      spendDelta,
+      activeOrders: activeSub.length,
+      inTransit,
+      estimatedSavings,
+      gstInvoicesCount: gstInvoices.length,
+      gstInvoices,
+      invoiceUrls,
+      recentRows,
+      topProducts,
+    };
+  }, [orders, products]);
 
   function bulkDownloadInvoices() {
-    if (!analytics.invoiceUrls.length) {
-      toast.error('No invoice URLs available yet');
+    if (!computed.invoiceUrls.length) {
+      toast.error('No invoices available yet');
       return;
     }
     setDownloading(true);
-    for (const url of analytics.invoiceUrls) {
+    for (const url of computed.invoiceUrls) {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
-    toast.success(`Opened ${analytics.invoiceUrls.length} invoice link${analytics.invoiceUrls.length !== 1 ? 's' : ''}`);
+    toast.success(`Opened ${computed.invoiceUrls.length} invoice link${computed.invoiceUrls.length > 1 ? 's' : ''}`);
     setDownloading(false);
   }
 
-  function logout() {
-    clearAuth();
-    router.push('/login');
-  }
+  const nav = [
+    { href: '/dealer/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/shop', label: 'Browse', icon: Store },
+    { href: '/orders', label: 'My orders', icon: ShoppingBag, badge: computed.activeOrders },
+    { href: '/orders', label: 'Invoices', icon: FileText },
+    { href: '/dealer/service', label: 'Service', icon: LifeBuoy },
+    { href: '/dealer/account', label: 'Account', icon: UserRound },
+  ];
 
   return (
-    <div className="min-h-screen bg-ev-bg">
-      <header className="ev-header">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
+    <div className="min-h-screen bg-ev-bg flex">
+      <aside className="ev-sidebar w-60 sm:w-64 flex flex-col fixed inset-y-0 z-30">
+        <div className="p-5 border-b ev-sidebar-border">
+          <Link href="/dealer/dashboard" className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
               <Camera size={18} className="text-white" />
             </div>
-            <div>
-              <p className="text-white font-bold text-sm">Dealer Dashboard</p>
-              <p className="text-white/50 text-[11px]">Spend analytics &amp; invoices</p>
+            <div className="min-w-0">
+              <p className="text-white font-bold text-sm truncate">LensCart Pro</p>
+              <p className="ev-sidebar-muted text-xs">Dealer dashboard</p>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5">
-              <ShoppingBag size={14} />
-              Shop
-            </Link>
-            <Link href="/orders" className="ev-btn-secondary text-sm py-2 px-3">
-              Orders
-            </Link>
-            <Link href="/reset-password?role=dealer" className="ev-btn-secondary text-sm py-2 px-3">
-              Change Password
-            </Link>
-            <button
-              type="button"
-              onClick={logout}
-              className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5"
-            >
-              <LogOut size={14} />
-              Logout
-            </button>
-          </div>
+          </Link>
         </div>
-      </header>
+        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+          {nav.map(({ href, label, icon: Icon, badge }) => {
+            const active = pathname === href;
+            return (
+              <Link
+                key={`${href}:${label}`}
+                href={href}
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  active ? 'ev-sidebar-link-active' : 'ev-sidebar-link'
+                }`}
+              >
+                <Icon size={17} />
+                <span className="flex-1 truncate">{label}</span>
+                {badge && badge > 0 ? (
+                  <span className="shrink-0 min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full bg-ev-primary text-white text-[10px] font-bold">
+                    {badge > 99 ? '99+' : badge}
+                  </span>
+                ) : null}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="p-3 border-t ev-sidebar-border">
+          <button
+            type="button"
+            onClick={() => {
+              clearAuth();
+              router.push('/login');
+            }}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-white/65 hover:text-red-300 hover:bg-red-500/10 text-sm transition-colors"
+          >
+            <LogOut size={16} />
+            Sign out
+          </button>
+        </div>
+      </aside>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <div className="flex-1 ml-60 sm:ml-64 min-h-screen p-6 sm:p-10 space-y-8 max-w-6xl">
         {loading ? (
-          <div className="flex items-center gap-2 text-ev-muted justify-center py-24">
-            <Loader2 className="animate-spin text-ev-primary" size={24} />
+          <div className="flex items-center gap-2 text-ev-muted py-20">
+            <Loader2 className="animate-spin text-ev-primary" size={22} />
             Loading dashboard...
           </div>
         ) : (
           <>
-            {/* Analytics cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="ev-card p-5">
-                <div className="flex items-start justify-between mb-2">
-                  <p className="text-ev-muted text-xs uppercase tracking-wide font-medium">Total Spend</p>
-                  <TrendingUp size={16} className="text-ev-primary opacity-60" />
-                </div>
-                <p className="text-2xl font-bold text-ev-text">{formatInr(analytics.totalSpend)}</p>
-                <p className="text-ev-subtle text-xs mt-1">All confirmed orders</p>
+            <header className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-ev-text">{dealerIdentity.company}</h1>
+                <p className="text-ev-muted text-sm mt-1">Dealer account · GST verified</p>
+                <Link href="/shop" className="text-ev-primary text-sm font-medium hover:underline inline-flex mt-2">
+                  Browse dealer prices
+                </Link>
               </div>
-
-              <div className="ev-card p-5">
-                <div className="flex items-start justify-between mb-2">
-                  <p className="text-ev-muted text-xs uppercase tracking-wide font-medium">Orders Placed</p>
-                  <Package size={16} className="text-ev-primary opacity-60" />
-                </div>
-                <p className="text-2xl font-bold text-ev-text">{analytics.totalOrders}</p>
-                <p className="text-ev-subtle text-xs mt-1">Successful payments</p>
+              <div className="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-white text-sm font-bold shadow-ev-md">
+                {dealerIdentity.initials}
               </div>
+            </header>
 
+            <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
               <div className="ev-card p-5">
-                <div className="flex items-start justify-between mb-2">
-                  <p className="text-ev-muted text-xs uppercase tracking-wide font-medium">Avg Order Value</p>
-                  <TrendingUp size={16} className="text-ev-primary opacity-60" />
-                </div>
-                <p className="text-2xl font-bold text-ev-text">{formatInr(analytics.avgOrderValue)}</p>
-                <p className="text-ev-subtle text-xs mt-1">Per order group</p>
+                <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Total spent</p>
+                <p className="text-2xl font-bold text-ev-text tabular-nums">{formatInr(computed.totalSpent)}</p>
+                <p className="text-ev-muted text-xs mt-2">
+                  <span className={computed.spendDelta >= 0 ? 'text-ev-success' : 'text-ev-error'}>
+                    {computed.spendDelta >= 0 ? '↑' : '↓'} {Math.abs(computed.spendDelta)}%
+                  </span>{' '}
+                  this month
+                </p>
               </div>
-
+              <Link href="/orders" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
+                <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Active orders</p>
+                <p className="text-2xl font-bold text-ev-text tabular-nums">{computed.activeOrders}</p>
+                <p className="text-ev-muted text-xs mt-2">{computed.inTransit} in transit</p>
+              </Link>
               <div className="ev-card p-5">
-                <div className="flex items-start justify-between mb-2">
-                  <p className="text-ev-muted text-xs uppercase tracking-wide font-medium">Invoices</p>
-                  <Receipt size={16} className="text-ev-primary opacity-60" />
-                </div>
-                <p className="text-2xl font-bold text-ev-text">{analytics.invoiceUrls.length}</p>
+                <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Saved vs MRP</p>
+                <p className="text-2xl font-bold text-ev-text tabular-nums">{formatInr(computed.estimatedSavings)}</p>
+                <p className="text-ev-muted text-xs mt-2">Dealer discount</p>
+              </div>
+              <button
+                type="button"
+                onClick={bulkDownloadInvoices}
+                disabled={downloading || !computed.invoiceUrls.length}
+                className="ev-card p-5 text-left hover:border-ev-primary/25 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">GST invoices</p>
+                <p className="text-2xl font-bold text-ev-text tabular-nums">{computed.gstInvoicesCount}</p>
+                <p className="text-ev-muted text-xs mt-2 inline-flex items-center gap-1">
+                  <Download size={12} />
+                  Download all
+                </p>
+              </button>
+            </section>
+
+            <section className="ev-card overflow-hidden">
+              <div className="px-5 py-4 border-b border-ev-border flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-ev-text font-semibold">Recent bulk orders</h2>
                 <button
                   type="button"
                   onClick={bulkDownloadInvoices}
-                  disabled={downloading || !analytics.invoiceUrls.length}
-                  className="mt-2 ev-btn-primary text-xs py-1.5 px-3 inline-flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="text-sm text-ev-primary font-medium inline-flex items-center gap-1 hover:underline disabled:opacity-50"
+                  disabled={downloading || !computed.invoiceUrls.length}
                 >
-                  {downloading ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <Download size={12} />
-                  )}
-                  {downloading ? 'Opening...' : 'Bulk Download'}
+                  Download all invoices
+                  <ArrowRight size={14} />
                 </button>
               </div>
-            </div>
-
-            {/* Recent orders */}
-            <section>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-ev-text font-semibold text-lg">Recent Orders</h2>
-                <Link
-                  href="/orders"
-                  className="text-ev-primary text-sm inline-flex items-center gap-1 hover:text-ev-primary-light transition-colors"
-                >
-                  View all <ChevronRight size={14} />
-                </Link>
-              </div>
-
-              {orders.length === 0 ? (
-                <div className="ev-card p-16 text-center text-ev-muted">
-                  <Package className="mx-auto mb-3 opacity-30" size={36} />
-                  <p className="text-ev-text font-medium mb-1">No orders yet</p>
-                  <p className="text-sm">Place your first dealer order from the catalogue.</p>
-                  <Link
-                    href="/shop"
-                    className="ev-btn-primary mt-4 inline-flex items-center gap-2 text-sm py-2.5 px-5"
-                  >
-                    Browse catalogue
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {orders.slice(0, 8).map((group) => {
-                    const subInvoices = (group.sub_orders || []).flatMap((sub) =>
-                      [sub.dealer_invoice_url, sub.gst_invoice_url, sub.customer_invoice_url].filter(
-                        (u): u is string => !!u,
-                      ),
-                    );
-                    const isFailure = group.status === 'payment_failed';
-                    return (
-                      <article
-                        key={group.id}
-                        className={`ev-card p-5 ${isFailure ? 'opacity-60' : ''}`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <p className="text-ev-text font-medium text-sm">
-                              Order #{group.id.slice(-8).toUpperCase()}
-                            </p>
-                            <p className="text-ev-subtle text-xs">
-                              {group.created_at
-                                ? new Date(group.created_at).toLocaleDateString('en-IN', {
-                                    day: 'numeric',
-                                    month: 'short',
-                                    year: 'numeric',
-                                  })
-                                : '—'}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-ev-primary font-semibold text-sm">
-                              {formatInr(Number(group.total_amount || 0))}
-                            </span>
-                            <span className="ev-badge">{group.status || '—'}</span>
-                          </div>
-                        </div>
-
-                        {subInvoices.length > 0 && (
-                          <div className="flex flex-wrap gap-2 pt-2 border-t border-ev-border mt-2">
-                            {subInvoices.map((url, i) => (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-ev-border text-left bg-ev-surface2/50">
+                      {['Order', 'Products', 'Qty', 'Dealer price', 'Status', 'Invoice'].map((h) => (
+                        <th key={h} className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-ev-border">
+                    {computed.recentRows.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-10 text-center text-ev-muted">
+                          No dealer orders yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      computed.recentRows.map((row) => (
+                        <tr key={row.id} className="hover:bg-ev-surface2/40">
+                          <td className="px-4 py-3 font-mono text-xs text-ev-text">{orderLabel(row.id)}</td>
+                          <td className="px-4 py-3 text-ev-text">{row.product}</td>
+                          <td className="px-4 py-3 text-ev-muted">x{row.qty}</td>
+                          <td className="px-4 py-3 font-semibold whitespace-nowrap">{formatInr(row.amount)}</td>
+                          <td className="px-4 py-3 text-ev-muted">{row.status}</td>
+                          <td className="px-4 py-3">
+                            {row.invoice ? (
                               <a
-                                key={i}
-                                href={url}
+                                href={row.invoice}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 text-xs text-ev-primary border border-ev-primary/20 rounded-lg px-3 py-1.5 hover:bg-ev-primary/5 transition-colors"
+                                className="inline-flex items-center gap-1 text-ev-primary text-xs font-medium hover:underline"
                               >
-                                <Download size={11} />
-                                Invoice {i + 1}
+                                <Download size={12} />
+                                GST
                               </a>
-                            ))}
-                          </div>
-                        )}
-                      </article>
-                    );
-                  })}
+                            ) : (
+                              <span className="text-ev-subtle text-xs">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section className="ev-card p-5">
+              <h2 className="text-ev-text font-semibold mb-4">Top products — dealer pricing</h2>
+              {computed.topProducts.length === 0 ? (
+                <p className="text-ev-muted text-sm">No dealer-priced products available yet.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {computed.topProducts.map((p) => (
+                    <Link
+                      key={p.id}
+                      href="/shop"
+                      className="rounded-xl border border-ev-border bg-ev-surface2/40 p-4 hover:border-ev-primary/25 transition-colors"
+                    >
+                      <p className="text-ev-text font-medium">{p.name}</p>
+                      <p className="text-ev-subtle text-xs line-through mt-1">{formatInr(p.retail)}</p>
+                      <p className="text-ev-text text-lg font-semibold">{formatInr(p.dealer)}</p>
+                      <p className="text-ev-success text-xs font-medium mt-1">Save {formatInr(p.save)}</p>
+                    </Link>
+                  ))}
                 </div>
               )}
             </section>
           </>
         )}
-      </main>
+      </div>
     </div>
   );
 }
