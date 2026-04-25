@@ -178,7 +178,7 @@ export class OrdersService {
       await this.email.sendOrderShipped(String(user.email), {
         customerName: String(user.name || dto.delivery_name),
         orderId,
-        awbNumber: shipment.awb_number,
+        trackingNumber: shipment.awb_number,
         courierName: shipment.courier_name,
         trackingUrl: this.shiprocket.trackingUrl(shipment.awb_number),
       });
