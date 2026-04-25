@@ -71,7 +71,7 @@ export default function AdminDashboardPage() {
             <h2 className="text-xl font-bold text-ev-text mb-3">Awaiting approval</h2>
             <p className="text-ev-muted text-sm leading-relaxed">
               Your shop <strong className="text-ev-text">{admin.shop_name}</strong> is under review. You will be
-              notified by email once a superadmin approves your account.
+              notified by email once your account is approved.
             </p>
           </div>
         </main>

@@ -46,7 +46,7 @@ export default function AdminRegisterPage() {
             <h2 className="text-2xl font-bold text-ev-text mb-3">Application Submitted!</h2>
             <p className="text-ev-muted text-sm leading-relaxed mb-6">
               Your shop registration for <strong className="text-ev-text">{form.shop_name}</strong> has been received.
-              Our superadmin will review your application within 24 hours and email you the decision.
+              Our team will review your application within 24 hours and email you the decision.
             </p>
             <div className="bg-ev-surface2 border border-ev-border rounded-xl p-4 text-left text-sm space-y-2 mb-6">
               <p className="text-ev-muted"><span className="text-ev-text font-medium">Shop:</span> {form.shop_name}</p>
@@ -75,7 +75,7 @@ export default function AdminRegisterPage() {
             <span className="text-ev-text font-bold text-xl">LensCart</span>
           </Link>
           <h1 className="text-3xl font-bold text-ev-text mb-2">Register Your Shop</h1>
-          <p className="text-ev-muted">Join as one of our 4 partner shops. Superadmin approval required.</p>
+          <p className="text-ev-muted">Join as one of our 4 partner shops. Manual approval required.</p>
         </div>
 
         <div className="ev-card p-8 animate-slide-up">
@@ -159,7 +159,7 @@ export default function AdminRegisterPage() {
             <div className="bg-ev-surface2 border border-ev-border rounded-xl p-4 text-sm text-ev-muted">
               <p className="font-medium text-ev-text mb-1">What happens next?</p>
               <p>
-                Your registration will be reviewed by our superadmin. You will receive an email within 24 hours with
+                Your registration will be reviewed by our team. You will receive an email within 24 hours with
                 the decision. Once approved, you can log in and start listing products.
               </p>
             </div>

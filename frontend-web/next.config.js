@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Private superadmin bookmark URL (no in-app links); serves the same page as /superadmin/login.
+  async rewrites() {
+    return [{ source: '/super/signin', destination: '/superadmin/login' }];
+  },
   images: {
     remotePatterns: [
       {

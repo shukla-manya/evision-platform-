@@ -215,7 +215,7 @@ function DashboardScreen({ navigation }: any) {
             <Text style={styles.cardTitle}>Awaiting approval</Text>
             <Text style={[styles.cardMeta, { textAlign: 'center', marginTop: 8 }]}>
               Your shop <Text style={{ fontWeight: '700', color: colors.textPrimary }}>{admin.shop_name || '—'}</Text> is under review. You
-              will be notified by email once a superadmin approves your account.
+              will be notified by email once your account is approved.
             </Text>
           </View>
         </ScrollView>
