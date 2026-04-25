@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -55,30 +55,11 @@ function formatInr(n: number) {
 
 export default function DealerDashboardPage() {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState<OrderGroup[]>([]);
   const [downloading, setDownloading] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const role = getRole();
-    if (!role) {
-      router.replace('/login');
-      return;
-    }
-    if (role !== 'dealer') {
-      router.replace('/shop');
-      return;
-    }
-    void load();
-  }, [mounted, router]);
-
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await ordersApi.myOrders();
@@ -88,7 +69,23 @@ export default function DealerDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    const role = getRole();
+    if (!role) {
+      router.replace('/login');
+      return;
+    }
+    if (role !== 'dealer') {
+      router.replace('/shop');
+      return;
+    }
+    const timer = setTimeout(() => {
+      void load();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [router, load]);
 
   const analytics = useMemo(() => {
     const confirmed = orders.filter((g) => g.status !== 'payment_failed');
@@ -128,8 +125,6 @@ export default function DealerDashboardPage() {
     clearAuth();
     router.push('/login');
   }
-
-  if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-ev-bg">
