@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Zap, Package, Loader2, ArrowLeft } from 'lucide-react';
+import { Plus, Package, Loader2, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
-import { clearAuth, getRole } from '@/lib/auth';
+import { AdminShell } from '@/components/admin/AdminShell';
 
 type Product = {
   id: string;
@@ -20,62 +19,32 @@ type Product = {
 };
 
 export default function AdminProductsPage() {
-  const router = useRouter();
   const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (getRole() !== 'admin') {
-      router.push('/login');
-      return;
-    }
     adminApi
       .getProducts()
       .then((r) => setItems(r.data || []))
       .catch(() => toast.error('Failed to load products'))
       .finally(() => setLoading(false));
-  }, [router]);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-ev-bg flex">
-      <aside className="w-56 sm:w-64 bg-ev-surface border-r border-ev-border flex flex-col fixed h-full">
-        <div className="p-5 border-b border-ev-border flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-            <Zap size={16} className="text-white" />
-          </div>
-          <span className="text-ev-text font-bold text-sm">Admin</span>
-        </div>
-        <nav className="p-3 space-y-1 flex-1">
-          <Link href="/admin/dashboard" className="block px-3 py-2 rounded-xl text-sm text-ev-muted hover:bg-ev-surface2">
-            Dashboard
-          </Link>
-          <Link href="/admin/products" className="block px-3 py-2 rounded-xl text-sm bg-ev-primary/10 text-ev-primary border border-ev-primary/20">
-            Products
-          </Link>
-        </nav>
-        <div className="p-3 border-t border-ev-border">
-          <button
-            type="button"
-            onClick={() => {
-              clearAuth();
-              router.push('/login');
-            }}
-            className="text-ev-muted text-sm hover:text-ev-error"
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
-
-      <main className="ml-56 sm:ml-64 flex-1 p-6 sm:p-8">
+    <AdminShell>
+      <main className="p-6 sm:p-10">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <Link href="/admin/dashboard" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-2">
-              <ArrowLeft size={14} /> Dashboard
-            </Link>
-            <h1 className="text-2xl font-bold text-ev-text">Your products</h1>
-            <p className="text-ev-muted text-sm mt-0.5">Customer and dealer prices, stock, and images</p>
+            <h1 className="text-2xl font-bold text-ev-text">Products</h1>
+            <p className="text-ev-muted text-sm mt-0.5">Retail and dealer prices, stock, and images</p>
           </div>
+          <Link
+            href="/admin/products/new"
+            className="ev-btn-primary inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm shrink-0"
+          >
+            <Plus size={18} />
+            Add product
+          </Link>
         </div>
 
         {loading ? (
@@ -87,13 +56,16 @@ export default function AdminProductsPage() {
           <div className="ev-card p-12 text-center text-ev-muted">
             <Package className="mx-auto mb-3 opacity-30" size={40} />
             <p className="text-ev-text font-medium mb-1">No products yet</p>
-            <p className="text-sm mb-4">Use the API or a future form to add products with images.</p>
-            <code className="text-xs bg-ev-surface2 px-2 py-1 rounded border border-ev-border">POST /admin/products</code>
+            <p className="text-sm mb-4">Create your first product with customer and dealer prices.</p>
+            <Link href="/admin/products/new" className="ev-btn-primary inline-flex items-center gap-2 py-2 px-4 text-sm">
+              <Plus size={16} />
+              Add product
+            </Link>
           </div>
         ) : (
           <div className="grid gap-4">
             {items.map((p) => (
-              <div key={p.id} className="ev-card p-4 flex gap-4 flex-col sm:flex-row">
+              <div key={p.id} className="ev-card p-4 flex gap-4 flex-col sm:flex-row sm:items-center">
                 <div className="relative w-full sm:w-28 h-36 sm:h-28 shrink-0 rounded-xl overflow-hidden bg-ev-surface2 border border-ev-border">
                   {p.images?.[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -119,11 +91,11 @@ export default function AdminProductsPage() {
                   <p className="text-ev-muted text-xs font-mono truncate mb-2">{p.id}</p>
                   <div className="flex flex-wrap gap-4 text-sm">
                     <div>
-                      <span className="text-ev-subtle block text-xs">Customer</span>
+                      <span className="text-ev-subtle block text-xs">Customer price</span>
                       <span className="text-ev-text font-semibold">₹{Number(p.price_customer).toLocaleString('en-IN')}</span>
                     </div>
                     <div>
-                      <span className="text-ev-subtle block text-xs">Dealer</span>
+                      <span className="text-ev-subtle block text-xs">Dealer price</span>
                       <span className="text-ev-text font-semibold">₹{Number(p.price_dealer).toLocaleString('en-IN')}</span>
                     </div>
                     <div>
@@ -132,11 +104,18 @@ export default function AdminProductsPage() {
                     </div>
                   </div>
                 </div>
+                <Link
+                  href={`/admin/products/${p.id}/edit`}
+                  className="ev-btn-secondary inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm shrink-0 self-start sm:self-center"
+                >
+                  <Pencil size={16} />
+                  Edit
+                </Link>
               </div>
             ))}
           </div>
         )}
       </main>
-    </div>
+    </AdminShell>
   );
 }

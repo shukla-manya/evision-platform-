@@ -8,6 +8,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { SuperadminModule } from './modules/superadmin/superadmin.module';
 import { EmailModule } from './modules/emails/email.module';
 import { ProductsModule } from './modules/products/products.module';
+import { CategoriesModule } from './modules/categories/categories.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 
@@ -21,6 +22,7 @@ import { InvoicesModule } from './modules/invoices/invoices.module';
     AuthModule,
     AdminModule,
     SuperadminModule,
+    CategoriesModule,
     ProductsModule,
     OrdersModule,
     InvoicesModule,
