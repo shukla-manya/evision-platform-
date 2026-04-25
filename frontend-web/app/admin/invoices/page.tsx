@@ -6,35 +6,40 @@ import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { AdminShell } from '@/components/admin/AdminShell';
 
-type InvoiceRow = Record<string, unknown>;
+type Invoice = {
+  id: string;
+  order_id?: string;
+  amount?: number;
+  status?: string;
+  created_at?: string;
+  issued_at?: string;
+};
 
-function formatCell(v: unknown): string {
-  if (v == null) return '—';
-  if (typeof v === 'object') return JSON.stringify(v);
-  return String(v);
+const statusColors: Record<string, string> = {
+  pending: 'bg-ev-warning/10 text-ev-warning border-ev-warning/20',
+  paid:    'bg-ev-success/10 text-ev-success border-ev-success/20',
+  void:    'bg-ev-subtle/20 text-ev-muted border-ev-border',
+};
+
+function fmt(iso?: string) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
 }
 
 export default function AdminInvoicesPage() {
-  const [rows, setRows] = useState<InvoiceRow[]>([]);
+  const [rows, setRows] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     adminApi
       .getInvoices()
-      .then((r) => setRows(Array.isArray(r.data) ? r.data : []))
+      .then((r) => setRows(Array.isArray(r.data) ? (r.data as Invoice[]) : []))
       .catch(() => toast.error('Failed to load invoices'))
       .finally(() => setLoading(false));
   }, []);
-
-  const keys =
-    rows.length > 0
-      ? Array.from(
-          rows.reduce((acc, row) => {
-            Object.keys(row).forEach((k) => acc.add(k));
-            return acc;
-          }, new Set<string>()),
-        ).slice(0, 14)
-      : ['id', 'order_id', 'amount', 'status', 'created_at'];
 
   return (
     <AdminShell>
@@ -57,22 +62,34 @@ export default function AdminInvoicesPage() {
           <div className="ev-card overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-ev-border">
-                  {keys.map((k) => (
-                    <th key={k} className="text-left px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">
-                      {k.replace(/_/g, ' ')}
-                    </th>
-                  ))}
+                <tr className="border-b border-ev-border text-left">
+                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide">Invoice ID</th>
+                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide">Order ID</th>
+                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide">Status</th>
+                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">Amount (₹)</th>
+                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">Issued</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ev-border">
-                {rows.map((row, i) => (
-                  <tr key={(row.id as string) || String(i)} className="hover:bg-ev-surface2/80">
-                    {keys.map((k) => (
-                      <td key={k} className="px-4 py-2.5 text-ev-text whitespace-nowrap max-w-[220px] truncate font-mono text-xs">
-                        {formatCell(row[k])}
-                      </td>
-                    ))}
+                {rows.map((row) => (
+                  <tr key={row.id} className="hover:bg-ev-surface2/80 transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs text-ev-muted max-w-[180px] truncate">
+                      {row.id}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-ev-muted max-w-[180px] truncate">
+                      {row.order_id ?? '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`ev-badge border text-[11px] font-semibold uppercase tracking-wide ${statusColors[row.status ?? ''] ?? 'bg-ev-subtle/20 text-ev-muted border-ev-border'}`}>
+                        {row.status ?? '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-ev-text font-semibold">
+                      {row.amount != null ? `₹${Number(row.amount).toLocaleString('en-IN')}` : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-ev-muted whitespace-nowrap text-xs">
+                      {fmt(row.issued_at ?? row.created_at)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

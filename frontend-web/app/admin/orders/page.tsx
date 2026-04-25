@@ -6,35 +6,43 @@ import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { AdminShell } from '@/components/admin/AdminShell';
 
-type OrderRow = Record<string, unknown>;
+type Order = {
+  id: string;
+  group_id?: string;
+  user_id?: string;
+  status?: string;
+  total?: number;
+  items_count?: number;
+  created_at?: string;
+};
 
-function formatCell(v: unknown): string {
-  if (v == null) return '—';
-  if (typeof v === 'object') return JSON.stringify(v);
-  return String(v);
+const statusColors: Record<string, string> = {
+  pending:   'bg-ev-warning/10 text-ev-warning border-ev-warning/20',
+  confirmed: 'bg-ev-primary/10 text-ev-primary border-ev-primary/20',
+  shipped:   'bg-ev-accent/10 text-ev-accent border-ev-accent/20',
+  delivered: 'bg-ev-success/10 text-ev-success border-ev-success/20',
+  cancelled: 'bg-ev-error/10 text-ev-error border-ev-error/20',
+};
+
+function fmt(iso?: string) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
 }
 
 export default function AdminOrdersPage() {
-  const [rows, setRows] = useState<OrderRow[]>([]);
+  const [rows, setRows] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     adminApi
       .getOrders()
-      .then((r) => setRows(Array.isArray(r.data) ? r.data : []))
+      .then((r) => setRows(Array.isArray(r.data) ? (r.data as Order[]) : []))
       .catch(() => toast.error('Failed to load orders'))
       .finally(() => setLoading(false));
   }, []);
-
-  const keys =
-    rows.length > 0
-      ? Array.from(
-          rows.reduce((acc, row) => {
-            Object.keys(row).forEach((k) => acc.add(k));
-            return acc;
-          }, new Set<string>()),
-        ).slice(0, 12)
-      : ['id', 'group_id', 'user_id', 'status', 'total', 'created_at'];
 
   return (
     <AdminShell>
@@ -57,22 +65,34 @@ export default function AdminOrdersPage() {
           <div className="ev-card overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-ev-border">
-                  {keys.map((k) => (
-                    <th key={k} className="text-left px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">
-                      {k.replace(/_/g, ' ')}
-                    </th>
-                  ))}
+                <tr className="border-b border-ev-border text-left">
+                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide">Order ID</th>
+                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide">Status</th>
+                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">Total (₹)</th>
+                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">Items</th>
+                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">Placed</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ev-border">
-                {rows.map((row, i) => (
-                  <tr key={(row.id as string) || String(i)} className="hover:bg-ev-surface2/80">
-                    {keys.map((k) => (
-                      <td key={k} className="px-4 py-2.5 text-ev-text whitespace-nowrap max-w-[220px] truncate font-mono text-xs">
-                        {formatCell(row[k])}
-                      </td>
-                    ))}
+                {rows.map((row) => (
+                  <tr key={row.id} className="hover:bg-ev-surface2/80 transition-colors">
+                    <td className="px-4 py-3 font-mono text-xs text-ev-muted max-w-[180px] truncate">
+                      {row.id}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`ev-badge border text-[11px] font-semibold uppercase tracking-wide ${statusColors[row.status ?? ''] ?? 'bg-ev-subtle/20 text-ev-muted border-ev-border'}`}>
+                        {row.status ?? '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-ev-text font-semibold">
+                      {row.total != null ? `₹${Number(row.total).toLocaleString('en-IN')}` : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-ev-muted">
+                      {row.items_count ?? '—'}
+                    </td>
+                    <td className="px-4 py-3 text-ev-muted whitespace-nowrap text-xs">
+                      {fmt(row.created_at)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
