@@ -67,7 +67,7 @@ function HomeScreen({ navigation }: any) {
   };
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen}>
       <View style={styles.card}>
         <View style={styles.rowBetween}>
           <Text style={styles.cardTitle}>Online / Offline</Text>
@@ -107,7 +107,7 @@ function HomeScreen({ navigation }: any) {
           ListEmptyComponent={<Text style={styles.meta}>No pending bookings.</Text>}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -125,7 +125,7 @@ function BookingDetailScreen({ route, navigation }: any) {
   };
 
   return (
-    <View style={styles.screen}>
+    <SafeAreaView style={styles.screen}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Booking Detail</Text>
         <Text style={styles.meta}>Booking ID: {String(booking.id)}</Text>
@@ -144,7 +144,7 @@ function BookingDetailScreen({ route, navigation }: any) {
       <Pressable style={styles.dangerButton} onPress={() => void respond('decline')}>
         <Text style={styles.primaryButtonText}>Decline</Text>
       </Pressable>
-    </View>
+    </SafeAreaView>
   );
 }
 
