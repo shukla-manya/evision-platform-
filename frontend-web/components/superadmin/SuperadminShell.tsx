@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Zap,
+  Camera,
   LayoutDashboard,
   BarChart3,
   Clock,
@@ -61,7 +61,7 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
         <div className="p-5 border-b ev-sidebar-border">
           <Link href="/superadmin/dashboard" className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
-              <Zap size={18} className="text-white" />
+              <Camera size={18} className="text-white" />
             </div>
             <div>
               <p className="text-white font-bold text-sm">LensCart</p>

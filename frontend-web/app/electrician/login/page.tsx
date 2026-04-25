@@ -52,7 +52,7 @@ export default function ElectricianLoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
             <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
-              <Zap size={22} className="text-white" />
+              <Camera size={22} className="text-white" />
             </div>
             <span className="text-ev-text font-bold text-xl">LensCart</span>
           </Link>

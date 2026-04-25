@@ -211,7 +211,7 @@ function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: 
     <SafeAreaView style={styles.screen}>
       <View style={styles.centerBox}>
         <Text style={styles.title}>LensCart</Text>
-        <Text style={styles.subtitle}>Universal login: email + password + OTP</Text>
+        <Text style={styles.subtitle}>LensCart · email + password + OTP</Text>
         <TextInput
           style={styles.input}
           placeholder="Email"
