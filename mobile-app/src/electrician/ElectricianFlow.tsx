@@ -183,7 +183,7 @@ function ActiveJobScreen({ navigation, token }: { navigation: any; token: string
   useEffect(() => {
     if (!selectedJob || jobStatus !== 'on_the_way') return;
     const socket = createTrackingSocket(token);
-    socket.emit('join_booking_room', { booking_id: selectedJob.id });
+    socket.emit('join_room', { booking_id: selectedJob.id });
 
     let isCancelled = false;
     const sendLocation = async () => {
@@ -191,11 +191,10 @@ function ActiveJobScreen({ navigation, token }: { navigation: any; token: string
       if (permission.status !== 'granted') return;
       const loc = await Location.getCurrentPositionAsync({});
       if (isCancelled) return;
-      socket.emit('electrician_location_update', {
+      socket.emit('location_update', {
         booking_id: selectedJob.id,
         lat: loc.coords.latitude,
         lng: loc.coords.longitude,
-        sent_at: new Date().toISOString(),
       });
     };
     void sendLocation();
