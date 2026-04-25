@@ -85,6 +85,18 @@ export type CheckoutConfirmRequest = {
   failure_reason?: string;
 };
 
+export type ServiceBooking = {
+  id: string;
+  request_id: string;
+  customer_id: string;
+  electrician_id: string;
+  status: string;
+  job_status?: 'accepted' | 'on_the_way' | 'reached' | 'work_started' | 'completed' | null;
+  work_photo_url?: string;
+  updated_at?: string;
+  created_at?: string;
+};
+
 export const authApi = {
   sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
   verifyOtp: (phone: string, otp: string) =>
@@ -114,4 +126,25 @@ export const checkoutApi = {
 export const ordersApi = {
   listMyGroups: () => api.get<any[]>('/orders/my'),
   cancelGroup: (groupId: string) => api.post(`/orders/${groupId}/cancel`),
+};
+
+export const serviceApi = {
+  listMyActiveBookings: () => api.get<ServiceBooking[]>('/service/my/bookings/active'),
+};
+
+export const electricianApi = {
+  pendingBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/pending'),
+  activeBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/active'),
+  historyBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/history'),
+  respondBooking: (bookingId: string, action: 'accept' | 'decline') =>
+    api.put(`/electrician/booking/${bookingId}/respond`, { action }),
+  updateJobStatus: (
+    bookingId: string,
+    status: 'on_the_way' | 'reached' | 'work_started' | 'completed',
+  ) => api.put(`/electrician/job/${bookingId}/status`, { status }),
+  setAvailability: (online: boolean) => api.put('/electrician/me/availability', { online }),
+  uploadWorkPhoto: (bookingId: string, formData: FormData) =>
+    api.post(`/electrician/job/${bookingId}/photo`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
