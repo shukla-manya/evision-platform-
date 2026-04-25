@@ -65,7 +65,7 @@ async function seedSuperadmin() {
   console.log(`  Name:  ${name}`);
   console.log(`  Email: ${email}`);
   console.log('  Password: (hidden — from .env SUPERADMIN_PASSWORD)\n');
-  console.log('  Login at: /auth/superadmin/login\n');
+  console.log('  API login: POST /auth/superadmin/login  ·  Web UI (private): /super/signin\n');
 }
 
 seedSuperadmin().catch(err => {

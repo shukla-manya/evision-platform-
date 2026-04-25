@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
 import { Store, CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { superadminApi } from '@/lib/api';
@@ -138,7 +137,8 @@ export default function ShopRegistrationsPage() {
                   <div className="flex items-center gap-4 min-w-0">
                     {admin.logo_url ? (
                       <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-ev-border shrink-0 bg-ev-bg">
-                        <Image src={admin.logo_url} alt="" fill className="object-cover" sizes="48px" />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={admin.logo_url} alt="" className="w-full h-full object-cover" />
                       </div>
                     ) : (
                       <div className="w-12 h-12 bg-ev-primary/10 rounded-xl flex items-center justify-center shrink-0">
