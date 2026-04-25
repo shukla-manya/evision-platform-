@@ -1015,11 +1015,15 @@ function MainTabs({
     () => (props: any) => <HomeScreen {...props} userRole={user?.role} />,
     [user?.role],
   );
+  const ordersScreen = useMemo(
+    () => (props: any) => <MyOrdersScreen {...props} userRole={user?.role} />,
+    [user?.role],
+  );
   return (
     <Tab.Navigator>
       <Tab.Screen name="Home" component={homeScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
-      <Tab.Screen name="Orders" component={MyOrdersScreen} options={{ title: 'My Orders' }} />
+      <Tab.Screen name="Orders" component={ordersScreen} options={{ title: 'My Orders' }} />
       <Tab.Screen name="ServiceTracking" component={TrackingScreen} options={{ title: 'Track Electrician' }} />
       {user?.role === 'dealer' && (
         <Tab.Screen
