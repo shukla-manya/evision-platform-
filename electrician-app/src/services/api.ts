@@ -20,8 +20,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// ── Types ──────────────────────────────────────────────────────────────────
-
 export type Electrician = {
   id: string;
   name: string;
@@ -51,9 +49,8 @@ export type Booking = {
   expires_at: string;
   created_at: string;
   updated_at: string;
+  work_photo_url?: string;
 };
-
-// ── Auth ───────────────────────────────────────────────────────────────────
 
 export const electricianAuthApi = {
   login: (email: string, password: string) =>
@@ -66,8 +63,6 @@ export const electricianAuthApi = {
     api.post('/electrician/my/device-token', { fcm_token: fcmToken }),
 };
 
-// ── Registration ───────────────────────────────────────────────────────────
-
 export const electricianRegisterApi = {
   register: (formData: FormData) =>
     api.post('/electrician/register', formData, {
@@ -75,9 +70,9 @@ export const electricianRegisterApi = {
     }),
 };
 
-// ── Bookings ───────────────────────────────────────────────────────────────
-
 export const bookingsApi = {
+  myBookings: () => api.get<Booking[]>('/electrician/my/bookings'),
+  myActiveBooking: () => api.get<Booking | null>('/electrician/my/active-booking'),
   pending: () => api.get<Booking[]>('/electrician/bookings/pending'),
   active: () => api.get<Booking[]>('/electrician/bookings/active'),
   history: () => api.get<Booking[]>('/electrician/bookings/history'),
@@ -93,9 +88,8 @@ export const bookingsApi = {
     }),
 };
 
-// ── Profile ────────────────────────────────────────────────────────────────
-
 export const profileApi = {
+  me: () => api.get<Electrician>('/electrician/me'),
   setAvailability: (online: boolean) =>
     api.put('/electrician/me/availability', { online }),
 };

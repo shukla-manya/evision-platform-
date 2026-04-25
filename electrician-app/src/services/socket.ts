@@ -3,9 +3,13 @@ import { API_BASE_URL } from './api';
 
 let socket: Socket | null = null;
 
+function normalizeSocketBaseUrl() {
+  return API_BASE_URL.replace(/\/+$/, '');
+}
+
 export function connectSocket(token: string): Socket {
   if (socket?.connected) return socket;
-  socket = io(`${API_BASE_URL}/location`, {
+  socket = io(`${normalizeSocketBaseUrl()}/service-tracking`, {
     auth: { token },
     transports: ['websocket'],
     reconnection: true,
@@ -24,28 +28,28 @@ export function getSocket(): Socket | null {
   return socket;
 }
 
-// Electrician calls this every few seconds when job_status = on_the_way
 export function emitLocation(bookingId: string, lat: number, lng: number) {
-  socket?.emit('location_update', { booking_id: bookingId, lat, lng });
+  socket?.emit('electrician_location_update', {
+    booking_id: bookingId,
+    lat,
+    lng,
+    sent_at: new Date().toISOString(),
+  });
 }
 
-// Client (customer app) calls this to receive the electrician's position
 export function joinRoom(bookingId: string) {
-  socket?.emit('join_room', { booking_id: bookingId });
-}
-
-export function leaveRoom(bookingId: string) {
-  socket?.emit('leave_room', { booking_id: bookingId });
+  socket?.emit('join_booking_room', { booking_id: bookingId });
 }
 
 export type LocationUpdate = {
+  electrician_id?: string;
   lat: number;
   lng: number;
   booking_id: string;
-  timestamp: string;
+  sent_at: string;
 };
 
 export function onElectricianLocation(callback: (data: LocationUpdate) => void): () => void {
-  socket?.on('electrician_location', callback);
-  return () => socket?.off('electrician_location', callback);
+  socket?.on('booking_location_update', callback);
+  return () => socket?.off('booking_location_update', callback);
 }
