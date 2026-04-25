@@ -21,23 +21,35 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      adminApi.getMe().then((r) => setAdmin(r.data as AdminMe)),
-      adminApi
-        .getProducts()
-        .then((r) => setProductCount(Array.isArray(r.data) ? r.data.length : 0))
-        .catch(() => setProductCount(null)),
-      adminApi
-        .getOrders()
-        .then((r) => setOrderCount(Array.isArray(r.data) ? r.data.length : 0))
-        .catch(() => setOrderCount(null)),
-      adminApi
-        .getInvoices()
-        .then((r) => setInvoiceCount(Array.isArray(r.data) ? r.data.length : 0))
-        .catch(() => setInvoiceCount(null)),
-    ])
-      .catch(() => toast.error('Failed to load dashboard'))
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    (async () => {
+      try {
+        const meRes = await adminApi.getMe();
+        if (cancelled) return;
+        const me = meRes.data as AdminMe;
+        setAdmin(me);
+        if (me.status === 'pending') {
+          setLoading(false);
+          return;
+        }
+        const [prod, ord, inv] = await Promise.all([
+          adminApi.getProducts().catch(() => ({ data: [] })),
+          adminApi.getOrders().catch(() => ({ data: [] })),
+          adminApi.getInvoices().catch(() => ({ data: [] })),
+        ]);
+        if (cancelled) return;
+        setProductCount(Array.isArray(prod.data) ? prod.data.length : 0);
+        setOrderCount(Array.isArray(ord.data) ? ord.data.length : 0);
+        setInvoiceCount(Array.isArray(inv.data) ? inv.data.length : 0);
+      } catch {
+        if (!cancelled) toast.error('Failed to load dashboard');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading || !admin) {

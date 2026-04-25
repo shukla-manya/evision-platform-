@@ -71,7 +71,7 @@ export default function AdminSettingsPage() {
                 )}
               </div>
               <div>
-                <p className="text-ev-label text-xs uppercase tracking-wide text-ev-muted mb-1">Shop logo</p>
+                <p className="ev-label mb-1">Shop logo</p>
                 <label className="ev-btn-secondary inline-flex items-center gap-2 py-2 px-4 text-sm cursor-pointer">
                   {uploading ? <Loader2 size={14} className="animate-spin" /> : null}
                   {uploading ? 'Uploading…' : 'Upload new logo'}
