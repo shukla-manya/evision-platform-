@@ -2,21 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import Script from 'next/script';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2, ShoppingCart, Trash2, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { cartApi, checkoutApi } from '@/lib/api';
+import { cartApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
-
-declare global {
-  interface Window {
-    Razorpay?: new (options: Record<string, unknown>) => {
-      open: () => void;
-      on: (event: string, handler: (response: unknown) => void) => void;
-    };
-  }
-}
 
 type CartItem = {
   id: string;
@@ -54,7 +44,6 @@ export default function CartPage() {
   const router = useRouter();
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const [loading, setLoading] = useState(true);
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [cart, setCart] = useState<CartResponse>({
     shops: [],
     total_items: 0,
@@ -95,57 +84,8 @@ export default function CartPage() {
     }
   }
 
-  async function checkout() {
-    if (!window.Razorpay) {
-      toast.error('Payment SDK not loaded');
-      return;
-    }
-    setCheckoutLoading(true);
-    try {
-      const { data } = await checkoutApi.createOrder();
-      const d = data as {
-        razorpay_order_id: string;
-        amount_paise: number;
-        currency: string;
-        key_id?: string;
-      };
-      if (!d.razorpay_order_id || !d.key_id) {
-        toast.error('Checkout response is incomplete');
-        return;
-      }
-
-      const rp = new window.Razorpay({
-        key: d.key_id,
-        amount: d.amount_paise,
-        currency: d.currency || 'INR',
-        order_id: d.razorpay_order_id,
-        name: 'E Vision',
-        description: 'Cart payment',
-        handler: () => {
-          toast.success('Payment submitted. We will confirm shortly.');
-          void loadCart();
-        },
-        modal: {
-          ondismiss: () => {
-            toast('Payment window closed');
-          },
-        },
-        theme: {
-          color: '#3b82f6',
-        },
-      });
-      rp.on('payment.failed', () => toast.error('Payment failed'));
-      rp.open();
-    } catch {
-      toast.error('Could not start checkout');
-    } finally {
-      setCheckoutLoading(false);
-    }
-  }
-
   return (
     <div className="min-h-screen bg-ev-bg">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
       <header className="border-b border-ev-border bg-ev-surface/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <div className="min-w-0">
@@ -232,16 +172,14 @@ export default function CartPage() {
                   <span className="text-ev-text font-bold text-lg">{formatInr(Number(cart.grand_total || 0))}</span>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => void checkout()}
-                disabled={checkoutLoading}
+              <Link
+                href="/checkout"
                 className="ev-btn-primary w-full mt-5 py-2.5 inline-flex items-center justify-center gap-2"
               >
-                {checkoutLoading ? <Loader2 size={16} className="animate-spin" /> : <Wallet size={16} />}
-                {checkoutLoading ? 'Creating order...' : 'Pay with Razorpay'}
-              </button>
-              <p className="text-ev-subtle text-xs mt-2">After creating order, Razorpay payment sheet opens automatically.</p>
+                <Wallet size={16} />
+                Proceed to checkout
+              </Link>
+              <p className="text-ev-subtle text-xs mt-2">Review and pay on the checkout page.</p>
             </aside>
           </>
         )}

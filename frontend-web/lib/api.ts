@@ -91,6 +91,11 @@ export const checkoutApi = {
   createOrder: () => api.post('/checkout'),
 };
 
+export const ordersApi = {
+  myOrders: () => api.get('/orders/my'),
+  cancelOrderGroup: (groupId: string) => api.post(`/orders/${groupId}/cancel`),
+};
+
 // ── Superadmin ─────────────────────────────────────────────────────────────
 export const superadminApi = {
   getPendingAdmins: () => api.get('/superadmin/pending-admins'),
