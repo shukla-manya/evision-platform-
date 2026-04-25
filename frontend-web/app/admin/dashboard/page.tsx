@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BarChart3,
   Clock,
+  LifeBuoy,
   Package,
   Plus,
   ShoppingCart,
@@ -206,7 +207,18 @@ export default function AdminDashboardPage() {
       const idx = (dt.getDay() + 6) % 7;
       weekBuckets[idx] += Number(o.total_amount ?? o.total ?? 0);
     }
-    const weekMax = Math.max(...weekBuckets, 1);
+    const lastWeekStart = new Date(weekStart);
+    lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+    const lastWeekEnd = endOfWeekSunday(lastWeekStart);
+    const lastWeekBuckets = [0, 0, 0, 0, 0, 0, 0];
+    for (const o of orders) {
+      if (!o.created_at) continue;
+      const dt = new Date(o.created_at);
+      if (dt < lastWeekStart || dt > lastWeekEnd) continue;
+      const idx = (dt.getDay() + 6) % 7;
+      lastWeekBuckets[idx] += Number(o.total_amount ?? o.total ?? 0);
+    }
+    const weekMax = Math.max(...weekBuckets, ...lastWeekBuckets, 1);
 
     const lowStockProducts = [...products]
       .filter((p) => {
@@ -224,9 +236,11 @@ export default function AdminDashboardPage() {
       deliveredToday,
       deliveredYesterday,
       weekBuckets,
+      lastWeekBuckets,
       weekMax,
       lowStockProducts,
       productTotal: products.length,
+      pendingServiceRequests: 0,
     };
   }, [orders, products]);
 
@@ -265,10 +279,11 @@ export default function AdminDashboardPage() {
       <main className="p-6 sm:p-10 max-w-6xl mx-auto space-y-8">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-ev-text tracking-tight">{shopName} Dashboard</h1>
+            <p className="text-ev-muted text-sm mb-1">Welcome,</p>
+            <h1 className="text-2xl font-bold text-ev-text tracking-tight">{shopName}</h1>
             <p className="text-ev-muted text-sm mt-1">
               {metrics.toShipCount > 0 ? (
-                <span className="text-ev-warning font-medium">{metrics.toShipCount} orders need attention</span>
+                <span className="text-ev-warning font-medium">{metrics.toShipCount} orders need shipment</span>
               ) : (
                 <span>All caught up on shipping</span>
               )}
@@ -291,11 +306,11 @@ export default function AdminDashboardPage() {
           </div>
         </header>
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           <div className="ev-card p-5">
-            <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">My revenue</p>
+            <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Revenue this month</p>
             <p className="text-2xl font-bold text-ev-text tabular-nums">{fmtInrShort(metrics.revThis)}</p>
-            <p className="text-ev-muted text-xs mt-2 flex items-center gap-1">
+            <p className="text-ev-muted text-xs mt-2 flex items-center gap-1 flex-wrap">
               {metrics.revThis > 0 || metrics.revDeltaPct !== 0 ? (
                 <>
                   <TrendingUp size={14} className={metrics.revDeltaPct >= 0 ? 'text-ev-success' : 'text-ev-error'} />
@@ -305,25 +320,24 @@ export default function AdminDashboardPage() {
                   <span> vs last month (delivered)</span>
                 </>
               ) : (
-                <span>Delivered orders this month</span>
+                <span>From delivered orders</span>
               )}
             </p>
           </div>
           <Link href="/admin/orders" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
             <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Orders to ship</p>
             <p className="text-2xl font-bold text-ev-text tabular-nums">{metrics.toShipCount}</p>
-            <p className="text-ev-muted text-xs mt-2">Need shipment</p>
+            <p className="text-ev-muted text-xs mt-2">Awaiting shipment</p>
           </Link>
-          <Link href="/admin/inventory" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
+          <Link href="/admin/products" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
             <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Total products</p>
             <p className="text-2xl font-bold text-ev-text tabular-nums">{metrics.productTotal}</p>
-            <p className="text-ev-muted text-xs mt-2">
-              {metrics.lowStockCount > 0 ? (
-                <span className="text-ev-warning font-medium">{metrics.lowStockCount} low stock</span>
-              ) : (
-                'Stock healthy'
-              )}
-            </p>
+            <p className="text-ev-muted text-xs mt-2">In catalogue</p>
+          </Link>
+          <Link href="/admin/inventory" className="ev-card p-5 hover:border-ev-warning/20 bg-ev-warning/5 transition-colors block">
+            <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Low stock alerts</p>
+            <p className="text-2xl font-bold text-ev-text tabular-nums">{metrics.lowStockCount}</p>
+            <p className="text-ev-muted text-xs mt-2">SKUs at or below threshold</p>
           </Link>
           <div className="ev-card p-5">
             <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Delivered today</p>
@@ -338,6 +352,14 @@ export default function AdminDashboardPage() {
               )}
             </p>
           </div>
+          <Link href="/admin/service-requests" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
+            <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Pending service requests</p>
+            <p className="text-2xl font-bold text-ev-text tabular-nums">{metrics.pendingServiceRequests}</p>
+            <p className="text-ev-muted text-xs mt-2 inline-flex items-center gap-1">
+              <LifeBuoy size={12} />
+              View queue
+            </p>
+          </Link>
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
