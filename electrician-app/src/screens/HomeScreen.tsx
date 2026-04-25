@@ -3,6 +3,7 @@ import { Alert, FlatList, Pressable, StyleSheet, Switch, Text, View } from 'reac
 import { AxiosError } from 'axios';
 import { bookingsApi, Booking, profileApi } from '../services/api';
 import { colors } from '../theme/colors';
+import { statusColor } from '../theme/status';
 
 function apiError(err: unknown, fallback: string) {
   const e = err as AxiosError<{ message?: string | string[] }>;
@@ -86,7 +87,10 @@ export default function HomeScreen({ navigation }: Props) {
               onPress={() => navigation.navigate('BookingDetail', { booking: item })}
             >
               <Text style={styles.cardTitle}>Booking #{item.id.slice(0, 8)}</Text>
-              <Text style={styles.meta}>Status: {item.status}</Text>
+              <Text style={styles.meta}>
+                Status:{' '}
+                <Text style={{ color: statusColor(item.status), fontWeight: '700' }}>{item.status}</Text>
+              </Text>
               <Text style={styles.meta}>Created: {new Date(item.created_at).toLocaleString()}</Text>
             </Pressable>
           )}

@@ -26,6 +26,7 @@ import { openRazorpayCheckout } from './src/services/razorpay';
 import { TrackingScreen } from './src/screens/TrackingScreen';
 import { ElectricianFlow } from './src/electrician/ElectricianFlow';
 import { colors } from './src/theme/colors';
+import { statusColor } from './src/theme/status';
 
 type RootStackParamList = {
   Auth: undefined;
@@ -545,7 +546,12 @@ function MyOrdersScreen({ navigation }: any) {
         renderItem={({ item }) => (
           <Pressable style={styles.card} onPress={() => navigation.navigate('OrderDetail', { group: item })}>
             <Text style={styles.cardTitle}>Order Group #{item.id}</Text>
-            <Text style={styles.cardMeta}>Status: {String(item.status || 'unknown')}</Text>
+            <Text style={styles.cardMeta}>
+              Status:{' '}
+              <Text style={{ color: statusColor(String(item.status || 'unknown')), fontWeight: '700' }}>
+                {String(item.status || 'unknown')}
+              </Text>
+            </Text>
             <Text style={styles.cardMeta}>Amount: {formatINR(Number(item.total_amount || 0))}</Text>
           </Pressable>
         )}
@@ -642,14 +648,24 @@ function OrderDetailScreen({ route }: { route: RouteProp<RootStackParamList, 'Or
       <ScrollView contentContainerStyle={styles.listPad}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Group: {String(group.id)}</Text>
-          <Text style={styles.cardMeta}>Status: {String(group.status || '-')}</Text>
+          <Text style={styles.cardMeta}>
+            Status:{' '}
+            <Text style={{ color: statusColor(String(group.status || '-')), fontWeight: '700' }}>
+              {String(group.status || '-')}
+            </Text>
+          </Text>
         </View>
 
         {(group.sub_orders || []).map((subOrder: any) => (
           <View key={String(subOrder.id)} style={styles.card}>
             <Text style={styles.cardTitle}>Shop: {String(subOrder.shop_name || 'Shop')}</Text>
             <Text style={styles.cardMeta}>Order: {String(subOrder.id)}</Text>
-            <Text style={styles.cardMeta}>Status: {String(subOrder.status || '-')}</Text>
+            <Text style={styles.cardMeta}>
+              Status:{' '}
+              <Text style={{ color: statusColor(String(subOrder.status || '-')), fontWeight: '700' }}>
+                {String(subOrder.status || '-')}
+              </Text>
+            </Text>
             {!!subOrder.courier_name && <Text style={styles.cardMeta}>Courier: {String(subOrder.courier_name)}</Text>}
             {!!subOrder.awb_number && <Text style={styles.cardMeta}>AWB: {String(subOrder.awb_number)}</Text>}
             {!!subOrder.tracking_url && (

@@ -13,6 +13,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { AxiosError } from 'axios';
 import { electricianRegisterApi } from '../services/api';
+import { colors } from '../theme/colors';
 
 function apiError(err: unknown, fallback: string) {
   const e = err as AxiosError<{ message?: string | string[] }>;
@@ -127,7 +128,7 @@ export default function RegisterScreen({ navigation }: Props) {
               value={(form as any)[key]}
               onChangeText={set(key)}
               placeholder={placeholder}
-              placeholderTextColor="#64748b"
+              placeholderTextColor={colors.muted}
               keyboardType={keyboard || 'default'}
               secureTextEntry={secure}
               autoCapitalize={keyboard === 'email-address' ? 'none' : 'sentences'}
@@ -166,41 +167,41 @@ export default function RegisterScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#050b1a' },
+  screen: { flex: 1, backgroundColor: colors.background },
   container: { padding: 24, gap: 8, paddingBottom: 48 },
-  title: { fontSize: 22, fontWeight: '700', color: '#e2e8f0', marginBottom: 4 },
-  subtitle: { fontSize: 13, color: '#64748b', marginBottom: 12, lineHeight: 18 },
+  title: { fontSize: 22, fontWeight: '700', color: colors.textPrimary, marginBottom: 4 },
+  subtitle: { fontSize: 13, color: colors.textSecondary, marginBottom: 12, lineHeight: 18 },
   field: { gap: 6 },
-  label: { fontSize: 13, fontWeight: '600', color: '#94a3b8' },
+  label: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
   input: {
-    backgroundColor: '#0d1626',
+    backgroundColor: colors.softPanel,
     borderWidth: 1,
-    borderColor: '#1e3a5f',
+    borderColor: colors.border,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#e2e8f0',
+    color: colors.textPrimary,
     fontSize: 15,
   },
   fileBtn: {
-    backgroundColor: '#0d1626',
+    backgroundColor: colors.softPanel,
     borderWidth: 1,
-    borderColor: '#1e3a5f',
+    borderColor: colors.border,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 14,
     borderStyle: 'dashed',
   },
-  fileBtnText: { color: '#3b82f6', fontSize: 14 },
+  fileBtnText: { color: colors.brandPrimary, fontSize: 14 },
   btn: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.brandPrimary,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 8,
   },
   btnDisabled: { opacity: 0.5 },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  btnText: { color: colors.surface, fontWeight: '700', fontSize: 16 },
   link: { alignItems: 'center', marginTop: 4 },
-  linkText: { color: '#3b82f6', fontSize: 14 },
+  linkText: { color: colors.cta, fontSize: 14 },
 });

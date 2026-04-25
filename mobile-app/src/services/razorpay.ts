@@ -20,6 +20,6 @@ export async function openRazorpayCheckout(options: RazorpayOptionsInput) {
       email: options.prefillEmail || '',
       contact: options.prefillContact || '',
     },
-    theme: { color: '#2563eb' },
+    theme: { color: '#4F46E5' },
   });
 }
