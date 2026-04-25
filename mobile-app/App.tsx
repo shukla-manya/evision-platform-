@@ -1222,6 +1222,20 @@ function AppShell() {
                 <RootStack.Screen name="Checkout" component={CheckoutScreen} />
                 <RootStack.Screen name="Payment" component={paymentScreen} />
                 <RootStack.Screen name="OrderDetail" component={OrderDetailScreen} options={{ title: 'Order Detail' }} />
+                <RootStack.Screen name="ServiceRequest" component={ServiceRequestScreen} options={{ title: 'Request Service' }} />
+                <RootStack.Screen name="ElectricianList" component={ElectricianListScreen} options={{ title: 'Electricians' }} />
+                <RootStack.Screen
+                  name="ElectricianPublicProfile"
+                  component={ElectricianPublicProfileScreen}
+                  options={{ title: 'Electrician' }}
+                />
+                <RootStack.Screen
+                  name="ServiceBookingConfirm"
+                  component={ServiceBookingConfirmScreen}
+                  options={{ title: 'Booking', headerBackVisible: false }}
+                />
+                <RootStack.Screen name="LeaveReview" component={LeaveReviewScreen} options={{ title: 'Leave Review' }} />
+                <RootStack.Screen name="ServiceHistory" component={ServiceHistoryScreen} options={{ title: 'Service history' }} />
               </>
             )}
           </>
