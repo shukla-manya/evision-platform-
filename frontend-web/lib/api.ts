@@ -69,7 +69,9 @@ export async function registerElectricianFormData(formData: FormData) {
 
 // ── Admin (shop) ───────────────────────────────────────────────────────────
 export const adminApi = {
-  register: (data: Record<string, unknown>) => api.post('/admin/register', data),
+  /** Multipart (shop logo) or JSON — backend accepts both for `/admin/register`. */
+  register: (data: FormData | Record<string, unknown>) =>
+    api.post('/admin/register', data, data instanceof FormData ? {} : undefined),
   getMe: () => api.get('/admin/me'),
   uploadLogo: (file: File) => {
     const fd = new FormData();

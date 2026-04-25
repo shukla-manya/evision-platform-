@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Put, Body, Param, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { RegisterAdminDto } from './dto/register-admin.dto';
 import { Public } from '../../common/decorators/public.decorator';
@@ -20,9 +20,12 @@ export class AdminController {
 
   @Public()
   @Post('register')
-  @ApiOperation({ summary: 'Admin self-registration → status=PENDING, email sent to superadmin' })
-  register(@Body() dto: RegisterAdminDto) {
-    return this.adminService.register(dto);
+  @UseInterceptors(FileInterceptor('logo', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @ApiOperation({ summary: 'Admin self-registration (JSON or multipart with optional logo file)' })
+  @ApiBody({ type: RegisterAdminDto })
+  register(@Body() dto: RegisterAdminDto, @UploadedFile() logo?: Express.Multer.File) {
+    return this.adminService.register(dto, logo);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

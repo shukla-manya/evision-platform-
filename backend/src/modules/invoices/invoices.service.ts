@@ -42,11 +42,46 @@ export class InvoicesService {
         }),
       ),
     );
-    return invoiceLists.flat().sort(
+    const flat = invoiceLists.flat().sort(
       (a, b) =>
         new Date(String(b.issued_at || b.created_at || 0)).getTime() -
         new Date(String(a.issued_at || a.created_at || 0)).getTime(),
     );
+    const orderRows = await Promise.all(
+      orderIds.map((oid) => this.dynamo.get(this.ordersTable(), { id: oid })),
+    );
+    const orderById = new Map(orderRows.filter(Boolean).map((o) => [String(o!.id), o!]));
+    const userIds = [
+      ...new Set(
+        [...orderById.values()]
+          .map((o) => String(o.user_id || ''))
+          .filter(Boolean),
+      ),
+    ];
+    const userRows = await Promise.all(
+      userIds.map((uid) => this.dynamo.get(this.usersTable(), { id: uid })),
+    );
+    const userById = new Map(userRows.filter(Boolean).map((u) => [String(u!.id), u!]));
+    return flat.map((inv) => {
+      const ord = orderById.get(String(inv.order_id || ''));
+      const u = ord ? userById.get(String(ord.user_id || '')) : null;
+      const role = String(u?.role || '').toLowerCase();
+      const hasGst = Boolean(String(u?.gst_no || '').trim());
+      const buyer_type =
+        role === 'dealer' ? 'Dealer' : hasGst ? 'GST' : 'Customer';
+      const buyer_name = String(u?.name || u?.email || '—');
+      const download_pdf =
+        String(inv.customer_invoice_url || '') ||
+        String(inv.dealer_invoice_url || '') ||
+        String(inv.gst_invoice_url || '') ||
+        null;
+      return {
+        ...inv,
+        buyer_name,
+        buyer_type,
+        download_pdf,
+      };
+    });
   }
 
   /**

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Camera, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { Camera, Mail, Lock, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
@@ -51,15 +51,15 @@ export default function AdminLoginPage() {
             </div>
             <span className="text-ev-text font-bold text-xl">LensCart</span>
           </Link>
-          <h1 className="text-2xl font-bold text-ev-text">Shop admin sign in</h1>
-          <p className="text-ev-muted text-sm mt-1">Manage products, orders, and invoices for your shop</p>
+          <h1 className="text-2xl font-bold text-ev-text">Admin — sign in to your shop</h1>
+          <p className="text-ev-muted text-sm mt-2">Registered email and password for your shop admin account.</p>
         </div>
         <div className="ev-card p-8">
           <form onSubmit={onSubmit} className="space-y-5">
             {!loginToken ? (
               <>
                 <div>
-                  <label className="ev-label">Email</label>
+                  <label className="ev-label">Registered email</label>
                   <div className="relative">
                     <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
                     <input
@@ -89,23 +89,24 @@ export default function AdminLoginPage() {
                   </div>
                 </div>
                 <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : (
-                    <>
-                      Continue to OTP <ArrowRight size={16} />
-                    </>
-                  )}
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : 'Sign in'}
                 </button>
-                <p className="text-center text-ev-subtle text-sm">
-                  <Link href="/reset-password?role=admin" className="text-ev-primary hover:text-ev-primary-light">
+                <p className="text-center text-sm text-ev-muted leading-relaxed">
+                  Don&apos;t have an account?{' '}
+                  <Link href="/admin/register" className="text-ev-primary hover:text-ev-primary-light font-medium">
+                    Register your shop
+                  </Link>
+                  {' · '}
+                  <Link href="/reset-password?role=admin" className="text-ev-primary hover:text-ev-primary-light font-medium">
                     Forgot password?
                   </Link>
                 </p>
               </>
             ) : (
               <>
-                <p className="text-sm text-ev-muted text-center">Password verified. Enter OTP sent to your phone.</p>
+                <p className="text-sm text-ev-muted text-center">Enter the OTP sent to your registered phone.</p>
                 <div>
-                  <label className="ev-label">OTP</label>
+                  <label className="ev-label">One-time code</label>
                   <input
                     type="text"
                     className="ev-input text-center text-lg tracking-[0.35em] font-mono"
@@ -117,11 +118,7 @@ export default function AdminLoginPage() {
                   />
                 </div>
                 <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : (
-                    <>
-                      Verify OTP <ArrowRight size={16} />
-                    </>
-                  )}
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : 'Sign in'}
                 </button>
                 <button
                   type="button"
@@ -131,20 +128,9 @@ export default function AdminLoginPage() {
                     setOtp('');
                   }}
                 >
-                  ← Change email/password
+                  ← Change email or password
                 </button>
               </>
-            )}
-            {!loginToken && (
-              <p className="text-center text-ev-subtle text-sm">
-                <Link href="/admin/register" className="text-ev-primary hover:text-ev-primary-light">
-                  Register your shop
-                </Link>
-                {' · '}
-                <Link href="/login" className="text-ev-muted hover:text-ev-text">
-                  Other sign-in options
-                </Link>
-              </p>
             )}
           </form>
         </div>

@@ -30,11 +30,20 @@ export class RegisterAdminDto {
   @IsString()
   gst_no: string;
 
-  @ApiProperty({ example: 'Sector 15, Faridabad, Haryana 121007' })
+  @ApiProperty({ example: 'Plot 12, Sector 15' })
   @IsString()
   address: string;
 
-  @ApiPropertyOptional({ description: 'Shop logo — upload separately to /admin/upload-logo' })
+  @ApiProperty({ example: 'Faridabad' })
+  @IsString()
+  city: string;
+
+  @ApiProperty({ example: '121007' })
+  @IsString()
+  @Matches(/^\d{6}$/, { message: 'Pincode must be 6 digits' })
+  pincode: string;
+
+  @ApiPropertyOptional({ description: 'Shop logo URL (set when uploading logo with registration)' })
   @IsOptional()
   @IsString()
   logo_url?: string;

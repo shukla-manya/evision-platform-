@@ -10,6 +10,7 @@ import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { EmailService } from '../emails/email.service';
+import { S3Service } from '../../common/s3/s3.service';
 import { RegisterAdminDto } from './dto/register-admin.dto';
 
 @Injectable()
@@ -20,15 +21,21 @@ export class AdminService {
     private dynamo: DynamoService,
     private email: EmailService,
     private config: ConfigService,
+    private s3: S3Service,
   ) {}
 
-  async register(dto: RegisterAdminDto): Promise<{ message: string }> {
+  async register(dto: RegisterAdminDto, logoFile?: Express.Multer.File): Promise<{ message: string }> {
     // Check duplicate email
     const existing = await this.findByEmail(dto.email);
     if (existing) throw new ConflictException('Email already registered');
 
     const id = uuidv4();
     const password_hash = await bcrypt.hash(dto.password, 12);
+
+    let logo_url = dto.logo_url || null;
+    if (logoFile?.buffer?.length) {
+      logo_url = await this.s3.upload(logoFile.buffer, logoFile.mimetype, 'logos');
+    }
 
     const admin = {
       id,
@@ -38,7 +45,9 @@ export class AdminService {
       phone: dto.phone,
       gst_no: dto.gst_no,
       address: dto.address,
-      logo_url: dto.logo_url || null,
+      city: dto.city,
+      pincode: dto.pincode,
+      logo_url,
       password_hash,
       status: 'pending',
       reject_reason: null,
@@ -57,7 +66,10 @@ export class AdminService {
       phone: dto.phone,
     });
 
-    return { message: 'Registration submitted. You will receive an email once approved.' };
+    return {
+      message:
+        "Your shop registration has been submitted. You'll receive an email once our team approves your account.",
+    };
   }
 
   async getById(id: string): Promise<any> {

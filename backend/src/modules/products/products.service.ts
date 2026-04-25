@@ -163,9 +163,14 @@ export class ProductsService {
       KeyConditionExpression: 'admin_id = :aid',
       ExpressionAttributeValues: { ':aid': adminId },
     });
+    const cats = await this.categories.listAll();
+    const catNameById = new Map(cats.map((c: { id: string; name: string }) => [c.id, c.name]));
     return items
       .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
-      .map((p) => this.withAdminFlags(p));
+      .map((p) => ({
+        ...this.withAdminFlags(p),
+        category_name: catNameById.get(String(p.category_id)) || '—',
+      }));
   }
 
   async getMineById(adminId: string, productId: string): Promise<Record<string, unknown>> {

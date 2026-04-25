@@ -32,10 +32,31 @@ export class OrdersService {
       KeyConditionExpression: 'admin_id = :aid',
       ExpressionAttributeValues: { ':aid': adminId },
     });
-    return items.sort(
+    const sorted = items.sort(
       (a, b) =>
         new Date(String(b.created_at || 0)).getTime() - new Date(String(a.created_at || 0)).getTime(),
     );
+    const userIds = [...new Set(sorted.map((o) => String(o.user_id || '')).filter(Boolean))];
+    const users = await Promise.all(
+      userIds.map((uid) => this.dynamo.get(this.usersTable(), { id: uid })),
+    );
+    const userById = new Map(users.filter(Boolean).map((u) => [String(u!.id), u!]));
+    return sorted.map((o) => {
+      const u = userById.get(String(o.user_id || ''));
+      const role = String(u?.role || '').toLowerCase();
+      const payment_status =
+        String(o.status || '').toLowerCase() === 'payment_failed'
+          ? 'Failed'
+          : String(o.status || '').toLowerCase() === 'order_cancelled'
+            ? '—'
+            : 'Paid';
+      return {
+        ...o,
+        buyer_name: u?.name || u?.email || '—',
+        buyer_type: role === 'dealer' ? 'Dealer' : 'Customer',
+        payment_status,
+      };
+    });
   }
 
   async getAdminOrderById(adminId: string, orderId: string): Promise<Record<string, unknown>> {
@@ -48,6 +69,22 @@ export class OrdersService {
     });
     const user = await this.dynamo.get(this.usersTable(), { id: String(order.user_id) });
     const group = await this.dynamo.get(this.groupsTable(), { id: String(order.group_id) });
+    const delivery_address = user
+      ? this.pickAddressData(user as Record<string, unknown>, {})
+      : null;
+    const invoiceRows = await this.dynamo.query({
+      TableName: this.invoicesTable(),
+      IndexName: 'OrderIndex',
+      KeyConditionExpression: 'order_id = :oid',
+      ExpressionAttributeValues: { ':oid': orderId },
+    });
+    const invoices = invoiceRows.map((inv) => ({
+      id: inv.id,
+      invoice_number: inv.invoice_number,
+      customer_invoice_url: inv.customer_invoice_url,
+      dealer_invoice_url: inv.dealer_invoice_url,
+      gst_invoice_url: inv.gst_invoice_url,
+    }));
     return {
       ...order,
       items,
@@ -64,6 +101,8 @@ export class OrdersService {
       order_group: group
         ? { id: group.id, status: group.status, total_amount: group.total_amount }
         : null,
+      delivery_address,
+      invoices,
     };
   }
 

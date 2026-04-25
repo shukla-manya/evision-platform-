@@ -1,7 +1,8 @@
 'use client';
+
 import { useState } from 'react';
 import Link from 'next/link';
-import { Camera, Store, User, Mail, Phone, Building2, MapPin, Lock, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
+import { Camera, Store, User, Mail, Phone, Building2, MapPin, MapPinned, Hash, Lock, Loader2, CheckCircle, ImagePlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
@@ -9,13 +10,23 @@ import { getApiErrorMessage } from '@/lib/api-errors';
 export default function AdminRegisterPage() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [form, setForm] = useState({
-    shop_name: '', owner_name: '', email: '', phone: '',
-    password: '', confirm_password: '', gst_no: '', address: '',
+    shop_name: '',
+    owner_name: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirm_password: '',
+    gst_no: '',
+    address: '',
+    city: '',
+    pincode: '',
   });
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setForm(f => ({ ...f, [k]: e.target.value }));
+  const set =
+    (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm((f) => ({ ...f, [k]: e.target.value }));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,10 +34,30 @@ export default function AdminRegisterPage() {
       toast.error('Passwords do not match');
       return;
     }
+    if (!/^\d{6}$/.test(form.pincode.trim())) {
+      toast.error('Pincode must be exactly 6 digits');
+      return;
+    }
     setLoading(true);
     try {
-      const phone = form.phone.startsWith('+') ? form.phone : `+91${form.phone}`;
-      await adminApi.register({ ...form, phone, confirm_password: undefined });
+      const phone = form.phone.startsWith('+') ? form.phone : `+91${form.phone.replace(/\D/g, '').slice(-10)}`;
+      if (!/^\+[1-9]\d{9,14}$/.test(phone)) {
+        toast.error('Enter a valid phone number (include country code, e.g. +91…) ');
+        setLoading(false);
+        return;
+      }
+      const fd = new FormData();
+      fd.append('shop_name', form.shop_name.trim());
+      fd.append('owner_name', form.owner_name.trim());
+      fd.append('email', form.email.trim());
+      fd.append('phone', phone);
+      fd.append('password', form.password);
+      fd.append('gst_no', form.gst_no.trim());
+      fd.append('address', form.address.trim());
+      fd.append('city', form.city.trim());
+      fd.append('pincode', form.pincode.trim());
+      if (logoFile) fd.append('logo', logoFile);
+      await adminApi.register(fd);
       setDone(true);
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Registration failed'));
@@ -43,17 +74,25 @@ export default function AdminRegisterPage() {
             <div className="w-16 h-16 bg-ev-success/10 border-2 border-ev-success rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle size={32} className="text-ev-success" />
             </div>
-            <h2 className="text-2xl font-bold text-ev-text mb-3">Application Submitted!</h2>
+            <h2 className="text-2xl font-bold text-ev-text mb-3">Thank you</h2>
             <p className="text-ev-muted text-sm leading-relaxed mb-6">
-              Your shop registration for <strong className="text-ev-text">{form.shop_name}</strong> has been received.
-              Our team will review your application within 24 hours and email you the decision.
+              Your shop registration has been submitted. You&apos;ll receive an email once our team approves your account.
             </p>
             <div className="bg-ev-surface2 border border-ev-border rounded-xl p-4 text-left text-sm space-y-2 mb-6">
-              <p className="text-ev-muted"><span className="text-ev-text font-medium">Shop:</span> {form.shop_name}</p>
-              <p className="text-ev-muted"><span className="text-ev-text font-medium">Email:</span> {form.email}</p>
-              <p className="text-ev-muted"><span className="text-ev-text font-medium">Status:</span> <span className="text-ev-warning">Pending Approval</span></p>
+              <p className="text-ev-muted">
+                <span className="text-ev-text font-medium">Shop:</span> {form.shop_name}
+              </p>
+              <p className="text-ev-muted">
+                <span className="text-ev-text font-medium">Email:</span> {form.email}
+              </p>
+              <p className="text-ev-muted">
+                <span className="text-ev-text font-medium">Review:</span>{' '}
+                <span className="text-ev-warning">Within 24 hours</span>
+              </p>
             </div>
-            <Link href="/" className="ev-btn-secondary inline-block">← Back to Home</Link>
+            <Link href="/admin/login" className="ev-btn-primary inline-block">
+              Go to sign in
+            </Link>
           </div>
         </div>
       </div>
@@ -74,66 +113,110 @@ export default function AdminRegisterPage() {
             </div>
             <span className="text-ev-text font-bold text-xl">LensCart</span>
           </Link>
-          <h1 className="text-3xl font-bold text-ev-text mb-2">Register Your Shop</h1>
-          <p className="text-ev-muted">Join as one of our 4 partner shops. Manual approval required.</p>
+          <h1 className="text-3xl font-bold text-ev-text mb-2">Register your shop on LensCart</h1>
+          <p className="text-ev-muted text-sm max-w-lg mx-auto leading-relaxed">
+            Fill in your shop details. Our team will review and approve your account within 24 hours.
+          </p>
         </div>
 
         <div className="ev-card p-8 animate-slide-up">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Shop Info */}
             <div>
               <h3 className="text-ev-text font-semibold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Store size={14} className="text-ev-primary" /> Shop Information
+                <Store size={14} className="text-ev-primary" /> Shop details
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
-                  <label className="ev-label">Shop Name</label>
+                  <label className="ev-label">Shop name</label>
                   <div className="relative">
                     <Store size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
                     <input type="text" className="ev-input pl-10" placeholder="Sharma Electric Store" value={form.shop_name} onChange={set('shop_name')} required />
                   </div>
                 </div>
                 <div>
-                  <label className="ev-label">Owner Name</label>
+                  <label className="ev-label">Owner full name</label>
                   <div className="relative">
                     <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
                     <input type="text" className="ev-input pl-10" placeholder="Raj Sharma" value={form.owner_name} onChange={set('owner_name')} required />
                   </div>
                 </div>
                 <div>
-                  <label className="ev-label">GST Number</label>
+                  <label className="ev-label">GST number</label>
                   <div className="relative">
                     <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
                     <input type="text" className="ev-input pl-10" placeholder="07AABCU9603R1ZP" value={form.gst_no} onChange={set('gst_no')} required />
                   </div>
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="ev-label">Shop Address</label>
+                  <label className="ev-label">Shop address</label>
                   <div className="relative">
                     <MapPin size={16} className="absolute left-4 top-3.5 text-ev-subtle" />
-                    <input type="text" className="ev-input pl-10" placeholder="Sector 15, Faridabad, Haryana 121007" value={form.address} onChange={set('address')} required />
+                    <input type="text" className="ev-input pl-10" placeholder="Plot / street / area" value={form.address} onChange={set('address')} required />
                   </div>
+                </div>
+                <div>
+                  <label className="ev-label">City</label>
+                  <div className="relative">
+                    <MapPinned size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                    <input type="text" className="ev-input pl-10" placeholder="Faridabad" value={form.city} onChange={set('city')} required />
+                  </div>
+                </div>
+                <div>
+                  <label className="ev-label">Pincode</label>
+                  <div className="relative">
+                    <Hash size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                    <input
+                      type="text"
+                      className="ev-input pl-10"
+                      placeholder="121007"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={form.pincode}
+                      onChange={set('pincode')}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="ev-label">Shop logo (upload)</label>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <label className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-ev-border bg-ev-surface2 cursor-pointer hover:border-ev-primary/40 text-sm text-ev-text">
+                      <ImagePlus size={18} className="text-ev-primary" />
+                      <span>{logoFile ? logoFile.name : 'Choose image'}</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                      />
+                    </label>
+                    {logoFile ? (
+                      <button type="button" className="text-xs text-ev-muted hover:text-ev-text" onClick={() => setLogoFile(null)}>
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+                  <p className="text-ev-subtle text-xs mt-1">Optional. JPG / PNG / Webp, max 5 MB.</p>
                 </div>
               </div>
             </div>
 
             <div className="border-t border-ev-border" />
 
-            {/* Contact + Auth */}
             <div>
               <h3 className="text-ev-text font-semibold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
-                <User size={14} className="text-ev-primary" /> Contact & Login
+                <Mail size={14} className="text-ev-primary" /> Contact &amp; password
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="ev-label">Email Address</label>
+                  <label className="ev-label">Email address</label>
                   <div className="relative">
                     <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
                     <input type="email" className="ev-input pl-10" placeholder="raj@sharmaelectric.com" value={form.email} onChange={set('email')} required />
                   </div>
                 </div>
                 <div>
-                  <label className="ev-label">Phone Number</label>
+                  <label className="ev-label">Phone number</label>
                   <div className="relative">
                     <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
                     <input type="tel" className="ev-input pl-10" placeholder="+91 98765 43210" value={form.phone} onChange={set('phone')} required />
@@ -147,7 +230,7 @@ export default function AdminRegisterPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="ev-label">Confirm Password</label>
+                  <label className="ev-label">Confirm password</label>
                   <div className="relative">
                     <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
                     <input type="password" className="ev-input pl-10" placeholder="Repeat password" value={form.confirm_password} onChange={set('confirm_password')} required />
@@ -156,22 +239,16 @@ export default function AdminRegisterPage() {
               </div>
             </div>
 
-            <div className="bg-ev-surface2 border border-ev-border rounded-xl p-4 text-sm text-ev-muted">
-              <p className="font-medium text-ev-text mb-1">What happens next?</p>
-              <p>
-                Your registration will be reviewed by our team. You will receive an email within 24 hours with
-                the decision. Once approved, you can log in and start listing products.
-              </p>
-            </div>
-
             <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2 py-3.5" disabled={loading}>
-              {loading ? <Loader2 size={16} className="animate-spin" /> : <><span>Submit Registration</span><ArrowRight size={16} /></>}
+              {loading ? <Loader2 size={16} className="animate-spin" /> : 'Submit for approval'}
             </button>
           </form>
 
           <p className="text-center text-ev-subtle text-sm mt-6">
             Already approved?{' '}
-            <Link href="/login" className="text-ev-primary hover:text-ev-primary-light">Sign in</Link>
+            <Link href="/admin/login" className="text-ev-primary hover:text-ev-primary-light font-medium">
+              Sign in
+            </Link>
           </p>
         </div>
       </div>
