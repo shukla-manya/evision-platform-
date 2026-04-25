@@ -12,7 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { NavigationContainer, RouteProp, useFocusEffect } from '@react-navigation/native';
+import { NavigationContainer, RouteProp, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -29,6 +29,13 @@ import { ElectricianFlow } from './src/electrician/ElectricianFlow';
 import { AdminFlow } from './src/admin/AdminFlow';
 import { colors } from './src/theme/colors';
 import { statusColor } from './src/theme/status';
+import type { ServiceFlowStackParams } from './src/screens/ServiceRequestScreen';
+import { ServiceRequestScreen } from './src/screens/ServiceRequestScreen';
+import { ElectricianListScreen } from './src/screens/ElectricianListScreen';
+import { ElectricianPublicProfileScreen } from './src/screens/ElectricianPublicProfileScreen';
+import { ServiceBookingConfirmScreen } from './src/screens/ServiceBookingConfirmScreen';
+import { LeaveReviewScreen } from './src/screens/LeaveReviewScreen';
+import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 
 type RootStackParamList = {
   Auth: undefined;
@@ -38,14 +45,14 @@ type RootStackParamList = {
   ProductDetail: { product: Product };
   Checkout: undefined;
   Payment: { checkoutData: CheckoutResponse };
-  OrderDetail: { group: any };
-};
+  OrderDetail: { group: any; userRole?: string };
+} & ServiceFlowStackParams;
 
 type MainTabsParamList = {
   Home: undefined;
   Cart: undefined;
   Orders: undefined;
-  ServiceTracking: undefined;
+  ServiceTracking: { bookingId?: string } | undefined;
   DealerDashboard: undefined;
   Profile: undefined;
 };
