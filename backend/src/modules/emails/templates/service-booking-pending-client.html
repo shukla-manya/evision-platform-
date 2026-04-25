@@ -1,8 +1,53 @@
-<html>
-  <body style="font-family: Arial, sans-serif; color: #0f172a;">
-    <h2>Booking request sent</h2>
-    <p>Hello {{customer_name}},</p>
-    <p>Your service booking request has been sent to {{electrician_name}}.</p>
-    <p>You will receive confirmation once the electrician responds.</p>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Request Sent</title>
+</head>
+<body style="margin:0;padding:0;background-color:#050b1a;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#050b1a;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+          <tr>
+            <td style="background:linear-gradient(135deg,#0d1626 0%,#1a2a4a 100%);border-radius:16px 16px 0 0;padding:36px 40px;text-align:center;border-bottom:2px solid #3b82f6;">
+              <div style="display:inline-flex;align-items:center;gap:10px;">
+                <span style="font-size:28px;">⚡</span>
+                <span style="color:#3b82f6;font-size:26px;font-weight:700;letter-spacing:-0.5px;">E Vision</span>
+              </div>
+              <p style="color:#94a3b8;margin:8px 0 0;font-size:13px;">Pvt. Ltd. — Faridabad, Haryana</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#0d1626;padding:40px;">
+
+              <div style="text-align:center;margin-bottom:28px;">
+                <div style="display:inline-block;background:#0c2340;border:2px solid #3b82f6;border-radius:50%;width:60px;height:60px;line-height:60px;font-size:28px;">⏳</div>
+              </div>
+              <h2 style="color:#e2e8f0;margin:0 0 8px;font-size:20px;font-weight:600;text-align:center;">Booking Request Sent</h2>
+              <p style="color:#94a3b8;margin:0 0 28px;font-size:14px;text-align:center;">
+                Hi {{customer_name}}, your request has been sent to <strong style="color:#e2e8f0;">{{electrician_name}}</strong>. Waiting for confirmation.
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;overflow:hidden;border:1px solid #1e3a5f;margin-bottom:28px;">
+                <tr><td style="padding:20px 24px;">
+                  <ul style="color:#e2e8f0;font-size:14px;margin:0;padding-left:20px;line-height:1.8;">
+                    <li>The electrician has <strong style="color:#f59e0b;">2 hours</strong> to respond</li>
+                    <li>You'll get an email as soon as they confirm</li>
+                    <li>If they don't respond in time, you can pick another electrician</li>
+                  </ul>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#060d1c;padding:20px 40px;border-radius:0 0 16px 16px;text-align:center;border-top:1px solid #1e3a5f;">
+              <p style="color:#475569;font-size:12px;margin:0;">© 2024 E Vision Pvt. Ltd., Faridabad, Haryana · All rights reserved</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
 </html>
