@@ -245,61 +245,6 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
     return { booking_id: bookingId, status: 'declined' };
   }
 
-  async listElectricianBookings(
-    electricianId: string,
-    type: 'pending' | 'active' | 'history',
-  ): Promise<Record<string, unknown>[]> {
-    const items = await this.dynamo.scan({
-      TableName: this.bookingsTable(),
-      FilterExpression: 'electrician_id = :eid',
-      ExpressionAttributeValues: { ':eid': electricianId },
-    });
-    const sorted = (items as Record<string, unknown>[]).sort(
-      (a, b) =>
-        new Date(String(b.created_at || 0)).getTime() -
-        new Date(String(a.created_at || 0)).getTime(),
-    );
-    if (type === 'pending') return sorted.filter((b) => String(b.status) === 'pending');
-    if (type === 'active') {
-      return sorted.filter(
-        (b) => String(b.status) === 'accepted' && String(b.job_status) !== 'completed',
-      );
-    }
-    return sorted.filter(
-      (b) => String(b.status) === 'accepted' && String(b.job_status) === 'completed',
-    );
-  }
-
-  async setElectricianAvailability(
-    electricianId: string,
-    online: boolean,
-  ): Promise<{ updated: boolean; available: boolean }> {
-    await this.dynamo.update(this.electriciansTable(), { id: electricianId }, {
-      available: online,
-      updated_at: new Date().toISOString(),
-    });
-    return { updated: true, available: online };
-  }
-
-  async uploadJobPhoto(
-    electricianId: string,
-    bookingId: string,
-    photo: Express.Multer.File,
-  ): Promise<{ photo_url: string }> {
-    if (!photo) throw new BadRequestException('photo is required');
-    const booking = await this.dynamo.get(this.bookingsTable(), { id: bookingId });
-    if (!booking) throw new NotFoundException('Booking not found');
-    if (String(booking.electrician_id) !== electricianId) {
-      throw new BadRequestException('Booking does not belong to this electrician');
-    }
-    const photoUrl = await this.s3.upload(photo.buffer, photo.mimetype, 'job-photos');
-    await this.dynamo.update(this.bookingsTable(), { id: bookingId }, {
-      job_photo_url: photoUrl,
-      updated_at: new Date().toISOString(),
-    });
-    return { photo_url: photoUrl };
-  }
-
   async expirePendingBookings(): Promise<{ expired: number }> {
     const pending = await this.dynamo.query({
       TableName: this.bookingsTable(),
