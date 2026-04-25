@@ -155,4 +155,20 @@ export class AdminService {
 
     return { message: `Admin ${newStatus}`, admin_id: id };
   }
+
+  async setPlatformCommission(id: string, pct: number): Promise<{ message: string; platform_commission_pct: number }> {
+    if (pct < 0 || pct > 100 || Number.isNaN(pct)) {
+      throw new BadRequestException('Platform commission must be between 0 and 100');
+    }
+    await this.getById(id);
+    await this.dynamo.update(this.dynamo.tableName('admins'), { id }, { platform_commission_pct: pct });
+    return { message: 'Commission updated', platform_commission_pct: pct };
+  }
+
+  async markSettlementComplete(id: string): Promise<{ message: string; last_settlement_at: string }> {
+    await this.getById(id);
+    const now = new Date().toISOString();
+    await this.dynamo.update(this.dynamo.tableName('admins'), { id }, { last_settlement_at: now });
+    return { message: 'Marked as settled', last_settlement_at: now };
+  }
 }

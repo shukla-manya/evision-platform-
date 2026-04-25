@@ -21,6 +21,10 @@ export class ReviewsService {
     return this.dynamo.tableName('electricians');
   }
 
+  private usersTable() {
+    return this.dynamo.tableName('users');
+  }
+
   async createForElectrician(
     userId: string,
     electricianId: string,
@@ -95,5 +99,54 @@ export class ReviewsService {
         new Date(String(b.created_at || 0)).getTime() -
         new Date(String(a.created_at || 0)).getTime(),
     );
+  }
+
+  private async recalcElectricianRating(electricianId: string): Promise<void> {
+    const allReviews = await this.dynamo.query({
+      TableName: this.reviewsTable(),
+      IndexName: 'ElectricianIndex',
+      KeyConditionExpression: 'electrician_id = :eid',
+      ExpressionAttributeValues: { ':eid': electricianId },
+    });
+    const totalReviews = allReviews.length;
+    const ratingAvg = totalReviews
+      ? allReviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / totalReviews
+      : 0;
+    const now = new Date().toISOString();
+    await this.dynamo.update(this.electriciansTable(), { id: electricianId }, {
+      rating_avg: Number(ratingAvg.toFixed(2)),
+      total_reviews: totalReviews,
+      rating_count: totalReviews,
+      updated_at: now,
+    });
+  }
+
+  async listAllForSuperadmin(): Promise<Record<string, unknown>[]> {
+    const reviews = await this.dynamo.scan({ TableName: this.reviewsTable() });
+    const sorted = reviews.sort(
+      (a, b) =>
+        new Date(String(b.created_at || 0)).getTime() -
+        new Date(String(a.created_at || 0)).getTime(),
+    );
+    const out: Record<string, unknown>[] = [];
+    for (const r of sorted) {
+      const customer = await this.dynamo.get(this.usersTable(), { id: String(r.customer_id) });
+      const electrician = await this.dynamo.get(this.electriciansTable(), { id: String(r.electrician_id) });
+      out.push({
+        ...r,
+        customer_name: customer?.name || customer?.email || 'Customer',
+        electrician_name: electrician?.name || 'Electrician',
+      });
+    }
+    return out;
+  }
+
+  async deleteReviewAsSuperadmin(reviewId: string): Promise<{ message: string }> {
+    const review = await this.dynamo.get(this.reviewsTable(), { id: reviewId });
+    if (!review) throw new NotFoundException('Review not found');
+    const electricianId = String(review.electrician_id);
+    await this.dynamo.delete(this.reviewsTable(), { id: reviewId });
+    await this.recalcElectricianRating(electricianId);
+    return { message: 'Review removed' };
   }
 }
