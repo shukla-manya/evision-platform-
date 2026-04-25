@@ -22,6 +22,7 @@ export type ServiceFlowStackParams = {
   ElectricianPublicProfile: { electricianId: string; serviceRequestId: string };
   ServiceBookingConfirm: { bookingId: string; serviceRequestId: string; electricianName?: string };
   LeaveReview: { electricianId: string; electricianName?: string };
+  ServiceHistory: undefined;
 };
 
 type Props = NativeStackScreenProps<ServiceFlowStackParams, 'ServiceRequest'>;
