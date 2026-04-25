@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "E Vision Electrician",
+    "slug": "evision-electrician",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.evision.electrician",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "E Vision needs your location to share with clients when on the way.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "E Vision needs your location to share with clients when on the way.",
+        "NSPhotoLibraryUsageDescription": "E Vision needs access to your photos to upload job completion photos.",
+        "NSCameraUsageDescription": "E Vision needs camera access to take job completion photos."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.evision.electrician",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      "expo-location",
+      "expo-image-picker"
+    ]
+  }
+}
