@@ -157,6 +157,11 @@ export default function LoginPage() {
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <><span>Send OTP</span><ArrowRight size={16} /></>}
               </button>
               <p className="text-center text-ev-subtle text-sm">
+                <Link href="/reset-password" className="text-ev-primary hover:text-ev-primary-light">
+                  Forgot password?
+                </Link>
+              </p>
+              <p className="text-center text-ev-subtle text-sm">
                 New here?{' '}
                 <Link href="/register" className="text-ev-primary hover:text-ev-primary-light">
                   Create account
@@ -232,6 +237,13 @@ export default function LoginPage() {
                   <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
                     {loading ? <Loader2 size={16} className="animate-spin" /> : 'Continue to OTP'}
                   </button>
+                  {mode !== 'superadmin' && (
+                    <p className="text-center text-ev-subtle text-sm">
+                      <Link href={`/reset-password?role=${mode === 'admin' ? 'admin' : 'electrician'}`} className="text-ev-primary hover:text-ev-primary-light">
+                        Forgot password?
+                      </Link>
+                    </p>
+                  )}
                 </>
               ) : (
                 <>
@@ -284,6 +296,10 @@ export default function LoginPage() {
           {' · '}
           <Link href="/superadmin/login" className="text-ev-primary hover:underline">
             Superadmin
+          </Link>
+          {' · '}
+          <Link href="/electrician/login" className="text-ev-primary hover:underline">
+            Electrician
           </Link>
         </p>
       </div>

@@ -9,7 +9,7 @@ import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { saveToken } from '@/lib/auth';
 
-export default function AdminLoginPage() {
+export default function ElectricianLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,14 +22,22 @@ export default function AdminLoginPage() {
     setLoading(true);
     try {
       if (!loginToken) {
-        const { data } = await authApi.adminLogin(email, password);
+        const { data } = await authApi.mobileLogin(email, password);
+        if (data.role !== 'electrician') {
+          toast.error('This account is not an electrician account');
+          return;
+        }
         setLoginToken(data.login_token);
         toast.success('OTP sent to your registered phone');
       } else {
-        const { data } = await authApi.adminLoginVerify(loginToken, otp);
-        saveToken(data.access_token, 'admin');
+        const { data } = await authApi.mobileLoginVerify(loginToken, otp);
+        if (data.role !== 'electrician') {
+          toast.error('Invalid role for electrician login');
+          return;
+        }
+        saveToken(data.access_token, 'electrician');
         toast.success('Welcome back');
-        router.push('/admin/dashboard');
+        router.push('/electrician/dashboard');
       }
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Invalid credentials'));
@@ -40,9 +48,6 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen bg-ev-bg flex items-center justify-center px-4 py-12">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-ev-primary/6 rounded-full blur-3xl" />
-      </div>
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
@@ -51,8 +56,8 @@ export default function AdminLoginPage() {
             </div>
             <span className="text-ev-text font-bold text-xl">E Vision</span>
           </Link>
-          <h1 className="text-2xl font-bold text-ev-text">Shop admin sign in</h1>
-          <p className="text-ev-muted text-sm mt-1">Manage products, orders, and invoices for your shop</p>
+          <h1 className="text-2xl font-bold text-ev-text">Electrician sign in</h1>
+          <p className="text-ev-muted text-sm mt-1">Login with email/password then verify OTP on mobile</p>
         </div>
         <div className="ev-card p-8">
           <form onSubmit={onSubmit} className="space-y-5">
@@ -65,11 +70,10 @@ export default function AdminLoginPage() {
                     <input
                       type="email"
                       className="ev-input pl-10"
-                      placeholder="you@shop.com"
+                      placeholder="electrician@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      autoComplete="email"
                     />
                   </div>
                 </div>
@@ -84,19 +88,14 @@ export default function AdminLoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      autoComplete="current-password"
                     />
                   </div>
                 </div>
                 <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : (
-                    <>
-                      Continue to OTP <ArrowRight size={16} />
-                    </>
-                  )}
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : <>Continue to OTP <ArrowRight size={16} /></>}
                 </button>
                 <p className="text-center text-ev-subtle text-sm">
-                  <Link href="/reset-password?role=admin" className="text-ev-primary hover:text-ev-primary-light">
+                  <Link href="/reset-password?role=electrician" className="text-ev-primary hover:text-ev-primary-light">
                     Forgot password?
                   </Link>
                 </p>
@@ -117,35 +116,15 @@ export default function AdminLoginPage() {
                   />
                 </div>
                 <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : (
-                    <>
-                      Verify OTP <ArrowRight size={16} />
-                    </>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="text-sm text-ev-subtle hover:text-ev-muted w-full"
-                  onClick={() => {
-                    setLoginToken('');
-                    setOtp('');
-                  }}
-                >
-                  ← Change email/password
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : <>Verify OTP <ArrowRight size={16} /></>}
                 </button>
               </>
             )}
-            {!loginToken && (
-              <p className="text-center text-ev-subtle text-sm">
-                <Link href="/admin/register" className="text-ev-primary hover:text-ev-primary-light">
-                  Register your shop
-                </Link>
-                {' · '}
-                <Link href="/login" className="text-ev-muted hover:text-ev-text">
-                  Other sign-in options
-                </Link>
-              </p>
-            )}
+            <p className="text-center text-sm text-ev-muted">
+              <Link href="/login" className="text-ev-primary hover:text-ev-primary-light">
+                Other sign-in options
+              </Link>
+            </p>
           </form>
         </div>
       </div>

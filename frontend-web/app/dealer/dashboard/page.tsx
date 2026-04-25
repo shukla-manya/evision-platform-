@@ -147,6 +147,9 @@ export default function DealerDashboardPage() {
             <Link href="/orders" className="ev-btn-secondary text-sm py-2 px-3">
               Orders
             </Link>
+            <Link href="/reset-password?role=dealer" className="ev-btn-secondary text-sm py-2 px-3">
+              Change Password
+            </Link>
             <button
               type="button"
               onClick={logout}

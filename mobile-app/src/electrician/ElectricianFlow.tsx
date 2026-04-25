@@ -316,9 +316,11 @@ function UploadPhotoScreen({ route, navigation }: any) {
 
 function ProfileScreen({
   onLogout,
+  onOpenPasswordReset,
   fcmToken,
 }: {
   onLogout: () => void;
+  onOpenPasswordReset: (phone?: string) => void;
   fcmToken: string | null;
 }) {
   const [profile, setProfile] = useState<ElectricianProfile | null>(null);
@@ -361,6 +363,9 @@ function ProfileScreen({
       </View>
       <Pressable style={styles.secondaryButton} onPress={() => void loadProfile()}>
         <Text style={styles.secondaryButtonText}>Refresh</Text>
+      </Pressable>
+      <Pressable style={styles.secondaryButton} onPress={() => onOpenPasswordReset(profile?.phone)}>
+        <Text style={styles.secondaryButtonText}>Change Password (OTP)</Text>
       </Pressable>
       <Pressable style={styles.dangerButton} onPress={onLogout}>
         <Text style={styles.primaryButtonText}>Logout</Text>
@@ -407,10 +412,12 @@ function EarningsHistoryScreen() {
 export function ElectricianFlow({
   token,
   onLogout,
+  onOpenPasswordReset,
   fcmToken,
 }: {
   token: string;
   onLogout: () => void;
+  onOpenPasswordReset: (phone?: string) => void;
   fcmToken: string | null;
 }) {
   const activeJobScreen = useMemo(
@@ -424,7 +431,13 @@ export function ElectricianFlow({
       <Stack.Screen name="ActiveJob" component={activeJobScreen} options={{ title: 'Active Job' }} />
       <Stack.Screen name="UploadPhoto" component={UploadPhotoScreen} options={{ title: 'Upload Photo' }} />
       <Stack.Screen name="Profile" options={{ title: 'My Profile' }}>
-        {() => <ProfileScreen onLogout={onLogout} fcmToken={fcmToken} />}
+        {() => (
+          <ProfileScreen
+            onLogout={onLogout}
+            onOpenPasswordReset={onOpenPasswordReset}
+            fcmToken={fcmToken}
+          />
+        )}
       </Stack.Screen>
       <Stack.Screen name="EarningsHistory" component={EarningsHistoryScreen} options={{ title: 'Earnings & History' }} />
     </Stack.Navigator>

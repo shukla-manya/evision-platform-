@@ -98,3 +98,36 @@ export class MobileLoginDto {
   @MinLength(6)
   password: string;
 }
+
+export class PasswordResetStartDto {
+  @ApiProperty({ enum: ['customer', 'dealer', 'electrician', 'admin', 'superadmin'] })
+  @IsEnum(['customer', 'dealer', 'electrician', 'admin', 'superadmin'])
+  role: 'customer' | 'dealer' | 'electrician' | 'admin' | 'superadmin';
+
+  @ApiProperty({ example: '+919876543210' })
+  @IsString()
+  @Matches(/^\+[1-9]\d{9,14}$/, { message: 'Phone must be in E.164 format' })
+  phone: string;
+}
+
+export class PasswordResetCompleteDto {
+  @ApiProperty({ enum: ['customer', 'dealer', 'electrician', 'admin', 'superadmin'] })
+  @IsEnum(['customer', 'dealer', 'electrician', 'admin', 'superadmin'])
+  role: 'customer' | 'dealer' | 'electrician' | 'admin' | 'superadmin';
+
+  @ApiProperty({ example: '+919876543210' })
+  @IsString()
+  @Matches(/^\+[1-9]\d{9,14}$/, { message: 'Phone must be in E.164 format' })
+  phone: string;
+
+  @ApiProperty({ example: '482931' })
+  @IsString()
+  @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
+  @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
+  otp: string;
+
+  @ApiProperty({ example: 'SecurePass@123' })
+  @IsString()
+  @MinLength(6)
+  new_password: string;
+}

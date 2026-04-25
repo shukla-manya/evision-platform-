@@ -40,6 +40,13 @@ api.interceptors.response.use(
 export const authApi = {
   sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
   verifyOtp: (phone: string, otp: string) => api.post('/auth/verify-otp', { phone, otp }),
+  mobileLogin: (email: string, password: string) => api.post('/auth/mobile/login', { email, password }),
+  mobileLoginVerify: (login_token: string, otp: string) =>
+    api.post('/auth/mobile/login/verify', { login_token, otp }),
+  passwordResetStart: (role: string, phone: string) =>
+    api.post('/auth/password/reset/start', { role, phone }),
+  passwordResetComplete: (role: string, phone: string, otp: string, new_password: string) =>
+    api.post('/auth/password/reset/complete', { role, phone, otp, new_password }),
   register: (data: Record<string, unknown>) => api.post('/auth/register', data),
   adminLogin: (email: string, password: string) => api.post('/auth/admin/login', { email, password }),
   adminLoginVerify: (login_token: string, otp: string) =>

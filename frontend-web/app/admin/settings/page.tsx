@@ -95,6 +95,11 @@ export default function AdminSettingsPage() {
                 </div>
               ))}
             </dl>
+            <div className="pt-2">
+              <a href="/reset-password?role=admin" className="ev-btn-primary inline-flex text-sm py-2 px-4">
+                Change Password (OTP)
+              </a>
+            </div>
           </div>
         ) : null}
       </main>

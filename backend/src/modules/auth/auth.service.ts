@@ -16,6 +16,8 @@ import {
   SuperadminLoginDto,
   LoginOtpVerifyDto,
   MobileLoginDto,
+  PasswordResetStartDto,
+  PasswordResetCompleteDto,
 } from './dto/register.dto';
 
 @Injectable()
@@ -132,6 +134,33 @@ export class AuthService {
     const email = String(dto.email || '').trim().toLowerCase();
     const password = String(dto.password || '');
 
+    const admin = await this.findAdminByEmail(email);
+    if (admin) {
+      if (String(admin.status) !== 'approved') {
+        throw new UnauthorizedException(
+          String(admin.status) === 'pending'
+            ? 'Your account is awaiting superadmin approval'
+            : 'Your account has been rejected',
+        );
+      }
+      const valid = await bcrypt.compare(password, String(admin.password_hash || ''));
+      if (!valid) throw new UnauthorizedException('Invalid credentials');
+      const phone = String(admin.phone || '');
+      if (!phone) throw new BadRequestException('Phone is missing for this account');
+      await this.sendOtp(phone);
+      const login_token = this.jwt.sign(
+        {
+          sub: admin.id,
+          role: 'admin',
+          email: admin.email,
+          phone,
+          otp_login: 'mobile_admin',
+        },
+        { expiresIn: '10m' },
+      );
+      return { otp_sent: true, login_token, role: 'admin', phone };
+    }
+
     const user = await this.findUserByEmail(email);
     if (user) {
       if (!user.password_hash) {
@@ -197,7 +226,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired login token');
     }
     const otpType = String(payload.otp_login || '');
-    if (!['mobile_user', 'mobile_electrician'].includes(otpType)) {
+    if (!['mobile_user', 'mobile_electrician', 'mobile_admin'].includes(otpType)) {
       throw new UnauthorizedException('Invalid login token');
     }
     const phone = String(payload.phone || '');
@@ -214,6 +243,14 @@ export class AuthService {
       return { access_token: token, role: String(user.role || role), profile: safeUser };
     }
 
+    if (otpType === 'mobile_admin') {
+      const admin = await this.dynamo.get(this.dynamo.tableName('admins'), { id });
+      if (!admin) throw new UnauthorizedException('Admin not found');
+      const token = this.signToken(String(admin.id), 'admin', String(admin.email || ''), String(admin.phone || ''));
+      const { password_hash, ...safeAdmin } = admin;
+      return { access_token: token, role: 'admin', profile: safeAdmin };
+    }
+
     const electrician = await this.dynamo.get(this.dynamo.tableName('electricians'), { id });
     if (!electrician) throw new UnauthorizedException('Electrician not found');
     const token = this.signToken(
@@ -224,6 +261,57 @@ export class AuthService {
     );
     const { password_hash, ...safeElectrician } = electrician;
     return { access_token: token, role: 'electrician', profile: safeElectrician };
+  }
+
+  async passwordResetStart(
+    dto: PasswordResetStartDto,
+  ): Promise<{ otp_sent: boolean; role: string; phone: string }> {
+    if (dto.role === 'superadmin') {
+      throw new BadRequestException('Password reset is not allowed for superadmin');
+    }
+    const normalizedRole = dto.role;
+    const phone = String(dto.phone || '').trim();
+    const account = await this.findAccountByRoleAndPhone(normalizedRole, phone);
+    if (!account) throw new UnauthorizedException('Account not found for provided role and phone');
+    await this.sendOtp(phone);
+    return { otp_sent: true, role: normalizedRole, phone };
+  }
+
+  async passwordResetComplete(
+    dto: PasswordResetCompleteDto,
+  ): Promise<{ updated: boolean; role: string }> {
+    if (dto.role === 'superadmin') {
+      throw new BadRequestException('Password reset is not allowed for superadmin');
+    }
+    const normalizedRole = dto.role;
+    const phone = String(dto.phone || '').trim();
+    const account = await this.findAccountByRoleAndPhone(normalizedRole, phone);
+    if (!account) throw new UnauthorizedException('Account not found for provided role and phone');
+    await this.consumeOtp(phone, dto.otp);
+    const password_hash = await bcrypt.hash(String(dto.new_password || ''), 12);
+
+    if (normalizedRole === 'customer' || normalizedRole === 'dealer') {
+      await this.dynamo.update(
+        this.dynamo.tableName('users'),
+        { id: String(account.id) },
+        { password_hash, updated_at: new Date().toISOString() },
+      );
+      return { updated: true, role: normalizedRole };
+    }
+    if (normalizedRole === 'admin') {
+      await this.dynamo.update(
+        this.dynamo.tableName('admins'),
+        { id: String(account.id) },
+        { password_hash, updated_at: new Date().toISOString() },
+      );
+      return { updated: true, role: normalizedRole };
+    }
+    await this.dynamo.update(
+      this.dynamo.tableName('electricians'),
+      { id: String(account.id) },
+      { password_hash, updated_at: new Date().toISOString() },
+    );
+    return { updated: true, role: normalizedRole };
   }
 
   async updateDeviceToken(userId: string, fcmToken: string): Promise<{ updated: boolean }> {
@@ -407,6 +495,17 @@ export class AuthService {
     return items[0] || null;
   }
 
+  private async findElectricianByPhone(phone: string): Promise<any | null> {
+    const items = await this.dynamo.query({
+      TableName: this.dynamo.tableName('electricians'),
+      IndexName: 'PhoneIndex',
+      KeyConditionExpression: 'phone = :phone',
+      ExpressionAttributeValues: { ':phone': phone },
+      Limit: 1,
+    });
+    return items[0] || null;
+  }
+
   async findAdminByEmail(email: string): Promise<any | null> {
     const items = await this.dynamo.query({
       TableName: this.dynamo.tableName('admins'),
@@ -416,6 +515,28 @@ export class AuthService {
       Limit: 1,
     });
     return items[0] || null;
+  }
+
+  private async findAdminByPhone(phone: string): Promise<any | null> {
+    const items = await this.dynamo.scan({
+      TableName: this.dynamo.tableName('admins'),
+      FilterExpression: 'phone = :phone',
+      ExpressionAttributeValues: { ':phone': phone },
+    });
+    return items[0] || null;
+  }
+
+  private async findAccountByRoleAndPhone(
+    role: 'customer' | 'dealer' | 'electrician' | 'admin' | 'superadmin',
+    phone: string,
+  ): Promise<any | null> {
+    if (role === 'superadmin') return null;
+    if (role === 'admin') return this.findAdminByPhone(phone);
+    if (role === 'electrician') return this.findElectricianByPhone(phone);
+    const user = await this.findUserByPhone(phone);
+    if (!user) return null;
+    if (String(user.role || '') !== role) return null;
+    return user;
   }
 
   private async consumeOtp(phone: string, otp: string): Promise<void> {

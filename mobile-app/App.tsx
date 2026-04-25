@@ -20,7 +20,7 @@ import { AxiosError } from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import { Buffer } from 'buffer';
-import { setApiTokenGetter, authApi, electricianApi, productApi, cartApi, checkoutApi, ordersApi, electricianRegisterApi, Product, CartResponse, CheckoutResponse, API_BASE_URL } from './src/services/api';
+import { setApiTokenGetter, authApi, electricianApi, productApi, cartApi, checkoutApi, ordersApi, electricianRegisterApi, PasswordResetRole, Product, CartResponse, CheckoutResponse, API_BASE_URL } from './src/services/api';
 import { clearSession, getToken, setElectricianProfile, setToken } from './src/services/storage';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { openRazorpayCheckout } from './src/services/razorpay';
@@ -32,6 +32,7 @@ import { statusColor } from './src/theme/status';
 type RootStackParamList = {
   Auth: undefined;
   Register: { email?: string };
+  PasswordReset: { role?: PasswordResetRole; phone?: string };
   Main: undefined;
   ProductDetail: { product: Product };
   Checkout: undefined;
@@ -212,6 +213,11 @@ function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: 
         <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('Register', { email })}>
           <Text style={styles.buttonSecondaryText}>New user? Register</Text>
         </Pressable>
+        {step === 'credentials' && (
+          <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('PasswordReset', {})}>
+            <Text style={styles.buttonSecondaryText}>Forgot password?</Text>
+          </Pressable>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -399,6 +405,114 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
               {loading ? 'Creating account...' : role === 'electrician' ? 'Submit Electrician Registration' : 'Register'}
             </Text>
           </Pressable>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function PasswordResetScreen({
+  route,
+  navigation,
+}: {
+  route: RouteProp<RootStackParamList, 'PasswordReset'>;
+  navigation: any;
+}) {
+  const [role, setRole] = useState<PasswordResetRole>(route.params?.role || 'customer');
+  const [phone, setPhone] = useState(route.params?.phone || '');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [step, setStep] = useState<'start' | 'complete'>('start');
+  const [loading, setLoading] = useState(false);
+
+  const start = async () => {
+    try {
+      setLoading(true);
+      await authApi.passwordResetStart(role, normalizePhone(phone));
+      setStep('complete');
+      Alert.alert('OTP sent', 'A password reset OTP was sent to your mobile number.');
+    } catch (err) {
+      Alert.alert('Error', asApiError(err, 'Could not start password reset.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const complete = async () => {
+    try {
+      setLoading(true);
+      await authApi.passwordResetComplete(role, normalizePhone(phone), otp, newPassword);
+      Alert.alert('Success', 'Password updated successfully.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (err) {
+      Alert.alert('Error', asApiError(err, 'Could not update password.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const roleOptions: PasswordResetRole[] = ['customer', 'dealer', 'electrician', 'admin'];
+
+  return (
+    <SafeAreaView style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.listPad}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Reset Password</Text>
+          <Text style={styles.subtitle}>OTP on mobile number. Superadmin is not supported.</Text>
+          <View style={styles.roleRow}>
+            {roleOptions.map((option) => (
+              <Pressable
+                key={option}
+                onPress={() => setRole(option)}
+                style={[styles.roleChip, role === option && styles.roleChipActive]}
+              >
+                <Text style={[styles.roleChipText, role === option && styles.roleChipTextActive]}>
+                  {option}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <TextInput
+            style={styles.input}
+            placeholder="+91 9876543210"
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={setPhone}
+          />
+          {step === 'complete' && (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="6-digit OTP"
+                keyboardType="number-pad"
+                maxLength={6}
+                value={otp}
+                onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="New password"
+                secureTextEntry
+                value={newPassword}
+                onChangeText={setNewPassword}
+              />
+            </>
+          )}
+          <Pressable style={styles.button} onPress={step === 'start' ? start : complete} disabled={loading}>
+            <Text style={styles.buttonText}>
+              {loading
+                ? 'Please wait...'
+                : step === 'start'
+                ? 'Send OTP'
+                : 'Update Password'}
+            </Text>
+          </Pressable>
+          {step === 'complete' && (
+            <Pressable style={styles.buttonSecondary} onPress={() => setStep('start')} disabled={loading}>
+              <Text style={styles.buttonSecondaryText}>Resend OTP</Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -808,7 +922,17 @@ function OrderDetailScreen({ route }: { route: RouteProp<RootStackParamList, 'Or
   );
 }
 
-function ProfileScreen({ user, onLogout, fcmToken }: { user: AppUser | null; onLogout: () => void; fcmToken: string | null }) {
+function ProfileScreen({
+  user,
+  onLogout,
+  onChangePassword,
+  fcmToken,
+}: {
+  user: AppUser | null;
+  onLogout: () => void;
+  onChangePassword: () => void;
+  fcmToken: string | null;
+}) {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.listPad}>
@@ -823,6 +947,9 @@ function ProfileScreen({ user, onLogout, fcmToken }: { user: AppUser | null; onL
         </View>
         <Pressable style={styles.button} onPress={onLogout}>
           <Text style={styles.buttonText}>Logout</Text>
+        </Pressable>
+        <Pressable style={styles.buttonSecondary} onPress={onChangePassword}>
+          <Text style={styles.buttonSecondaryText}>Change Password (OTP)</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -840,7 +967,17 @@ function Loader({ text }: { text: string }) {
   );
 }
 
-function MainTabs({ user, onLogout, fcmToken }: { user: AppUser | null; onLogout: () => void; fcmToken: string | null }) {
+function MainTabs({
+  user,
+  onLogout,
+  onChangePassword,
+  fcmToken,
+}: {
+  user: AppUser | null;
+  onLogout: () => void;
+  onChangePassword: () => void;
+  fcmToken: string | null;
+}) {
   const homeScreen = useMemo(
     () => (props: any) => <HomeScreen {...props} userRole={user?.role} />,
     [user?.role],
@@ -859,7 +996,14 @@ function MainTabs({ user, onLogout, fcmToken }: { user: AppUser | null; onLogout
         />
       )}
       <Tab.Screen name="Profile">
-        {() => <ProfileScreen user={user} onLogout={onLogout} fcmToken={fcmToken} />}
+        {() => (
+          <ProfileScreen
+            user={user}
+            onLogout={onLogout}
+            onChangePassword={onChangePassword}
+            fcmToken={fcmToken}
+          />
+        )}
       </Tab.Screen>
     </Tab.Navigator>
   );
@@ -960,11 +1104,33 @@ function AppShell() {
     [user?.role],
   );
   const mainTabs = useMemo(
-    () => (props: any) => <MainTabs {...props} user={user} onLogout={logout} fcmToken={fcmToken} />,
-    [user, fcmToken],
+    () => (props: any) => (
+      <MainTabs
+        {...props}
+        user={user}
+        onLogout={logout}
+        onChangePassword={() =>
+          props.navigation.navigate('PasswordReset', {
+            role: (user?.role as PasswordResetRole) || 'customer',
+            phone: user?.phone,
+          })
+        }
+        fcmToken={fcmToken}
+      />
+    ),
+    [user, logout, fcmToken],
   );
   const electricianFlow = useMemo(
-    () => () => <ElectricianFlow token={token || ''} onLogout={logout} fcmToken={fcmToken} />,
+    () => (props: any) => (
+      <ElectricianFlow
+        token={token || ''}
+        onLogout={logout}
+        onOpenPasswordReset={(phone?: string) =>
+          props.navigation.navigate('PasswordReset', { role: 'electrician', phone })
+        }
+        fcmToken={fcmToken}
+      />
+    ),
     [token, logout, fcmToken],
   );
 
@@ -1000,6 +1166,7 @@ function AppShell() {
             )}
           </>
         )}
+        <RootStack.Screen name="PasswordReset" component={PasswordResetScreen} options={{ title: 'Password Reset' }} />
       </RootStack.Navigator>
     </NavigationContainer>
   );

@@ -103,7 +103,12 @@ export default function MyOrdersPage() {
             <h1 className="text-ev-text font-bold text-base sm:text-lg">My orders</h1>
             <p className="text-ev-subtle text-xs">Order groups with per-shop tracking</p>
           </div>
-          <Link href="/shop" className="ev-btn-secondary py-2 px-3 text-sm">Browse</Link>
+          <div className="flex items-center gap-2">
+            <Link href={`/reset-password?role=${role === 'dealer' ? 'dealer' : 'customer'}`} className="ev-btn-secondary py-2 px-3 text-sm">
+              Change Password
+            </Link>
+            <Link href="/shop" className="ev-btn-secondary py-2 px-3 text-sm">Browse</Link>
+          </div>
         </div>
       </header>
 

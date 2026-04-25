@@ -32,15 +32,17 @@ export type OtpVerifyResponse = {
 export type MobileLoginResponse = {
   otp_sent: boolean;
   login_token: string;
-  role: 'customer' | 'dealer' | 'electrician';
+  role: 'customer' | 'dealer' | 'electrician' | 'admin';
   phone: string;
 };
 
 export type MobileLoginVerifyResponse = {
   access_token: string;
-  role: 'customer' | 'dealer' | 'electrician';
+  role: 'customer' | 'dealer' | 'electrician' | 'admin';
   profile: Record<string, unknown>;
 };
+
+export type PasswordResetRole = 'customer' | 'dealer' | 'electrician' | 'admin';
 
 export type RegisterRequest = {
   name: string;
@@ -138,6 +140,10 @@ export const authApi = {
   verifyOtp: (phone: string, otp: string) =>
     api.post<OtpVerifyResponse>('/auth/verify-otp', { phone, otp }),
   register: (payload: RegisterRequest) => api.post('/auth/register', payload),
+  passwordResetStart: (role: PasswordResetRole, phone: string) =>
+    api.post('/auth/password/reset/start', { role, phone }),
+  passwordResetComplete: (role: PasswordResetRole, phone: string, otp: string, newPassword: string) =>
+    api.post('/auth/password/reset/complete', { role, phone, otp, new_password: newPassword }),
   me: () => api.get('/auth/me'),
   saveDeviceToken: (fcmToken: string) => api.post('/auth/me/device-token', { fcm_token: fcmToken }),
 };

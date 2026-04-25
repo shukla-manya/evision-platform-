@@ -10,6 +10,8 @@ import {
   LoginOtpVerifyDto,
   ElectricianLoginDto,
   MobileLoginDto,
+  PasswordResetStartDto,
+  PasswordResetCompleteDto,
 } from './dto/register.dto';
 import { UpdateDeviceTokenDto } from './dto/update-device-token.dto';
 import { Public } from '../../common/decorators/public.decorator';
@@ -57,6 +59,20 @@ export class AuthController {
   @ApiOperation({ summary: 'Mobile login step 2: verify OTP and issue JWT for app role' })
   mobileLoginVerify(@Body() dto: LoginOtpVerifyDto) {
     return this.authService.mobileLoginVerify(dto);
+  }
+
+  @Public()
+  @Post('password/reset/start')
+  @ApiOperation({ summary: 'Start password reset via phone OTP (superadmin excluded)' })
+  passwordResetStart(@Body() dto: PasswordResetStartDto) {
+    return this.authService.passwordResetStart(dto);
+  }
+
+  @Public()
+  @Post('password/reset/complete')
+  @ApiOperation({ summary: 'Complete password reset with OTP verification (superadmin excluded)' })
+  passwordResetComplete(@Body() dto: PasswordResetCompleteDto) {
+    return this.authService.passwordResetComplete(dto);
   }
 
   @Public()
