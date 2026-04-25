@@ -90,7 +90,7 @@ function normalizePhone(phone: string) {
   return `+91${trimmed}`;
 }
 
-function LoginOtpScreen({ onLoggedIn }: { onLoggedIn: (token: string, user: AppUser) => void }) {
+function LoginOtpScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string, user: AppUser) => void; navigation: any }) {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
@@ -114,7 +114,7 @@ function LoginOtpScreen({ onLoggedIn }: { onLoggedIn: (token: string, user: AppU
       setLoading(true);
       const { data } = await authApi.verifyOtp(normalizePhone(phone), otp);
       if (!data.is_registered) {
-        Alert.alert('Not registered', 'Please create account from web first, then login here.');
+        navigation.navigate('Register', { phone: normalizePhone(phone) });
         return;
       }
       const payload = parseJwt(data.access_token);
@@ -173,7 +173,116 @@ function LoginOtpScreen({ onLoggedIn }: { onLoggedIn: (token: string, user: AppU
   );
 }
 
-function HomeScreen({ navigation }: any) {
+function RegisterScreen({ route, onLoggedIn }: { route: RouteProp<RootStackParamList, 'Register'>; onLoggedIn: (token: string, user: AppUser) => void }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState(route.params?.phone || '');
+  const [otp, setOtp] = useState('');
+  const [address, setAddress] = useState('');
+  const [gstNo, setGstNo] = useState('');
+  const [role, setRole] = useState<'customer' | 'dealer' | 'electrician'>('customer');
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const sendOtp = async () => {
+    try {
+      setSendingOtp(true);
+      await authApi.sendOtp(normalizePhone(phone));
+      Alert.alert('OTP sent', 'Use this OTP to complete registration.');
+    } catch (err) {
+      Alert.alert('Error', asApiError(err, 'Failed to send OTP.'));
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const submit = async () => {
+    if (role === 'dealer' && !gstNo.trim()) {
+      Alert.alert('GST required', 'GST number is required for dealer accounts.');
+      return;
+    }
+    try {
+      setLoading(true);
+      const { data } = await authApi.register({
+        name: name.trim(),
+        email: email.trim(),
+        phone: normalizePhone(phone),
+        otp,
+        role,
+        gst_no: role === 'dealer' ? gstNo.trim() : undefined,
+        address: address.trim() || undefined,
+      });
+      const payload = parseJwt(data.access_token);
+      if (!payload?.sub || !payload?.role) {
+        Alert.alert('Error', 'Invalid token payload.');
+        return;
+      }
+      onLoggedIn(data.access_token, {
+        id: String(payload.sub),
+        role: String(payload.role),
+        email: payload.email ? String(payload.email) : undefined,
+        phone: payload.phone ? String(payload.phone) : undefined,
+      });
+    } catch (err) {
+      Alert.alert('Error', asApiError(err, 'Registration failed.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.listPad}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Create Account</Text>
+          <Text style={styles.subtitle}>Customer and dealer registration in one app.</Text>
+          <TextInput style={styles.input} placeholder="Full name" value={name} onChangeText={setName} />
+          <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" value={email} onChangeText={setEmail} autoCapitalize="none" />
+          <TextInput style={styles.input} placeholder="+91 9876543210" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+          <View style={styles.roleRow}>
+            {(['customer', 'dealer', 'electrician'] as const).map((option) => (
+              <Pressable
+                key={option}
+                onPress={() => setRole(option)}
+                style={[styles.roleChip, role === option && styles.roleChipActive]}
+              >
+                <Text style={[styles.roleChipText, role === option && styles.roleChipTextActive]}>
+                  {option}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          {role === 'dealer' && (
+            <TextInput
+              style={styles.input}
+              placeholder="GST number"
+              value={gstNo}
+              onChangeText={setGstNo}
+              autoCapitalize="characters"
+            />
+          )}
+          <TextInput style={styles.input} placeholder="Address (optional)" value={address} onChangeText={setAddress} />
+          <TextInput
+            style={styles.input}
+            placeholder="6-digit OTP"
+            keyboardType="number-pad"
+            maxLength={6}
+            value={otp}
+            onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
+          />
+          <Pressable style={styles.buttonSecondary} onPress={sendOtp} disabled={sendingOtp}>
+            <Text style={styles.buttonSecondaryText}>{sendingOtp ? 'Sending OTP...' : 'Send OTP'}</Text>
+          </Pressable>
+          <Pressable style={styles.button} onPress={submit} disabled={loading}>
+            <Text style={styles.buttonText}>{loading ? 'Creating account...' : 'Register'}</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -203,7 +312,7 @@ function HomeScreen({ navigation }: any) {
           <Pressable style={styles.card} onPress={() => navigation.navigate('ProductDetail', { product: item })}>
             <Text style={styles.cardTitle}>{item.name}</Text>
             <Text style={styles.cardMeta}>
-              {formatINR(Number(item.price_customer || item.price_dealer || 0))}
+              {formatINR(getProductPriceForRole(item, userRole))}
             </Text>
             {!!item.description && <Text style={styles.cardDesc}>{item.description}</Text>}
           </Pressable>
@@ -214,7 +323,15 @@ function HomeScreen({ navigation }: any) {
   );
 }
 
-function ProductDetailScreen({ route, navigation }: { route: RouteProp<RootStackParamList, 'ProductDetail'>; navigation: any }) {
+function ProductDetailScreen({
+  route,
+  navigation,
+  userRole,
+}: {
+  route: RouteProp<RootStackParamList, 'ProductDetail'>;
+  navigation: any;
+  userRole?: string;
+}) {
   const { product } = route.params;
   const [loading, setLoading] = useState(false);
 
@@ -236,7 +353,7 @@ function ProductDetailScreen({ route, navigation }: { route: RouteProp<RootStack
       <ScrollView contentContainerStyle={styles.listPad}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{product.name}</Text>
-          <Text style={styles.bigPrice}>{formatINR(Number(product.price_customer || product.price_dealer || 0))}</Text>
+          <Text style={styles.bigPrice}>{formatINR(getProductPriceForRole(product, userRole))}</Text>
           <Text style={styles.cardDesc}>{product.description || 'No description available.'}</Text>
           <Pressable style={styles.button} onPress={addToCart} disabled={loading}>
             <Text style={styles.buttonText}>{loading ? 'Adding...' : 'Add to Cart'}</Text>
@@ -414,6 +531,85 @@ function MyOrdersScreen({ navigation }: any) {
         )}
         ListEmptyComponent={<Text style={styles.empty}>No orders yet.</Text>}
       />
+    </SafeAreaView>
+  );
+}
+
+function DealerDashboardScreen() {
+  const [groups, setGroups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data } = await ordersApi.listMyGroups();
+      setGroups(data || []);
+    } catch (err) {
+      Alert.alert('Error', asApiError(err, 'Failed to load dealer dashboard.'));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
+
+  const analytics = useMemo(() => {
+    const confirmed = groups.filter((g) => String(g.status || '') !== 'payment_failed');
+    const totalSpend = confirmed.reduce((sum, g) => sum + Number(g.total_amount || 0), 0);
+    const totalOrders = confirmed.length;
+    const averageOrderValue = totalOrders ? totalSpend / totalOrders : 0;
+    const invoiceUrls = Array.from(
+      new Set(
+        confirmed.flatMap((g) =>
+          (g.sub_orders || []).flatMap((sub: any) =>
+            [sub.dealer_invoice_url, sub.gst_invoice_url, sub.customer_invoice_url]
+              .filter(Boolean)
+              .map((url) => String(url)),
+          ),
+        ),
+      ),
+    );
+    return { totalSpend, totalOrders, averageOrderValue, invoiceUrls };
+  }, [groups]);
+
+  const bulkOpenInvoices = async () => {
+    if (!analytics.invoiceUrls.length) {
+      Alert.alert('No invoices', 'No invoice URLs available yet.');
+      return;
+    }
+    try {
+      setDownloading(true);
+      for (const [index, url] of analytics.invoiceUrls.entries()) {
+        await Linking.openURL(url);
+        if (index < analytics.invoiceUrls.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+        }
+      }
+      Alert.alert('Done', `Opened ${analytics.invoiceUrls.length} invoice links.`);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  if (loading) return <Loader text="Loading dealer analytics..." />;
+
+  return (
+    <SafeAreaView style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.listPad}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Dealer Dashboard</Text>
+          <Text style={styles.cardMeta}>Total spend: {formatINR(analytics.totalSpend)}</Text>
+          <Text style={styles.cardMeta}>Orders placed: {analytics.totalOrders}</Text>
+          <Text style={styles.cardMeta}>Avg order value: {formatINR(analytics.averageOrderValue)}</Text>
+          <Text style={styles.cardMeta}>Invoice files: {analytics.invoiceUrls.length}</Text>
+          <Pressable style={styles.button} onPress={bulkOpenInvoices} disabled={downloading}>
+            <Text style={styles.buttonText}>
+              {downloading ? 'Opening invoices...' : 'Bulk Download Invoices'}
+            </Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
