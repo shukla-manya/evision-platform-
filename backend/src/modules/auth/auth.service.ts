@@ -231,6 +231,37 @@ export class AuthService {
     return { access_token: token };
   }
 
+  async electricianLogin(
+    email: string,
+    password: string,
+  ): Promise<{ access_token: string; electrician: Record<string, unknown> }> {
+    const electrician = await this.dynamo.queryOne({
+      TableName: this.dynamo.tableName('electricians'),
+      IndexName: 'EmailIndex',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues: { ':email': email },
+    });
+    if (!electrician) throw new UnauthorizedException('Invalid credentials');
+    if (String(electrician.status) !== 'approved') {
+      throw new UnauthorizedException(
+        String(electrician.status) === 'pending'
+          ? 'Your account is awaiting approval'
+          : 'Your account has been rejected',
+      );
+    }
+    const valid = await bcrypt.compare(password, String(electrician.password_hash || ''));
+    if (!valid) throw new UnauthorizedException('Invalid credentials');
+
+    const token = this.signToken(
+      String(electrician.id),
+      'electrician',
+      String(electrician.email || ''),
+      String(electrician.phone || ''),
+    );
+    const { password_hash: _, ...safe } = electrician as any;
+    return { access_token: token, electrician: safe };
+  }
+
   // ── Helpers ───────────────────────────────────────────────────────────────
   private signToken(id: string, role: string, email?: string, phone?: string): string {
     return this.jwt.sign({

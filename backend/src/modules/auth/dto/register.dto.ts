@@ -59,6 +59,17 @@ export class SuperadminLoginDto {
   password: string;
 }
 
+export class ElectricianLoginDto {
+  @ApiProperty({ example: 'ravi@example.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: 'SecurePass@123' })
+  @IsString()
+  @MinLength(8)
+  password: string;
+}
+
 export class LoginOtpVerifyDto {
   @ApiProperty({ description: 'Temporary token returned from admin/superadmin login step 1' })
   @IsString()

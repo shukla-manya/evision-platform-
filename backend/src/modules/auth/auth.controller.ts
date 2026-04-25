@@ -8,6 +8,7 @@ import {
   AdminLoginDto,
   SuperadminLoginDto,
   LoginOtpVerifyDto,
+  ElectricianLoginDto,
 } from './dto/register.dto';
 import { UpdateDeviceTokenDto } from './dto/update-device-token.dto';
 import { Public } from '../../common/decorators/public.decorator';
@@ -69,6 +70,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Superadmin login step 2: verify OTP and issue JWT' })
   superadminLoginVerify(@Body() dto: LoginOtpVerifyDto) {
     return this.authService.superadminLoginVerify(dto);
+  }
+
+  @Public()
+  @Post('electrician/login')
+  @ApiOperation({ summary: 'Electrician login with email + password → returns JWT' })
+  electricianLogin(@Body() dto: ElectricianLoginDto) {
+    return this.authService.electricianLogin(dto.email, dto.password);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -204,6 +204,79 @@ export class ElectricianService {
     return nearby;
   }
 
+  async getMe(electricianId: string): Promise<Record<string, unknown>> {
+    const electrician = await this.dynamo.get(this.table(), { id: electricianId });
+    if (!electrician) throw new NotFoundException('Electrician not found');
+    const { password_hash, ...safe } = electrician;
+    return safe;
+  }
+
+  async getMyBookings(electricianId: string): Promise<Record<string, unknown>[]> {
+    const items = await this.dynamo.scan({
+      TableName: this.dynamo.tableName('service_bookings'),
+      FilterExpression: 'electrician_id = :eid',
+      ExpressionAttributeValues: { ':eid': electricianId },
+    });
+    return (items as Record<string, unknown>[]).sort(
+      (a, b) =>
+        new Date(String(b.created_at || 0)).getTime() -
+        new Date(String(a.created_at || 0)).getTime(),
+    );
+  }
+
+  async getMyActiveBooking(electricianId: string): Promise<Record<string, unknown> | null> {
+    const bookings = await this.getMyBookings(electricianId);
+    return (
+      bookings.find(
+        (b) =>
+          String(b.status) === 'accepted' && String(b.job_status) !== 'completed',
+      ) || null
+    );
+  }
+
+  async updateAvailability(
+    electricianId: string,
+    available: boolean,
+  ): Promise<{ updated: boolean; available: boolean }> {
+    const electrician = await this.dynamo.get(this.table(), { id: electricianId });
+    if (!electrician) throw new NotFoundException('Electrician not found');
+    await this.dynamo.update(this.table(), { id: electricianId }, {
+      available,
+      updated_at: new Date().toISOString(),
+    });
+    return { updated: true, available };
+  }
+
+  async updateFcmToken(
+    electricianId: string,
+    fcmToken: string,
+  ): Promise<{ updated: boolean }> {
+    await this.dynamo.update(this.table(), { id: electricianId }, {
+      fcm_token: fcmToken,
+      updated_at: new Date().toISOString(),
+    });
+    return { updated: true };
+  }
+
+  async addJobPhoto(
+    electricianId: string,
+    bookingId: string,
+    s3: import('../../common/s3/s3.service').S3Service,
+    photo: Express.Multer.File,
+  ): Promise<{ photo_url: string }> {
+    const booking = await this.dynamo.get(this.dynamo.tableName('service_bookings'), { id: bookingId });
+    if (!booking) throw new NotFoundException('Booking not found');
+    if (String(booking.electrician_id) !== electricianId) {
+      throw new BadRequestException('Booking does not belong to this electrician');
+    }
+    const photoUrl = await s3.upload(photo.buffer, photo.mimetype, 'job-photos');
+    await this.dynamo.update(this.dynamo.tableName('service_bookings'), { id: bookingId }, {
+      job_photo_url: photoUrl,
+      updated_at: new Date().toISOString(),
+    });
+    return { photo_url: photoUrl };
+  }
+
   async getPublicProfile(
     electricianId: string,
     reviewsService: { listForElectrician: (id: string) => Promise<Record<string, unknown>[]> },
