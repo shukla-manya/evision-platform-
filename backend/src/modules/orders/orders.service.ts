@@ -226,29 +226,21 @@ export class OrdersService {
 
     const user = await this.dynamo.get(this.usersTable(), { id: String(order.user_id) });
     if (user?.email) {
-      const emailData = {
+      const courierName = String(order.courier_name || payload.courier_name || 'Courier');
+      const trackingNumber = awb;
+      const stageLabel: Record<string, 'picked_up' | 'in_transit' | 'out_for_delivery' | 'delivered'> = {
+        picked_up: 'picked_up',
+        in_transit: 'in_transit',
+        out_for_delivery: 'out_for_delivery',
+        delivered: 'delivered',
+      };
+      await this.email.sendOrderStageUpdate(String(user.email), {
         customerName: String(user.name || 'Customer'),
         orderId: String(order.id),
-        awbNumber: awb,
-        courierName: String(order.courier_name || payload.courier_name || 'Courier'),
-      };
-      switch (internalStatus) {
-        case 'picked_up':
-          await this.email.sendOrderPickedUp(String(user.email), emailData);
-          break;
-        case 'in_transit':
-          await this.email.sendOrderInTransit(String(user.email), emailData);
-          break;
-        case 'out_for_delivery':
-          await this.email.sendOrderOutForDelivery(String(user.email), emailData);
-          break;
-        case 'delivered':
-          await this.email.sendOrderDelivered(String(user.email), {
-            customerName: emailData.customerName,
-            orderId: emailData.orderId,
-          });
-          break;
-      }
+        stage: stageLabel[internalStatus],
+        trackingNumber,
+        courierName,
+      });
     }
 
     if (internalStatus === 'delivered') {
