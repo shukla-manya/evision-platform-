@@ -185,13 +185,12 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: { color: '#fff', fontWeight: '700' },
   secondaryBtn: {
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: 0,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.indigo,
   },
-  secondaryBtnText: { color: colors.textPrimary, fontWeight: '600' },
+  secondaryBtnText: { color: '#FFFFFF', fontWeight: '600' },
   disabled: { opacity: 0.6 },
 });
