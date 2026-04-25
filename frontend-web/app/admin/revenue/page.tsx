@@ -173,7 +173,7 @@ export default function AdminRevenuePage() {
 
             <section className="ev-card p-6">
               <h2 className="text-ev-text font-semibold mb-4">Monthly revenue (last 6 months)</h2>
-              <p classBased="text-ev-muted text-xs mb-4">From delivered orders only</p>
+              <p className="text-ev-muted text-xs mb-4">From delivered orders only</p>
               <div className="flex items-end justify-between gap-2 h-40 px-1">
                 {stats.months.map((m) => {
                   const h = Math.round((m.amount / stats.maxBar) * 100);
