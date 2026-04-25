@@ -119,6 +119,23 @@ export class CartService {
     if (!product.admin_id) throw new BadRequestException('Product is missing shop information');
 
     const quantity = dto.quantity ?? 1;
+
+    // If this product is already in the cart, increment quantity instead of adding a duplicate line.
+    const existing = await this.dynamo.query({
+      TableName: this.cartTable(),
+      KeyConditionExpression: 'user_id = :uid',
+      FilterExpression: 'product_id = :pid',
+      ExpressionAttributeValues: { ':uid': userId, ':pid': dto.product_id },
+    });
+    if (existing.length > 0) {
+      const row = existing[0];
+      return this.dynamo.update(
+        this.cartTable(),
+        { user_id: userId, id: String(row.id) },
+        { quantity: Number(row.quantity || 0) + quantity },
+      );
+    }
+
     const item = {
       user_id: userId,
       id: uuidv4(),
