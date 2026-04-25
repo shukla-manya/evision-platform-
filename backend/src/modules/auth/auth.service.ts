@@ -15,6 +15,7 @@ import {
   AdminLoginDto,
   SuperadminLoginDto,
   LoginOtpVerifyDto,
+  MobileLoginDto,
 } from './dto/register.dto';
 
 @Injectable()
@@ -110,6 +111,7 @@ export class AuthService {
       name: dto.name,
       phone: dto.phone,
       email: dto.email,
+      password_hash: dto.password ? await bcrypt.hash(dto.password, 12) : null,
       role: dto.role,
       gst_no: dto.gst_no || null,
       fcm_token: null,
@@ -122,6 +124,106 @@ export class AuthService {
     const token = this.signToken(id, dto.role, dto.email, dto.phone);
     const { ...safeUser } = user;
     return { access_token: token, user: safeUser };
+  }
+
+  async mobileLogin(
+    dto: MobileLoginDto,
+  ): Promise<{ otp_sent: boolean; login_token: string; role: string; phone: string }> {
+    const email = String(dto.email || '').trim().toLowerCase();
+    const password = String(dto.password || '');
+
+    const user = await this.findUserByEmail(email);
+    if (user) {
+      if (!user.password_hash) {
+        throw new UnauthorizedException('Password login not enabled for this account');
+      }
+      const valid = await bcrypt.compare(password, String(user.password_hash || ''));
+      if (!valid) throw new UnauthorizedException('Invalid credentials');
+      const phone = String(user.phone || '');
+      if (!phone) throw new BadRequestException('Phone is missing for this account');
+      await this.sendOtp(phone);
+      const login_token = this.jwt.sign(
+        {
+          sub: user.id,
+          role: user.role,
+          email: user.email,
+          phone,
+          otp_login: 'mobile_user',
+        },
+        { expiresIn: '10m' },
+      );
+      return {
+        otp_sent: true,
+        login_token,
+        role: String(user.role || 'customer'),
+        phone,
+      };
+    }
+
+    const electrician = await this.findElectricianByEmail(email);
+    if (!electrician) throw new UnauthorizedException('Invalid credentials');
+    if (String(electrician.status) !== 'approved') {
+      throw new UnauthorizedException(
+        String(electrician.status) === 'pending'
+          ? 'Your account is awaiting approval'
+          : 'Your account has been rejected',
+      );
+    }
+    const valid = await bcrypt.compare(password, String(electrician.password_hash || ''));
+    if (!valid) throw new UnauthorizedException('Invalid credentials');
+    const phone = String(electrician.phone || '');
+    if (!phone) throw new BadRequestException('Phone is missing for this account');
+    await this.sendOtp(phone);
+    const login_token = this.jwt.sign(
+      {
+        sub: electrician.id,
+        role: 'electrician',
+        email: electrician.email,
+        phone,
+        otp_login: 'mobile_electrician',
+      },
+      { expiresIn: '10m' },
+    );
+    return { otp_sent: true, login_token, role: 'electrician', phone };
+  }
+
+  async mobileLoginVerify(
+    dto: LoginOtpVerifyDto,
+  ): Promise<{ access_token: string; role: string; profile: any }> {
+    let payload: Record<string, unknown>;
+    try {
+      payload = this.jwt.verify<Record<string, unknown>>(dto.login_token);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired login token');
+    }
+    const otpType = String(payload.otp_login || '');
+    if (!['mobile_user', 'mobile_electrician'].includes(otpType)) {
+      throw new UnauthorizedException('Invalid login token');
+    }
+    const phone = String(payload.phone || '');
+    const id = String(payload.sub || '');
+    const role = String(payload.role || '');
+    if (!phone || !id || !role) throw new UnauthorizedException('Invalid login token payload');
+    await this.consumeOtp(phone, dto.otp);
+
+    if (otpType === 'mobile_user') {
+      const user = await this.dynamo.get(this.dynamo.tableName('users'), { id });
+      if (!user) throw new UnauthorizedException('User not found');
+      const token = this.signToken(String(user.id), String(user.role), String(user.email || ''), String(user.phone || ''));
+      const { password_hash, ...safeUser } = user;
+      return { access_token: token, role: String(user.role || role), profile: safeUser };
+    }
+
+    const electrician = await this.dynamo.get(this.dynamo.tableName('electricians'), { id });
+    if (!electrician) throw new UnauthorizedException('Electrician not found');
+    const token = this.signToken(
+      String(electrician.id),
+      'electrician',
+      String(electrician.email || ''),
+      String(electrician.phone || ''),
+    );
+    const { password_hash, ...safeElectrician } = electrician;
+    return { access_token: token, role: 'electrician', profile: safeElectrician };
   }
 
   async updateDeviceToken(userId: string, fcmToken: string): Promise<{ updated: boolean }> {
@@ -286,6 +388,17 @@ export class AuthService {
   private async findUserByEmail(email: string): Promise<any | null> {
     const items = await this.dynamo.query({
       TableName: this.dynamo.tableName('users'),
+      IndexName: 'EmailIndex',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues: { ':email': email },
+      Limit: 1,
+    });
+    return items[0] || null;
+  }
+
+  private async findElectricianByEmail(email: string): Promise<any | null> {
+    const items = await this.dynamo.query({
+      TableName: this.dynamo.tableName('electricians'),
       IndexName: 'EmailIndex',
       KeyConditionExpression: 'email = :email',
       ExpressionAttributeValues: { ':email': email },

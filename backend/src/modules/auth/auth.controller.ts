@@ -9,6 +9,7 @@ import {
   SuperadminLoginDto,
   LoginOtpVerifyDto,
   ElectricianLoginDto,
+  MobileLoginDto,
 } from './dto/register.dto';
 import { UpdateDeviceTokenDto } from './dto/update-device-token.dto';
 import { Public } from '../../common/decorators/public.decorator';
@@ -42,6 +43,20 @@ export class AuthController {
   @ApiOperation({ summary: 'Register customer/dealer/electrician (OTP required in payload)' })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
+  }
+
+  @Public()
+  @Post('mobile/login')
+  @ApiOperation({ summary: 'Mobile login step 1: email + password, then send OTP to linked phone' })
+  mobileLogin(@Body() dto: MobileLoginDto) {
+    return this.authService.mobileLogin(dto);
+  }
+
+  @Public()
+  @Post('mobile/login/verify')
+  @ApiOperation({ summary: 'Mobile login step 2: verify OTP and issue JWT for app role' })
+  mobileLoginVerify(@Body() dto: LoginOtpVerifyDto) {
+    return this.authService.mobileLoginVerify(dto);
   }
 
   @Public()

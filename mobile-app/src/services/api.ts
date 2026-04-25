@@ -29,10 +29,24 @@ export type OtpVerifyResponse = {
   is_registered: boolean;
 };
 
+export type MobileLoginResponse = {
+  otp_sent: boolean;
+  login_token: string;
+  role: 'customer' | 'dealer' | 'electrician';
+  phone: string;
+};
+
+export type MobileLoginVerifyResponse = {
+  access_token: string;
+  role: 'customer' | 'dealer' | 'electrician';
+  profile: Record<string, unknown>;
+};
+
 export type RegisterRequest = {
   name: string;
   phone: string;
   email: string;
+  password?: string;
   role: 'customer' | 'dealer' | 'electrician';
   otp: string;
   gst_no?: string;
@@ -116,6 +130,10 @@ export type ElectricianProfile = {
 };
 
 export const authApi = {
+  mobileLogin: (email: string, password: string) =>
+    api.post<MobileLoginResponse>('/auth/mobile/login', { email, password }),
+  mobileLoginVerify: (loginToken: string, otp: string) =>
+    api.post<MobileLoginVerifyResponse>('/auth/mobile/login/verify', { login_token: loginToken, otp }),
   sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
   verifyOtp: (phone: string, otp: string) =>
     api.post<OtpVerifyResponse>('/auth/verify-otp', { phone, otp }),
@@ -164,6 +182,13 @@ export const electricianApi = {
   setAvailability: (online: boolean) => api.put('/electrician/me/availability', { online }),
   uploadWorkPhoto: (bookingId: string, formData: FormData) =>
     api.post(`/electrician/job/${bookingId}/photo`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+};
+
+export const electricianRegisterApi = {
+  register: (formData: FormData) =>
+    api.post('/electrician/register', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
 };

@@ -16,6 +16,12 @@ export class RegisterDto {
   @IsEmail()
   email: string;
 
+  @ApiPropertyOptional({ example: 'SecurePass@123', description: 'Required for password-based app login' })
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  password?: string;
+
   @ApiProperty({ enum: ['customer', 'dealer', 'electrician'] })
   @IsEnum(['customer', 'dealer', 'electrician'])
   role: 'customer' | 'dealer' | 'electrician';
@@ -80,4 +86,15 @@ export class LoginOtpVerifyDto {
   @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
   @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
   otp: string;
+}
+
+export class MobileLoginDto {
+  @ApiProperty({ example: 'rahul@example.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: 'SecurePass@123' })
+  @IsString()
+  @MinLength(6)
+  password: string;
 }
