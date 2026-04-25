@@ -12,7 +12,14 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { NavigationContainer, RouteProp, useFocusEffect, useNavigation } from '@react-navigation/native';
+import {
+  DefaultTheme,
+  NavigationContainer,
+  type Theme,
+  RouteProp,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -58,6 +65,33 @@ type MainTabsParamList = {
 };
 
 const queryClient = new QueryClient();
+
+const navigationTheme: Theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: colors.brandPrimary,
+    background: colors.background,
+    card: colors.surface,
+    text: colors.textPrimary,
+    border: colors.border,
+    notification: colors.error,
+  },
+};
+
+const stackScreenOptions = {
+  headerStyle: { backgroundColor: colors.navbar },
+  headerTintColor: '#FFFFFF',
+  headerTitleStyle: { color: '#FFFFFF', fontWeight: '600' as const },
+  contentStyle: { backgroundColor: colors.background },
+};
+
+const tabScreenOptions = {
+  ...stackScreenOptions,
+  tabBarActiveTintColor: colors.brandPrimary,
+  tabBarInactiveTintColor: colors.textSecondary,
+  tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+};
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
@@ -176,7 +210,7 @@ function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: 
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.centerBox}>
-        <Text style={styles.title}>E Vision App</Text>
+        <Text style={styles.title}>LensCart</Text>
         <Text style={styles.subtitle}>Universal login: email + password + OTP</Text>
         <TextInput
           style={styles.input}
@@ -1020,7 +1054,7 @@ function MainTabs({
     [user?.role],
   );
   return (
-    <Tab.Navigator>
+    <Tab.Navigator screenOptions={tabScreenOptions}>
       <Tab.Screen name="Home" component={homeScreen} />
       <Tab.Screen name="Cart" component={CartScreen} />
       <Tab.Screen name="Orders" component={ordersScreen} options={{ title: 'My Orders' }} />
@@ -1191,9 +1225,9 @@ function AppShell() {
   if (hydrating) return <Loader text="Preparing app..." />;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <StatusBar style="dark" />
-      <RootStack.Navigator>
+      <RootStack.Navigator screenOptions={stackScreenOptions}>
         {!token ? (
           <>
             <RootStack.Screen name="Auth" options={{ headerShown: false }}>
@@ -1267,7 +1301,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.softPanel,
   },
   button: {
     width: '100%',
@@ -1279,15 +1313,14 @@ const styles = StyleSheet.create({
   },
   buttonSecondary: {
     width: '100%',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.indigo,
+    borderWidth: 0,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 6,
   },
-  buttonSecondaryText: { color: colors.textPrimary, fontWeight: '600' },
+  buttonSecondaryText: { color: '#FFFFFF', fontWeight: '600' },
   buttonDisabled: { opacity: 0.5 },
   buttonText: { color: colors.surface, fontWeight: '600' },
   card: {
