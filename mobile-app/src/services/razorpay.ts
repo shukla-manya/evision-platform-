@@ -13,13 +13,13 @@ export async function openRazorpayCheckout(options: RazorpayOptionsInput) {
     key: options.key,
     amount: options.amountPaise,
     currency: 'INR',
-    name: 'E Vision',
+    name: 'LensCart',
     description: 'Order payment',
     order_id: options.orderId,
     prefill: {
       email: options.prefillEmail || '',
       contact: options.prefillContact || '',
     },
-    theme: { color: '#4F46E5' },
+    theme: { color: '#E8532A' },
   });
 }

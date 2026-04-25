@@ -100,9 +100,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 key={href}
                 href={href}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  active
-                    ? 'bg-ev-primary/10 text-ev-primary border border-ev-primary/20'
-                    : 'text-ev-muted hover:text-ev-text hover:bg-ev-surface2'
+                  active ? 'ev-sidebar-link-active' : 'ev-sidebar-link'
                 }`}
               >
                 <Icon size={17} />
@@ -111,14 +109,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="p-3 border-t border-ev-border">
+        <div className="p-3 border-t ev-sidebar-border">
           <button
             type="button"
             onClick={() => {
               clearAuth();
               router.push('/admin/login');
             }}
-            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-ev-muted hover:text-ev-error hover:bg-ev-error/5 text-sm transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-white/65 hover:text-red-300 hover:bg-red-500/10 text-sm transition-colors"
           >
             <LogOut size={16} />
             Sign out

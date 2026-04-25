@@ -54,7 +54,7 @@ export default function ElectricianLoginPage() {
             <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
               <Zap size={22} className="text-white" />
             </div>
-            <span className="text-ev-text font-bold text-xl">E Vision</span>
+            <span className="text-ev-text font-bold text-xl">LensCart</span>
           </Link>
           <h1 className="text-2xl font-bold text-ev-text">Electrician sign in</h1>
           <p className="text-ev-muted text-sm mt-1">Login with email/password then verify OTP on mobile</p>

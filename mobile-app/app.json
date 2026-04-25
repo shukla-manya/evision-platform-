@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "E Vision Customer",
+    "name": "LensCart",
     "slug": "evision-customer-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F8FAFC"
+      "backgroundColor": "#F5F0EB"
     },
     "ios": {
       "supportsTablet": true,
@@ -23,7 +23,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F8FAFC"
+        "backgroundColor": "#F5F0EB"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
