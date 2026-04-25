@@ -214,7 +214,7 @@ function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: 
   );
 }
 
-function RegisterScreen({ route, onLoggedIn }: { route: RouteProp<RootStackParamList, 'Register'>; onLoggedIn: (token: string, user: AppUser) => void }) {
+function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<RootStackParamList, 'Register'>; navigation: any; onLoggedIn: (token: string, user: AppUser) => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState(route.params?.email || '');
   const [phone, setPhone] = useState('');
@@ -265,6 +265,12 @@ function RegisterScreen({ route, onLoggedIn }: { route: RouteProp<RootStackParam
     try {
       setLoading(true);
       if (role === 'electrician') {
+        const aadhar = aadharAsset;
+        const photo = photoAsset;
+        if (!aadhar || !photo) {
+          Alert.alert('Documents required', 'Aadhar and profile photo are required for electrician registration.');
+          return;
+        }
         const fd = new FormData();
         fd.append('name', name.trim());
         fd.append('phone', normalizePhone(phone));
@@ -275,14 +281,14 @@ function RegisterScreen({ route, onLoggedIn }: { route: RouteProp<RootStackParam
         if (address.trim()) fd.append('address', address.trim());
         if (skills.trim()) fd.append('skills', skills.trim());
         fd.append('aadhar', {
-          uri: aadharAsset.uri,
-          name: aadharAsset.fileName || `aadhar-${Date.now()}.jpg`,
-          type: aadharAsset.mimeType || 'image/jpeg',
+          uri: aadhar.uri,
+          name: aadhar.fileName || `aadhar-${Date.now()}.jpg`,
+          type: aadhar.mimeType || 'image/jpeg',
         } as never);
         fd.append('photo', {
-          uri: photoAsset.uri,
-          name: photoAsset.fileName || `photo-${Date.now()}.jpg`,
-          type: photoAsset.mimeType || 'image/jpeg',
+          uri: photo.uri,
+          name: photo.fileName || `photo-${Date.now()}.jpg`,
+          type: photo.mimeType || 'image/jpeg',
         } as never);
         await electricianRegisterApi.register(fd);
         Alert.alert(
