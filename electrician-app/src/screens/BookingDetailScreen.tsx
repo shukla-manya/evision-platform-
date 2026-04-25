@@ -2,6 +2,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AxiosError } from 'axios';
 import { bookingsApi, Booking } from '../services/api';
 import { colors } from '../theme/colors';
+import { statusColor } from '../theme/status';
 
 function apiError(err: unknown, fallback: string) {
   const e = err as AxiosError<{ message?: string | string[] }>;
@@ -32,7 +33,9 @@ export default function BookingDetailScreen({ route, navigation }: Props) {
         <Text style={styles.title}>Booking #{booking.id}</Text>
         <Text style={styles.meta}>Request: {booking.request_id}</Text>
         <Text style={styles.meta}>Customer: {booking.customer_id}</Text>
-        <Text style={styles.meta}>Status: {booking.status}</Text>
+        <Text style={styles.meta}>
+          Status: <Text style={{ color: statusColor(booking.status), fontWeight: '700' }}>{booking.status}</Text>
+        </Text>
       </View>
       <Pressable style={styles.primaryButton} onPress={() => void respond('accept')}>
         <Text style={styles.buttonText}>Accept</Text>

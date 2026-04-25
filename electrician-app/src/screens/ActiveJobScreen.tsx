@@ -5,6 +5,7 @@ import { AxiosError } from 'axios';
 import { Booking, bookingsApi } from '../services/api';
 import { connectSocket, disconnectSocket, emitLocation, joinRoom } from '../services/socket';
 import { colors } from '../theme/colors';
+import { statusColor } from '../theme/status';
 
 function apiError(err: unknown, fallback: string) {
   const e = err as AxiosError<{ message?: string | string[] }>;
@@ -101,7 +102,12 @@ export default function ActiveJobScreen({ token, navigation }: Props) {
     <View style={styles.screen}>
       <View style={styles.card}>
         <Text style={styles.title}>Booking #{booking.id.slice(0, 8)}</Text>
-        <Text style={styles.meta}>Status: {booking.job_status || booking.status}</Text>
+        <Text style={styles.meta}>
+          Status:{' '}
+          <Text style={{ color: statusColor(booking.job_status || booking.status), fontWeight: '700' }}>
+            {booking.job_status || booking.status}
+          </Text>
+        </Text>
         <Text style={styles.meta}>Location emits every 5s while status is on_the_way.</Text>
       </View>
 

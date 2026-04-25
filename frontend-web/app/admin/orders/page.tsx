@@ -292,7 +292,7 @@ export default function AdminOrdersPage() {
             </div>
 
             <form onSubmit={(e) => void submitShip(e)} className="p-5 space-y-4">
-              <p className="text-ev-muted text-xs">Enter the customer's delivery address to book this shipment on Shiprocket. The AWB number and courier will be saved automatically.</p>
+              <p className="text-ev-muted text-xs">Enter the customer&apos;s delivery address to book this shipment on Shiprocket. The AWB number and courier will be saved automatically.</p>
 
               {/* 2-col row */}
               <div className="grid grid-cols-2 gap-3">

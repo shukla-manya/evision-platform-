@@ -15,6 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { electricianApi, ServiceBooking } from '../services/api';
 import { createTrackingSocket } from '../services/trackingSocket';
 import { colors } from '../theme/colors';
+import { statusColor } from '../theme/status';
 
 type ElectricianStackParamList = {
   Home: undefined;
@@ -94,7 +95,12 @@ function HomeScreen({ navigation }: any) {
           renderItem={({ item }) => (
             <Pressable style={styles.card} onPress={() => navigation.navigate('BookingDetail', { booking: item })}>
               <Text style={styles.cardTitle}>Booking #{String(item.id).slice(0, 8)}</Text>
-              <Text style={styles.meta}>Status: {String(item.status || '-')}</Text>
+              <Text style={styles.meta}>
+                Status:{' '}
+                <Text style={{ color: statusColor(String(item.status || '-')), fontWeight: '700' }}>
+                  {String(item.status || '-')}
+                </Text>
+              </Text>
               <Text style={styles.meta}>Created: {String(item.created_at || '-')}</Text>
             </Pressable>
           )}
@@ -125,6 +131,12 @@ function BookingDetailScreen({ route, navigation }: any) {
         <Text style={styles.meta}>Booking ID: {String(booking.id)}</Text>
         <Text style={styles.meta}>Request ID: {String(booking.request_id || '-')}</Text>
         <Text style={styles.meta}>Customer: {String(booking.customer_id || '-')}</Text>
+        <Text style={styles.meta}>
+          Status:{' '}
+          <Text style={{ color: statusColor(String(booking.status || '-')), fontWeight: '700' }}>
+            {String(booking.status || '-')}
+          </Text>
+        </Text>
       </View>
       <Pressable style={styles.primaryButton} onPress={() => void respond('accept')}>
         <Text style={styles.primaryButtonText}>Accept</Text>
@@ -235,7 +247,10 @@ function ActiveJobScreen({ navigation, token }: { navigation: any; token: string
         ))}
       </View>
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Current Status: {jobStatus || '-'}</Text>
+        <Text style={styles.cardTitle}>
+          Current Status:{' '}
+          <Text style={{ color: statusColor(jobStatus || '-'), fontWeight: '700' }}>{jobStatus || '-'}</Text>
+        </Text>
         <Text style={styles.meta}>
           Live tracking emits location every 5 seconds only while status is on_the_way.
         </Text>
