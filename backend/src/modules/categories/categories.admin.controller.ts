@@ -1,4 +1,4 @@
-import { Controller, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Put, Delete, Body, Param, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -23,13 +23,13 @@ export class CategoriesAdminController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update a category' })
-  update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCategoryDto) {
     return this.categories.update(id, dto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a category' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.categories.remove(id).then(() => ({ deleted: true, id }));
   }
 }

@@ -51,8 +51,13 @@ export class CategoriesService {
   }
 
   private async categoryHasChildren(categoryId: string): Promise<boolean> {
-    const items = await this.listAll();
-    return items.some((c) => c.parent_id === categoryId);
+    const items = await this.dynamo.scan({
+      TableName: this.table(),
+      FilterExpression: 'parent_id = :pid',
+      ExpressionAttributeValues: { ':pid': categoryId },
+      ProjectionExpression: 'id',
+    });
+    return items.length > 0;
   }
 
   async listAll(): Promise<any[]> {

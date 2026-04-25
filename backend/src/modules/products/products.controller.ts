@@ -21,7 +21,8 @@ export class ProductsController {
   @UseGuards(OptionalJwtAuthGuard)
   @Get()
   @ApiOperation({
-    summary: 'List active products from all shops (price fields depend on JWT role: customer vs dealer vs superadmin)',
+    summary:
+      'List active products from all shops (prices: customer → price_customer; dealer → price_dealer; admin/superadmin → both)',
   })
   @ApiBearerAuth()
   list(@Query() query: ListProductsQueryDto, @Req() req: Request) {
