@@ -386,15 +386,15 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
   }
 
   async listCustomerActiveBookings(customerId: string): Promise<Record<string, unknown>[]> {
-    const bookings = await this.dynamo.query({
+    const bookings = await this.dynamo.scan({
       TableName: this.bookingsTable(),
-      IndexName: 'UserIndex',
-      KeyConditionExpression: 'user_id = :uid',
-      ExpressionAttributeValues: { ':uid': customerId },
     });
     return bookings
       .filter(
-        (row) => String(row.status || '') === 'accepted' && String(row.job_status || '') !== 'completed',
+        (row) =>
+          String(row.customer_id || '') === customerId &&
+          String(row.status || '') === 'accepted' &&
+          String(row.job_status || '') !== 'completed',
       )
       .sort(
         (a, b) =>

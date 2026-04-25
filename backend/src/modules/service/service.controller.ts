@@ -58,8 +58,7 @@ export class ServiceController {
   @Get('my/bookings/active')
   @Roles('customer', 'dealer')
   @ApiOperation({ summary: 'List active bookings for the logged in customer/dealer' })
-  async listMyActiveBookings(@CurrentUser() user: { id: string }) {
-    const allForElectrician = await this.service.listElectricianBookings(user.id, 'active');
-    return allForElectrician.filter((booking) => String(booking.customer_id || '') === user.id);
+  listMyActiveBookings(@CurrentUser() user: { id: string }) {
+    return this.service.listCustomerActiveBookings(user.id);
   }
 }
