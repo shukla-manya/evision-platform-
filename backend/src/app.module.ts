@@ -16,6 +16,7 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
 import { PushModule } from './modules/push/push.module';
 import { ElectricianModule } from './modules/electrician/electrician.module';
 import { ServiceModule } from './modules/service/service.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ServiceModule } from './modules/service/service.module';
     CheckoutModule,
     ElectricianModule,
     ServiceModule,
+    ReviewsModule,
   ],
 })
 export class AppModule {}

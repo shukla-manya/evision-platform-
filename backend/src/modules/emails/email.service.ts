@@ -510,4 +510,5 @@ export class EmailService {
       attachments,
     });
   }
+
 }
