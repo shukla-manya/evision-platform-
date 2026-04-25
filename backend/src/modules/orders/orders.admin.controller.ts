@@ -23,13 +23,13 @@ export class OrdersAdminController {
 
   @Post(':id/ship')
   @ApiOperation({
-    summary:
-      'Create shipment via Shiprocket, save AWB/courier on order, and email customer tracking details',
+    summary: 'Create Shiprocket shipment, save AWB + courier on order, email customer tracking details',
   })
   ship(
     @CurrentUser() user: { id: string },
     @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ShipOrderDto,
   ) {
-    return this.orders.shipOrderForAdmin(user.id, id);
+    return this.orders.shipOrderForAdmin(user.id, id, dto);
   }
 }
