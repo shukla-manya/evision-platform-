@@ -112,6 +112,7 @@ export class AuthService {
       email: dto.email,
       role: dto.role,
       gst_no: dto.gst_no || null,
+      fcm_token: null,
       address_book: dto.address ? [{ label: 'Home', address: dto.address, is_default: true }] : [],
       created_at: new Date().toISOString(),
     };
@@ -121,6 +122,19 @@ export class AuthService {
     const token = this.signToken(id, dto.role, dto.email, dto.phone);
     const { ...safeUser } = user;
     return { access_token: token, user: safeUser };
+  }
+
+  async updateDeviceToken(userId: string, fcmToken: string): Promise<{ updated: boolean }> {
+    const token = String(fcmToken || '').trim();
+    if (!token) {
+      throw new BadRequestException('fcm_token is required');
+    }
+    await this.dynamo.update(
+      this.dynamo.tableName('users'),
+      { id: userId },
+      { fcm_token: token, fcm_token_updated_at: new Date().toISOString() },
+    );
+    return { updated: true };
   }
 
   // ── Admin Login (email + password) ────────────────────────────────────────

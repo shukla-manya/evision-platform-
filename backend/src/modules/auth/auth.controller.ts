@@ -9,6 +9,7 @@ import {
   SuperadminLoginDto,
   LoginOtpVerifyDto,
 } from './dto/register.dto';
+import { UpdateDeviceTokenDto } from './dto/update-device-token.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -76,5 +77,16 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current authenticated user' })
   me(@CurrentUser() user: any) {
     return { user };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me/device-token')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Save current user device FCM token for push notifications' })
+  updateDeviceToken(
+    @CurrentUser() user: { id: string },
+    @Body() dto: UpdateDeviceTokenDto,
+  ) {
+    return this.authService.updateDeviceToken(user.id, dto.fcm_token);
   }
 }
