@@ -63,6 +63,13 @@ export default function SuperadminDashboardPage() {
             </div>
             <BarChart3 className="text-ev-warning shrink-0" size={28} />
           </Link>
+          <Link href="/superadmin/pending-electricians" className="ev-card p-6 flex items-center justify-between hover:border-ev-warning/40">
+            <div>
+              <h2 className="text-ev-text font-semibold">Pending electricians</h2>
+              <p className="text-ev-muted text-sm mt-1">KYC, skills, and approve or reject</p>
+            </div>
+            <Users className="text-ev-warning shrink-0" size={28} />
+          </Link>
           <Link href="/superadmin/analytics" className="ev-card p-6 flex items-center justify-between hover:border-ev-primary/40">
             <div>
               <h2 className="text-ev-text font-semibold">Analytics</h2>

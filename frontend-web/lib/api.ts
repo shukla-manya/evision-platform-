@@ -117,6 +117,9 @@ export const superadminApi = {
   approveAdmin: (id: string) => api.put(`/superadmin/admin/${id}/approve`),
   rejectAdmin: (id: string, reason: string) => api.put(`/superadmin/admin/${id}/reject`, { reason }),
   suspendAdmin: (id: string) => api.put(`/superadmin/admin/${id}/suspend`),
+  getPendingElectricians: () => api.get('/superadmin/pending-electricians'),
+  reviewElectrician: (id: string, body: { action: 'approve' | 'reject'; reason?: string }) =>
+    api.put(`/superadmin/electrician/${id}/approve`, body),
   getAnalytics: () => api.get('/superadmin/analytics'),
   getEmailLogs: (event?: string) => api.get('/superadmin/email-logs', { params: { event } }),
 };

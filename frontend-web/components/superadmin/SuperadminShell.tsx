@@ -9,6 +9,7 @@ import {
   BarChart3,
   Clock,
   Store,
+  User,
   LogOut,
   Loader2,
 } from 'lucide-react';
@@ -19,6 +20,7 @@ const nav = [
   { href: '/superadmin/dashboard', label: 'Home', icon: LayoutDashboard },
   { href: '/superadmin/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/superadmin/pending-admins', label: 'Pending admins', icon: Clock },
+  { href: '/superadmin/pending-electricians', label: 'Pending electricians', icon: User },
   { href: '/superadmin/shops', label: 'All shops', icon: Store },
 ];
 
