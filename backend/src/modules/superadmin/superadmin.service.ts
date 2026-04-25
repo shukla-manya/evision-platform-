@@ -253,8 +253,13 @@ export class SuperadminService {
     const validOrders = orders.filter((o) => isOrderCountable(String(o.status)));
     const adminById = new Map(admins.map((a) => [String(a.id), a]));
 
-    let total_collected = 0;
-    let platform_commission_earned = 0;
+    const total_collected = validOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
+    const platform_commission_earned = validOrders.reduce((sum, o) => {
+      const a = adminById.get(String(o.admin_id));
+      const pct = Number(a?.platform_commission_pct ?? 10);
+      return sum + (Number(o.total_amount || 0) * pct) / 100;
+    }, 0);
+    const lifetime_net_to_shops = total_collected - platform_commission_earned;
 
     const shopRows = admins
       .filter((a) => a.status === 'approved' || a.status === 'suspended')
@@ -271,12 +276,6 @@ export class SuperadminService {
         const gross = periodOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
         const commission = Math.round(gross * (pct / 100) * 100) / 100;
         const net_payable = Math.round((gross - commission) * 100) / 100;
-        total_collected += validOrders
-          .filter((o) => String(o.admin_id) === id)
-          .reduce((s, o) => s + Number(o.total_amount || 0), 0);
-        platform_commission_earned += validOrders
-          .filter((o) => String(o.admin_id) === id)
-          .reduce((s, o) => s + (Number(o.total_amount || 0) * pct) / 100, 0);
 
         return {
           admin_id: id,
@@ -291,23 +290,14 @@ export class SuperadminService {
       });
 
     const pending_to_settle = shopRows.reduce((s, r) => s + r.net_payable, 0);
-    const lifetime_commission = validOrders.reduce((sum, o) => {
-      const a = adminById.get(String(o.admin_id));
-      const pct = Number(a?.platform_commission_pct ?? 10);
-      return sum + (Number(o.total_amount || 0) * pct) / 100;
-    }, 0);
-
-    const total_settled_hint =
-      validOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0) -
-      pending_to_settle -
-      lifetime_commission;
+    const total_settled = Math.max(0, lifetime_net_to_shops - pending_to_settle);
 
     return {
       summary: {
         total_collected: Math.round(total_collected * 100) / 100,
-        total_settled: Math.max(0, Math.round(total_settled_hint * 100) / 100),
+        total_settled: Math.round(total_settled * 100) / 100,
         pending_to_settle: Math.round(pending_to_settle * 100) / 100,
-        platform_commission_earned: Math.round(lifetime_commission * 100) / 100,
+        platform_commission_earned: Math.round(platform_commission_earned * 100) / 100,
       },
       shops: shopRows,
     };
