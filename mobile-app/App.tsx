@@ -21,7 +21,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Buffer } from 'buffer';
 import { setApiTokenGetter, authApi, productApi, cartApi, checkoutApi, ordersApi, Product, CartResponse, CheckoutResponse, API_BASE_URL } from './src/services/api';
 import { clearToken, getToken, setToken } from './src/services/storage';
-import { setupPushNotifications } from './src/services/notifications';
+import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { openRazorpayCheckout } from './src/services/razorpay';
 
 type RootStackParamList = {
@@ -762,7 +762,24 @@ function AppShell() {
       setFcmToken(tokenValue);
     };
     void initNotifications();
+
+    const unsubscribe = subscribeToPushTokenRefresh((nextToken) => {
+      setFcmToken(nextToken);
+    });
+    return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    const syncFcmToken = async () => {
+      if (!token || !fcmToken) return;
+      try {
+        await authApi.saveDeviceToken(fcmToken);
+      } catch {
+        // Non-blocking: token sync can retry on next app start/login.
+      }
+    };
+    void syncFcmToken();
+  }, [token, fcmToken]);
 
   const handleLoggedIn = async (nextToken: string, nextUser: AppUser) => {
     await setToken(nextToken);
