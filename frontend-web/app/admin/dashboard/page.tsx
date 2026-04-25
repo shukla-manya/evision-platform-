@@ -366,8 +366,8 @@ export default function AdminDashboardPage() {
           <section className="lg:col-span-3 ev-card overflow-hidden">
             <div className="px-5 py-4 border-b border-ev-border flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-ev-text font-semibold">Orders to ship</h2>
-                <p className="text-ev-muted text-xs mt-0.5">Pack and generate shipment</p>
+                <h2 className="text-ev-text font-semibold">Orders needing shipment</h2>
+                <p className="text-ev-muted text-xs mt-0.5">Generate shipment via Shiprocket</p>
               </div>
               <Link href="/admin/orders" className="text-sm text-ev-primary font-medium inline-flex items-center gap-1 hover:underline">
                 View all orders
@@ -454,9 +454,9 @@ export default function AdminDashboardPage() {
 
           <section className="lg:col-span-2 ev-card p-5 flex flex-col">
             <div className="flex items-center justify-between gap-2 mb-4">
-              <h2 className="text-ev-text font-semibold">Low stock alert</h2>
+              <h2 className="text-ev-text font-semibold">Low stock products</h2>
               <Link href="/admin/inventory" className="text-xs text-ev-primary font-medium hover:underline">
-                Manage inventory
+                Restock
               </Link>
             </div>
             <div className="space-y-3 flex-1">
@@ -477,7 +477,7 @@ export default function AdminDashboardPage() {
                       <div className="min-w-0 flex-1">
                         <p className="text-ev-text text-sm font-medium truncate">{p.name}</p>
                         <p className="text-ev-muted text-xs mt-0.5">
-                          Only {p.stock} unit{p.stock === 1 ? '' : 's'} left
+                          Current stock: {p.stock}. Restock before you hit {thr} units (alert threshold).
                         </p>
                       </div>
                       <span
@@ -498,30 +498,47 @@ export default function AdminDashboardPage() {
         </div>
 
         <section className="ev-card p-5">
-          <h2 className="text-ev-text font-semibold mb-4 flex items-center gap-2">
+          <h2 className="text-ev-text font-semibold mb-2 flex items-center gap-2">
             <BarChart3 size={18} className="text-ev-primary" />
-            Sales this week
+            Sales chart
           </h2>
-          <p className="text-ev-muted text-xs mb-4">Order value by day (created this week, all statuses)</p>
-          <div className="flex items-end justify-between gap-2 min-h-[9rem] px-1">
+          <p className="text-ev-muted text-xs mb-4">
+            Order value by weekday — <span className="text-ev-primary font-medium">this week</span> vs{' '}
+            <span className="text-ev-accent font-medium">last week</span> (order created date)
+          </p>
+          <div className="flex items-end justify-between gap-1 sm:gap-2 min-h-[10rem] px-1">
             {metrics.weekBuckets.map((v, i) => {
-              const pct = Math.round((v / metrics.weekMax) * 100);
-              const h = Math.max(pct, v > 0 ? 8 : 4);
+              const lw = metrics.lastWeekBuckets[i] ?? 0;
+              const pctThis = Math.round((v / metrics.weekMax) * 100);
+              const pctLast = Math.round((lw / metrics.weekMax) * 100);
+              const hThis = Math.max(pctThis, v > 0 ? 6 : 3);
+              const hLast = Math.max(pctLast, lw > 0 ? 6 : 3);
               return (
-                <div key={weekLabels[i]} className="flex-1 flex flex-col items-center gap-2 min-w-0 max-w-[56px] mx-auto">
-                  <div
-                    className="w-full h-28 flex items-end rounded-t-md border border-ev-border bg-ev-surface2 overflow-hidden"
-                    title={`₹${Math.round(v).toLocaleString('en-IN')}`}
-                  >
+                <div key={weekLabels[i]} className="flex-1 flex flex-col items-center gap-2 min-w-0 max-w-[64px] mx-auto">
+                  <div className="w-full h-28 flex items-end justify-center gap-0.5 rounded-t-md border border-ev-border bg-ev-surface2/50 px-0.5 pt-1">
                     <div
-                      className="w-full bg-gradient-to-t from-ev-primary-dark to-ev-primary rounded-t-sm transition-all min-h-[3px]"
-                      style={{ height: `${h}%` }}
+                      className="flex-1 max-w-[10px] rounded-t-sm bg-gradient-to-t from-ev-accent/80 to-ev-accent/40 min-h-[2px]"
+                      style={{ height: `${hLast}%` }}
+                      title={`Last week ${weekLabels[i]}: ₹${Math.round(lw).toLocaleString('en-IN')}`}
+                    />
+                    <div
+                      className="flex-1 max-w-[10px] rounded-t-sm bg-gradient-to-t from-ev-primary-dark to-ev-primary min-h-[2px]"
+                      style={{ height: `${hThis}%` }}
+                      title={`This week ${weekLabels[i]}: ₹${Math.round(v).toLocaleString('en-IN')}`}
                     />
                   </div>
                   <span className="text-[11px] text-ev-muted font-medium">{weekLabels[i]}</span>
                 </div>
               );
             })}
+          </div>
+          <div className="flex flex-wrap gap-4 mt-4 text-xs text-ev-muted">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm bg-gradient-to-br from-ev-primary-dark to-ev-primary" /> This week
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm bg-ev-accent/70" /> Last week
+            </span>
           </div>
         </section>
 
