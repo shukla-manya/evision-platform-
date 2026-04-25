@@ -30,6 +30,13 @@ type ElectricianStackParamList = {
 
 const Stack = createNativeStackNavigator<ElectricianStackParamList>();
 
+const stackHeaderOptions = {
+  headerStyle: { backgroundColor: colors.navbar },
+  headerTintColor: '#FFFFFF' as const,
+  headerTitleStyle: { color: '#FFFFFF', fontWeight: '600' as const },
+  contentStyle: { backgroundColor: colors.background },
+};
+
 function asErrorMessage(err: unknown, fallback: string) {
   const message = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
   if (typeof message === 'string') return message;
@@ -426,7 +433,7 @@ export function ElectricianFlow({
     [token],
   );
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={stackHeaderOptions}>
       <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Electrician Home' }} />
       <Stack.Screen name="BookingDetail" component={BookingDetailScreen} options={{ title: 'Booking Detail' }} />
       <Stack.Screen name="ActiveJob" component={activeJobScreen} options={{ title: 'Active Job' }} />
@@ -470,15 +477,14 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: { color: colors.surface, fontWeight: '700' },
   secondaryButton: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.indigo,
+    borderWidth: 0,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
     alignItems: 'center',
   },
-  secondaryButtonText: { color: colors.textPrimary, fontWeight: '600' },
+  secondaryButtonText: { color: '#FFFFFF', fontWeight: '600' },
   dangerButton: {
     backgroundColor: colors.error,
     borderRadius: 10,

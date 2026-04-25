@@ -1197,15 +1197,14 @@ const styles = StyleSheet.create({
   },
   buttonSecondary: {
     width: '100%',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.indigo,
+    borderWidth: 0,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 6,
   },
-  buttonSecondaryText: { color: colors.textPrimary, fontWeight: '600' },
+  buttonSecondaryText: { color: '#FFFFFF', fontWeight: '600' },
   buttonText: { color: colors.surface, fontWeight: '600' },
   dangerOutline: {
     width: '100%',

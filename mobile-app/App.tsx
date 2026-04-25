@@ -1027,7 +1027,7 @@ function Loader({ text }: { text: string }) {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.centerBox}>
-        <ActivityIndicator />
+        <ActivityIndicator color={colors.brandPrimary} />
         <Text style={styles.subtitle}>{text}</Text>
       </View>
     </SafeAreaView>
