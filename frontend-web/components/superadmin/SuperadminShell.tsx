@@ -4,24 +4,38 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
+  type LucideIcon,
   Camera,
   LayoutDashboard,
-  BarChart3,
-  Clock,
+  Inbox,
   Store,
-  User,
+  UserCog,
+  IndianRupee,
+  Wallet,
+  Star,
+  Mail,
   LogOut,
   Loader2,
 } from 'lucide-react';
 import { superadminApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
 
-const nav = [
-  { href: '/superadmin/dashboard', label: 'Home', icon: LayoutDashboard },
-  { href: '/superadmin/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/superadmin/pending-admins', label: 'Pending admins', icon: Clock },
-  { href: '/superadmin/pending-electricians', label: 'Pending electricians', icon: User },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  badgeKey?: 'approvals';
+};
+
+const nav: NavItem[] = [
+  { href: '/superadmin/dashboard', label: 'Overview', icon: LayoutDashboard },
+  { href: '/superadmin/approvals', label: 'Approvals', icon: Inbox, badgeKey: 'approvals' },
   { href: '/superadmin/shops', label: 'All shops', icon: Store },
+  { href: '/superadmin/pending-electricians', label: 'Electricians', icon: UserCog },
+  { href: '/superadmin/revenue', label: 'Revenue', icon: IndianRupee },
+  { href: '/superadmin/settlements', label: 'Settlements', icon: Wallet },
+  { href: '/superadmin/reviews', label: 'Reviews', icon: Star },
+  { href: '/superadmin/email-logs', label: 'Email logs', icon: Mail },
 ];
 
 export function SuperadminShell({ children }: { children: React.ReactNode }) {
@@ -30,6 +44,8 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
   const [pendingAdminCount, setPendingAdminCount] = useState(0);
   const [pendingElectricianCount, setPendingElectricianCount] = useState(0);
   const [ready, setReady] = useState(false);
+
+  const approvalsTotal = pendingAdminCount + pendingElectricianCount;
 
   useEffect(() => {
     if (getRole() !== 'superadmin') {
@@ -64,20 +80,18 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
               <Camera size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm">LensCart</p>
+              <p className="text-white font-bold text-sm tracking-tight">LensCart SA</p>
               <p className="ev-sidebar-muted text-xs">Superadmin</p>
             </div>
           </Link>
         </div>
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {nav.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || (href !== '/superadmin/dashboard' && pathname.startsWith(href));
-            const badge =
-              href === '/superadmin/pending-admins'
-                ? pendingAdminCount
-                : href === '/superadmin/pending-electricians'
-                  ? pendingElectricianCount
-                  : 0;
+          {nav.map(({ href, label, icon: Icon, badgeKey }) => {
+            const active =
+              href === '/superadmin/dashboard'
+                ? pathname === href
+                : pathname === href || pathname.startsWith(`${href}/`);
+            const count = badgeKey === 'approvals' ? approvalsTotal : 0;
             return (
               <Link
                 key={href}
@@ -86,12 +100,14 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
                   active ? 'ev-sidebar-link-active' : 'ev-sidebar-link'
                 }`}
               >
-                <span className="flex items-center gap-2.5">
-                  <Icon size={17} />
-                  {label}
+                <span className="flex items-center gap-2.5 min-w-0">
+                  <Icon size={17} className="shrink-0" />
+                  <span className="truncate">{label}</span>
                 </span>
-                {badge > 0 ? (
-                  <span className="bg-ev-warning text-ev-text text-[10px] font-bold px-1.5 py-0.5 rounded-full">{badge}</span>
+                {badgeKey === 'approvals' && count > 0 ? (
+                  <span className="bg-ev-warning text-ev-text text-[10px] font-bold min-w-[1.25rem] text-center px-1.5 py-0.5 rounded-full shrink-0">
+                    {count}
+                  </span>
                 ) : null}
               </Link>
             );

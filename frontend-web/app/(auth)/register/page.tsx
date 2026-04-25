@@ -369,6 +369,15 @@ export default function RegisterPage() {
                 )}
 
                 <div>
+                  <button
+                    type="button"
+                    onClick={() => void sendShopperOtp()}
+                    className="text-sm font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1 disabled:opacity-50 mb-4"
+                    disabled={otpSending}
+                  >
+                    {otpSending ? 'Sending…' : 'Send OTP to verify phone'}
+                    <ArrowRight size={16} />
+                  </button>
                   <label className="ev-label">Enter OTP (sent to your phone)</label>
                   <input
                     type="text"
@@ -379,15 +388,6 @@ export default function RegisterPage() {
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                     required
                   />
-                  <button
-                    type="button"
-                    onClick={() => void sendShopperOtp()}
-                    className="mt-3 text-sm font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1 disabled:opacity-50"
-                    disabled={otpSending}
-                  >
-                    {otpSending ? 'Sending…' : 'Send OTP to verify phone'}
-                    <ArrowRight size={16} />
-                  </button>
                 </div>
 
                 <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
@@ -571,6 +571,15 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
+                  <button
+                    type="button"
+                    onClick={() => void sendTechOtp()}
+                    className="text-sm font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1 disabled:opacity-50 mb-4"
+                    disabled={otpSending}
+                  >
+                    {otpSending ? 'Sending…' : 'Send OTP to verify phone'}
+                    <ArrowRight size={16} />
+                  </button>
                   <label className="ev-label">Enter OTP (sent to your phone)</label>
                   <input
                     type="text"
@@ -581,15 +590,6 @@ export default function RegisterPage() {
                     onChange={(e) => setTechOtp(e.target.value.replace(/\D/g, ''))}
                     required
                   />
-                  <button
-                    type="button"
-                    onClick={() => void sendTechOtp()}
-                    className="mt-3 text-sm font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1 disabled:opacity-50"
-                    disabled={otpSending}
-                  >
-                    {otpSending ? 'Sending…' : 'Send OTP to verify phone'}
-                    <ArrowRight size={16} />
-                  </button>
                 </div>
 
                 <p className="text-ev-muted text-sm leading-relaxed">
