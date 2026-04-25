@@ -70,6 +70,7 @@ export const adminApi = {
     });
   },
   getOrders: () => api.get('/admin/orders'),
+  shipOrder: (id: string) => api.post(`/admin/orders/${id}/ship`),
   getInvoices: () => api.get('/admin/invoices'),
 };
 
