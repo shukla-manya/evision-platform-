@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   Store,
   CheckCircle,
-  XCircle,
   Loader2,
-  ChevronDown,
-  ChevronUp,
+  Eye,
   ShieldAlert,
   RefreshCw,
+  IndianRupee,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { superadminApi } from '@/lib/api';
@@ -26,6 +26,7 @@ type AdminRow = {
   created_at?: string;
   address?: string;
   status?: string;
+  platform_commission_pct?: number;
 };
 
 const statusColors: Record<string, string> = {
@@ -35,18 +36,31 @@ const statusColors: Record<string, string> = {
   suspended: 'bg-ev-subtle/20 text-ev-muted border border-ev-border',
 };
 
-export default function SuperadminShopsPage() {
+function formatINR(n: number) {
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+}
+
+export default function RegisteredShopsPage() {
   const [admins, setAdmins] = useState<AdminRow[]>([]);
+  const [statsByAdmin, setStatsByAdmin] = useState<Record<string, { orders: number; revenue: number }>>({});
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState<Record<string, string>>({});
-  const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [commissionEdit, setCommissionEdit] = useState<Record<string, string>>({});
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await superadminApi.getAllAdmins();
-      setAdmins(Array.isArray(data) ? (data as AdminRow[]) : []);
+      const [admRes, anRes] = await Promise.all([superadminApi.getAllAdmins(), superadminApi.getAnalytics()]);
+      setAdmins(Array.isArray(admRes.data) ? (admRes.data as AdminRow[]) : []);
+      const an = anRes.data as {
+        revenue_by_shop?: { admin_id: string; amount: number; order_count?: number }[];
+      };
+      const map: Record<string, { orders: number; revenue: number }> = {};
+      (an.revenue_by_shop || []).forEach((r) => {
+        map[r.admin_id] = { orders: r.order_count ?? 0, revenue: r.amount };
+      });
+      setStatsByAdmin(map);
     } catch {
       toast.error('Failed to load shops');
     } finally {
@@ -55,49 +69,15 @@ export default function SuperadminShopsPage() {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      void loadAll();
-    }, 0);
-    return () => clearTimeout(timer);
+    void loadAll();
   }, [loadAll]);
-
-  async function approve(id: string) {
-    setActionLoading(id + '_approve');
-    try {
-      await superadminApi.approveAdmin(id);
-      toast.success('Approved');
-      loadAll();
-    } catch (e: unknown) {
-      toast.error(getApiErrorMessage(e, 'Failed'));
-    } finally {
-      setActionLoading(null);
-    }
-  }
-
-  async function reject(id: string) {
-    const reason = rejectReason[id];
-    if (!reason?.trim()) {
-      toast.error('Enter a rejection reason');
-      return;
-    }
-    setActionLoading(id + '_reject');
-    try {
-      await superadminApi.rejectAdmin(id, reason);
-      toast.success('Rejected');
-      loadAll();
-    } catch (e: unknown) {
-      toast.error(getApiErrorMessage(e, 'Failed'));
-    } finally {
-      setActionLoading(null);
-    }
-  }
 
   async function toggleSuspend(id: string, currentStatus: string) {
     setActionLoading(id + '_suspend');
     try {
       await superadminApi.suspendAdmin(id);
-      toast.success(currentStatus === 'suspended' ? 'Reactivated' : 'Suspended');
-      loadAll();
+      toast.success(currentStatus === 'suspended' ? 'Shop reactivated' : 'Shop suspended');
+      await loadAll();
     } catch {
       toast.error('Failed');
     } finally {
@@ -105,15 +85,49 @@ export default function SuperadminShopsPage() {
     }
   }
 
+  async function saveCommission(id: string) {
+    const raw = commissionEdit[id];
+    if (raw === undefined) return;
+    const pct = Number(raw);
+    if (Number.isNaN(pct) || pct < 0 || pct > 100) {
+      toast.error('Commission must be between 0 and 100');
+      return;
+    }
+    setActionLoading(id + '_comm');
+    try {
+      await superadminApi.setPlatformCommission(id, pct);
+      toast.success('Commission saved');
+      setCommissionEdit((c) => {
+        const next = { ...c };
+        delete next[id];
+        return next;
+      });
+      await loadAll();
+    } catch (e: unknown) {
+      toast.error(getApiErrorMessage(e, 'Failed to save'));
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  const sorted = [...admins].sort(
+    (a, b) =>
+      new Date(String(b.created_at || 0)).getTime() - new Date(String(a.created_at || 0)).getTime(),
+  );
+
   return (
     <SuperadminShell>
-      <main className="p-6 sm:p-10">
+      <main className="p-6 sm:p-10 max-w-6xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-ev-text mb-1">All shops</h1>
-            <p className="text-ev-muted text-sm">Every registered shop admin and status</p>
+            <h1 className="text-2xl font-bold text-ev-text mb-1">Registered shops</h1>
+            <p className="text-ev-muted text-sm">Approved and pending shop admins — commission and access</p>
           </div>
-          <button type="button" onClick={() => loadAll()} className="ev-btn-secondary inline-flex items-center gap-2 py-2 px-4 text-sm self-start">
+          <button
+            type="button"
+            onClick={() => loadAll()}
+            className="ev-btn-secondary inline-flex items-center gap-2 py-2 px-4 text-sm self-start"
+          >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             Refresh
           </button>
@@ -123,118 +137,144 @@ export default function SuperadminShopsPage() {
           <div className="flex justify-center py-24">
             <Loader2 size={32} className="animate-spin text-ev-primary" />
           </div>
-        ) : admins.length === 0 ? (
+        ) : sorted.length === 0 ? (
           <div className="ev-card p-16 text-center text-ev-muted">No shops yet</div>
         ) : (
-          <div className="space-y-4">
-            {admins.map((admin) => (
-              <div key={admin.id} className="ev-card overflow-hidden">
-                <button
-                  type="button"
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-ev-surface2/50 transition-colors"
-                  onClick={() => setExpandedRow(expandedRow === admin.id ? null : admin.id)}
-                >
-                  <div className="flex items-center gap-4 min-w-0">
-                    <div className="w-10 h-10 bg-ev-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                      <Store size={18} className="text-ev-primary" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-ev-text font-semibold text-sm truncate">{admin.shop_name}</p>
-                      <p className="text-ev-muted text-xs truncate">
-                        {admin.owner_name} · {admin.email}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className={`ev-badge ${statusColors[admin.status ?? ''] || ''}`}>{admin.status}</span>
-                    {expandedRow === admin.id ? <ChevronUp size={16} className="text-ev-muted" /> : <ChevronDown size={16} className="text-ev-muted" />}
-                  </div>
-                </button>
-
-                {expandedRow === admin.id && (
-                  <div className="border-t border-ev-border p-5 bg-ev-surface2 space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-ev-muted block text-xs">Phone</span>
-                        <span className="text-ev-text">{admin.phone}</span>
-                      </div>
-                      <div>
-                        <span className="text-ev-muted block text-xs">GST No.</span>
-                        <span className="text-ev-text">{admin.gst_no}</span>
-                      </div>
-                      <div>
-                        <span className="text-ev-muted block text-xs">Registered</span>
-                        <span className="text-ev-text">
-                          {admin.created_at ? new Date(admin.created_at).toLocaleDateString() : '—'}
-                        </span>
-                      </div>
-                      <div className="col-span-2 md:col-span-2">
-                        <span className="text-ev-muted block text-xs">Address</span>
-                        <span className="text-ev-text">{admin.address}</span>
-                      </div>
-                    </div>
-
-                    {admin.status === 'pending' && (
-                      <div className="flex flex-col sm:flex-row gap-3">
-                        <button
-                          type="button"
-                          onClick={() => approve(admin.id)}
-                          disabled={!!actionLoading}
-                          className="ev-btn-primary flex items-center justify-center gap-2 py-2 px-5 text-sm"
-                        >
-                          {actionLoading === admin.id + '_approve' ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                          Approve
-                        </button>
-                        <div className="flex gap-2 flex-1">
-                          <input
-                            type="text"
-                            className="ev-input flex-1 py-2 text-sm"
-                            placeholder="Rejection reason…"
-                            value={rejectReason[admin.id] || ''}
-                            onChange={(e) => setRejectReason((r) => ({ ...r, [admin.id]: e.target.value }))}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => reject(admin.id)}
-                            disabled={!!actionLoading}
-                            className="bg-ev-error/10 border border-ev-error/30 text-ev-error hover:bg-ev-error/20 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"
-                          >
-                            {actionLoading === admin.id + '_reject' ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
-                            Reject
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {admin.status === 'approved' && (
-                      <button
-                        type="button"
-                        onClick={() => toggleSuspend(admin.id, admin.status ?? 'approved')}
-                        disabled={!!actionLoading}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-ev-warning/10 border border-ev-warning/20 text-ev-warning text-sm font-medium hover:bg-ev-warning/20"
-                      >
-                        {actionLoading === admin.id + '_suspend' ? <Loader2 size={14} className="animate-spin" /> : <ShieldAlert size={14} />}
-                        Suspend shop
-                      </button>
-                    )}
-
-                    {admin.status === 'suspended' && (
-                      <button
-                        type="button"
-                        onClick={() => toggleSuspend(admin.id, admin.status ?? 'suspended')}
-                        disabled={!!actionLoading}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-ev-success/10 border border-ev-success/20 text-ev-success text-sm font-medium hover:bg-ev-success/20"
-                      >
-                        {actionLoading === admin.id + '_suspend' ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                        Reactivate shop
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+          <div className="ev-card overflow-hidden border-ev-border">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-ev-border bg-ev-surface2 text-left text-ev-muted">
+                    <th className="px-4 py-3 font-semibold">Shop</th>
+                    <th className="px-4 py-3 font-semibold">Owner</th>
+                    <th className="px-4 py-3 font-semibold">Email</th>
+                    <th className="px-4 py-3 font-semibold">Status</th>
+                    <th className="px-4 py-3 font-semibold text-right">Orders</th>
+                    <th className="px-4 py-3 font-semibold text-right">Revenue</th>
+                    <th className="px-4 py-3 font-semibold">Joined</th>
+                    <th className="px-4 py-3 font-semibold">Commission</th>
+                    <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sorted.map((admin) => {
+                    const st = statsByAdmin[admin.id] || { orders: 0, revenue: 0 };
+                    const pct = Number(admin.platform_commission_pct ?? 10);
+                    const pctInput = commissionEdit[admin.id] ?? String(pct);
+                    return (
+                      <tr key={admin.id} className="border-b border-ev-border last:border-0 align-top">
+                        <td className="px-4 py-3 font-medium text-ev-text">
+                          <span className="inline-flex items-center gap-2">
+                            <Store size={14} className="text-ev-primary shrink-0" />
+                            {admin.shop_name}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-ev-text">{admin.owner_name}</td>
+                        <td className="px-4 py-3 text-ev-muted max-w-[180px] truncate" title={admin.email}>
+                          {admin.email}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-lg ${statusColors[admin.status ?? ''] || ''}`}>
+                            {admin.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums">{st.orders}</td>
+                        <td className="px-4 py-3 text-right tabular-nums font-medium">{formatINR(st.revenue)}</td>
+                        <td className="px-4 py-3 text-ev-muted whitespace-nowrap">
+                          {admin.created_at ? new Date(admin.created_at).toLocaleDateString('en-IN') : '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1 max-w-[140px]">
+                            <input
+                              type="number"
+                              min={0}
+                              max={100}
+                              step={0.5}
+                              className="ev-input py-1.5 text-xs w-16"
+                              value={pctInput}
+                              onChange={(e) => setCommissionEdit((c) => ({ ...c, [admin.id]: e.target.value }))}
+                            />
+                            <span className="text-ev-muted text-xs">%</span>
+                            <button
+                              type="button"
+                              disabled={actionLoading === admin.id + '_comm'}
+                              onClick={() => saveCommission(admin.id)}
+                              className="text-xs font-semibold text-ev-primary hover:text-ev-primary-light whitespace-nowrap"
+                            >
+                              Save
+                            </button>
+                          </div>
+                          <p className="text-[10px] text-ev-subtle mt-1">Platform commission % of each order</p>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex flex-col sm:flex-row gap-2 justify-end items-end sm:items-center">
+                            <button
+                              type="button"
+                              onClick={() => setDetailId(detailId === admin.id ? null : admin.id)}
+                              className="text-xs font-semibold text-ev-primary inline-flex items-center gap-1"
+                            >
+                              <Eye size={12} />
+                              {detailId === admin.id ? 'Hide' : 'Details'}
+                            </button>
+                            {admin.status === 'approved' && (
+                              <button
+                                type="button"
+                                onClick={() => toggleSuspend(admin.id, admin.status ?? '')}
+                                disabled={!!actionLoading}
+                                className="text-xs font-semibold text-ev-warning inline-flex items-center gap-1"
+                              >
+                                <ShieldAlert size={12} />
+                                Suspend
+                              </button>
+                            )}
+                            {admin.status === 'suspended' && (
+                              <button
+                                type="button"
+                                onClick={() => toggleSuspend(admin.id, 'suspended')}
+                                disabled={!!actionLoading}
+                                className="text-xs font-semibold text-emerald-600 inline-flex items-center gap-1"
+                              >
+                                <CheckCircle size={12} />
+                                Reactivate
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
+
+        {detailId ? (
+          <div className="mt-6 ev-card p-5 border-ev-border text-sm space-y-2">
+            {(() => {
+              const a = admins.find((x) => x.id === detailId);
+              if (!a) return null;
+              return (
+                <>
+                  <p className="font-semibold text-ev-text">Shop details</p>
+                  <p className="text-ev-muted">
+                    <span className="text-ev-text">Phone:</span> {a.phone || '—'}
+                  </p>
+                  <p className="text-ev-muted">
+                    <span className="text-ev-text">GST:</span> {a.gst_no || '—'}
+                  </p>
+                  <p className="text-ev-muted">
+                    <span className="text-ev-text">Address:</span> {a.address || '—'}
+                  </p>
+                  <Link href="/super/settlements" className="inline-flex items-center gap-1 text-ev-primary text-sm font-semibold mt-2">
+                    <IndianRupee size={14} />
+                    View settlements
+                  </Link>
+                </>
+              );
+            })()}
+          </div>
+        ) : null}
       </main>
     </SuperadminShell>
   );
