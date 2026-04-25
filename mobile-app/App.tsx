@@ -26,6 +26,7 @@ import { openRazorpayCheckout } from './src/services/razorpay';
 
 type RootStackParamList = {
   Auth: undefined;
+  Register: { phone?: string };
   Main: undefined;
   ProductDetail: { product: Product };
   Checkout: undefined;
@@ -37,6 +38,7 @@ type MainTabsParamList = {
   Home: undefined;
   Cart: undefined;
   Orders: undefined;
+  DealerDashboard: undefined;
   Profile: undefined;
 };
 
@@ -54,6 +56,13 @@ type AppUser = {
 
 function formatINR(amount: number) {
   return `Rs. ${Number(amount || 0).toFixed(2)}`;
+}
+
+function getProductPriceForRole(product: Product, role?: string) {
+  const isDealer = role === 'dealer';
+  const preferred = isDealer ? product.price_dealer : product.price_customer;
+  const fallback = isDealer ? product.price_customer : product.price_dealer;
+  return Number(preferred ?? fallback ?? 0);
 }
 
 function asApiError(err: unknown, fallback: string) {

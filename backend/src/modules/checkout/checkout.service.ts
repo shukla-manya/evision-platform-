@@ -6,6 +6,7 @@ import { createHmac } from 'crypto';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { CartService } from '../cart/cart.service';
 import { EmailService } from '../emails/email.service';
+import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 
 @Injectable()
 export class CheckoutService {
@@ -90,6 +91,77 @@ export class CheckoutService {
       currency: 'INR',
       key_id: this.config.get<string>('RAZORPAY_KEY_ID'),
     };
+  }
+
+  private verifyClientPaymentSignature(
+    razorpayOrderId: string,
+    razorpayPaymentId: string,
+    razorpaySignature: string,
+  ): void {
+    const secret = this.config.get<string>('RAZORPAY_KEY_SECRET');
+    if (!secret) {
+      throw new BadRequestException('RAZORPAY_KEY_SECRET is not configured');
+    }
+    const expected = createHmac('sha256', secret)
+      .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+      .digest('hex');
+    if (expected !== razorpaySignature) {
+      throw new BadRequestException('Invalid Razorpay payment signature');
+    }
+  }
+
+  async confirmPayment(userId: string, dto: ConfirmPaymentDto): Promise<Record<string, unknown>> {
+    const razorpayOrderId = String(dto.razorpay_order_id || '');
+    if (!razorpayOrderId) {
+      throw new BadRequestException('razorpay_order_id is required');
+    }
+
+    const existing = await this.findOrderGroupByRazorpayOrderId(razorpayOrderId);
+    if (existing) {
+      if (String(existing.user_id || '') !== userId) {
+        throw new BadRequestException('Order does not belong to this user');
+      }
+      return { ok: true, duplicate: true, order_group_id: existing.id, status: existing.status };
+    }
+
+    if (dto.status === 'success') {
+      const paymentId = String(dto.razorpay_payment_id || '');
+      const signature = String(dto.razorpay_signature || '');
+      if (!paymentId || !signature) {
+        throw new BadRequestException(
+          'razorpay_payment_id and razorpay_signature are required for success',
+        );
+      }
+      this.verifyClientPaymentSignature(razorpayOrderId, paymentId, signature);
+      return this.handlePaymentCaptured({
+        event: 'payment.captured',
+        payload: {
+          payment: {
+            entity: {
+              id: paymentId,
+              order_id: razorpayOrderId,
+              notes: { user_id: userId },
+            },
+          },
+        },
+      });
+    }
+
+    return this.handlePaymentFailed({
+      event: 'payment.failed',
+      payload: {
+        payment: {
+          entity: {
+            id: String(dto.razorpay_payment_id || ''),
+            order_id: razorpayOrderId,
+            amount: 0,
+            currency: 'INR',
+            notes: { user_id: userId },
+            error_description: dto.failure_reason || 'Payment failed from client callback',
+          },
+        },
+      },
+    });
   }
 
   private verifyWebhookSignature(rawBody: Buffer, signature: string): void {

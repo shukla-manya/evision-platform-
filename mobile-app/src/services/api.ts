@@ -29,6 +29,16 @@ export type OtpVerifyResponse = {
   is_registered: boolean;
 };
 
+export type RegisterRequest = {
+  name: string;
+  phone: string;
+  email: string;
+  role: 'customer' | 'dealer' | 'electrician';
+  otp: string;
+  gst_no?: string;
+  address?: string;
+};
+
 export type Product = {
   id: string;
   name: string;
@@ -67,10 +77,19 @@ export type CheckoutResponse = {
   key_id: string;
 };
 
+export type CheckoutConfirmRequest = {
+  status: 'success' | 'failure';
+  razorpay_order_id: string;
+  razorpay_payment_id?: string;
+  razorpay_signature?: string;
+  failure_reason?: string;
+};
+
 export const authApi = {
   sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
   verifyOtp: (phone: string, otp: string) =>
     api.post<OtpVerifyResponse>('/auth/verify-otp', { phone, otp }),
+  register: (payload: RegisterRequest) => api.post('/auth/register', payload),
   me: () => api.get('/auth/me'),
 };
 
@@ -88,6 +107,7 @@ export const cartApi = {
 
 export const checkoutApi = {
   create: () => api.post<CheckoutResponse>('/checkout'),
+  confirm: (payload: CheckoutConfirmRequest) => api.post('/checkout/confirm', payload),
 };
 
 export const ordersApi = {
