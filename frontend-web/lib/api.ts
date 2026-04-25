@@ -80,6 +80,17 @@ export const catalogApi = {
   getProduct: (id: string) => api.get(`/products/${id}`),
 };
 
+// ── Cart / Checkout ────────────────────────────────────────────────────────
+export const cartApi = {
+  getCart: () => api.get('/cart'),
+  addItem: (product_id: string, quantity = 1) => api.post('/cart/add', { product_id, quantity }),
+  removeItem: (itemId: string) => api.delete(`/cart/${itemId}`),
+};
+
+export const checkoutApi = {
+  createOrder: () => api.post('/checkout'),
+};
+
 // ── Superadmin ─────────────────────────────────────────────────────────────
 export const superadminApi = {
   getPendingAdmins: () => api.get('/superadmin/pending-admins'),

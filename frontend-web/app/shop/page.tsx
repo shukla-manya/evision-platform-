@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Zap, Search, SlidersHorizontal, ShoppingBag, Loader2 } from 'lucide-react';
+import { Zap, Search, SlidersHorizontal, ShoppingBag, Loader2, ShoppingCart, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { catalogApi } from '@/lib/api';
+import { cartApi, catalogApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
 
 type Product = {
@@ -60,6 +60,7 @@ export default function ShopPage() {
   const [categoryId, setCategoryId] = useState('');
   const [brand, setBrand] = useState('');
   const role = typeof window !== 'undefined' ? getRole() : undefined;
+  const canAddToCart = role === 'customer' || role === 'dealer';
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -106,6 +107,12 @@ export default function ShopPage() {
             </div>
           </Link>
           <div className="flex items-center gap-2 shrink-0">
+            {canAddToCart ? (
+              <Link href="/cart" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5">
+                <ShoppingCart size={15} />
+                Cart
+              </Link>
+            ) : null}
             <Link href="/login" className="text-ev-muted hover:text-ev-text text-sm hidden sm:inline">
               Sign in
             </Link>
@@ -198,7 +205,26 @@ export default function ShopPage() {
                           <p className="text-ev-subtle text-xs mt-0.5">{p.stock > 0 ? `${p.stock} in stock` : 'Out of stock'}</p>
                         ) : null}
                       </div>
-                      <span className="text-ev-primary text-xs font-semibold whitespace-nowrap">Multi-shop</span>
+                      <div className="flex flex-col items-end gap-2">
+                        <span className="text-ev-primary text-xs font-semibold whitespace-nowrap">Multi-shop</span>
+                        {canAddToCart ? (
+                          <button
+                            type="button"
+                            className="ev-btn-secondary text-xs py-1.5 px-3 inline-flex items-center gap-1"
+                            onClick={async () => {
+                              try {
+                                await cartApi.addItem(p.id, 1);
+                                toast.success('Added to cart');
+                              } catch {
+                                toast.error('Could not add to cart');
+                              }
+                            }}
+                          >
+                            <Plus size={14} />
+                            Add
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 </article>
