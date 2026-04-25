@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Zap, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { Camera, Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
