@@ -13,6 +13,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { InvoicesModule } from './modules/invoices/invoices.module';
 import { CartModule } from './modules/cart/cart.module';
 import { CheckoutModule } from './modules/checkout/checkout.module';
+import { PushModule } from './modules/push/push.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
     DynamoModule,
     S3Module,
     EmailModule,
+    PushModule,
     AuthModule,
     AdminModule,
     SuperadminModule,

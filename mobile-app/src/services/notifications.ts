@@ -32,3 +32,9 @@ export async function setupPushNotifications(): Promise<string | null> {
     return null;
   }
 }
+
+export function subscribeToPushTokenRefresh(onRefresh: (token: string) => void) {
+  return messaging().onTokenRefresh((token) => {
+    onRefresh(token);
+  });
+}

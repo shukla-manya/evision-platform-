@@ -7,6 +7,7 @@ import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { CartService } from '../cart/cart.service';
 import { EmailService } from '../emails/email.service';
 import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
+import { PushService } from '../push/push.service';
 
 @Injectable()
 export class CheckoutService {
@@ -18,6 +19,7 @@ export class CheckoutService {
     private config: ConfigService,
     private cart: CartService,
     private email: EmailService,
+    private push: PushService,
   ) {}
 
   private orderGroupsTable() {
@@ -298,6 +300,11 @@ export class CheckoutService {
         amount: total,
       });
     }
+    await this.push.sendToToken(String(user?.fcm_token || ''), {
+      title: 'Payment Confirmed',
+      body: `Order ${groupId} is confirmed.`,
+      data: { order_group_id: groupId, type: 'payment_confirmed' },
+    });
     await Promise.all(
       Array.from(adminsToNotify.entries()).map(([adminId, info]) =>
         this.email.sendPaymentConfirmedAdmin(info.email, {
@@ -351,6 +358,11 @@ export class CheckoutService {
         reason: failureReason,
       });
     }
+    await this.push.sendToToken(String(user?.fcm_token || ''), {
+      title: 'Payment Failed',
+      body: `Payment failed for order ${groupId}.`,
+      data: { order_group_id: groupId, type: 'payment_failed' },
+    });
     this.logger.warn(`Payment failed for user ${userId}; group ${groupId} marked payment_failed`);
     return { ok: true, order_group_id: groupId, status: 'payment_failed' };
   }

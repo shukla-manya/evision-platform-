@@ -91,6 +91,7 @@ export const authApi = {
     api.post<OtpVerifyResponse>('/auth/verify-otp', { phone, otp }),
   register: (payload: RegisterRequest) => api.post('/auth/register', payload),
   me: () => api.get('/auth/me'),
+  saveDeviceToken: (fcmToken: string) => api.post('/auth/me/device-token', { fcm_token: fcmToken }),
 };
 
 export const productApi = {

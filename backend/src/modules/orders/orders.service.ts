@@ -6,6 +6,7 @@ import { EmailService } from '../emails/email.service';
 import { ShiprocketService } from './shiprocket.service';
 import { ShipOrderDto } from './dto/ship-order.dto';
 import { S3Service } from '../../common/s3/s3.service';
+import { PushService } from '../push/push.service';
 
 @Injectable()
 export class OrdersService {
@@ -14,6 +15,7 @@ export class OrdersService {
     private email: EmailService,
     private shiprocket: ShiprocketService,
     private s3: S3Service,
+    private push: PushService,
   ) {}
 
   private ordersTable() { return this.dynamo.tableName('orders'); }
@@ -140,6 +142,11 @@ export class OrdersService {
         orderGroupId: groupId,
       });
     }
+    await this.push.sendToToken(String(user?.fcm_token || ''), {
+      title: 'Order Cancelled',
+      body: `Order ${groupId} has been cancelled.`,
+      data: { order_group_id: groupId, type: 'order_cancelled' },
+    });
 
     const adminIds = [...new Set(subOrders.map((o) => String(o.admin_id)).filter(Boolean))];
     await Promise.all(
@@ -246,6 +253,11 @@ export class OrdersService {
         trackingUrl: this.shiprocket.trackingUrl(shipment.awb_number),
       });
     }
+    await this.push.sendToToken(String(user?.fcm_token || ''), {
+      title: 'Order Shipped',
+      body: `Order ${orderId} has been shipped.`,
+      data: { order_id: orderId, type: 'order_shipped' },
+    });
 
     return updated;
   }
@@ -297,6 +309,11 @@ export class OrdersService {
         courierName: String(order.courier_name || payload.courier_name || 'Courier'),
       });
     }
+    await this.push.sendToToken(String(user?.fcm_token || ''), {
+      title: 'Order Status Update',
+      body: `Order ${String(order.id)} is now ${internalStatus.replace(/_/g, ' ')}.`,
+      data: { order_id: String(order.id), type: internalStatus },
+    });
 
     if (internalStatus === 'delivered') {
       await this.generateInvoiceIfMissing(order);
