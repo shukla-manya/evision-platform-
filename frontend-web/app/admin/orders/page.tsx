@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Loader2, Truck, X, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -117,16 +117,21 @@ export default function AdminOrdersPage() {
   const [submitting, setSubmitting] = useState(false);
   const firstField = useRef<HTMLInputElement>(null);
 
-  function load() {
+  const load = useCallback(() => {
     setLoading(true);
     adminApi
       .getOrders()
       .then((r) => setRows(Array.isArray(r.data) ? (r.data as Order[]) : []))
       .catch(() => toast.error('Failed to load orders'))
       .finally(() => setLoading(false));
-  }
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      load();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [load]);
 
   function openModal(order: Order) {
     setShipTarget(order);

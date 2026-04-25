@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useMemo, useState } from 'react';
+import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Truck, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -58,7 +58,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     [order],
   );
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await adminApi.getOrder(id);
@@ -68,11 +68,14 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
 
   useEffect(() => {
-    void load();
-  }, [id]);
+    const timer = setTimeout(() => {
+      void load();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [load]);
 
   return (
     <AdminShell>
