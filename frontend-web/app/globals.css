@@ -27,33 +27,38 @@
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
 
-  --color-ev-bg: #f8fafc;
+  /* LensCart palette */
+  --color-ev-bg: #f5f0eb;
   --color-ev-surface: #ffffff;
-  --color-ev-surface2: #f1f5f9;
-  --color-ev-border: #e2e8f0;
-  --color-ev-primary: #4f46e5;
-  --color-ev-primary-light: #a78bfa;
-  --color-ev-primary-dark: #4f46e5;
-  --color-ev-accent: #ec4899;
-  --color-ev-accent-light: #fbbf24;
-  --color-ev-soft: #a78bfa;
-  --color-ev-highlight: #fbbf24;
-  --color-ev-text: #0f172a;
-  --color-ev-muted: #475569;
-  --color-ev-subtle: #94a3b8;
-  --color-ev-success: #059669;
-  --color-ev-error: #ef4444;
-  --color-ev-warning: #f59e0b;
+  --color-ev-surface2: #e8edf5;
+  --color-ev-border: #d8d2ca;
+  --color-ev-navbar: #1a1a2e;
+  --color-ev-footer: #2c2c54;
+  --color-ev-indigo: #2c2c54;
+  --color-ev-hover: #3d3d6b;
+  --color-ev-primary: #e8532a;
+  --color-ev-primary-light: #ff8c42;
+  --color-ev-primary-dark: #c73d1f;
+  --color-ev-accent: #ff8c42;
+  --color-ev-accent-light: #ffb380;
+  --color-ev-soft: #e8edf5;
+  --color-ev-highlight: #ff8c42;
+  --color-ev-text: #1a1a2e;
+  --color-ev-muted: #6c757d;
+  --color-ev-subtle: #8b949e;
+  --color-ev-success: #2ecc71;
+  --color-ev-error: #e74c3c;
+  --color-ev-warning: #ff8c42;
 
-  --background-image-gradient-ev: linear-gradient(135deg, #4f46e5 0%, #a78bfa 55%, #ec4899 100%);
-  --background-image-gradient-primary: linear-gradient(135deg, #4f46e5, #a78bfa);
-  --background-image-gradient-accent: linear-gradient(135deg, #ec4899, #fbbf24);
+  --background-image-gradient-ev: linear-gradient(135deg, #1a1a2e 0%, #2c2c54 45%, #e8532a 100%);
+  --background-image-gradient-primary: linear-gradient(135deg, #1a1a2e, #e8532a);
+  --background-image-gradient-accent: linear-gradient(135deg, #e8532a, #ff8c42);
 
-  --shadow-ev-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-ev-md: 0 8px 20px rgba(15, 23, 42, 0.1);
-  --shadow-ev-lg: 0 16px 36px rgba(15, 23, 42, 0.12);
-  --shadow-ev-glow: 0 0 20px rgba(79, 70, 229, 0.25);
-  --shadow-ev-glow-accent: 0 0 20px rgba(236, 72, 153, 0.22);
+  --shadow-ev-sm: 0 1px 2px rgba(26, 26, 46, 0.06);
+  --shadow-ev-md: 0 8px 20px rgba(26, 26, 46, 0.1);
+  --shadow-ev-lg: 0 16px 36px rgba(26, 26, 46, 0.12);
+  --shadow-ev-glow: 0 0 20px rgba(232, 83, 42, 0.28);
+  --shadow-ev-glow-accent: 0 0 20px rgba(255, 140, 66, 0.22);
 
   --animate-fade-in: fadeIn 0.3s ease-in-out;
   --animate-slide-up: slideUp 0.3s ease-out;
@@ -85,15 +90,24 @@
     @apply bg-ev-border rounded-full;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-ev-primary;
+    @apply bg-ev-hover;
   }
 
   ::selection {
-    @apply bg-ev-primary/30 text-ev-text;
+    @apply bg-ev-primary/25 text-ev-text;
   }
 }
 
 @layer components {
+  /* Deep Navy top bars (shop, cart, etc.) */
+  .ev-header {
+    @apply border-b border-white/10 bg-ev-navbar/95 text-white backdrop-blur-md sticky top-0 z-40;
+  }
+
+  .ev-footer-bar {
+    @apply border-t border-white/10 bg-ev-footer text-white/80 py-8 px-6;
+  }
+
   .ev-card {
     @apply bg-ev-surface border border-ev-border rounded-2xl;
   }
@@ -101,19 +115,19 @@
   .ev-input {
     @apply w-full bg-ev-surface2 border border-ev-border rounded-xl px-4 py-3
            text-ev-text placeholder-ev-subtle text-sm
-           focus:outline-none focus:ring-2 focus:ring-ev-primary/50 focus:border-ev-primary
+           focus:outline-none focus:ring-2 focus:ring-ev-primary/40 focus:border-ev-primary
            transition-all duration-200;
   }
 
   .ev-btn-primary {
     @apply bg-ev-primary text-white font-semibold px-6 py-3 rounded-xl
-           hover:opacity-90 active:scale-95 transition-all duration-150
+           hover:brightness-110 active:scale-95 transition-all duration-150
            disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
   }
 
   .ev-btn-secondary {
-    @apply bg-ev-surface border border-ev-border text-ev-text font-medium px-6 py-3 rounded-xl
-           hover:border-ev-primary hover:text-ev-primary transition-all duration-150;
+    @apply bg-ev-indigo text-white border border-ev-indigo font-medium px-6 py-3 rounded-xl
+           hover:bg-ev-hover hover:border-ev-hover transition-all duration-150;
   }
 
   .ev-badge {
@@ -129,7 +143,7 @@
   }
 
   .ev-status-pending {
-    @apply bg-ev-warning/10 text-ev-warning border border-ev-warning/25;
+    @apply bg-ev-warning/15 text-ev-text border border-ev-warning/35;
   }
 
   .ev-status-error {
@@ -142,5 +156,26 @@
 
   .gradient-text {
     @apply bg-linear-to-r from-ev-primary to-ev-primary-light bg-clip-text text-transparent;
+  }
+
+  /* Dark sidebar (admin / superadmin) */
+  .ev-sidebar {
+    @apply bg-ev-navbar text-white border-r border-white/10;
+  }
+
+  .ev-sidebar-link {
+    @apply text-white/70 hover:text-white hover:bg-white/5;
+  }
+
+  .ev-sidebar-link-active {
+    @apply bg-white/10 text-white border border-ev-primary/35;
+  }
+
+  .ev-sidebar-muted {
+    @apply text-white/50;
+  }
+
+  .ev-sidebar-border {
+    @apply border-white/10;
   }
 }

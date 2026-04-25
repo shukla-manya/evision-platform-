@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: 'E Vision — Multi-Shop Platform',
-  description: 'E Vision Pvt. Ltd. — Multi-Shop E-Commerce & Electrician Service Platform, Faridabad',
+  title: 'LensCart — Camera & Gear Marketplace',
+  description: 'LensCart — A warm, trustworthy marketplace for cameras and gear.',
   icons: { icon: '/favicon.ico' },
 };
 
@@ -23,13 +23,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             duration: 4000,
             style: {
               background: '#ffffff',
-              color: '#0f172a',
-              border: '1px solid #e2e8f0',
+              color: '#1a1a2e',
+              border: '1px solid #d8d2ca',
               borderRadius: '12px',
               fontSize: '14px',
             },
-            success: { iconTheme: { primary: '#059669', secondary: '#ffffff' } },
-            error: { iconTheme: { primary: '#ef4444', secondary: '#ffffff' } },
+            success: { iconTheme: { primary: '#2ecc71', secondary: '#ffffff' } },
+            error: { iconTheme: { primary: '#e74c3c', secondary: '#ffffff' } },
           }}
         />
       </body>
