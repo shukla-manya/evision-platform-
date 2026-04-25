@@ -3,12 +3,14 @@ import {
   Alert,
   FlatList,
   Pressable,
+  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
   View,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
@@ -52,9 +54,7 @@ function HomeScreen({ navigation }: any) {
     }
   }, []);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
 
   const updateAvailability = async (value: boolean) => {
     try {
@@ -183,9 +183,9 @@ function ActiveJobScreen({ navigation, token }: { navigation: any; token: string
   useEffect(() => {
     if (!selectedJob || jobStatus !== 'on_the_way') return;
     const socket = createTrackingSocket(token);
-    socket.emit('join_room', { booking_id: selectedJob.id });
-
     let isCancelled = false;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
     const sendLocation = async () => {
       const permission = await Location.requestForegroundPermissionsAsync();
       if (permission.status !== 'granted') return;
@@ -197,14 +197,16 @@ function ActiveJobScreen({ navigation, token }: { navigation: any; token: string
         lng: loc.coords.longitude,
       });
     };
-    void sendLocation();
-    const timer = setInterval(() => {
+
+    socket.on('connect', () => {
+      socket.emit('join_room', { booking_id: selectedJob.id });
       void sendLocation();
-    }, 5000);
+      timer = setInterval(() => void sendLocation(), 5000);
+    });
 
     return () => {
       isCancelled = true;
-      clearInterval(timer);
+      if (timer) clearInterval(timer);
       socket.disconnect();
     };
   }, [selectedJob, jobStatus, token]);

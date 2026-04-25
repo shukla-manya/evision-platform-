@@ -9,9 +9,7 @@ function socketUrl() {
 
 // Called by ServiceTrackingScreen for a one-off connection
 export function createTrackingSocket(token: string): Socket {
-  const s = io(socketUrl(), { transports: ['websocket'], auth: { token } });
-  s.on('connect', () => s.emit('join_room', { booking_id: (s as any).__bookingId }));
-  return s;
+  return io(socketUrl(), { transports: ['websocket'], auth: { token } });
 }
 
 export function connectSocket(token: string): Socket {
