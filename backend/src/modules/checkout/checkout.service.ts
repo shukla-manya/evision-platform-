@@ -8,6 +8,7 @@ import { CartService } from '../cart/cart.service';
 import { EmailService } from '../emails/email.service';
 import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
 import { PushService } from '../push/push.service';
+import { ElectricianService } from '../electrician/electrician.service';
 
 @Injectable()
 export class CheckoutService {
@@ -20,6 +21,7 @@ export class CheckoutService {
     private cart: CartService,
     private email: EmailService,
     private push: PushService,
+    private electricians: ElectricianService,
   ) {}
 
   private orderGroupsTable() {
@@ -200,6 +202,74 @@ export class CheckoutService {
     return groups[0] || null;
   }
 
+  private extractLatLngFromUser(user: Record<string, unknown> | null): { lat: number; lng: number } | null {
+    if (!user) return null;
+    const fromRootLat = Number(user.lat);
+    const fromRootLng = Number(user.lng);
+    if (!Number.isNaN(fromRootLat) && !Number.isNaN(fromRootLng)) {
+      return { lat: fromRootLat, lng: fromRootLng };
+    }
+
+    const addressBook = Array.isArray(user.address_book)
+      ? (user.address_book as Record<string, unknown>[])
+      : [];
+    const primary = addressBook.find((a) => Boolean(a.is_default)) || addressBook[0];
+    const lat = Number(primary?.lat);
+    const lng = Number(primary?.lng);
+    if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+      return { lat, lng };
+    }
+    return null;
+  }
+
+  private summarizeProductForAlert(cartItems: Record<string, unknown>[]): string {
+    const names = Array.from(
+      new Set(
+        cartItems
+          .map((it) => String(it.product_name || '').trim())
+          .filter(Boolean),
+      ),
+    );
+    if (!names.length) return 'product';
+    if (names.length === 1) return names[0];
+    return `${names[0]} (+${names.length - 1} more)`;
+  }
+
+  private async notifyNearbyElectriciansAboutOrder(
+    params: { lat: number; lng: number; productName: string },
+  ): Promise<void> {
+    const nearby = await this.electricians.findNearbyApprovedAvailable(
+      params.lat,
+      params.lng,
+      10,
+    );
+    if (!nearby.length) return;
+    await Promise.all(
+      nearby.map(async (electrician) => {
+        const electricianName = String(electrician.name || 'Electrician');
+        const distanceKm = Number(electrician.distance_km || 0);
+        await Promise.all([
+          this.push.sendToToken(String(electrician.fcm_token || ''), {
+            title: `New ${params.productName} ordered near you`,
+            body: `A new order was placed within ${distanceKm.toFixed(2)} km of your location.`,
+            data: {
+              type: 'nearby_order_awareness',
+              product_name: params.productName,
+              distance_km: String(distanceKm),
+            },
+          }),
+          electrician.email
+            ? this.email.sendNearbyOrderAlertToElectrician(String(electrician.email), {
+                electricianName,
+                productName: params.productName,
+                distanceKm,
+              })
+            : Promise.resolve(),
+        ]);
+      }),
+    );
+  }
+
   private async handlePaymentCaptured(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
     const payment = (((payload.payload as Record<string, unknown>)?.payment as Record<string, unknown>)?.entity ||
       {}) as Record<string, unknown>;
@@ -314,6 +384,22 @@ export class CheckoutService {
         }),
       ),
     );
+
+    const deliveryPoint = this.extractLatLngFromUser(
+      (user as Record<string, unknown> | null) || null,
+    );
+    if (deliveryPoint) {
+      const productName = this.summarizeProductForAlert(
+        cartItems as Record<string, unknown>[],
+      );
+      void this.notifyNearbyElectriciansAboutOrder({
+        lat: deliveryPoint.lat,
+        lng: deliveryPoint.lng,
+        productName,
+      }).catch((err) => {
+        this.logger.warn(`Nearby electrician awareness failed: ${err?.message || err}`);
+      });
+    }
 
     await this.cart.clear(userId);
     this.logger.log(`Payment captured; order group ${groupId} created for user ${userId}`);

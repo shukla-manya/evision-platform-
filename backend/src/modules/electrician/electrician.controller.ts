@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Post,
+  Query,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -11,6 +13,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { S3Service } from '../../common/s3/s3.service';
@@ -19,12 +22,32 @@ import { RegisterElectricianDto } from './dto/register-electrician.dto';
 import { ElectricianService } from './electrician.service';
 
 @ApiTags('Electrician')
-@Controller('electrician')
+@Controller(['electrician', 'electricians'])
 export class ElectricianController {
   constructor(
     private electrician: ElectricianService,
     private s3: S3Service,
   ) {}
+
+  @Public()
+  @Get('nearby')
+  @ApiQuery({ name: 'lat', required: true, example: '28.4089' })
+  @ApiQuery({ name: 'lng', required: true, example: '77.3178' })
+  @ApiOperation({
+    summary:
+      'Find approved & available electricians within 10km sorted by rating_avg desc',
+  })
+  nearby(
+    @Query('lat') latRaw: string,
+    @Query('lng') lngRaw: string,
+  ) {
+    const lat = Number(latRaw);
+    const lng = Number(lngRaw);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      throw new BadRequestException('lat and lng query params are required');
+    }
+    return this.electrician.findNearbyApprovedAvailable(lat, lng, 10);
+  }
 
   @Public()
   @Post('register')

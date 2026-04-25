@@ -41,6 +41,22 @@ export class ElectricianService {
     return raw.split(',').map((s) => s.trim()).filter(Boolean);
   }
 
+  private haversineKm(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number,
+  ): number {
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return 6371 * c;
+  }
+
   async findByEmail(email: string): Promise<Record<string, unknown> | null> {
     const items = await this.dynamo.query({
       TableName: this.table(),
@@ -150,5 +166,41 @@ export class ElectricianService {
       reason: reason || 'Application did not meet verification requirements',
     });
     return { message: 'Electrician rejected', electrician_id: id, status: 'rejected' };
+  }
+
+  async findNearbyApprovedAvailable(
+    lat: number,
+    lng: number,
+    radiusKm = 10,
+  ): Promise<Record<string, unknown>[]> {
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      throw new BadRequestException('lat and lng must be valid numbers');
+    }
+    const approved = await this.dynamo.query({
+      TableName: this.table(),
+      IndexName: 'StatusIndex',
+      KeyConditionExpression: '#s = :status',
+      ExpressionAttributeNames: { '#s': 'status' },
+      ExpressionAttributeValues: { ':status': 'approved' },
+    });
+
+    const nearby = approved
+      .filter((e) => Boolean(e.available))
+      .map((e) => {
+        const eLat = Number(e.lat);
+        const eLng = Number(e.lng);
+        if (Number.isNaN(eLat) || Number.isNaN(eLng)) return null;
+        const distance = this.haversineKm(lat, lng, eLat, eLng);
+        if (distance > radiusKm) return null;
+        const { password_hash, ...safe } = e;
+        return {
+          ...safe,
+          distance_km: Number(distance.toFixed(2)),
+        };
+      })
+      .filter(Boolean) as Record<string, unknown>[];
+
+    nearby.sort((a, b) => Number(b.rating_avg || 0) - Number(a.rating_avg || 0));
+    return nearby;
   }
 }

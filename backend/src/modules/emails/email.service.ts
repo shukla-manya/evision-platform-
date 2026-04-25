@@ -187,6 +187,24 @@ export class EmailService {
     });
   }
 
+  async sendNearbyOrderAlertToElectrician(
+    electricianEmail: string,
+    data: { electricianName: string; productName: string; distanceKm: number },
+  ) {
+    const html = this.interpolate(this.loadTemplate('electrician-nearby-order-alert'), {
+      electrician_name: data.electricianName,
+      product_name: data.productName,
+      distance_km: String(data.distanceKm.toFixed(2)),
+    });
+    await this.send({
+      to: electricianEmail,
+      to_role: 'electrician',
+      subject: `New ${data.productName} order near you`,
+      html,
+      trigger_event: 'electrician_nearby_order_alert',
+    });
+  }
+
   async sendPaymentConfirmedCustomer(
     customerEmail: string,
     data: { customerName: string; orderGroupId: string; amount: number },
