@@ -131,6 +131,12 @@ export default function TechnicianRegistrationsPage() {
                   <div className="border-t border-ev-border p-5 bg-ev-surface2 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
+                        <span className="text-ev-muted block text-xs">Date registered</span>
+                        <span className="text-ev-text">
+                          {row.created_at ? new Date(row.created_at).toLocaleString('en-IN') : '—'}
+                        </span>
+                      </div>
+                      <div>
                         <span className="text-ev-muted block text-xs">Phone</span>
                         <span className="text-ev-text">{row.phone || '—'}</span>
                       </div>
