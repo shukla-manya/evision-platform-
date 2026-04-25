@@ -209,6 +209,7 @@ const TABLES = [
     AttributeDefinitions: [
       { AttributeName: 'id',      AttributeType: 'S' },
       { AttributeName: 'phone',   AttributeType: 'S' },
+      { AttributeName: 'email',   AttributeType: 'S' },
       { AttributeName: 'status',  AttributeType: 'S' },
       { AttributeName: 'user_id', AttributeType: 'S' },
     ],
@@ -216,6 +217,11 @@ const TABLES = [
       {
         IndexName: 'PhoneIndex',
         KeySchema: [{ AttributeName: 'phone', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'EmailIndex',
+        KeySchema: [{ AttributeName: 'email', KeyType: 'HASH' }],
         Projection: { ProjectionType: 'ALL' },
       },
       {
