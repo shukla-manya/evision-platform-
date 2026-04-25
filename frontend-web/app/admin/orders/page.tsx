@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Loader2 } from 'lucide-react';
+import { ShoppingCart, Loader2, Truck, X, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { AdminShell } from '@/components/admin/AdminShell';
@@ -19,38 +19,103 @@ type Order = {
   courier_name?: string | null;
   tracking_url?: string | null;
   shipped_at?: string;
+  picked_up_at?: string;
+  in_transit_at?: string;
+  out_for_delivery_at?: string;
+  delivered_at?: string;
   created_at?: string;
 };
 
-const statusColors: Record<string, string> = {
-  pending: 'bg-ev-warning/10 text-ev-warning border-ev-warning/20',
-  confirmed: 'bg-ev-primary/10 text-ev-primary border-ev-primary/20',
-  payment_confirmed: 'bg-ev-primary/10 text-ev-primary border-ev-primary/20',
-  order_received: 'bg-ev-primary/10 text-ev-primary border-ev-primary/20',
-  shipped: 'bg-ev-accent/10 text-ev-accent border-ev-accent/20',
-  shipment_created: 'bg-ev-accent/10 text-ev-accent border-ev-accent/20',
-  picked_up: 'bg-ev-accent/10 text-ev-accent border-ev-accent/20',
-  in_transit: 'bg-ev-primary/10 text-ev-primary border-ev-primary/20',
-  out_for_delivery: 'bg-ev-primary/10 text-ev-primary border-ev-primary/20',
-  delivered: 'bg-ev-success/10 text-ev-success border-ev-success/20',
-  cancelled: 'bg-ev-error/10 text-ev-error border-ev-error/20',
-  order_cancelled: 'bg-ev-error/10 text-ev-error border-ev-error/20',
+type ShipForm = {
+  delivery_name: string;
+  delivery_phone: string;
+  delivery_address: string;
+  delivery_city: string;
+  delivery_state: string;
+  delivery_pincode: string;
+  weight: string;
 };
 
-function fmt(iso?: string) {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleString('en-IN', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
+const EMPTY_FORM: ShipForm = {
+  delivery_name: '',
+  delivery_phone: '',
+  delivery_address: '',
+  delivery_city: '',
+  delivery_state: '',
+  delivery_pincode: '',
+  weight: '',
+};
+
+const STATUS_COLOR: Record<string, string> = {
+  payment_confirmed: 'bg-ev-primary/10 text-ev-primary border-ev-primary/20',
+  order_received: 'bg-ev-primary/10 text-ev-primary border-ev-primary/20',
+  confirmed: 'bg-ev-primary/10 text-ev-primary border-ev-primary/20',
+  pending: 'bg-ev-warning/10 text-ev-warning border-ev-warning/20',
+  shipment_created: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  picked_up: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  in_transit: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+  out_for_delivery: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  delivered: 'bg-ev-success/10 text-ev-success border-ev-success/20',
+  order_cancelled: 'bg-ev-error/10 text-ev-error border-ev-error/20',
+  payment_failed: 'bg-ev-error/10 text-ev-error border-ev-error/20',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  payment_confirmed: 'Payment confirmed',
+  order_received: 'Order received',
+  shipment_created: 'Shipped',
+  picked_up: 'Picked up',
+  in_transit: 'In transit',
+  out_for_delivery: 'Out for delivery',
+  delivered: 'Delivered',
+  order_cancelled: 'Cancelled',
+  payment_failed: 'Payment failed',
+};
+
+const SHIPPABLE = new Set(['order_received', 'payment_confirmed', 'confirmed', 'pending']);
+
+const DELIVERY_STEPS = [
+  { key: 'shipment_created', label: 'Shipped', timestamp: 'shipped_at' },
+  { key: 'picked_up', label: 'Picked up', timestamp: 'picked_up_at' },
+  { key: 'in_transit', label: 'In transit', timestamp: 'in_transit_at' },
+  { key: 'out_for_delivery', label: 'Out for delivery', timestamp: 'out_for_delivery_at' },
+  { key: 'delivered', label: 'Delivered', timestamp: 'delivered_at' },
+];
+
+function fmt(iso?: string | null) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-const shippableStatuses = new Set(['order_received', 'payment_confirmed', 'confirmed', 'pending']);
+function DeliveryTimeline({ order }: { order: Order }) {
+  const statusOrder = DELIVERY_STEPS.map((s) => s.key);
+  const currentIdx = statusOrder.indexOf(String(order.status || ''));
+  if (currentIdx === -1) return null;
+
+  return (
+    <div className="mt-3 space-y-1.5">
+      {DELIVERY_STEPS.map((step, idx) => {
+        const done = idx <= currentIdx;
+        const ts = fmt(order[step.timestamp as keyof Order] as string | undefined);
+        return (
+          <div key={step.key} className="flex items-center gap-2 text-xs">
+            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${done ? 'bg-ev-primary' : 'bg-ev-border'}`} />
+            <span className={done ? 'text-ev-text' : 'text-ev-muted'}>{step.label}</span>
+            {ts && <span className="text-ev-subtle ml-auto">{ts}</span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function AdminOrdersPage() {
   const [rows, setRows] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [shippingId, setShippingId] = useState<string | null>(null);
+  const [shipTarget, setShipTarget] = useState<Order | null>(null);
+  const [form, setForm] = useState<ShipForm>(EMPTY_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const firstField = useRef<HTMLInputElement>(null);
 
   function load() {
     setLoading(true);
@@ -61,20 +126,70 @@ export default function AdminOrdersPage() {
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
+
+  function openModal(order: Order) {
+    setShipTarget(order);
+    setForm(EMPTY_FORM);
+    setTimeout(() => firstField.current?.focus(), 80);
+  }
+
+  function closeModal() {
+    if (submitting) return;
+    setShipTarget(null);
+  }
+
+  async function submitShip(e: React.FormEvent) {
+    e.preventDefault();
+    if (!shipTarget) return;
+    setSubmitting(true);
+    try {
+      const body: Record<string, unknown> = {
+        delivery_name: form.delivery_name,
+        delivery_phone: form.delivery_phone,
+        delivery_address: form.delivery_address,
+        delivery_city: form.delivery_city,
+        delivery_state: form.delivery_state,
+        delivery_pincode: form.delivery_pincode,
+      };
+      if (form.weight) body.weight = parseFloat(form.weight);
+      await adminApi.shipOrder(shipTarget.id, body);
+      toast.success('Shipment created — AWB assigned');
+      setShipTarget(null);
+      load();
+    } catch {
+      toast.error('Could not create shipment. Check Shiprocket credentials and try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function field(label: string, key: keyof ShipForm, placeholder: string, opts?: { required?: boolean; type?: string }) {
+    return (
+      <div>
+        <label className="block text-ev-muted text-xs mb-1">{label}{opts?.required !== false ? ' *' : ''}</label>
+        <input
+          ref={key === 'delivery_name' ? firstField : undefined}
+          type={opts?.type ?? 'text'}
+          value={form[key]}
+          onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+          placeholder={placeholder}
+          required={opts?.required !== false}
+          className="w-full bg-ev-surface2 border border-ev-border rounded-lg px-3 py-2 text-ev-text text-sm focus:outline-none focus:border-ev-primary"
+        />
+      </div>
+    );
+  }
 
   return (
     <AdminShell>
       <main className="p-6 sm:p-10">
         <h1 className="text-2xl font-bold text-ev-text mb-1">Orders</h1>
-        <p className="text-ev-muted text-sm mb-8">Orders placed with your shop only</p>
+        <p className="text-ev-muted text-sm mb-8">Orders placed with your shop. Ship directly via Shiprocket.</p>
 
         {loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-16">
-            <Loader2 className="animate-spin text-ev-primary" size={22} />
-            Loading…
+            <Loader2 className="animate-spin text-ev-primary" size={22} /> Loading…
           </div>
         ) : rows.length === 0 ? (
           <div className="ev-card p-12 text-center text-ev-muted">
@@ -87,81 +202,67 @@ export default function AdminOrdersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-ev-border text-left">
-                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide">Order ID</th>
-                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide">Status</th>
-                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">Total (₹)</th>
-                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">Items</th>
-                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">Shipment</th>
-                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">Placed</th>
-                  <th className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">Action</th>
+                  {['Order ID', 'Status', 'Total (₹)', 'Shipment & tracking', 'Placed', 'Action'].map((h) => (
+                    <th key={h} className="px-4 py-3 text-ev-muted text-xs font-medium uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-ev-border">
                 {rows.map((row) => (
                   <tr key={row.id} className="hover:bg-ev-surface2/80 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs text-ev-muted max-w-[180px] truncate">
-                      <Link href={`/admin/orders/${row.id}`} className="hover:text-ev-primary underline-offset-2 hover:underline">
-                        {row.id}
+                    {/* Order ID */}
+                    <td className="px-4 py-3 font-mono text-xs text-ev-muted max-w-[160px]">
+                      <Link href={`/admin/orders/${row.id}`} className="hover:text-ev-primary hover:underline truncate block">
+                        {row.id.slice(0, 8)}…
                       </Link>
                     </td>
+
+                    {/* Status badge */}
                     <td className="px-4 py-3">
-                      <span className={`ev-badge border text-[11px] font-semibold uppercase tracking-wide ${statusColors[row.status ?? ''] ?? 'bg-ev-subtle/20 text-ev-muted border-ev-border'}`}>
-                        {row.status ?? '—'}
+                      <span className={`ev-badge border text-[11px] font-semibold uppercase tracking-wide ${STATUS_COLOR[row.status ?? ''] ?? 'bg-ev-subtle/20 text-ev-muted border-ev-border'}`}>
+                        {STATUS_LABEL[row.status ?? ''] ?? row.status ?? '—'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-ev-text font-semibold">
-                      {row.total_amount != null
-                        ? `₹${Number(row.total_amount).toLocaleString('en-IN')}`
-                        : row.total != null
-                          ? `₹${Number(row.total).toLocaleString('en-IN')}`
-                          : '—'}
+
+                    {/* Total */}
+                    <td className="px-4 py-3 text-ev-text font-semibold whitespace-nowrap">
+                      {row.total_amount != null ? `₹${Number(row.total_amount).toLocaleString('en-IN')}` : '—'}
                     </td>
-                    <td className="px-4 py-3 text-ev-muted">
-                      {row.items_count ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 text-ev-muted whitespace-nowrap text-xs">
+
+                    {/* Shipment + delivery timeline */}
+                    <td className="px-4 py-3 min-w-[200px]">
                       {row.awb_number ? (
-                        <div className="space-y-0.5">
-                          <p className="text-ev-text font-mono">{row.awb_number}</p>
-                          <p>{row.courier_name || 'Shiprocket'}</p>
-                          {row.tracking_url ? (
-                            <a
-                              href={row.tracking_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-ev-primary hover:underline"
-                            >
-                              Track
+                        <div>
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <Package size={12} className="text-ev-primary flex-shrink-0" />
+                            <span className="text-ev-text font-mono font-semibold">{row.awb_number}</span>
+                          </div>
+                          <p className="text-ev-muted text-xs mt-0.5">{row.courier_name || 'Shiprocket'}</p>
+                          {row.tracking_url && (
+                            <a href={row.tracking_url} target="_blank" rel="noreferrer"
+                              className="text-ev-primary text-xs hover:underline mt-0.5 inline-block">
+                              Track shipment →
                             </a>
-                          ) : null}
+                          )}
+                          <DeliveryTimeline order={row} />
                         </div>
                       ) : (
-                        '—'
+                        <span className="text-ev-subtle text-xs">Not shipped</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-ev-muted whitespace-nowrap text-xs">
-                      {fmt(row.created_at)}
-                    </td>
+
+                    {/* Placed */}
+                    <td className="px-4 py-3 text-ev-muted whitespace-nowrap text-xs">{fmt(row.created_at) ?? '—'}</td>
+
+                    {/* Action */}
                     <td className="px-4 py-3 whitespace-nowrap">
-                      {shippableStatuses.has(String(row.status || '').toLowerCase()) ? (
+                      {SHIPPABLE.has(String(row.status || '')) ? (
                         <button
                           type="button"
-                          disabled={shippingId === row.id}
-                          onClick={async () => {
-                            setShippingId(row.id);
-                            try {
-                              await adminApi.shipOrder(row.id);
-                              toast.success('Shipment created');
-                              load();
-                            } catch {
-                              toast.error('Could not create shipment');
-                            } finally {
-                              setShippingId(null);
-                            }
-                          }}
-                          className="ev-btn-secondary py-1.5 px-3 text-xs"
+                          onClick={() => openModal(row)}
+                          className="ev-btn-secondary py-1.5 px-3 text-xs inline-flex items-center gap-1.5"
                         >
-                          {shippingId === row.id ? 'Shipping…' : 'Ship'}
+                          <Truck size={13} /> Generate shipment
                         </button>
                       ) : (
                         <span className="text-ev-subtle text-xs">—</span>
@@ -174,6 +275,63 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </main>
+
+      {/* ── Ship modal ────────────────────────────────────────────────────── */}
+      {shipTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="ev-card w-full max-w-lg overflow-hidden">
+            {/* Modal header */}
+            <div className="flex items-center justify-between p-5 border-b border-ev-border">
+              <div>
+                <h2 className="text-ev-text font-bold text-base">Generate shipment</h2>
+                <p className="text-ev-muted text-xs mt-0.5">Order {shipTarget.id.slice(0, 8)}… · via Shiprocket</p>
+              </div>
+              <button type="button" onClick={closeModal} className="text-ev-muted hover:text-ev-text p-1 rounded-lg hover:bg-ev-surface2">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => void submitShip(e)} className="p-5 space-y-4">
+              <p className="text-ev-muted text-xs">Enter the customer's delivery address to book this shipment on Shiprocket. The AWB number and courier will be saved automatically.</p>
+
+              {/* 2-col row */}
+              <div className="grid grid-cols-2 gap-3">
+                {field('Recipient name', 'delivery_name', 'Full name')}
+                {field('Phone', 'delivery_phone', '10-digit mobile')}
+              </div>
+
+              {field('Street address', 'delivery_address', 'Door / building / street')}
+
+              <div className="grid grid-cols-3 gap-3">
+                {field('City', 'delivery_city', 'City')}
+                {field('State', 'delivery_state', 'State')}
+                {field('Pincode', 'delivery_pincode', '6-digit PIN')}
+              </div>
+
+              {field('Weight (kg)', 'weight', '0.5', { required: false, type: 'number' })}
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  disabled={submitting}
+                  className="flex-1 ev-btn-secondary py-2.5 text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 ev-btn-primary py-2.5 text-sm flex items-center justify-center gap-2"
+                >
+                  {submitting ? <Loader2 size={15} className="animate-spin" /> : <Truck size={15} />}
+                  {submitting ? 'Creating shipment…' : 'Create shipment'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </AdminShell>
   );
 }
