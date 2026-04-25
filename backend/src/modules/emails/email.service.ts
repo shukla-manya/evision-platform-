@@ -205,6 +205,92 @@ export class EmailService {
     });
   }
 
+  async sendServiceBookingRequestToElectrician(
+    electricianEmail: string,
+    data: { electricianName: string; issue: string; expiresAt: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('service-booking-request-electrician'), {
+      electrician_name: data.electricianName,
+      issue: data.issue,
+      expires_at: data.expiresAt,
+    });
+    await this.send({
+      to: electricianEmail,
+      to_role: 'electrician',
+      subject: 'New service booking request',
+      html,
+      trigger_event: 'service_booking_request',
+    });
+  }
+
+  async sendClientBookingPending(
+    customerEmail: string,
+    data: { customerName: string; electricianName: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('service-booking-pending-client'), {
+      customer_name: data.customerName,
+      electrician_name: data.electricianName,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: 'Service booking request sent',
+      html,
+      trigger_event: 'service_booking_pending',
+    });
+  }
+
+  async sendClientBookingAccepted(
+    customerEmail: string,
+    data: { customerName: string; electricianName: string; electricianPhone: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('service-booking-accepted-client'), {
+      customer_name: data.customerName,
+      electrician_name: data.electricianName,
+      electrician_phone: data.electricianPhone,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: 'Service booking confirmed',
+      html,
+      trigger_event: 'service_booking_accepted',
+    });
+  }
+
+  async sendClientBookingDeclined(
+    customerEmail: string,
+    data: { customerName: string; electricianName: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('service-booking-declined-client'), {
+      customer_name: data.customerName,
+      electrician_name: data.electricianName,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: 'Electrician declined your booking',
+      html,
+      trigger_event: 'service_booking_declined',
+    });
+  }
+
+  async sendClientBookingExpired(
+    customerEmail: string,
+    data: { customerName: string },
+  ) {
+    const html = this.interpolate(this.loadTemplate('service-booking-expired-client'), {
+      customer_name: data.customerName,
+    });
+    await this.send({
+      to: customerEmail,
+      to_role: 'customer',
+      subject: 'Service booking expired',
+      html,
+      trigger_event: 'service_booking_expired',
+    });
+  }
+
   async sendPaymentConfirmedCustomer(
     customerEmail: string,
     data: { customerName: string; orderGroupId: string; amount: number },

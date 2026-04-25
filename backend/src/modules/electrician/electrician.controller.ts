@@ -3,23 +3,33 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
+  Put,
   Query,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
   ApiBody,
+  ApiBearerAuth,
   ApiConsumes,
   ApiOperation,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
 import { S3Service } from '../../common/s3/s3.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { RegisterElectricianDto } from './dto/register-electrician.dto';
 import { ElectricianService } from './electrician.service';
+import { ServiceService } from '../service/service.service';
+import { RespondBookingDto } from '../service/dto/respond-booking.dto';
 
 @ApiTags('Electrician')
 @Controller(['electrician', 'electricians'])
@@ -27,6 +37,7 @@ export class ElectricianController {
   constructor(
     private electrician: ElectricianService,
     private s3: S3Service,
+    private service: ServiceService,
   ) {}
 
   @Public()
@@ -110,5 +121,18 @@ export class ElectricianController {
       aadhar_url: aadharUrl,
       photo_url: photoUrl,
     });
+  }
+
+  @Put('booking/:id/respond')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Electrician accepts or declines a pending booking' })
+  respondToBooking(
+    @CurrentUser() user: { id: string },
+    @Param('id') bookingId: string,
+    @Body() dto: RespondBookingDto,
+  ) {
+    return this.service.respondToBooking(user.id, bookingId, dto);
   }
 }

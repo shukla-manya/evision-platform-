@@ -11,7 +11,6 @@ import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { S3Service } from '../../common/s3/s3.service';
 import { EmailService } from '../emails/email.service';
 import { PushService } from '../push/push.service';
-import { ElectricianService } from '../electrician/electrician.service';
 import { CreateServiceRequestDto } from './dto/create-service-request.dto';
 import { BookServiceDto } from './dto/book-service.dto';
 import { RespondBookingDto } from './dto/respond-booking.dto';
@@ -26,7 +25,6 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
     private s3: S3Service,
     private email: EmailService,
     private push: PushService,
-    private electricians: ElectricianService,
   ) {}
 
   onModuleInit() {
