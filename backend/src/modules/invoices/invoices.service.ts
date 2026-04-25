@@ -54,14 +54,13 @@ export class InvoicesService {
    * uploads to S3, emails customer. Idempotent — returns existing record if PDFs already generated.
    */
   async generateWithPdf(orderId: string): Promise<Record<string, unknown>> {
-    // Idempotency: return early if already fully generated
     const existing = await this.dynamo.queryOne({
       TableName: this.invoicesTable(),
       IndexName: 'OrderIndex',
       KeyConditionExpression: 'order_id = :oid',
       ExpressionAttributeValues: { ':oid': orderId },
     });
-    if (existing?.pdf_url_customer) return existing as Record<string, unknown>;
+    if (existing?.customer_invoice_url) return existing as Record<string, unknown>;
 
     const order = await this.dynamo.get(this.ordersTable(), { id: orderId });
     if (!order) throw new NotFoundException(`Order ${orderId} not found`);
@@ -109,8 +108,8 @@ export class InvoicesService {
       shop_name: String(admin?.shop_name || 'E Vision Shop'),
       shop_owner: String(admin?.owner_name || ''),
       shop_email: String(admin?.email || ''),
-      shop_gstin: String(admin?.gstin || ''),
-      buyer_gstin: String(user?.gstin || ''),
+      shop_gstin: String(admin?.gstin || admin?.gst_no || ''),
+      buyer_gstin: String(user?.gstin || user?.gst_no || ''),
       items: items.map((item) => ({
         product_name: String(item.product_name || 'Product'),
         quantity: Number(item.quantity || 1),
@@ -122,42 +121,49 @@ export class InvoicesService {
 
     const isDealer = String(user?.role || '') === 'dealer';
 
-    // Generate all applicable PDF variants in parallel
-    const [customerPdfBuf, dealerPdfBuf, gstPdfBuf] = await Promise.all([
+    const [customerBuf, dealerBuf, gstBuf] = await Promise.all([
       this.pdf.generateCustomerInvoice(renderData),
       isDealer ? this.pdf.generateDealerInvoice(renderData) : Promise.resolve(null as Buffer | null),
       isDealer ? this.pdf.generateGstInvoice(renderData) : Promise.resolve(null as Buffer | null),
     ]);
 
-    // Upload to S3 in parallel
-    const folder = 'invoices';
     const [customerUrl, dealerUrl, gstUrl] = await Promise.all([
-      this.s3.upload(customerPdfBuf, 'application/pdf', folder),
-      dealerPdfBuf ? this.s3.upload(dealerPdfBuf, 'application/pdf', folder) : Promise.resolve(null as string | null),
-      gstPdfBuf ? this.s3.upload(gstPdfBuf, 'application/pdf', folder) : Promise.resolve(null as string | null),
+      this.s3.upload(customerBuf, 'application/pdf', 'invoices'),
+      dealerBuf ? this.s3.upload(dealerBuf, 'application/pdf', 'invoices') : Promise.resolve(null as string | null),
+      gstBuf ? this.s3.upload(gstBuf, 'application/pdf', 'invoices') : Promise.resolve(null as string | null),
     ]);
 
-    // Persist PDF URLs
-    const pdfFields: Record<string, unknown> = { pdf_url_customer: customerUrl, updated_at: now };
-    if (dealerUrl) pdfFields.pdf_url_dealer = dealerUrl;
-    if (gstUrl) pdfFields.pdf_url_gst = gstUrl;
-    await this.dynamo.update(this.invoicesTable(), { id: invoiceId }, pdfFields);
+    await this.dynamo.update(this.invoicesTable(), { id: invoiceId }, {
+      customer_invoice_url: customerUrl,
+      ...(dealerUrl ? { dealer_invoice_url: dealerUrl } : {}),
+      ...(gstUrl ? { gst_invoice_url: gstUrl } : {}),
+      updated_at: now,
+    });
 
-    // Email customer — fire-and-forget so a mail failure doesn't block the response
+    const attachments: Array<{ filename: string; content: Buffer; contentType: string }> = [
+      { filename: `${invoiceNumber}-customer.pdf`, content: customerBuf, contentType: 'application/pdf' },
+    ];
+    if (dealerBuf) attachments.push({ filename: `${invoiceNumber}-dealer.pdf`, content: dealerBuf, contentType: 'application/pdf' });
+    if (gstBuf) attachments.push({ filename: `${invoiceNumber}-gst.pdf`, content: gstBuf, contentType: 'application/pdf' });
+
     if (user?.email) {
       this.email
-        .sendInvoiceReady(String(user.email), {
-          customerName: String(user.name || 'Customer'),
-          invoiceNumber,
-          orderId,
-          customerPdf: customerPdfBuf,
-          dealerPdf: dealerPdfBuf ?? undefined,
-          gstPdf: gstPdfBuf ?? undefined,
-        })
+        .sendInvoiceGenerated(
+          String(user.email),
+          {
+            customerName: String(user.name || 'Customer'),
+            orderId,
+            invoiceNumber,
+            customerInvoiceUrl: customerUrl,
+            ...(dealerUrl ? { dealerInvoiceUrl: dealerUrl } : {}),
+            ...(gstUrl ? { gstInvoiceUrl: gstUrl } : {}),
+          },
+          attachments,
+        )
         .catch((err) => this.logger.error(`Invoice email failed for order ${orderId}: ${err.message}`));
     }
 
     this.logger.log(`Invoice ${invoiceNumber} generated for order ${orderId} (dealer=${isDealer})`);
-    return { id: invoiceId, invoice_number: invoiceNumber, ...pdfFields };
+    return { id: invoiceId, invoice_number: invoiceNumber, customer_invoice_url: customerUrl };
   }
 }
