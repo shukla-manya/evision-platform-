@@ -10,7 +10,6 @@ import {
   Inbox,
   Store,
   UserCog,
-  IndianRupee,
   Wallet,
   Star,
   Mail,
@@ -24,18 +23,17 @@ type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
-  badgeKey?: 'approvals';
+  badgeKey?: 'pending_shops' | 'pending_techs';
 };
 
 const nav: NavItem[] = [
-  { href: '/superadmin/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/superadmin/approvals', label: 'Approvals', icon: Inbox, badgeKey: 'approvals' },
-  { href: '/superadmin/shops', label: 'All shops', icon: Store },
-  { href: '/superadmin/pending-electricians', label: 'Electricians', icon: UserCog },
-  { href: '/superadmin/revenue', label: 'Revenue', icon: IndianRupee },
-  { href: '/superadmin/settlements', label: 'Settlements', icon: Wallet },
-  { href: '/superadmin/reviews', label: 'Reviews', icon: Star },
-  { href: '/superadmin/email-logs', label: 'Email logs', icon: Mail },
+  { href: '/super/dashboard', label: 'Overview', icon: LayoutDashboard },
+  { href: '/super/shop-registrations', label: 'Shop registrations', icon: Inbox, badgeKey: 'pending_shops' },
+  { href: '/super/technicians', label: 'Technicians', icon: UserCog, badgeKey: 'pending_techs' },
+  { href: '/super/shops', label: 'All shops', icon: Store },
+  { href: '/super/settlements', label: 'Settlements', icon: Wallet },
+  { href: '/super/reviews', label: 'Reviews', icon: Star },
+  { href: '/super/email-logs', label: 'Email logs', icon: Mail },
 ];
 
 export function SuperadminShell({ children }: { children: React.ReactNode }) {
@@ -45,11 +43,9 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
   const [pendingElectricianCount, setPendingElectricianCount] = useState(0);
   const [ready, setReady] = useState(false);
 
-  const approvalsTotal = pendingAdminCount + pendingElectricianCount;
-
   useEffect(() => {
     if (getRole() !== 'superadmin') {
-      router.replace('/superadmin/login');
+      router.replace('/super/signin');
       return;
     }
     Promise.all([
@@ -75,23 +71,28 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-ev-bg flex">
       <aside className="ev-sidebar w-60 sm:w-64 flex flex-col fixed inset-y-0 z-30">
         <div className="p-5 border-b ev-sidebar-border">
-          <Link href="/superadmin/dashboard" className="flex items-center gap-2.5">
+          <Link href="/super/dashboard" className="flex items-center gap-2.5">
             <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
               <Camera size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm tracking-tight">LensCart SA</p>
-              <p className="ev-sidebar-muted text-xs">Superadmin</p>
+              <p className="text-white font-bold text-sm tracking-tight">LensCart</p>
+              <p className="ev-sidebar-muted text-xs">Platform admin</p>
             </div>
           </Link>
         </div>
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {nav.map(({ href, label, icon: Icon, badgeKey }) => {
             const active =
-              href === '/superadmin/dashboard'
+              href === '/super/dashboard'
                 ? pathname === href
                 : pathname === href || pathname.startsWith(`${href}/`);
-            const count = badgeKey === 'approvals' ? approvalsTotal : 0;
+            const count =
+              badgeKey === 'pending_shops'
+                ? pendingAdminCount
+                : badgeKey === 'pending_techs'
+                  ? pendingElectricianCount
+                  : 0;
             return (
               <Link
                 key={href}
@@ -104,7 +105,7 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
                   <Icon size={17} className="shrink-0" />
                   <span className="truncate">{label}</span>
                 </span>
-                {badgeKey === 'approvals' && count > 0 ? (
+                {badgeKey && count > 0 ? (
                   <span className="bg-ev-warning text-ev-text text-[10px] font-bold min-w-[1.25rem] text-center px-1.5 py-0.5 rounded-full shrink-0">
                     {count}
                   </span>
@@ -118,7 +119,7 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
             type="button"
             onClick={() => {
               clearAuth();
-              router.push('/superadmin/login');
+              router.push('/super/signin');
             }}
             className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-white/65 hover:text-red-300 hover:bg-red-500/10 text-sm transition-colors"
           >
