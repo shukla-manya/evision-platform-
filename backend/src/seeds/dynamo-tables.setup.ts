@@ -9,12 +9,14 @@ import * as path from 'path';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-const endpoint = process.env.DYNAMO_ENDPOINT;
+const endpoint =
+  process.env.DYNAMODB_ENDPOINT || process.env.DYNAMO_ENDPOINT || undefined;
+const isLocal = Boolean(endpoint);
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || 'ap-south-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'local',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'local',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || (isLocal ? 'local' : ''),
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || (isLocal ? 'local' : ''),
   },
   ...(endpoint ? { endpoint } : {}),
 });

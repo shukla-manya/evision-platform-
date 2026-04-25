@@ -18,23 +18,38 @@ export class S3Service {
   private bucket: string;
   private cloudfrontDomain: string | null;
   private region: string;
+  /** e.g. http://localhost:9000 — MinIO / LocalStack S3 API */
+  private readonly s3Endpoint: string | undefined;
+  /** Public base for returned URLs (browser). Defaults to path-style `${endpoint}/${bucket}` when endpoint is set. */
+  private readonly s3PublicBase: string | undefined;
 
   constructor(private config: ConfigService) {
     this.region = config.get('AWS_REGION', 'ap-south-1');
+    this.bucket = config.get('AWS_S3_BUCKET', 'evision-uploads');
+    this.s3Endpoint = (config.get('S3_ENDPOINT') || '').trim() || undefined;
+    this.s3PublicBase = (config.get('S3_PUBLIC_BASE_URL') || '').trim() || undefined;
+    const isLocal = Boolean(this.s3Endpoint);
+    const accessKeyId = config.get('AWS_ACCESS_KEY_ID') || (isLocal ? 'minioadmin' : '');
+    const secretAccessKey = config.get('AWS_SECRET_ACCESS_KEY') || (isLocal ? 'minioadmin' : '');
+
     this.s3 = new S3Client({
       region: this.region,
-      credentials: {
-        accessKeyId: config.get('AWS_ACCESS_KEY_ID'),
-        secretAccessKey: config.get('AWS_SECRET_ACCESS_KEY'),
-      },
+      endpoint: this.s3Endpoint,
+      forcePathStyle: isLocal,
+      credentials: { accessKeyId, secretAccessKey },
     });
-    this.bucket = config.get('AWS_S3_BUCKET', 'evision-uploads');
     this.cloudfrontDomain = (config.get('CLOUDFRONT_DOMAIN') || '').replace(/\/$/, '') || null;
+
+    this.logger.log(
+      isLocal
+        ? `S3 client (local) API=${this.s3Endpoint} bucket=${this.bucket} path-style=true`
+        : `S3 client (AWS) bucket=${this.bucket}`,
+    );
   }
 
   /**
    * Upload a file to S3. Returns a **public** URL: CloudFront when `CLOUDFRONT_DOMAIN` is set,
-   * otherwise the regional virtual-hosted–style S3 URL (stored in `product.images[]`).
+   * else local path-style URL when `S3_ENDPOINT` is set, else regional virtual-hosted S3 URL.
    */
   async upload(
     buffer: Buffer,
@@ -63,17 +78,13 @@ export class S3Service {
     return getSignedUrl(this.s3, command, { expiresIn });
   }
 
-  /** Deletes the object referenced by a stored URL (S3 or CloudFront with same path/key). */
+  /** Deletes the object referenced by a stored URL (S3, MinIO path-style, or CloudFront with same path/key). */
   async delete(url: string): Promise<void> {
     const key = this.extractObjectKey(url);
     if (!key) return;
     await this.s3.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }
 
-  /**
-   * When CloudFront is configured, rewrites known app asset URLs (same bucket keys) to the CDN
-   * so clients always load images from the edge. External URLs are left unchanged.
-   */
   mapPublicImageUrls(urls?: string[] | null): string[] | undefined {
     if (!urls?.length) return urls ?? undefined;
     return urls.map((u) => this.rewriteToConfiguredCdn(u));
@@ -88,10 +99,23 @@ export class S3Service {
     return `https://${this.cloudfrontDomain}/${key}`;
   }
 
+  /**
+   * Object key for S3 DeleteObject. Supports virtual-hosted AWS URLs, path-style MinIO
+   * (`http://host/bucket/key`), and keys stored without host.
+   */
   extractObjectKey(url: string): string | null {
     try {
-      const pathname = new URL(url).pathname.replace(/^\//, '');
-      return pathname || null;
+      const trimmed = url.trim();
+      if (!trimmed.includes('://')) {
+        const k = trimmed.replace(/^\//, '');
+        return k || null;
+      }
+      const u = new URL(trimmed);
+      let path = u.pathname.replace(/^\//, '');
+      if (path.startsWith(`${this.bucket}/`)) {
+        path = path.slice(this.bucket.length + 1);
+      }
+      return path || null;
     } catch {
       return null;
     }
@@ -100,6 +124,12 @@ export class S3Service {
   private publicUrlForKey(key: string): string {
     if (this.cloudfrontDomain) {
       return `https://${this.cloudfrontDomain}/${key}`;
+    }
+    if (this.s3PublicBase) {
+      return `${this.s3PublicBase.replace(/\/$/, '')}/${key}`;
+    }
+    if (this.s3Endpoint) {
+      return `${this.s3Endpoint.replace(/\/$/, '')}/${this.bucket}/${key}`;
     }
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
   }
