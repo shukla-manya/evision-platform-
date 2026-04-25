@@ -37,7 +37,8 @@ export default function AdminSettingsPage() {
     setUploading(true);
     try {
       const { data } = await adminApi.uploadLogo(file);
-      setAdmin(data as AdminMe);
+      const logo_url = (data as { logo_url?: string })?.logo_url;
+      setAdmin((a) => (a && logo_url ? { ...a, logo_url } : a));
       toast.success('Logo updated');
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Upload failed'));
