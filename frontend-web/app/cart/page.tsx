@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, ShoppingCart, Trash2, Wallet } from 'lucide-react';
+import { Loader2, ShoppingCart, Trash2, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
+import { PublicShell } from '@/components/public/PublicShell';
 
 type CartItem = {
   id: string;
@@ -88,34 +89,30 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ev-bg">
-      <header className="ev-header">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-white font-bold text-base sm:text-lg">Your cart</h1>
-            <p className="text-white/50 text-xs truncate">Items grouped by shop (multi-shop cart)</p>
+    <PublicShell>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-ev-text">Your cart</h1>
+            <p className="text-ev-muted text-sm mt-1">Items grouped by shop (multi-shop cart)</p>
           </div>
-          <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5">
-            <ArrowLeft size={14} />
+          <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 self-start sm:self-auto">
             Continue shopping
           </Link>
         </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 grid lg:grid-cols-[1fr_320px] gap-6">
         {loading ? (
-          <div className="lg:col-span-2 flex items-center gap-2 text-ev-muted py-20 justify-center">
+          <div className="flex items-center gap-2 text-ev-muted py-20 justify-center">
             <Loader2 className="animate-spin text-ev-primary" size={24} />
             Loading cart...
           </div>
         ) : cart.shops.length === 0 ? (
-          <div className="lg:col-span-2 ev-card p-16 text-center text-ev-muted">
+          <div className="ev-card p-16 text-center text-ev-muted">
             <ShoppingCart className="mx-auto mb-3 opacity-30" size={40} />
             <p className="text-ev-text font-medium mb-1">Your cart is empty</p>
             <p className="text-sm">Add products from one or multiple shops to checkout.</p>
           </div>
         ) : (
-          <>
+          <div className="grid lg:grid-cols-[1fr_320px] gap-6">
             <section className="space-y-4">
               {cart.shops.map((shop) => (
                 <article key={shop.admin_id} className="ev-card p-5">
@@ -184,9 +181,9 @@ export default function CartPage() {
               </Link>
               <p className="text-ev-subtle text-xs mt-2">Review and pay on the checkout page.</p>
             </aside>
-          </>
+          </div>
         )}
       </main>
-    </div>
+    </PublicShell>
   );
 }

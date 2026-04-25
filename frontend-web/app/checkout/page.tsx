@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Script from 'next/script';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, Wallet, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Loader2, Wallet, CheckCircle2, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi, checkoutApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
+import { PublicShell } from '@/components/public/PublicShell';
 
 declare global {
   interface Window {
@@ -124,22 +125,18 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ev-bg">
+    <PublicShell>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
-      <header className="ev-header">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-white font-bold text-base sm:text-lg">Checkout</h1>
-            <p className="text-white/50 text-xs">Single payment, auto-split by shop after success</p>
+            <h1 className="text-2xl font-bold text-ev-text">Checkout</h1>
+            <p className="text-ev-muted text-sm mt-1">Single payment, auto-split by shop after success</p>
           </div>
-          <Link href="/cart" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5">
-            <ArrowLeft size={14} />
+          <Link href="/cart" className="ev-btn-secondary text-sm py-2 px-4 self-start sm:self-auto">
             Back to cart
           </Link>
         </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         {loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-20 justify-center">
             <Loader2 className="animate-spin text-ev-primary" size={24} />
@@ -213,6 +210,6 @@ export default function CheckoutPage() {
           </div>
         )}
       </main>
-    </div>
+    </PublicShell>
   );
 }

@@ -1,134 +1,314 @@
 'use client';
 
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Camera, ArrowRight } from 'lucide-react';
+import {
+  ArrowRight,
+  BadgePercent,
+  Camera,
+  Clock,
+  Heart,
+  Loader2,
+  Plus,
+  ShieldCheck,
+  Sparkles,
+  Truck,
+  Wrench,
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+import { cartApi, catalogApi } from '@/lib/api';
+import { PublicShell } from '@/components/public/PublicShell';
+import { publicBrandName } from '@/lib/public-brand';
+import { getRole } from '@/lib/auth';
+import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 
-const trending = [
-  { emoji: '📷', name: 'Canon EOS R50', price: 'From ₹54,990' },
-  { emoji: '🎥', name: 'Sony ZV-E10', price: 'From ₹62,490' },
-  { emoji: '🔭', name: 'Sigma 50mm f/1.4', price: 'From ₹44,000' },
+type Product = {
+  id: string;
+  name: string;
+  price_customer?: number;
+  images?: string[];
+  shop_name?: string | null;
+  stock?: number;
+};
+
+type Category = { id: string; name: string };
+
+const CATEGORY_LABELS = [
+  'DSLR Cameras',
+  'Mirrorless',
+  'Lenses',
+  'Action Cameras',
+  'Tripods & Mounts',
+  'Memory Cards',
+  'Bags & Cases',
+  'Lighting',
+  'Filters',
+  'Accessories',
 ];
 
-export default function HomePage() {
+function formatInr(n: number) {
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+}
+
+function DealCountdown() {
+  const [left, setLeft] = useState(4 * 3600 + 32 * 60 + 18);
+  useEffect(() => {
+    const id = window.setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const h = Math.floor(left / 3600);
+  const m = Math.floor((left % 3600) / 60);
+  const s = left % 60;
+  const pad = (n: number) => String(n).padStart(2, '0');
   return (
-    <main className="min-h-screen bg-ev-bg overflow-x-hidden">
-      <header className="ev-header z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-          <Link href="/" className="flex items-center gap-2 shrink-0 min-w-0">
-            <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
-              <Camera size={18} className="text-white" />
-            </div>
-            <span className="text-white font-bold text-lg tracking-tight truncate">LensCart</span>
-          </Link>
+    <span className="font-mono text-ev-text font-semibold">
+      {pad(h)}h {pad(m)}m {pad(s)}s
+    </span>
+  );
+}
 
-          <nav
-            className="flex items-center gap-4 sm:gap-6 text-sm text-white/75 overflow-x-auto max-w-[min(52vw,14rem)] sm:max-w-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-            aria-label="Primary"
-          >
-            <Link href="/shop" className="hover:text-white whitespace-nowrap shrink-0 transition-colors">
-              Shop
-            </Link>
-            <Link href="/#trending" className="hover:text-white whitespace-nowrap shrink-0 transition-colors">
-              Deals
-            </Link>
-            <Link href="/login" className="hover:text-white whitespace-nowrap shrink-0 transition-colors">
-              Service
-            </Link>
-          </nav>
+export default function HomePage() {
+  const [featured, setFeatured] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [wishTick, setWishTick] = useState(0);
+  const role = typeof window !== 'undefined' ? getRole() : undefined;
+  const canBuy = role === 'customer' || role === 'dealer';
 
-          <div className="flex items-center gap-2 shrink-0">
-            <Link
-              href="/login"
-              className="text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition-colors whitespace-nowrap"
-            >
-              Sign in
-            </Link>
-            <Link href="/register" className="ev-btn-primary text-sm py-2 px-4 whitespace-nowrap">
-              Register
-            </Link>
-          </div>
-        </div>
-      </header>
+  const refreshWishlist = useCallback(() => setWishTick((n) => n + 1), []);
+  void wishTick;
 
-      <section className="relative px-4 sm:px-6 pt-16 pb-20 md:pt-20 md:pb-24">
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [catRes, prodRes] = await Promise.all([
+          catalogApi.getCategories().catch(() => ({ data: [] })),
+          catalogApi.getProducts({}),
+        ]);
+        if (cancelled) return;
+        setCategories(Array.isArray(catRes.data) ? catRes.data : []);
+        const prods = Array.isArray(prodRes.data) ? (prodRes.data as Product[]) : [];
+        setFeatured(prods.slice(0, 6));
+      } catch {
+        if (!cancelled) toast.error('Could not load featured products');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const categoryHref = (label: string, index: number) => {
+    const match = categories.find((c) => c.name.toLowerCase().includes(label.split(' ')[0].toLowerCase()));
+    if (match) return `/shop?category_id=${encodeURIComponent(match.id)}`;
+    if (categories[index]) return `/shop?category_id=${encodeURIComponent(categories[index].id)}`;
+    return `/shop?search=${encodeURIComponent(label)}`;
+  };
+
+  return (
+    <PublicShell>
+      <section className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-16 left-1/4 w-80 h-80 bg-ev-primary/8 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-ev-accent/6 rounded-full blur-3xl" />
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-ev-primary/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-ev-accent/8 rounded-full blur-3xl" />
         </div>
-
-        <div className="max-w-3xl mx-auto text-center relative z-10">
-          <p className="text-ev-primary font-semibold text-sm uppercase tracking-widest mb-4">New arrivals</p>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-ev-text tracking-tight leading-[1.1] mb-4">
-            Professional Cameras
-            <br />
-            <span className="gradient-text">&amp; Accessories</span>
-          </h1>
-          <p className="text-ev-muted text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed">
-            Shop from 4 expert stores. Best prices for buyers and dealers.
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-16 md:pt-16 md:pb-20 relative">
+          <p className="text-ev-primary font-semibold text-xs uppercase tracking-[0.2em] mb-4 text-center">
+            New arrivals · Best deals · Top brands
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
-            <Link href="/shop" className="ev-btn-primary inline-flex items-center justify-center gap-2 text-base py-3.5 px-8">
-              Shop now <ArrowRight size={18} />
-            </Link>
-            <Link
-              href="/#trending"
-              className="ev-btn-secondary inline-flex items-center justify-center gap-2 text-base py-3.5 px-8"
-            >
-              Browse deals
-            </Link>
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-extrabold text-ev-text tracking-tight leading-[1.12] mb-4">
+              Professional Cameras &amp; Accessories — All in One Place
+            </h1>
+            <p className="text-ev-muted text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+              Shop from 4 expert stores. Exclusive prices for dealers. Expert technician services at your doorstep.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/shop" className="ev-btn-primary inline-flex items-center justify-center gap-2 text-base py-3.5 px-8">
+                Shop Now <ArrowRight size={18} />
+              </Link>
+              <Link href="/deals" className="ev-btn-secondary inline-flex items-center justify-center gap-2 text-base py-3.5 px-8">
+                Browse Deals
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      <section id="trending" className="px-4 sm:px-6 pb-20 scroll-mt-20">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-ev-text text-center mb-10">Trending products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {trending.map((item) => (
+      <section className="border-y border-ev-border bg-ev-surface2/50 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <h2 className="text-ev-text font-bold text-lg mb-4 text-center">Shop by category</h2>
+          <div className="flex flex-wrap justify-center gap-2">
+            {CATEGORY_LABELS.map((label, i) => (
               <Link
-                key={item.name}
-                href="/shop"
-                className="ev-card p-6 text-center hover:border-ev-primary/40 hover:shadow-ev-md transition-all duration-300 group"
+                key={label}
+                href={categoryHref(label, i)}
+                className="px-3 py-2 rounded-full border border-ev-border bg-ev-surface text-ev-text text-sm hover:border-ev-primary/40 hover:text-ev-primary transition-colors"
               >
-                <div className="text-4xl mb-4" aria-hidden>
-                  {item.emoji}
-                </div>
-                <h3 className="text-ev-text font-semibold text-lg mb-2 group-hover:text-ev-primary transition-colors">{item.name}</h3>
-                <p className="text-ev-muted font-medium">{item.price}</p>
+                {label}
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="px-4 sm:px-6 pb-20">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="ev-card p-8 md:p-10 bg-ev-surface border-ev-border flex flex-col items-start">
-            <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you a dealer?</h2>
-            <p className="text-ev-muted text-sm md:text-base mb-6 flex-1">Get exclusive bulk pricing</p>
-            <Link href="/register?role=dealer" className="ev-btn-primary inline-flex items-center gap-2">
-              Register as dealer <ArrowRight size={16} />
-            </Link>
+      <section className="py-16 px-4 sm:px-6 max-w-7xl mx-auto" id="trending">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl md:text-3xl font-bold text-ev-text">Trending right now</h2>
+          <p className="text-ev-muted text-sm mt-2">Handpicked by our expert stores</p>
+        </div>
+        {loading ? (
+          <div className="flex justify-center py-16 text-ev-muted gap-2">
+            <Loader2 className="animate-spin text-ev-primary" size={24} /> Loading products…
           </div>
-          <div className="ev-card p-8 md:p-10 bg-ev-surface border-ev-border flex flex-col items-start">
-            <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Electrician / Technician?</h2>
-            <p className="text-ev-muted text-sm md:text-base mb-6 flex-1">Join our service network</p>
-            <Link href="/register?role=electrician" className="ev-btn-secondary inline-flex items-center gap-2">
-              Join as technician <ArrowRight size={16} />
-            </Link>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featured.map((p) => {
+              const img = p.images?.[0];
+              const price = Number(p.price_customer || 0);
+              const wished = isInWishlist(p.id);
+              return (
+                <article key={p.id} className="ev-card overflow-hidden flex flex-col group">
+                  <Link href={`/products/${p.id}`} className="relative aspect-[4/3] bg-ev-surface2 border-b border-ev-border block">
+                    {img ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-ev-muted text-sm">No image</div>
+                    )}
+                    <button
+                      type="button"
+                      className="absolute top-3 right-3 w-9 h-9 rounded-full bg-ev-surface/95 border border-ev-border flex items-center justify-center shadow-ev-sm hover:border-ev-primary transition-colors"
+                      aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleWishlistId(p.id);
+                        refreshWishlist();
+                      }}
+                    >
+                      <Heart size={18} className={wished ? 'text-ev-primary fill-ev-primary' : 'text-ev-muted'} />
+                    </button>
+                  </Link>
+                  <div className="p-5 flex-1 flex flex-col">
+                    <p className="text-ev-subtle text-xs uppercase tracking-wide mb-1 truncate">{p.shop_name || 'Partner shop'}</p>
+                    <Link href={`/products/${p.id}`} className="text-ev-text font-semibold text-lg hover:text-ev-primary transition-colors line-clamp-2">
+                      {p.name}
+                    </Link>
+                    <p className="text-2xl font-bold text-ev-text mt-3">{price > 0 ? formatInr(price) : '—'}</p>
+                    <div className="mt-auto pt-4 flex items-center gap-2">
+                      {canBuy ? (
+                        <button
+                          type="button"
+                          className="ev-btn-primary flex-1 text-sm py-2.5 inline-flex items-center justify-center gap-1.5"
+                          onClick={async () => {
+                            try {
+                              await cartApi.addItem(p.id, 1);
+                              toast.success('Added to cart');
+                            } catch {
+                              toast.error('Sign in to add to cart');
+                            }
+                          }}
+                        >
+                          <Plus size={16} /> Add to cart
+                        </button>
+                      ) : (
+                        <Link href="/login" className="ev-btn-primary flex-1 text-sm py-2.5 text-center">
+                          Sign in to buy
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+        <div className="text-center mt-10">
+          <Link href="/shop" className="text-ev-primary font-semibold inline-flex items-center gap-1 hover:underline">
+            View all products <ArrowRight size={16} />
+          </Link>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 sm:px-6 bg-ev-surface2/40 border-y border-ev-border">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+            <div>
+              <h2 className="text-2xl font-bold text-ev-text">Today&apos;s best deals</h2>
+              <p className="text-ev-muted text-sm mt-1">Limited-time pricing from partner stores</p>
+            </div>
+            <p className="text-sm text-ev-muted">
+              Ends in: <DealCountdown />
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {featured.slice(0, 3).map((p) => {
+              const base = Number(p.price_customer || 0);
+              const deal = Math.round(base * 0.88);
+              const off = base > 0 ? Math.round(((base - deal) / base) * 100) : 12;
+              return (
+                <Link key={p.id} href={`/products/${p.id}`} className="ev-card p-5 hover:border-ev-primary/30 transition-colors flex flex-col">
+                  <p className="text-ev-text font-semibold line-clamp-2">{p.name}</p>
+                  <p className="text-ev-subtle text-xs mt-1 truncate">{p.shop_name || 'Partner shop'}</p>
+                  <div className="mt-4 flex items-baseline gap-2 flex-wrap">
+                    <span className="text-ev-muted line-through text-sm">{base > 0 ? formatInr(base) : '—'}</span>
+                    <span className="text-ev-primary font-bold text-xl">{deal > 0 ? formatInr(deal) : formatInr(base)}</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-ev-success/15 text-ev-success border border-ev-success/25">
+                      {off}% off
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <footer className="ev-footer-bar">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-center sm:text-left">
-          <div className="flex items-center justify-center gap-2 text-white/85">
-            <Camera size={14} className="text-ev-primary-light shrink-0" aria-hidden />
-            <span>© {new Date().getFullYear()} LensCart Pvt. Ltd., Faridabad, Haryana</span>
-          </div>
-          <span className="text-white/55 text-xs sm:text-sm">Developer: Manya Shukla, JNU New Delhi</span>
+      <section className="py-16 px-4 sm:px-6 max-w-5xl mx-auto">
+        <h2 className="text-2xl font-bold text-ev-text text-center mb-10">Why {publicBrandName}?</h2>
+        <ul className="space-y-4">
+          {[
+            { icon: Camera, t: '4 verified expert stores — all in one place' },
+            { icon: Truck, t: 'Fast delivery via trusted courier partners' },
+            { icon: Wrench, t: 'Expert technician services after purchase' },
+            { icon: ShieldCheck, t: '100% secure payments via Razorpay' },
+            { icon: BadgePercent, t: 'Exclusive dealer pricing for bulk buyers' },
+          ].map(({ icon: Icon, t }) => (
+            <li key={t} className="flex gap-4 ev-card p-4 items-start">
+              <div className="w-10 h-10 rounded-xl bg-ev-primary/10 flex items-center justify-center shrink-0">
+                <Icon size={20} className="text-ev-primary" />
+              </div>
+              <p className="text-ev-text text-sm leading-relaxed pt-1.5">{t}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="px-4 sm:px-6 pb-16 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="ev-card p-8 md:p-10 border-ev-primary/20 bg-gradient-to-br from-ev-surface to-ev-primary/5">
+          <Sparkles className="text-ev-primary mb-3" size={22} />
+          <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you a dealer or distributor?</h2>
+          <p className="text-ev-muted text-sm md:text-base mb-6">
+            Get exclusive wholesale pricing, GST invoices, and bulk order support. Register your business and unlock dealer prices today.
+          </p>
+          <Link href="/register?role=dealer" className="ev-btn-primary inline-flex items-center gap-2">
+            Register as Dealer <ArrowRight size={16} />
+          </Link>
         </div>
-      </footer>
-    </main>
+        <div className="ev-card p-8 md:p-10 border-ev-border">
+          <Clock className="text-ev-primary mb-3" size={22} />
+          <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you an electrician or technician?</h2>
+          <p className="text-ev-muted text-sm md:text-base mb-6">
+            Join our technician network. Get job requests from verified customers in your area. Flexible hours, real earnings.
+          </p>
+          <Link href="/technician/register" className="ev-btn-secondary inline-flex items-center gap-2">
+            Join as Technician <ArrowRight size={16} />
+          </Link>
+        </div>
+      </section>
+    </PublicShell>
   );
 }
