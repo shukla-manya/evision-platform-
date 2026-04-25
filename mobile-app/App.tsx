@@ -1033,12 +1033,18 @@ function MainTabs({
         />
       )}
       <Tab.Screen name="Profile">
-        {() => (
+        {(props) => (
           <ProfileScreen
             user={user}
             onLogout={onLogout}
             onChangePassword={onChangePassword}
             fcmToken={fcmToken}
+            onOpenServiceHistory={() => {
+              const parent = props.navigation.getParent();
+              if (parent && 'navigate' in parent) {
+                (parent.navigate as (a: string) => void)('ServiceHistory');
+              }
+            }}
           />
         )}
       </Tab.Screen>
