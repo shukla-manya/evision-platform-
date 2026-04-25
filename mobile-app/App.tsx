@@ -952,12 +952,15 @@ function ProfileScreen({
   onLogout,
   onChangePassword,
   fcmToken,
+  onOpenServiceHistory,
 }: {
   user: AppUser | null;
   onLogout: () => void;
   onChangePassword: () => void;
   fcmToken: string | null;
+  onOpenServiceHistory?: () => void;
 }) {
+  const showServiceExtras = user?.role === 'customer' || user?.role === 'dealer';
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.listPad}>
@@ -970,6 +973,11 @@ function ProfileScreen({
           <Text style={styles.cardMeta}>API: {API_BASE_URL}</Text>
           <Text style={styles.cardMeta} numberOfLines={2}>FCM Token: {fcmToken || 'Not registered yet'}</Text>
         </View>
+        {showServiceExtras && onOpenServiceHistory ? (
+          <Pressable style={styles.buttonSecondary} onPress={onOpenServiceHistory}>
+            <Text style={styles.buttonSecondaryText}>Service history & reviews</Text>
+          </Pressable>
+        ) : null}
         <Pressable style={styles.button} onPress={onLogout}>
           <Text style={styles.buttonText}>Logout</Text>
         </Pressable>
