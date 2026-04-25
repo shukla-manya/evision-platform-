@@ -39,6 +39,7 @@ import { LocationModule } from './modules/location/location.module';
     ElectricianModule,
     ServiceModule,
     ReviewsModule,
+    LocationModule,
   ],
 })
 export class AppModule {}
