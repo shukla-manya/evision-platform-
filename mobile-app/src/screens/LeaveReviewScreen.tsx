@@ -43,8 +43,9 @@ export function LeaveReviewScreen({ navigation, route }: Props) {
       if (comment.trim()) fd.append('comment', comment.trim());
       if (photoUri) fd.append('photo', { uri: photoUri, name: 'review.jpg', type: 'image/jpeg' } as never);
       await reviewsApi.submitElectricianReview(electricianId, fd);
+      const rootNav = navigation as unknown as { navigate: (name: string) => void };
       Alert.alert('Thanks', 'Your review was submitted.', [
-        { text: 'OK', onPress: () => navigation.getParent()?.navigate('Main') },
+        { text: 'OK', onPress: () => rootNav.navigate('Main') },
       ]);
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string | string[] } } };

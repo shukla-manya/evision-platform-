@@ -7,6 +7,9 @@ type Props = NativeStackScreenProps<ServiceFlowStackParams, 'ServiceBookingConfi
 
 export function ServiceBookingConfirmScreen({ navigation, route }: Props) {
   const { bookingId, electricianName } = route.params;
+  const rootNav = navigation as unknown as {
+    navigate: (name: string, params?: Record<string, unknown>) => void;
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -22,7 +25,7 @@ export function ServiceBookingConfirmScreen({ navigation, route }: Props) {
         <Pressable
           style={styles.primary}
           onPress={() =>
-            navigation.navigate('Main', {
+            rootNav.navigate('Main', {
               screen: 'ServiceTracking',
               params: { bookingId },
             })
@@ -30,7 +33,7 @@ export function ServiceBookingConfirmScreen({ navigation, route }: Props) {
         >
           <Text style={styles.primaryText}>Track service</Text>
         </Pressable>
-        <Pressable style={styles.secondary} onPress={() => navigation.navigate('Main')}>
+        <Pressable style={styles.secondary} onPress={() => rootNav.navigate('Main')}>
           <Text style={styles.secondaryText}>Back to home</Text>
         </Pressable>
       </View>
