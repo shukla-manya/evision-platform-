@@ -55,7 +55,10 @@ export default function SuperadminShopsPage() {
   }, []);
 
   useEffect(() => {
-    void loadAll();
+    const timer = setTimeout(() => {
+      void loadAll();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [loadAll]);
 
   async function approve(id: string) {
