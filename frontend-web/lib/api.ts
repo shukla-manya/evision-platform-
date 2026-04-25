@@ -14,12 +14,23 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+function loginPathFor401(): string {
+  if (typeof window === 'undefined') return '/login';
+  const p = window.location.pathname;
+  if (p.startsWith('/superadmin')) return '/superadmin/login';
+  if (p.startsWith('/admin')) return '/admin/login';
+  return '/login';
+}
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
       Cookies.remove('ev_token');
-      if (typeof window !== 'undefined') window.location.href = '/login';
+      Cookies.remove('ev_role');
+      if (typeof window !== 'undefined') {
+        window.location.href = loginPathFor401();
+      }
     }
     return Promise.reject(err);
   },
@@ -35,11 +46,31 @@ export const authApi = {
   me: () => api.get('/auth/me'),
 };
 
-// ── Admin ──────────────────────────────────────────────────────────────────
+// ── Admin (shop) ───────────────────────────────────────────────────────────
 export const adminApi = {
   register: (data: Record<string, unknown>) => api.post('/admin/register', data),
   getMe: () => api.get('/admin/me'),
+  uploadLogo: (file: File) => {
+    const fd = new FormData();
+    fd.append('logo', file);
+    return api.post('/admin/upload-logo', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   getProducts: () => api.get('/admin/products'),
+  getProduct: (id: string) => api.get(`/admin/products/${id}`),
+  createProduct: (body: Record<string, unknown>) => api.post('/admin/products', body),
+  updateProduct: (id: string, body: Record<string, unknown>) => api.put(`/admin/products/${id}`, body),
+  deleteProduct: (id: string) => api.delete(`/admin/products/${id}`),
+  uploadProductImages: (files: File[]) => {
+    const fd = new FormData();
+    files.forEach((f) => fd.append('images', f));
+    return api.post('/admin/products/images/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  getOrders: () => api.get('/admin/orders'),
+  getInvoices: () => api.get('/admin/invoices'),
 };
 
 export const catalogApi = {
