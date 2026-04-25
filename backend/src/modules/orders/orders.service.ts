@@ -41,22 +41,38 @@ export class OrdersService {
       userIds.map((uid) => this.dynamo.get(this.usersTable(), { id: uid })),
     );
     const userById = new Map(users.filter(Boolean).map((u) => [String(u!.id), u!]));
-    return sorted.map((o) => {
-      const u = userById.get(String(o.user_id || ''));
-      const role = String(u?.role || '').toLowerCase();
-      const payment_status =
-        String(o.status || '').toLowerCase() === 'payment_failed'
-          ? 'Failed'
-          : String(o.status || '').toLowerCase() === 'order_cancelled'
-            ? '—'
-            : 'Paid';
-      return {
-        ...o,
-        buyer_name: u?.name || u?.email || '—',
-        buyer_type: role === 'dealer' ? 'Dealer' : 'Customer',
-        payment_status,
-      };
-    });
+    const enriched = await Promise.all(
+      sorted.map(async (o) => {
+        const u = userById.get(String(o.user_id || ''));
+        const role = String(u?.role || '').toLowerCase();
+        const payment_status =
+          String(o.status || '').toLowerCase() === 'payment_failed'
+            ? 'Failed'
+            : String(o.status || '').toLowerCase() === 'order_cancelled'
+              ? '—'
+              : 'Paid';
+        const items = await this.dynamo.query({
+          TableName: this.orderItemsTable(),
+          KeyConditionExpression: 'order_id = :oid',
+          ExpressionAttributeValues: { ':oid': String(o.id) },
+        });
+        const items_label = items.length
+          ? items
+              .slice(0, 4)
+              .map((it) => `${String(it.product_name || 'Item')} ×${Number(it.quantity || 1)}`)
+              .join(', ') + (items.length > 4 ? '…' : '')
+          : '—';
+        return {
+          ...o,
+          buyer_name: u?.name || u?.email || '—',
+          buyer_type: role === 'dealer' ? 'Dealer' : 'Customer',
+          payment_status,
+          items_label,
+          item_count: items.length,
+        };
+      }),
+    );
+    return enriched;
   }
 
   async getAdminOrderById(adminId: string, orderId: string): Promise<Record<string, unknown>> {
