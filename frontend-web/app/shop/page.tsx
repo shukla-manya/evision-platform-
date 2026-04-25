@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal, Star } from 'lucide-react';
+import { Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
@@ -76,13 +76,15 @@ function ShopListingInner() {
 
   useEffect(() => {
     const q = (searchParams.get('search') || searchParams.get('q') || '').trim();
-    if (q) setSearch(q);
-    const sortParam = searchParams.get('sort');
-    if (sortParam === 'newest' || sortParam === 'price_asc' || sortParam === 'price_desc' || sortParam === 'rating') {
-      setSort(sortParam);
-    }
-    const cat = searchParams.get('category_id');
-    if (cat) setCategoryId(cat);
+    queueMicrotask(() => {
+      if (q) setSearch(q);
+      const sortParam = searchParams.get('sort');
+      if (sortParam === 'newest' || sortParam === 'price_asc' || sortParam === 'price_desc' || sortParam === 'rating') {
+        setSort(sortParam);
+      }
+      const cat = searchParams.get('category_id');
+      if (cat) setCategoryId(cat);
+    });
   }, [searchParams]);
 
   const load = useCallback(async () => {

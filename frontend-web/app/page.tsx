@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -71,12 +71,9 @@ export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [wishTick, setWishTick] = useState(0);
+  const [, setWishBump] = useState(0);
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canBuy = role === 'customer' || role === 'dealer';
-
-  const refreshWishlist = useCallback(() => setWishTick((n) => n + 1), []);
-  void wishTick;
 
   useEffect(() => {
     let cancelled = false;
@@ -186,7 +183,8 @@ export default function HomePage() {
                       onClick={(e) => {
                         e.preventDefault();
                         toggleWishlistId(p.id);
-                        refreshWishlist();
+                        setWishBump((n) => n + 1);
+                        window.dispatchEvent(new Event('ev-wishlist'));
                       }}
                     >
                       <Heart size={18} className={wished ? 'text-ev-primary fill-ev-primary' : 'text-ev-muted'} />

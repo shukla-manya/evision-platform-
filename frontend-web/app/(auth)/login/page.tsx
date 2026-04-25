@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { saveToken, parseJwt, redirectByRole } from '@/lib/auth';
+import { publicBrandName } from '@/lib/public-brand';
 
 type Mode = 'otp-phone' | 'otp-code' | 'admin';
 
@@ -181,8 +182,13 @@ export default function LoginPage() {
     }
   }
 
+  const phoneMasked =
+    phoneDigits.replace(/\D/g, '').length === 10
+      ? `+91 ${phoneDigits.replace(/\D/g, '').slice(0, 2)}******${phoneDigits.replace(/\D/g, '').slice(-2)}`
+      : '+91 XXXXXXXXXX';
+
   return (
-    <div className="min-h-screen bg-ev-bg flex items-center justify-center px-4 py-12">
+    <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-ev-primary/6 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/3 w-80 h-80 bg-ev-accent/5 rounded-full blur-3xl" />
@@ -194,18 +200,15 @@ export default function LoginPage() {
             <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
               <Camera size={22} className="text-white" />
             </div>
-            <span className="text-ev-text font-bold text-xl">LensCart</span>
+            <span className="text-ev-text font-bold text-xl">{publicBrandName}</span>
           </Link>
 
           {isOtpFlow ? (
             <>
               <p className="text-ev-muted text-sm font-medium tracking-wide mb-2">Customer / Dealer / Electrician — sign in</p>
-              <p className="text-4xl mb-3" aria-hidden>
-                👋
-              </p>
               <h1 className="text-2xl font-bold text-ev-text">Welcome back</h1>
               {mode === 'otp-phone' && (
-                <p className="text-ev-muted text-sm mt-2">Enter your mobile number to get OTP</p>
+                <p className="text-ev-muted text-sm mt-2">Enter your mobile number. We&apos;ll send you a quick OTP.</p>
               )}
             </>
           ) : (
@@ -271,13 +274,22 @@ export default function LoginPage() {
                   </>
                 )}
               </button>
+              <p className="text-center text-ev-subtle text-sm">
+                New here?{' '}
+                <Link href="/register" className="text-ev-primary font-medium hover:underline">
+                  Create an account
+                </Link>
+              </p>
             </form>
           )}
 
           {mode === 'otp-code' && (
             <form onSubmit={handleVerifyOtp} className="space-y-6">
+              <p className="text-ev-muted text-sm text-center leading-relaxed">
+                We sent a 6-digit code to {phoneMasked}. Enter it below to verify your number.
+              </p>
               <div>
-                <label className="ev-label text-center block">Enter OTP (sent to your phone)</label>
+                <label className="ev-label text-center block">One-time password</label>
                 <OtpCells key={otpMountId} cells={otpCells} onCellsChange={setOtpCells} disabled={loading} />
               </div>
               <button
@@ -307,9 +319,9 @@ export default function LoginPage() {
                 )}
                 <span className="text-ev-border"> · </span>
                 <span>
-                  New user?{' '}
+                  New here?{' '}
                   <Link href="/register" className="text-ev-primary hover:text-ev-primary-light font-medium">
-                    Register
+                    Create an account
                   </Link>
                 </span>
               </p>
@@ -413,13 +425,9 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-ev-muted text-xs mt-6">
-          Other sign-in:{' '}
-          <Link href="/admin/login" className="text-ev-primary hover:underline">
-            Shop admin (dedicated page)
-          </Link>
-          {' · '}
+          Technician login:{' '}
           <Link href="/electrician/login" className="text-ev-primary hover:underline">
-            Electrician
+            Electrician portal
           </Link>
         </p>
       </div>

@@ -28,7 +28,7 @@ export function PublicNavbar() {
 
   const [role, setRole] = useState<string | undefined>(undefined);
   useEffect(() => {
-    setRole(getRole());
+    queueMicrotask(() => setRole(getRole()));
   }, []);
   const canCart = role === 'customer' || role === 'dealer';
 
@@ -48,8 +48,8 @@ export function PublicNavbar() {
   }, [canCart]);
 
   useEffect(() => {
-    syncCounts();
-    const onWish = () => syncCounts();
+    queueMicrotask(() => void syncCounts());
+    const onWish = () => void syncCounts();
     window.addEventListener('ev-wishlist', onWish);
     window.addEventListener('focus', syncCounts);
     return () => {
@@ -60,11 +60,11 @@ export function PublicNavbar() {
 
   useEffect(() => {
     const q = searchParams.get('search') || searchParams.get('q') || '';
-    setQuery(q);
+    queueMicrotask(() => setQuery(q));
   }, [searchParams]);
 
   useEffect(() => {
-    setMobileOpen(false);
+    queueMicrotask(() => setMobileOpen(false));
   }, [pathname]);
 
   function submitSearch(e: React.FormEvent) {
