@@ -13,6 +13,7 @@ import {
 import { AxiosError } from 'axios';
 import { electricianAuthApi } from '../services/api';
 import { setToken } from '../services/storage';
+import { colors } from '../theme/colors';
 
 function apiError(err: unknown, fallback: string) {
   const e = err as AxiosError<{ message?: string | string[] }>;
@@ -68,7 +69,7 @@ export default function LoginScreen({ onLoggedIn, navigation }: Props) {
             autoCapitalize="none"
             autoCorrect={false}
             placeholder="ravi@example.com"
-            placeholderTextColor="#64748b"
+            placeholderTextColor={colors.muted}
           />
 
           <Text style={styles.label}>Password</Text>
@@ -78,7 +79,7 @@ export default function LoginScreen({ onLoggedIn, navigation }: Props) {
             onChangeText={setPassword}
             secureTextEntry
             placeholder="••••••••"
-            placeholderTextColor="#64748b"
+            placeholderTextColor={colors.muted}
           />
 
           <Pressable style={[styles.btn, loading && styles.btnDisabled]} onPress={submit} disabled={loading}>
@@ -95,40 +96,40 @@ export default function LoginScreen({ onLoggedIn, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#050b1a' },
+  screen: { flex: 1, backgroundColor: colors.background },
   container: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 20 },
   header: { alignItems: 'center', gap: 6 },
-  brand: { fontSize: 28, fontWeight: '800', color: '#3b82f6' },
-  title: { fontSize: 20, fontWeight: '700', color: '#e2e8f0' },
-  subtitle: { fontSize: 14, color: '#64748b' },
+  brand: { fontSize: 28, fontWeight: '800', color: colors.brandPrimary },
+  title: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
+  subtitle: { fontSize: 14, color: colors.textSecondary },
   card: {
-    backgroundColor: '#0d1626',
+    backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 24,
     gap: 12,
     borderWidth: 1,
-    borderColor: '#1e3a5f',
+    borderColor: colors.border,
   },
-  label: { fontSize: 13, fontWeight: '600', color: '#94a3b8' },
+  label: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
   input: {
-    backgroundColor: '#142035',
+    backgroundColor: colors.softPanel,
     borderWidth: 1,
-    borderColor: '#1e3a5f',
+    borderColor: colors.border,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#e2e8f0',
+    color: colors.textPrimary,
     fontSize: 15,
   },
   btn: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.brandPrimary,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 4,
   },
   btnDisabled: { opacity: 0.5 },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  btnText: { color: colors.surface, fontWeight: '700', fontSize: 16 },
   link: { alignItems: 'center', marginTop: 4 },
-  linkText: { color: '#3b82f6', fontSize: 14 },
+  linkText: { color: colors.cta, fontSize: 14 },
 });
