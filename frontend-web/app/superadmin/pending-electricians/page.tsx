@@ -46,7 +46,10 @@ export default function SuperadminPendingElectriciansPage() {
   }, []);
 
   useEffect(() => {
-    void load();
+    const timer = setTimeout(() => {
+      void load();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [load]);
 
   async function approve(id: string) {
