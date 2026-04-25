@@ -353,7 +353,17 @@ export class OrdersService {
       variant: 'customer',
       title: 'Customer Invoice',
     });
-    const customerPdfUrl = await this.s3.upload(customerPdf, 'application/pdf', 'misc');
+    const uploadOrFallback = async (buf: Buffer, filename: string): Promise<string> => {
+      try {
+        return await this.s3.upload(buf, 'application/pdf', 'misc');
+      } catch {
+        return `local-invoice://${filename}`;
+      }
+    };
+    const customerPdfUrl = await uploadOrFallback(
+      customerPdf,
+      `${baseMeta.invoiceNumber}-customer.pdf`,
+    );
 
     let dealerPdfUrl: string | null = null;
     let gstPdfUrl: string | null = null;
@@ -375,8 +385,14 @@ export class OrdersService {
         variant: 'gst',
         title: 'GST Invoice',
       });
-      dealerPdfUrl = await this.s3.upload(dealerPdf, 'application/pdf', 'misc');
-      gstPdfUrl = await this.s3.upload(gstPdf, 'application/pdf', 'misc');
+      dealerPdfUrl = await uploadOrFallback(
+        dealerPdf,
+        `${baseMeta.invoiceNumber}-dealer.pdf`,
+      );
+      gstPdfUrl = await uploadOrFallback(
+        gstPdf,
+        `${baseMeta.invoiceNumber}-gst.pdf`,
+      );
       attachments.push(
         {
           filename: `${baseMeta.invoiceNumber}-dealer.pdf`,
