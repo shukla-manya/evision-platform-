@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ShoppingCart, Loader2, Truck, X, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
+import { ADMIN_SHIPPABLE_STATUSES } from '@/lib/admin-orders';
 import { AdminShell } from '@/components/admin/AdminShell';
 
 type Order = {
@@ -72,7 +73,7 @@ const STATUS_LABEL: Record<string, string> = {
   payment_failed: 'Payment failed',
 };
 
-const SHIPPABLE = new Set(['order_received', 'payment_confirmed', 'confirmed', 'pending']);
+const SHIPPABLE = ADMIN_SHIPPABLE_STATUSES;
 
 const DELIVERY_STEPS = [
   { key: 'shipment_created', label: 'Shipped', timestamp: 'shipped_at' },

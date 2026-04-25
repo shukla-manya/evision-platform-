@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, Truck, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
+import { ADMIN_SHIPPABLE_STATUSES } from '@/lib/admin-orders';
 import { AdminShell } from '@/components/admin/AdminShell';
 
 type OrderItem = {
@@ -45,7 +46,7 @@ function fmt(iso?: string) {
   });
 }
 
-const shippableStatuses = new Set(['order_received', 'payment_confirmed', 'confirmed', 'pending']);
+const shippableStatuses = ADMIN_SHIPPABLE_STATUSES;
 
 export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
