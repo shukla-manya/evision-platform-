@@ -12,9 +12,13 @@ import {
   Settings,
   LogOut,
   Loader2,
+  Boxes,
+  LifeBuoy,
+  TrendingUp,
 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
+import { orderNeedsShipment } from '@/lib/admin-orders';
 
 type AdminMe = {
   shop_name?: string;
@@ -22,11 +26,19 @@ type AdminMe = {
   status?: string;
 };
 
-const nav = [
+const navItems: Array<{
+  href: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  badge?: 'ordersAttention';
+}> = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/products', label: 'Products', icon: Package },
-  { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+  { href: '/admin/orders', label: 'Orders', icon: ShoppingCart, badge: 'ordersAttention' },
+  { href: '/admin/inventory', label: 'Inventory', icon: Boxes },
   { href: '/admin/invoices', label: 'Invoices', icon: FileText },
+  { href: '/admin/service-requests', label: 'Service requests', icon: LifeBuoy },
+  { href: '/admin/revenue', label: 'Revenue', icon: TrendingUp },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -35,6 +47,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [admin, setAdmin] = useState<AdminMe | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ordersAttention, setOrdersAttention] = useState<number | null>(null);
 
   useEffect(() => {
     if (getRole() !== 'admin') {
@@ -47,6 +60,27 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       .catch(() => router.replace('/admin/login'))
       .finally(() => setLoading(false));
   }, [router]);
+
+  useEffect(() => {
+    if (admin?.status !== 'approved') {
+      setOrdersAttention(null);
+      return;
+    }
+    let cancelled = false;
+    adminApi
+      .getOrders()
+      .then((r) => {
+        if (cancelled) return;
+        const rows = Array.isArray(r.data) ? (r.data as { status?: string }[]) : [];
+        setOrdersAttention(rows.filter((o) => orderNeedsShipment(o.status)).length);
+      })
+      .catch(() => {
+        if (!cancelled) setOrdersAttention(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [admin?.status]);
 
   useEffect(() => {
     if (admin?.status === 'pending' && pathname !== '/admin/dashboard') {
@@ -63,6 +97,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const shopTitle = admin?.shop_name?.trim() || 'LensCart';
+
   return (
     <div className="min-h-screen bg-ev-bg flex">
       <aside className="ev-sidebar w-60 sm:w-64 flex flex-col fixed inset-y-0 z-30">
@@ -72,7 +108,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <Camera size={18} className="text-white" />
             </div>
             <div className="min-w-0">
-              <p className="text-white font-bold text-sm truncate">LensCart</p>
+              <p className="text-white font-bold text-sm truncate">{shopTitle}</p>
               <p className="ev-sidebar-muted text-xs">Shop Admin</p>
             </div>
           </Link>
@@ -93,8 +129,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           ) : null}
         </div>
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {nav.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || (href !== '/admin/dashboard' && pathname.startsWith(href + '/'));
+          {navItems.map(({ href, label, icon: Icon, badge }) => {
+            const active =
+              pathname === href || (href !== '/admin/dashboard' && pathname.startsWith(href + '/'));
+            const showBadge =
+              badge === 'ordersAttention' &&
+              ordersAttention != null &&
+              ordersAttention > 0 &&
+              admin?.status === 'approved';
             return (
               <Link
                 key={href}
@@ -104,7 +146,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 }`}
               >
                 <Icon size={17} />
-                {label}
+                <span className="flex-1 min-w-0 truncate">{label}</span>
+                {showBadge ? (
+                  <span className="shrink-0 min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full bg-ev-primary text-white text-[10px] font-bold">
+                    {ordersAttention > 99 ? '99+' : ordersAttention}
+                  </span>
+                ) : null}
               </Link>
             );
           })}
