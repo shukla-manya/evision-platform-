@@ -200,7 +200,14 @@ export class ElectricianService {
       })
       .filter(Boolean) as Record<string, unknown>[];
 
-    nearby.sort((a, b) => Number(b.rating_avg || 0) - Number(a.rating_avg || 0));
+    nearby.sort((a, b) => {
+      const ra = Number(a.rating_avg || 0);
+      const rb = Number(b.rating_avg || 0);
+      if (rb !== ra) return rb - ra;
+      const da = Number(a.distance_km ?? 999);
+      const db = Number(b.distance_km ?? 999);
+      return da - db;
+    });
     return nearby;
   }
 

@@ -111,6 +111,35 @@ export type ServiceBooking = {
   work_photo_url?: string;
   updated_at?: string;
   created_at?: string;
+  expires_at?: string;
+};
+
+export type ServiceRequestSummary = {
+  id: string;
+  issue?: string;
+  lat?: number;
+  lng?: number;
+};
+
+export type ServiceBookingHistoryRow = ServiceBooking & {
+  request_summary?: ServiceRequestSummary | null;
+  electrician_name?: string | null;
+};
+
+export type NearbyElectrician = ElectricianProfile & {
+  distance_km?: number;
+};
+
+export type ElectricianPublicProfile = Record<string, unknown> & {
+  id?: string;
+  name?: string;
+  reviews?: Array<Record<string, unknown>>;
+};
+
+export type CustomerBookingDetail = {
+  booking: ServiceBooking;
+  request: Record<string, unknown> | null;
+  electrician: Record<string, unknown> | null;
 };
 
 export type ElectricianProfile = {
@@ -172,6 +201,30 @@ export const ordersApi = {
 
 export const serviceApi = {
   listMyActiveBookings: () => api.get<ServiceBooking[]>('/service/my/bookings/active'),
+  listMyBookingHistory: () => api.get<ServiceBookingHistoryRow[]>('/service/my/bookings/history'),
+  getBookingDetail: (bookingId: string) =>
+    api.get<CustomerBookingDetail>(`/service/booking/${bookingId}`),
+  createRequest: (formData: FormData) =>
+    api.post<Record<string, unknown>>('/service/request', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  bookElectrician: (electricianId: string, serviceRequestId: string) =>
+    api.post<ServiceBooking>(`/service/book/${electricianId}`, { service_request_id: serviceRequestId }),
+};
+
+/** Public electrician browse (no auth). */
+export const publicElectricianApi = {
+  nearby: (lat: number, lng: number) =>
+    api.get<NearbyElectrician[]>('/electrician/nearby', { params: { lat, lng } }),
+  profile: (electricianId: string) =>
+    api.get<ElectricianPublicProfile>(`/electrician/${electricianId}/profile`),
+};
+
+export const reviewsApi = {
+  submitElectricianReview: (electricianId: string, formData: FormData) =>
+    api.post(`/reviews/electrician/${electricianId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 export const electricianApi = {

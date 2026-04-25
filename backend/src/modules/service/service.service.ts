@@ -403,6 +403,69 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
       );
   }
 
+  async listCustomerBookingHistory(customerId: string): Promise<Record<string, unknown>[]> {
+    const bookings = await this.dynamo.scan({
+      TableName: this.bookingsTable(),
+    });
+    const mine = bookings.filter(
+      (row) =>
+        String(row.customer_id || '') === customerId &&
+        String(row.status || '') === 'accepted' &&
+        String(row.job_status || '') === 'completed',
+    );
+    const enriched = await Promise.all(
+      mine.map(async (b) => {
+        const request = await this.dynamo.get(this.requestsTable(), { id: String(b.request_id || '') });
+        const electrician = await this.dynamo.get(this.electriciansTable(), {
+          id: String(b.electrician_id || ''),
+        });
+        return {
+          ...b,
+          request_summary: request
+            ? {
+                id: request.id,
+                issue: request.issue,
+                lat: request.lat,
+                lng: request.lng,
+              }
+            : null,
+          electrician_name: electrician ? String(electrician.name || '') : null,
+        };
+      }),
+    );
+    enriched.sort(
+      (a, b) =>
+        new Date(String(b.updated_at || b.created_at || 0)).getTime() -
+        new Date(String(a.updated_at || a.created_at || 0)).getTime(),
+    );
+    return enriched;
+  }
+
+  async getCustomerBookingDetail(
+    customerId: string,
+    bookingId: string,
+  ): Promise<Record<string, unknown>> {
+    const booking = await this.dynamo.get(this.bookingsTable(), { id: bookingId });
+    if (!booking || String(booking.customer_id || '') !== customerId) {
+      throw new NotFoundException('Booking not found');
+    }
+    const request = await this.dynamo.get(this.requestsTable(), { id: String(booking.request_id || '') });
+    const electrician = await this.dynamo.get(this.electriciansTable(), {
+      id: String(booking.electrician_id || ''),
+    });
+    let electricianSafe: Record<string, unknown> | null = null;
+    if (electrician) {
+      const { password_hash: _pw, ...rest } = electrician as Record<string, unknown>;
+      void _pw;
+      electricianSafe = rest;
+    }
+    return {
+      booking,
+      request: request || null,
+      electrician: electricianSafe,
+    };
+  }
+
   async setElectricianAvailability(
     electricianUserId: string,
     online: boolean,

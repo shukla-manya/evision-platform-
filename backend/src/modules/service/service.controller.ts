@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Post,
   UploadedFile,
   UseGuards,
@@ -60,5 +61,22 @@ export class ServiceController {
   @ApiOperation({ summary: 'List active bookings for the logged in customer/dealer' })
   listMyActiveBookings(@CurrentUser() user: { id: string }) {
     return this.service.listCustomerActiveBookings(user.id);
+  }
+
+  @Get('my/bookings/history')
+  @Roles('customer', 'dealer')
+  @ApiOperation({ summary: 'List completed service bookings for review/history' })
+  listMyBookingHistory(@CurrentUser() user: { id: string }) {
+    return this.service.listCustomerBookingHistory(user.id);
+  }
+
+  @Get('booking/:bookingId')
+  @Roles('customer', 'dealer')
+  @ApiOperation({ summary: 'Get one booking with request + electrician snapshot (map/tracking)' })
+  getBookingDetail(
+    @CurrentUser() user: { id: string },
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
+  ) {
+    return this.service.getCustomerBookingDetail(user.id, bookingId);
   }
 }
