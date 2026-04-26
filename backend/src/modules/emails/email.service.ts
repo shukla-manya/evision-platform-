@@ -337,14 +337,14 @@ export class EmailService {
       },
       {
         email_title: 'Dealer pricing active',
-        preheader: `${brand}: your GST verification is complete — dealer pricing is active.`,
+        preheader: `${brand}: GST verified — wholesale prices on the full catalogue and dealer checkout are ready.`,
         header_border_color: '#10b981',
       },
     );
     await this.send({
       to: dealerEmail,
       to_role: 'dealer',
-      subject: `Your dealer pricing is now active — ${brand}`,
+      subject: `GST verified — dealer pricing & checkout are active — ${brand}`,
       html,
       trigger_event: 'dealer_gst_verified',
     });

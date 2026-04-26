@@ -149,6 +149,7 @@ export const ordersApi = {
 // ── Superadmin (API path unchanged; UI lives at /super/* only) ─────────────
 export const superadminApi = {
   verifyDealerGst: (userId: string) => api.put(`/superadmin/users/${userId}/verify-dealer-gst`),
+  getPendingDealerGst: () => api.get('/superadmin/pending-dealer-gst'),
   getPendingAdmins: () => api.get('/superadmin/pending-admins'),
   getAllAdmins: () => api.get('/superadmin/all-admins'),
   approveAdmin: (id: string) => api.put(`/superadmin/admin/${id}/approve`),
