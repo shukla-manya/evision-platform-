@@ -419,13 +419,11 @@ type FlowGate = 'loading' | 'pending' | 'rejected' | 'approved';
 export function ElectricianFlow({
   token,
   onLogout,
-  onOpenPasswordReset,
   fcmToken,
   userRole,
 }: {
   token: string;
   onLogout: () => void;
-  onOpenPasswordReset: (phone?: string) => void;
   fcmToken: string | null;
   userRole?: string;
 }) {
@@ -516,13 +514,7 @@ export function ElectricianFlow({
       <Stack.Screen name="ActiveJob" component={activeJobScreen} options={{ title: 'Active Job' }} />
       <Stack.Screen name="UploadPhoto" component={UploadPhotoScreen} options={{ title: 'Upload Photo' }} />
       <Stack.Screen name="Profile" options={{ title: 'My Profile' }}>
-        {() => (
-          <ProfileScreen
-            onLogout={onLogout}
-            onOpenPasswordReset={onOpenPasswordReset}
-            fcmToken={fcmToken}
-          />
-        )}
+        {() => <ProfileScreen onLogout={onLogout} fcmToken={fcmToken} />}
       </Stack.Screen>
       <Stack.Screen name="EarningsHistory" component={EarningsHistoryScreen} options={{ title: 'Earnings & History' }} />
     </Stack.Navigator>
