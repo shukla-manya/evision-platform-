@@ -21,13 +21,16 @@ export function ElectricianListScreen({ navigation, route }: Props) {
   const { lat, lng, serviceRequestId } = route.params;
   const [rows, setRows] = useState<NearbyElectrician[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadFailed(false);
       const { data } = await publicElectricianApi.nearby(lat, lng);
       setRows(data || []);
     } catch {
+      setLoadFailed(true);
       Alert.alert('Error', 'Could not load electricians.');
       setRows([]);
     } finally {

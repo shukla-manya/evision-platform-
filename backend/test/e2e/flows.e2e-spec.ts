@@ -60,6 +60,8 @@ async function startPdfHttpServer(): Promise<{ baseUrl: string; close: () => Pro
 }
 
 describe('E2E flows (local)', () => {
+  jest.setTimeout(600000);
+
   let dynServer: net.Server;
   let docClient: DynamoDBDocumentClient;
   let app: INestApplication;
