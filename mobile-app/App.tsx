@@ -1168,20 +1168,9 @@ function PasswordResetScreen({
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Reset Password</Text>
           <Text style={styles.subtitle}>
-            Admin and Technician (password accounts) only. We SMS a 6-digit OTP to the mobile on your account — not
-            email. Customer and Dealer use OTP sign-in; Superadmin uses the web sign-in flow.
+            Shop admins only. We SMS a 6-digit OTP to the mobile on your shop account. Technicians, customers, and
+            dealers sign in with a mobile OTP — no password reset here. Superadmin uses the web sign-in flow.
           </Text>
-          <View style={styles.roleRow}>
-            {PASSWORD_RESET_ROLE_OPTIONS.map(({ value, label }) => (
-              <Pressable
-                key={value}
-                onPress={() => setRole(value)}
-                style={[styles.roleChip, role === value && styles.roleChipActive]}
-              >
-                <Text style={[styles.roleChipText, role === value && styles.roleChipTextActive]}>{label}</Text>
-              </Pressable>
-            ))}
-          </View>
           <TextInput
             style={styles.input}
             placeholder="+91 9876543210"
