@@ -12,6 +12,7 @@ import {
   QueryCommandInput,
   ScanCommandInput,
 } from '@aws-sdk/lib-dynamodb';
+import { ensureEvisionDynamoTables } from '../../seeds/dynamo-tables.setup';
 
 @Injectable()
 export class DynamoService implements OnModuleInit {
