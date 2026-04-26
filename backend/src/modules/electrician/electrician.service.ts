@@ -343,6 +343,31 @@ export class ElectricianService {
     return { updated: true, available };
   }
 
+  async updateGeoCoords(
+    electricianId: string,
+    lat: number,
+    lng: number,
+  ): Promise<{ lat: number; lng: number; geo_captured_at: string }> {
+    const electrician = await this.dynamo.get(this.table(), { id: electricianId });
+    if (!electrician) throw new NotFoundException('Electrician not found');
+    if (String(electrician.status || '').toLowerCase() !== 'approved') {
+      throw new BadRequestException('Only approved technicians can update map coordinates');
+    }
+    const la = Number(lat);
+    const ln = Number(lng);
+    if (Number.isNaN(la) || Number.isNaN(ln) || la < -90 || la > 90 || ln < -180 || ln > 180) {
+      throw new BadRequestException('Invalid lat/lng');
+    }
+    const now = new Date().toISOString();
+    await this.dynamo.update(this.table(), { id: electricianId }, {
+      lat: la,
+      lng: ln,
+      geo_captured_at: now,
+      updated_at: now,
+    });
+    return { lat: la, lng: ln, geo_captured_at: now };
+  }
+
   async updateFcmToken(
     electricianId: string,
     fcmToken: string,

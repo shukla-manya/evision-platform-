@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Patch,
   Query,
   UploadedFile,
   UploadedFiles,
@@ -35,6 +36,7 @@ import { UpdateJobStatusDto } from '../service/dto/update-job-status.dto';
 import { UpdateElectricianAvailabilityDto } from '../service/dto/update-electrician-availability.dto';
 import { ReviewsService } from '../reviews/reviews.service';
 import { UpdateElectricianDeviceTokenDto } from './dto/update-device-token.dto';
+import { UpdateGeoDto } from '../auth/dto/update-geo.dto';
 
 @ApiTags('Electrician')
 @Controller(['electrician', 'electricians'])
