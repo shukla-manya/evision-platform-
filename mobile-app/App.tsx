@@ -794,6 +794,44 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 value={address}
                 onChangeText={setAddress}
               />
+              <Pressable
+                style={[styles.buttonSecondary, shopGeoLoading && { opacity: 0.7 }]}
+                disabled={shopGeoLoading}
+                onPress={async () => {
+                  setShopGeoLoading(true);
+                  try {
+                    const pos = await getExpoGeolocation();
+                    if (!pos) {
+                      Alert.alert(
+                        'Location',
+                        'Allow location access in Settings, or type your shop address, city, and pincode manually.',
+                      );
+                      return;
+                    }
+                    const parsed = await reverseGeocodeIndia(pos.lat, pos.lng);
+                    if (!parsed) {
+                      Alert.alert('Location', 'Could not resolve an address from GPS. Please enter details manually.');
+                      return;
+                    }
+                    if (parsed.address) setAddress(parsed.address);
+                    if (parsed.city) setCity(parsed.city);
+                    if (parsed.pincode) setPincode(parsed.pincode);
+                    Alert.alert(
+                      'Address updated',
+                      parsed.pincode
+                        ? 'Street, city, and pincode were filled from your location. Review and edit if needed.'
+                        : 'Street and city were filled. Add or confirm pincode if needed.',
+                    );
+                  } finally {
+                    setShopGeoLoading(false);
+                  }
+                }}
+              >
+                <Text style={styles.buttonSecondaryText}>
+                  {shopGeoLoading ? 'Getting location…' : 'Use current location for shop address'}
+                </Text>
+              </Pressable>
+              <Text style={styles.captionNote}>Or enter address, city, and pincode manually.</Text>
               <TextInput style={styles.input} placeholder="City" value={city} onChangeText={setCity} />
               <TextInput
                 style={styles.input}
