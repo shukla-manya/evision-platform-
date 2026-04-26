@@ -1,5 +1,14 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { serviceApi, ServiceBookingHistoryRow } from '../services/api';
@@ -11,14 +20,18 @@ type Props = NativeStackScreenProps<ServiceFlowStackParams, 'ServiceHistory'>;
 export function ServiceHistoryScreen({ navigation }: Props) {
   const [rows, setRows] = useState<ServiceBookingHistoryRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadFailed(false);
       const { data } = await serviceApi.listMyBookingHistory();
       setRows(data || []);
     } catch {
+      setLoadFailed(true);
       setRows([]);
+      Alert.alert('Error', 'Could not load service history.');
     } finally {
       setLoading(false);
     }
@@ -34,6 +47,19 @@ export function ServiceHistoryScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={styles.center}>
         <ActivityIndicator size="large" color={colors.brandPrimary} />
+        <Text style={styles.loadingHint}>Loading history…</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <SafeAreaView style={styles.center}>
+        <Text style={styles.emptyTitle}>Something went wrong</Text>
+        <Text style={styles.muted}>Check your connection, then try again.</Text>
+        <Pressable style={styles.retryBtn} onPress={() => void load()}>
+          <Text style={styles.retryLabel}>Try again</Text>
+        </Pressable>
       </SafeAreaView>
     );
   }
@@ -41,10 +67,17 @@ export function ServiceHistoryScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.screen}>
       <FlatList
-        contentContainerStyle={styles.list}
+        contentContainerStyle={rows.length === 0 ? styles.listEmpty : styles.list}
         data={rows}
         keyExtractor={(item) => String(item.id)}
-        ListEmptyComponent={<Text style={styles.muted}>No completed service visits yet.</Text>}
+        ListEmptyComponent={
+          <View style={styles.emptyWrap}>
+            <Text style={styles.emptyTitle}>No past visits</Text>
+            <Text style={styles.emptyBody}>
+              When a technician completes a service for you, it will appear here so you can leave a review.
+            </Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Text style={styles.title}>{String(item.electrician_name || 'Electrician')}</Text>
@@ -69,8 +102,10 @@ export function ServiceHistoryScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, gap: 10 },
+  loadingHint: { fontSize: 14, color: colors.textSecondary, marginTop: 8 },
   list: { padding: 16, gap: 12 },
+  listEmpty: { flexGrow: 1, padding: 24, justifyContent: 'center' },
   card: {
     backgroundColor: colors.surface,
     borderRadius: 12,
@@ -91,5 +126,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   btnText: { color: '#fff', fontWeight: '600' },
-  muted: { textAlign: 'center', color: colors.textSecondary, padding: 24 },
+  muted: { textAlign: 'center', color: colors.textSecondary, paddingHorizontal: 16 },
+  emptyWrap: { alignItems: 'center', paddingVertical: 24 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 8, textAlign: 'center' },
+  emptyBody: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 21, maxWidth: 320 },
+  retryBtn: {
+    marginTop: 12,
+    backgroundColor: colors.brandPrimary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+  },
+  retryLabel: { color: '#fff', fontWeight: '600', fontSize: 15 },
 });
