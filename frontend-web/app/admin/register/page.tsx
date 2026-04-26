@@ -205,8 +205,22 @@ export default function AdminRegisterPage() {
                     <input type="text" className="ev-input pl-10" placeholder="07AABCU9603R1ZP" value={form.gst_no} onChange={set('gst_no')} required />
                   </div>
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="ev-label">Shop address</label>
+                <div className="sm:col-span-2 flex flex-col gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <label className="ev-label mb-0">Shop address</label>
+                    <button
+                      type="button"
+                      className="ev-btn-secondary text-xs py-2 px-3 inline-flex items-center gap-1.5 shrink-0"
+                      disabled={geoLoading}
+                      onClick={() => void fillShopAddressFromLocation()}
+                    >
+                      {geoLoading ? <Loader2 size={14} className="animate-spin" /> : <Navigation size={14} />}
+                      Use current location
+                    </button>
+                  </div>
+                  <p className="text-ev-subtle text-xs -mt-1">
+                    Use GPS to pre-fill street, city, and pincode when possible, or type everything manually.
+                  </p>
                   <div className="relative">
                     <MapPin size={16} className="absolute left-4 top-3.5 text-ev-subtle" />
                     <input type="text" className="ev-input pl-10" placeholder="Plot / street / area" value={form.address} onChange={set('address')} required />
