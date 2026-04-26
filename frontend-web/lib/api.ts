@@ -27,7 +27,12 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       const path = typeof window !== 'undefined' ? window.location.pathname : '';
-      if (path === '/super/signin' || path === '/admin/login' || path === '/login') {
+      if (
+        path === '/super/signin' ||
+        path === '/admin/login' ||
+        path === '/login' ||
+        path === '/register'
+      ) {
         return Promise.reject(err);
       }
       Cookies.remove('ev_token');
