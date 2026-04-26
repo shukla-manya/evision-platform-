@@ -531,6 +531,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   /** After OTP is sent (customer / dealer / technician), lock identity & address fields — same policy as web. */
   const [registerDetailsLocked, setRegisterDetailsLocked] = useState(false);
 
+  const deliveryCachedGpsRef = useRef<{ lat: number; lng: number } | null>(null);
   const deliveryPinSuggestSeq = useRef(0);
   useEffect(() => {
     if (role !== 'customer' && role !== 'dealer' && role !== 'electrician') return;

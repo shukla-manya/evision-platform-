@@ -47,6 +47,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
   const [techPhoneDigits, setTechPhoneDigits] = useState('');
   const [techCity, setTechCity] = useState('');
   const [techPin, setTechPin] = useState('');
+  const cachedGpsRef = useRef<{ lat: number; lng: number } | null>(null);
   const techPinSuggestSeq = useRef(0);
   useEffect(() => {
     const c = techCity.trim();
@@ -69,6 +70,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
         toast.error('Could not read your location. Allow access or enter city and pincode manually.');
         return;
       }
+      cachedGpsRef.current = pos;
       const parsed = await reverseGeocodeIndia(pos.lat, pos.lng);
       if (!parsed) {
         toast.error('Could not resolve location. Enter city and pincode manually.');
@@ -197,7 +199,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     setLoading(true);
     try {
       const phone = formatPhoneE164(techPhoneDigits);
-      const coords = await resolveRegistrationCoordinates(techCity.trim(), techPin.trim());
+      const coords = cachedGpsRef.current ?? await resolveRegistrationCoordinates(techCity.trim(), techPin.trim());
       const skillsCsv = Array.from(techSkills).join(',');
       const exp = techExperience.trim();
       const addressLine = [exp ? `Experience: ${exp} yrs` : null, `${techCity.trim()}, ${techPin.trim()}, India`]
