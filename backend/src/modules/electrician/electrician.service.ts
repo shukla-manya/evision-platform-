@@ -149,7 +149,7 @@ export class ElectricianService {
     }
 
     await this.dynamo.put(this.table(), electrician);
-    this.logger.log(`Electrician registration submitted: ${dto.email}`);
+    this.logger.log(`Electrician registration submitted: ${emailNorm}`);
 
     const superadminEmail = this.config.get<string>('SUPERADMIN_EMAIL');
     if (superadminEmail) {

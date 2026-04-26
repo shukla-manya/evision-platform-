@@ -47,7 +47,8 @@ api.interceptors.response.use(
 
 // ── Auth ───────────────────────────────────────────────────────────────────
 export const authApi = {
-  sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
+  sendOtp: (phone: string, extra?: { purpose?: 'signup'; email?: string }) =>
+    api.post('/auth/send-otp', { phone, ...extra }),
   verifyOtp: (phone: string, otp: string) => api.post('/auth/verify-otp', { phone, otp }),
   passwordResetStart: (role: string, phone: string) =>
     api.post('/auth/password/reset/start', { role, phone }),
