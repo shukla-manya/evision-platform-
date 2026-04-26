@@ -10,6 +10,7 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main",
+    "dynamo:local": "dynalite --port 8001",
     "setup:tables": "ts-node -r tsconfig-paths/register src/seeds/dynamo-tables.setup.ts",
     "seed:superadmin": "ts-node -r tsconfig-paths/register src/seeds/superadmin.seed.ts",
     "seed:perf": "ts-node -r tsconfig-paths/register src/seeds/perf-load.seed.ts",
