@@ -35,14 +35,15 @@ export default function ElectricianSettingsPage() {
         <div className="ev-card p-8 space-y-5">
           <h1 className="text-2xl font-bold text-ev-text">Settings</h1>
           <p className="text-ev-muted text-sm">
-            Update your profile from the profile page. For password changes, use the secure OTP flow.
+            Update your profile from the profile page.
+          </p>
+          <p className="text-ev-subtle text-sm leading-relaxed border-l-2 border-ev-primary/40 pl-3">
+            You always sign in with a code sent to your mobile number. There is no separate password for your
+            technician account on the web app.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/electrician/profile" className="ev-btn-primary inline-flex text-sm py-2.5 px-4">
               Open profile
-            </Link>
-            <Link href="/reset-password?role=electrician" className="ev-btn-secondary inline-flex text-sm py-2.5 px-4">
-              Change password (OTP)
             </Link>
           </div>
         </div>
