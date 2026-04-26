@@ -25,8 +25,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <Toaster
-          position="top-center"
-          containerStyle={{ top: 'max(1rem, env(safe-area-inset-top))' }}
+          position="top-right"
+          containerStyle={{
+            top: 'max(0.75rem, env(safe-area-inset-top))',
+            right: 'max(0.75rem, env(safe-area-inset-right))',
+          }}
           toastOptions={{
             duration: 4000,
             style: {

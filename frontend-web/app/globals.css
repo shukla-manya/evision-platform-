@@ -77,6 +77,8 @@
   body {
     @apply bg-ev-bg text-ev-text font-sans antialiased;
     min-height: 100vh;
+    min-width: 0;
+    overflow-x: clip;
   }
 
   ::-webkit-scrollbar {
