@@ -224,6 +224,15 @@ export class ElectricianController {
     return this.service.setElectricianAvailability(user.id, dto.online);
   }
 
+  @Patch('me/geo')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update base coordinates used for nearby discovery' })
+  updateGeo(@CurrentUser() user: { id: string }, @Body() dto: UpdateGeoDto) {
+    return this.electrician.updateGeoCoords(user.id, dto.lat, dto.lng);
+  }
+
   @Post('my/device-token')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('electrician')
