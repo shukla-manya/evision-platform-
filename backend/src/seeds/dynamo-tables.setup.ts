@@ -330,12 +330,18 @@ export async function ensureEvisionDynamoTables(ddbClient: DynamoDBClient): Prom
 
     if (ttlAttribute) {
       await new Promise((r) => setTimeout(r, 500));
-      await ddbClient.send(
-        new UpdateTimeToLiveCommand({
-          TableName: tableConfig.TableName,
-          TimeToLiveSpecification: { AttributeName: ttlAttribute, Enabled: true },
-        }),
-      );
+      try {
+        await ddbClient.send(
+          new UpdateTimeToLiveCommand({
+            TableName: tableConfig.TableName,
+            TimeToLiveSpecification: { AttributeName: ttlAttribute, Enabled: true },
+          }),
+        );
+      } catch (e: unknown) {
+        // Dynalite and some local emulators do not implement UpdateTimeToLive.
+        const msg = e instanceof Error ? e.message : String(e);
+        console.warn(`  ⚠ TTL not applied for ${tableConfig.TableName}: ${msg}`);
+      }
     }
   }
 }
@@ -365,13 +371,18 @@ async function setupCli() {
 
       if (ttlAttribute) {
         await new Promise((r) => setTimeout(r, 1000));
-        await client.send(
-          new UpdateTimeToLiveCommand({
-            TableName: tableConfig.TableName,
-            TimeToLiveSpecification: { AttributeName: ttlAttribute, Enabled: true },
-          }),
-        );
-        console.log(`    → TTL enabled on '${ttlAttribute}'`);
+        try {
+          await client.send(
+            new UpdateTimeToLiveCommand({
+              TableName: tableConfig.TableName,
+              TimeToLiveSpecification: { AttributeName: ttlAttribute, Enabled: true },
+            }),
+          );
+          console.log(`    → TTL enabled on '${ttlAttribute}'`);
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.warn(`    ⚠ TTL not applied for ${tableConfig.TableName}: ${msg}`);
+        }
       }
     } catch (err: any) {
       console.error(`  ✗ Failed to create ${tableConfig.TableName}:`, err?.message);
