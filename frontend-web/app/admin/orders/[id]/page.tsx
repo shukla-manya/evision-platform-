@@ -248,7 +248,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                       href={order.tracking_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-ev-primary inline-flex items-center gap-1 hover:underline"
+                      className="ev-btn-secondary text-sm py-2 px-4 inline-flex items-center gap-2"
                     >
                       Open tracking <ExternalLink size={13} />
                     </a>

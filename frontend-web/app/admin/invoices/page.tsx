@@ -105,7 +105,7 @@ export default function AdminInvoicesPage() {
                             href={href}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-ev-primary hover:underline"
+                            className="ev-btn-secondary text-xs py-1.5 px-3 inline-flex items-center gap-1.5"
                           >
                             <Download size={14} />
                             Download PDF
