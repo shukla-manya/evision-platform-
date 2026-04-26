@@ -397,7 +397,14 @@ export default function DealerDashboardPage() {
           <>
             <header className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-ev-text">{dealerIdentity.company}</h1>
+                <p className="text-ev-muted text-sm mb-1">
+                  {(() => {
+                    const g = greetingLabelIst();
+                    const n = formatGreetName(greetFirst);
+                    return n ? `${g}, ${n}.` : `${g}.`;
+                  })()}
+                </p>
+                <h1 className="text-2xl font-bold text-ev-text">Dealer dashboard</h1>
                 <p className="text-ev-muted text-sm mt-1">Dealer account · GST verified</p>
                 <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 inline-flex mt-3">
                   Browse dealer prices
