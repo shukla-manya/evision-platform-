@@ -1,7 +1,13 @@
 /** Response shape for `GET /superadmin/analytics` — shared by dashboard and analytics pages. */
 export type SuperadminAnalyticsSnapshot = {
   admins: { total: number; pending: number; approved: number; rejected: number; suspended: number };
-  users: { total: number; customers: number; dealers: number; electricians?: number };
+  users: {
+    total: number;
+    customers: number;
+    dealers: number;
+    /** Rows in `users` with role electrician (technicians use the electricians table). */
+    electricians?: number;
+  };
   emails: { total: number; sent: number; failed: number };
   orders?: { platform_revenue: number; orders_today: number; total_count?: number };
   revenue_by_shop?: { admin_id: string; shop_name: string; amount: number; order_count?: number }[];

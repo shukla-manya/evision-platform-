@@ -225,7 +225,23 @@ export default function SuperDashboardPage() {
               <div className="ev-card p-5 border-ev-border">
                 <p className="text-ev-muted text-sm font-medium">Total users</p>
                 <p className="text-2xl font-bold text-ev-text mt-2">{analytics?.users.total ?? '—'}</p>
-                <p className="text-ev-muted text-sm mt-1">All roles in platform</p>
+                <p className="text-ev-muted text-sm mt-1">Rows in users table (customers + dealers + other roles)</p>
+              </div>
+              <div className="ev-card p-5 border-ev-border">
+                <p className="text-ev-muted text-sm font-medium flex items-center gap-2">
+                  <Users size={16} className="text-ev-primary shrink-0" aria-hidden />
+                  Customers
+                </p>
+                <p className="text-2xl font-bold text-ev-text mt-2">{analytics?.users.customers ?? '—'}</p>
+                <p className="text-ev-subtle text-xs mt-2">Registered accounts with role customer</p>
+              </div>
+              <div className="ev-card p-5 border-ev-border">
+                <p className="text-ev-muted text-sm font-medium flex items-center gap-2">
+                  <Landmark size={16} className="text-ev-accent shrink-0" aria-hidden />
+                  Dealers
+                </p>
+                <p className="text-2xl font-bold text-ev-text mt-2">{analytics?.users.dealers ?? '—'}</p>
+                <p className="text-ev-subtle text-xs mt-2">Registered accounts with role dealer</p>
               </div>
             </div>
 

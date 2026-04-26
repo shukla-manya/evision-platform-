@@ -141,6 +141,7 @@ export class SuperadminService {
       suspended: admins.filter((a) => a.status === 'suspended').length,
     };
 
+    /** Counts rows in `users` by `role`. Technicians on the field team use the `electricians` table (see `active_electricians`). */
     const userStats = {
       total: users.length,
       customers: users.filter((u) => String(u.role || '') === 'customer').length,
