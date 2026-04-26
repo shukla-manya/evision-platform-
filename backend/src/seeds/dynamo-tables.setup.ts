@@ -21,7 +21,8 @@ const client = new DynamoDBClient({
   ...(endpoint ? { endpoint } : {}),
 });
 
-const TABLES = [
+/** Exported for local E2E (dynalite) and tooling. */
+export const EVISION_DYNAMO_TABLES = [
   {
     TableName: 'evision_users',
     BillingMode: 'PAY_PER_REQUEST',
@@ -316,7 +317,30 @@ const TABLES = [
   },
 ];
 
-async function setup() {
+/** Create missing tables (idempotent). Use any DynamoDBClient pointed at local or AWS. */
+export async function ensureEvisionDynamoTables(ddbClient: DynamoDBClient): Promise<void> {
+  const result = await ddbClient.send(new ListTablesCommand({}));
+  const existingTables = result.TableNames || [];
+
+  for (const { ttlAttribute, ...tableConfig } of EVISION_DYNAMO_TABLES as any[]) {
+    if (existingTables.includes(tableConfig.TableName)) {
+      continue;
+    }
+    await ddbClient.send(new CreateTableCommand(tableConfig));
+
+    if (ttlAttribute) {
+      await new Promise((r) => setTimeout(r, 500));
+      await ddbClient.send(
+        new UpdateTimeToLiveCommand({
+          TableName: tableConfig.TableName,
+          TimeToLiveSpecification: { AttributeName: ttlAttribute, Enabled: true },
+        }),
+      );
+    }
+  }
+}
+
+async function setupCli() {
   console.log('\n⚡ E Vision — DynamoDB Table Setup\n');
   console.log(`Region: ${process.env.AWS_REGION || 'ap-south-1'}\n`);
 
@@ -325,12 +349,12 @@ async function setup() {
     const result = await client.send(new ListTablesCommand({}));
     existingTables = result.TableNames || [];
     console.log(`Found ${existingTables.length} existing table(s)\n`);
-  } catch (err) {
-    console.error('✗ Cannot connect to DynamoDB. Check AWS credentials in .env\n', err.message);
+  } catch (err: any) {
+    console.error('✗ Cannot connect to DynamoDB. Check AWS credentials in .env\n', err?.message);
     process.exit(1);
   }
 
-  for (const { ttlAttribute, ...tableConfig } of TABLES as any[]) {
+  for (const { ttlAttribute, ...tableConfig } of EVISION_DYNAMO_TABLES as any[]) {
     if (existingTables.includes(tableConfig.TableName)) {
       console.log(`  ✓ ${tableConfig.TableName} (exists)`);
       continue;
@@ -340,8 +364,7 @@ async function setup() {
       console.log(`  ✓ Created ${tableConfig.TableName}`);
 
       if (ttlAttribute) {
-        // Wait briefly before setting TTL
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise((r) => setTimeout(r, 1000));
         await client.send(
           new UpdateTimeToLiveCommand({
             TableName: tableConfig.TableName,
@@ -350,12 +373,14 @@ async function setup() {
         );
         console.log(`    → TTL enabled on '${ttlAttribute}'`);
       }
-    } catch (err) {
-      console.error(`  ✗ Failed to create ${tableConfig.TableName}:`, err.message);
+    } catch (err: any) {
+      console.error(`  ✗ Failed to create ${tableConfig.TableName}:`, err?.message);
     }
   }
 
   console.log('\n✅ DynamoDB setup complete!\n');
 }
 
-setup();
+if (require.main === module) {
+  void setupCli();
+}

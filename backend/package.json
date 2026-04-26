@@ -12,7 +12,8 @@
     "start:prod": "node dist/main",
     "setup:tables": "ts-node -r tsconfig-paths/register src/seeds/dynamo-tables.setup.ts",
     "seed:superadmin": "ts-node -r tsconfig-paths/register src/seeds/superadmin.seed.ts",
-    "test": "jest"
+    "test": "jest",
+    "test:e2e": "jest --config jest-e2e.config.js --runInBand --forceExit"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.540.0",
@@ -58,8 +59,11 @@
     "@types/nodemailer": "^6.4.14",
     "@types/passport-jwt": "^4.0.1",
     "@types/pdfkit": "^0.17.6",
+    "@nestjs/testing": "^10.3.0",
+    "@types/supertest": "^6.0.2",
     "@types/uuid": "^9.0.8",
     "dynalite": "^4.0.0",
+    "supertest": "^7.0.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
