@@ -56,6 +56,7 @@ export type Product = {
   price_customer?: number;
   price_dealer?: number;
   shop_name?: string | null;
+  category_id?: string;
 };
 
 export type ApprovedShopRow = { id: string; shop_name: string };
@@ -172,7 +173,8 @@ export const authApi = {
 };
 
 export const productApi = {
-  list: (params?: { approved_shops_only?: boolean }) => api.get<Product[]>('/products', { params }),
+  list: (params?: { approved_shops_only?: boolean; category_id?: string; search?: string }) =>
+    api.get<Product[]>('/products', { params }),
   getById: (id: string) => api.get<Product>(`/products/${id}`),
   listApprovedShops: () => api.get<ApprovedShopRow[]>('/products/shops/approved'),
 };

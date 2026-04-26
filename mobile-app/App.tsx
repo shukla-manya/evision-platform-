@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -14,6 +14,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   CommonActions,
@@ -36,6 +37,7 @@ import { Buffer } from 'buffer';
 import {
   setApiTokenGetter,
   authApi,
+  catalogApi,
   electricianApi,
   productApi,
   cartApi,
@@ -1108,6 +1110,38 @@ function PasswordResetScreen({
   );
 }
 
+type MciName = ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+const SHOP_CATEGORY_TILES_MOBILE: {
+  label: string;
+  icon: MciName;
+  iconBg: string;
+  iconColor: string;
+}[] = [
+  { label: 'DSLR Cameras', icon: 'camera-outline', iconBg: '#fff7ed', iconColor: '#c2410c' },
+  { label: 'Mirrorless', icon: 'cellphone', iconBg: '#f1f5f9', iconColor: '#334155' },
+  { label: 'Lenses', icon: 'blur', iconBg: '#e0f2fe', iconColor: '#075985' },
+  { label: 'Action Cameras', icon: 'motion-play-outline', iconBg: '#ffe4e6', iconColor: '#9f1239' },
+  { label: 'Tripods & Mounts', icon: 'tripod', iconBg: '#f5f5f4', iconColor: '#44403c' },
+  { label: 'Memory Cards', icon: 'sd', iconBg: '#ede9fe', iconColor: '#5b21b6' },
+  { label: 'Bags & Cases', icon: 'bag-suitcase-outline', iconBg: '#ecfdf5', iconColor: '#065f46' },
+  { label: 'Lighting', icon: 'ceiling-light-outline', iconBg: '#fef9c3', iconColor: '#854d0e' },
+  { label: 'Filters', icon: 'tune-variant', iconBg: '#e0e7ff', iconColor: '#312e81' },
+  { label: 'Accessories', icon: 'package-variant', iconBg: '#ffedd5', iconColor: '#9a3412' },
+];
+
+function resolveCatalogBrowseParams(
+  label: string,
+  index: number,
+  categories: Array<{ id: string; name: string }>,
+): { category_id?: string; search?: string } {
+  const token = label.split(' ')[0].toLowerCase();
+  const match = categories.find((c) => c.name.toLowerCase().includes(token));
+  if (match?.id) return { category_id: match.id };
+  if (categories[index]?.id) return { category_id: categories[index].id };
+  return { search: label };
+}
+
 function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1115,18 +1149,41 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
   const [approvedShopList, setApprovedShopList] = useState<Array<{ id: string; shop_name: string }>>([]);
   const [shopFilter, setShopFilter] = useState('');
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
+  const [apiCategories, setApiCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [browseCategoryId, setBrowseCategoryId] = useState<string | undefined>();
+  const [browseSearch, setBrowseSearch] = useState<string | undefined>();
+  const [browseLabel, setBrowseLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void catalogApi
+      .getCategories()
+      .then((r) => {
+        if (!cancelled && Array.isArray(r.data)) setApiCategories(r.data as Array<{ id: string; name: string }>);
+      })
+      .catch(() => {
+        if (!cancelled) setApiCategories([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await productApi.list({ approved_shops_only: approvedShopsOnly });
+      const { data } = await productApi.list({
+        approved_shops_only: approvedShopsOnly,
+        ...(browseCategoryId ? { category_id: browseCategoryId } : {}),
+        ...(browseSearch && !browseCategoryId ? { search: browseSearch } : {}),
+      });
       setProducts(data || []);
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'Failed to load products.'));
     } finally {
       setLoading(false);
     }
-  }, [approvedShopsOnly]);
+  }, [approvedShopsOnly, browseCategoryId, browseSearch]);
 
   useEffect(() => {
     let cancelled = false;

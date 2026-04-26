@@ -4,16 +4,26 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
+  Briefcase,
+  Camera,
+  ChevronRight,
   Clock,
+  Cpu,
   CreditCard,
   Heart,
+  Lamp,
   Layers,
   Loader2,
+  Package,
   Plus,
   Receipt,
+  Scan,
+  SlidersHorizontal,
+  Smartphone,
   Sparkles,
   Store,
   Truck,
+  Video,
   Wrench,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -34,17 +44,24 @@ type Product = {
 
 type Category = { id: string; name: string };
 
-const CATEGORY_LABELS = [
-  'DSLR Cameras',
-  'Mirrorless',
-  'Lenses',
-  'Action Cameras',
-  'Tripods & Mounts',
-  'Memory Cards',
-  'Bags & Cases',
-  'Lighting',
-  'Filters',
-  'Accessories',
+type ShopCategoryTile = {
+  label: string;
+  Icon: typeof Camera;
+  artClass: string;
+  iconClass: string;
+};
+
+const SHOP_CATEGORY_TILES: ShopCategoryTile[] = [
+  { label: 'DSLR Cameras', Icon: Camera, artClass: 'from-amber-100 via-orange-50 to-white', iconClass: 'text-amber-800' },
+  { label: 'Mirrorless', Icon: Smartphone, artClass: 'from-slate-200 via-zinc-50 to-white', iconClass: 'text-slate-800' },
+  { label: 'Lenses', Icon: Scan, artClass: 'from-sky-100 via-cyan-50 to-white', iconClass: 'text-sky-900' },
+  { label: 'Action Cameras', Icon: Video, artClass: 'from-rose-100 via-red-50 to-white', iconClass: 'text-rose-800' },
+  { label: 'Tripods & Mounts', Icon: Layers, artClass: 'from-stone-200 via-neutral-50 to-white', iconClass: 'text-stone-800' },
+  { label: 'Memory Cards', Icon: Cpu, artClass: 'from-violet-100 via-purple-50 to-white', iconClass: 'text-violet-900' },
+  { label: 'Bags & Cases', Icon: Briefcase, artClass: 'from-emerald-100 via-teal-50 to-white', iconClass: 'text-emerald-900' },
+  { label: 'Lighting', Icon: Lamp, artClass: 'from-yellow-100 via-amber-50 to-white', iconClass: 'text-amber-900' },
+  { label: 'Filters', Icon: SlidersHorizontal, artClass: 'from-indigo-100 via-blue-50 to-white', iconClass: 'text-indigo-900' },
+  { label: 'Accessories', Icon: Package, artClass: 'from-orange-100 via-ev-soft to-white', iconClass: 'text-orange-900' },
 ];
 
 function formatInr(n: number) {
@@ -120,19 +137,55 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-y border-ev-border bg-ev-surface2/50 py-10">
+      <section className="border-y border-ev-border bg-gradient-to-b from-[#eef2f6] via-ev-surface2/80 to-ev-bg py-10 sm:py-12">
         <div className="ev-container">
-          <h2 className="text-ev-text font-bold text-lg mb-4 text-center">Shop by category</h2>
-          <div className="flex flex-wrap justify-center gap-2">
-            {CATEGORY_LABELS.map((label, i) => (
-              <Link
-                key={label}
-                href={categoryHref(label, i)}
-                className="px-3 py-2 rounded-full border border-ev-border bg-ev-surface text-ev-text text-sm hover:border-ev-primary/40 hover:text-ev-primary transition-colors"
-              >
-                {label}
-              </Link>
-            ))}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-4 mb-6">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-ev-text tracking-tight">Shop by category</h2>
+              <p className="text-sm text-ev-muted mt-1 max-w-xl">
+                Quick links into the catalogue — same listings as the shop, organised like a storefront aisle.
+              </p>
+            </div>
+            <Link
+              href="/shop"
+              className="inline-flex items-center gap-1 self-start text-sm font-semibold text-ev-primary hover:text-ev-primary-dark transition-colors group shrink-0"
+            >
+              See all
+              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+            </Link>
+          </div>
+
+          <div className="-mx-4 sm:mx-0">
+            <div
+              className="flex gap-3 overflow-x-auto px-4 sm:px-0 pb-1 snap-x snap-mandatory sm:grid sm:grid-cols-5 sm:overflow-visible sm:snap-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              role="list"
+              aria-label="Product categories"
+            >
+              {SHOP_CATEGORY_TILES.map(({ label, Icon, artClass, iconClass }, i) => (
+                <Link
+                  key={label}
+                  href={categoryHref(label, i)}
+                  role="listitem"
+                  className="group shrink-0 w-[118px] snap-start sm:w-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ev-primary rounded-2xl"
+                >
+                  <div className="h-full rounded-2xl border border-ev-border/90 bg-ev-surface shadow-ev-sm transition-all duration-200 hover:shadow-ev-md hover:border-ev-primary/35 hover:-translate-y-0.5 overflow-hidden flex flex-col">
+                    <div
+                      className={`relative aspect-[5/4] flex items-center justify-center bg-gradient-to-br ${artClass} border-b border-ev-border/60`}
+                    >
+                      <div className="absolute inset-0 bg-white/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
+                      <Icon className={`relative w-9 h-9 sm:w-10 sm:h-10 ${iconClass} drop-shadow-sm`} strokeWidth={1.75} aria-hidden />
+                    </div>
+                    <div className="px-2.5 py-3 flex items-start justify-between gap-1 min-h-[3.25rem]">
+                      <span className="text-[11px] sm:text-xs font-semibold text-ev-text leading-snug line-clamp-2 text-left flex-1">{label}</span>
+                      <ChevronRight
+                        className="w-3.5 h-3.5 text-ev-subtle shrink-0 mt-0.5 opacity-60 group-hover:text-ev-primary group-hover:opacity-100 transition-colors"
+                        aria-hidden
+                      />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>
