@@ -560,7 +560,6 @@ export default function RegisterPage() {
                               onChange={(e) => setBusinessPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                               required
                             />
-                            <p className="text-ev-subtle text-xs mt-1.5">Filled from city when available — change if needed.</p>
                           </div>
                         </>
                       )}

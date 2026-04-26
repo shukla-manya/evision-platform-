@@ -60,6 +60,32 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     }, 450);
     return () => window.clearTimeout(timer);
   }, [techCity]);
+
+  async function fillTechAreaFromGeo() {
+    setGeoTechLoading(true);
+    try {
+      const pos = await getBrowserGeolocation();
+      if (!pos) {
+        toast.error('Could not read your location. Allow access or enter city and pincode manually.');
+        return;
+      }
+      const parsed = await reverseGeocodeIndia(pos.lat, pos.lng);
+      if (!parsed) {
+        toast.error('Could not resolve location. Enter city and pincode manually.');
+        return;
+      }
+      if (parsed.city) setTechCity(parsed.city);
+      if (parsed.pincode) setTechPin(parsed.pincode);
+      toast.success(
+        parsed.pincode
+          ? 'City and pincode filled from your location. Review if needed.'
+          : 'City filled. Add or confirm pincode if needed.',
+      );
+    } finally {
+      setGeoTechLoading(false);
+    }
+  }
+
   const [techSkills, setTechSkills] = useState<Set<string>>(new Set());
   const [techEmail, setTechEmail] = useState('');
   const [aadharFile, setAadharFile] = useState<File | null>(null);

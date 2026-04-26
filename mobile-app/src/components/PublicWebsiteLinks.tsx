@@ -9,7 +9,7 @@ const LINKS: { label: string; path: string }[] = [
   { label: 'Contact', path: '/contact' },
 ];
 
-/** Matches web footer: signed-out users see a muted “Returns” line; signed-in users do not. */
+/** Signed-out: “Returns” opens storefront sign-in; signed-in: Returns row hidden (matches web footer). */
 export function PublicWebsiteLinks({ audience }: { audience: 'signed_in' | 'signed_out' }) {
   const open = (path: string) => () => void Linking.openURL(publicWebUrl(path));
 
@@ -23,7 +23,16 @@ export function PublicWebsiteLinks({ audience }: { audience: 'signed_in' | 'sign
           </Pressable>
         ))}
       </View>
-      {audience === 'signed_out' ? <Text style={styles.muted}>Returns</Text> : null}
+      {audience === 'signed_out' ? (
+        <Pressable
+          accessibilityRole="link"
+          accessibilityHint="Opens sign in on the website"
+          onPress={() => void Linking.openURL(publicWebUrl('/login'))}
+          style={styles.returnsHit}
+        >
+          <Text style={styles.muted}>Returns</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -59,8 +68,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   muted: {
-    marginTop: 10,
     fontSize: 13,
     color: colors.muted,
+  },
+  returnsHit: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
   },
 });

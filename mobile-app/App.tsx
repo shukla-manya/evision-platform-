@@ -941,9 +941,11 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                     value={deliveryPincode}
                     onChangeText={(t) => setDeliveryPincode(t.replace(/\D/g, '').slice(0, 6))}
                   />
-                  <Text style={styles.captionNote}>
-                    Pincode fills from city when available (India Post data). Submit still uses GPS when allowed for map accuracy.
-                  </Text>
+                  {role !== 'dealer' ? (
+                    <Text style={styles.captionNote}>
+                      Pincode fills from city when available (India Post data). Submit still uses GPS when allowed for map accuracy.
+                    </Text>
+                  ) : null}
                 </>
               )}
               <TextInput

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
 import { EvisionLogo } from '@/components/brand/EvisionLogo';
-import { publicAdminRegisterUrl, publicAdminSignInUrl } from '@/lib/public-links';
+import { publicAdminRegisterUrl, publicAdminSignInUrl, publicLoginPath } from '@/lib/public-links';
 
 const year = 2026;
 
@@ -190,7 +190,13 @@ export function PublicFooter() {
             </li>
             {!loggedIn ? (
               <li>
-                <span className="text-white/45">Returns</span>
+                <Link
+                  href={publicLoginPath}
+                  className="text-white/45 hover:text-white transition-colors cursor-pointer"
+                  title="Sign in to view returns and order help"
+                >
+                  Returns
+                </Link>
               </li>
             ) : null}
             <li>
