@@ -262,23 +262,56 @@ export default function RegisterPage() {
       }
       toast.success(`Welcome to ${publicBrandName}, ${firstName.trim() || 'there'}!`);
       router.push('/');
-    } catch {
-      setOtpAttemptsLeft((prev) => {
-        const next = prev - 1;
-        if (next <= 0) {
-          queueMicrotask(() => {
-            toast.error('Too many incorrect codes. Go back and request a new OTP.');
-            setRegisterStep('details');
-            setRegisterOtpCells(['', '', '', '', '', '']);
-            setResendSeconds(0);
-          });
-          return OTP_ATTEMPTS;
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const msg = getApiErrorMessage(err, 'Registration failed');
+        if (status === 409) {
+          toast.error(msg);
+          setRegisterStep('details');
+          setRegisterOtpCells(['', '', '', '', '', '']);
+          setResendSeconds(0);
+          return;
         }
-        queueMicrotask(() => {
-          toast.error(`Incorrect code. Please check and try again. ${next} attempt${next === 1 ? '' : 's'} remaining.`);
-        });
-        return next;
-      });
+        if (status === 400) {
+          toast.error(msg);
+          return;
+        }
+        if (status === 401) {
+          const lower = msg.toLowerCase();
+          if (
+            lower.includes('otp') ||
+            lower.includes('invalid') ||
+            lower.includes('expired') ||
+            lower.includes('not found')
+          ) {
+            setOtpAttemptsLeft((prev) => {
+              const next = prev - 1;
+              if (next <= 0) {
+                queueMicrotask(() => {
+                  toast.error('Too many incorrect codes. Go back and request a new OTP.');
+                  setRegisterStep('details');
+                  setRegisterOtpCells(['', '', '', '', '', '']);
+                  setResendSeconds(0);
+                });
+                return OTP_ATTEMPTS;
+              }
+              queueMicrotask(() => {
+                toast.error(
+                  `Incorrect code. Please check and try again. ${next} attempt${next === 1 ? '' : 's'} remaining.`,
+                );
+              });
+              return next;
+            });
+            return;
+          }
+          toast.error(msg);
+          return;
+        }
+        toast.error(msg);
+        return;
+      }
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }

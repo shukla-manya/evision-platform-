@@ -597,7 +597,14 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     if (role === 'shop_owner') return;
     try {
       setSendingOtp(true);
-      await authApi.sendOtp(normalizePhone(phone));
+      if (role === 'customer' || role === 'dealer') {
+        await authApi.sendOtp(normalizePhone(phone), {
+          purpose: 'signup',
+          email: email.trim().toLowerCase(),
+        });
+      } else {
+        await authApi.sendOtp(normalizePhone(phone));
+      }
       Alert.alert('OTP sent', 'Use this OTP to complete registration.');
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'Failed to send OTP.'));

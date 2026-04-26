@@ -159,7 +159,8 @@ export type ElectricianProfile = {
 export const authApi = {
   adminLogin: (email: string, password: string) =>
     api.post<{ access_token: string; admin: unknown }>('/auth/admin/login', { email, password }),
-  sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
+  sendOtp: (phone: string, extra?: { purpose?: 'signup'; email?: string }) =>
+    api.post('/auth/send-otp', { phone, ...extra }),
   verifyOtp: (phone: string, otp: string) =>
     api.post<OtpVerifyResponse>('/auth/verify-otp', { phone, otp }),
   register: (payload: RegisterRequest) => api.post('/auth/register', payload),
