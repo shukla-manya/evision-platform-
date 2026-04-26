@@ -361,7 +361,13 @@ export async function ensureEvisionDynamoTables(ddbClient: DynamoDBClient): Prom
       } catch (e: unknown) {
         // Dynalite and some local emulators do not implement UpdateTimeToLive.
         const msg = e instanceof Error ? e.message : String(e);
-        console.warn(`  ⚠ TTL not applied for ${tableConfig.TableName}: ${msg}`);
+        const isLocalTtlUnsupported =
+          /unknownerror|not implemented|unimplemented|ttl/i.test(String(msg));
+        if (isLocalTtlUnsupported) {
+          console.debug(`TTL skipped for ${tableConfig.TableName} (local emulator): ${msg}`);
+        } else {
+          console.warn(`  ⚠ TTL not applied for ${tableConfig.TableName}: ${msg}`);
+        }
       }
     }
   }
