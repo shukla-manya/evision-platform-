@@ -7,7 +7,7 @@ import { ArrowRight, Loader2, Mail, MapPin, Navigation, Upload, User } from 'luc
 import toast from 'react-hot-toast';
 import { authApi, registerElectricianFormData } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
-import { geocodeIndia, getBrowserGeolocation, reverseGeocodeIndia } from '@/lib/registration-geo';
+import { getBrowserGeolocation, resolveRegistrationCoordinates, reverseGeocodeIndia } from '@/lib/registration-geo';
 import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
 import { OtpCells } from '@/components/auth/OtpCells';
 
@@ -192,9 +192,15 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     setLoading(true);
     try {
       const phone = formatPhoneE164(techPhoneDigits);
-      await authApi.verifyOtp(phone, otp);
-      const gps = await getBrowserGeolocation();
-      const { lat, lng } = gps ?? (await geocodeIndia(techCity, techPin));
+      const coords = await resolveRegistrationCoordinates(techCity.trim(), techPin.trim());
+      if (!coords || !Number.isFinite(coords.lat) || !Number.isFinite(coords.lng)) {
+        toast.error(
+          'Could not resolve your location from GPS or city and pincode. Check the pincode, allow location if prompted, then try again.',
+        );
+        return;
+      }
+      const { lat, lng } = coords;
+      await authApi.verifyOtp(phone, otp.replace(/\D/g, ''));
       const skillsCsv = Array.from(techSkills).join(',');
       const exp = techExperience.trim();
       const addressLine = [exp ? `Experience: ${exp} yrs` : null, `${techCity.trim()}, ${techPin.trim()}, India`]
@@ -217,8 +223,20 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
         "Application submitted! Our team will review your Aadhar and profile within 24 hours. You'll receive an email and app notification once approved.",
       );
       router.push('/login');
-    } catch {
-      toast.error('Incorrect code or submission failed. Check the OTP and try again, or request a new code.');
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401) {
+        toast.error('Incorrect or expired code. Request a new OTP if needed.');
+      } else if (status === 409) {
+        toast.error(
+          getApiErrorMessage(
+            err,
+            'This email or phone is already registered. Sign in or use different details.',
+          ),
+        );
+      } else {
+        toast.error(getApiErrorMessage(err, 'Submission failed. Please try again.'));
+      }
     } finally {
       setLoading(false);
     }

@@ -510,7 +510,11 @@ export class AuthService {
     const record = await this.dynamo.get(this.dynamo.tableName('otps'), { phone });
 
     if (!record) throw new UnauthorizedException('OTP not found or expired');
-    if (record.otp !== otp) throw new UnauthorizedException('Invalid OTP');
+    const stored = String(record.otp ?? '').replace(/\D/g, '');
+    const given = String(otp ?? '').replace(/\D/g, '');
+    if (stored.length !== 6 || given.length !== 6 || stored !== given) {
+      throw new UnauthorizedException('Invalid OTP');
+    }
 
     const nowSeconds = Math.floor(Date.now() / 1000);
     if (record.expires_at < nowSeconds) {
