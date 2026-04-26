@@ -5,7 +5,7 @@ import { Toaster } from 'react-hot-toast';
 export const metadata: Metadata = {
   title: 'e vision — Camera & Gear Marketplace',
   description: 'e vision — A warm, trustworthy marketplace for cameras and gear.',
-  icons: { icon: '/favicon.ico' },
+  /** Favicon: MS mark in `app/icon.svg` (Next.js adds `<link rel="icon">` automatically). */
 };
 
 export const viewport: Viewport = {
