@@ -186,12 +186,12 @@ export default function RegisterPage() {
     businessPincode,
   ]);
 
-  const phoneLast10ForOtp = phoneDigits.replace(/\D/g, '').slice(-10);
+  const phoneLast10 = phoneDigits.replace(/\D/g, '').slice(-10);
   const canSendShopperOtp = useMemo(() => {
     const name = `${firstName.trim()} ${lastName.trim()}`.trim();
     if (name.length < 2) return false;
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return false;
-    if (phoneLast10ForOtp.length !== 10) return false;
+    if (phoneLast10.length !== 10) return false;
     if (accountTab === 'customer') {
       if (!address.trim() || !city.trim() || !/^\d{6}$/.test(pincode.replace(/\D/g, ''))) return false;
     } else {
@@ -203,7 +203,7 @@ export default function RegisterPage() {
     firstName,
     lastName,
     email,
-    phoneLast10ForOtp,
+    phoneLast10,
     accountTab,
     address,
     city,
@@ -347,11 +347,9 @@ export default function RegisterPage() {
   }
 
   const phoneMasked =
-    phoneDigits.replace(/\D/g, '').length === 10
-      ? `+91 ${phoneDigits.replace(/\D/g, '').slice(0, 2)}******${phoneDigits.replace(/\D/g, '').slice(-2)}`
+    phoneLast10.length === 10
+      ? `+91 ${phoneLast10.slice(0, 2)}******${phoneLast10.slice(-2)}`
       : '+91 XXXXXXXXXX';
-
-  const phoneLast10 = phoneDigits.replace(/\D/g, '').slice(-10);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
