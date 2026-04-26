@@ -25,7 +25,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <Toaster
-          position="top-right"
+          position="top-center"
+          containerStyle={{ top: 'max(1rem, env(safe-area-inset-top))' }}
           toastOptions={{
             duration: 4000,
             style: {
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               border: '1px solid #d8d2ca',
               borderRadius: '12px',
               fontSize: '14px',
+              maxWidth: 'min(420px, calc(100vw - 2rem))',
             },
             success: { iconTheme: { primary: '#2ecc71', secondary: '#ffffff' } },
             error: { iconTheme: { primary: '#e74c3c', secondary: '#ffffff' } },
