@@ -566,6 +566,47 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     setRegisterDetailsLocked(false);
   }, [role]);
 
+  const getRegisterOtpError = useCallback((): string | null => {
+    if (role === 'shop_owner') return null;
+    const phoneOk = phone.replace(/\D/g, '').length === 10;
+    if (!name.trim() || !email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || !phoneOk) {
+      return 'Enter your full name, a valid email, and a 10-digit mobile number.';
+    }
+    if (role === 'customer') {
+      if (!address.trim() || !deliveryCity.trim() || !/^\d{6}$/.test(deliveryPincode.replace(/\D/g, ''))) {
+        return 'Enter your delivery address, city, and a valid 6-digit pincode.';
+      }
+    }
+    if (role === 'dealer') {
+      if (!gstNo.trim() || !address.trim() || !deliveryCity.trim() || !/^\d{6}$/.test(deliveryPincode.replace(/\D/g, ''))) {
+        return 'Enter GST, business / delivery address, city, and a valid 6-digit pincode.';
+      }
+    }
+    if (role === 'electrician') {
+      if (!skills.trim() || !aadharAsset || !photoAsset) {
+        return 'Enter your skills and upload Aadhar and profile photo before requesting OTP.';
+      }
+      if (!deliveryCity.trim() || !/^\d{6}$/.test(deliveryPincode.replace(/\D/g, ''))) {
+        return 'Enter service city and a valid 6-digit pincode.';
+      }
+    }
+    return null;
+  }, [
+    role,
+    name,
+    email,
+    phone,
+    address,
+    deliveryCity,
+    deliveryPincode,
+    gstNo,
+    skills,
+    aadharAsset,
+    photoAsset,
+  ]);
+
+  const registrationOtpReady = getRegisterOtpError() === null;
+
   const goToSignInHome = () => {
     navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Auth' }] }));
   };
@@ -602,6 +643,11 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
 
   const sendOtp = async () => {
     if (role === 'shop_owner') return;
+    const otpErr = getRegisterOtpError();
+    if (otpErr) {
+      Alert.alert('Required', otpErr);
+      return;
+    }
     try {
       setSendingOtp(true);
       if (role === 'customer' || role === 'dealer' || role === 'electrician') {
@@ -1061,7 +1107,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 value={otp}
                 onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
               />
-              <Pressable style={styles.buttonSecondary} onPress={sendOtp} disabled={sendingOtp}>
+              <Pressable style={styles.buttonSecondary} onPress={sendOtp} disabled={sendingOtp || !registrationOtpReady}>
                 <Text style={styles.buttonSecondaryText}>{sendingOtp ? 'Sending OTP...' : 'Send OTP'}</Text>
               </Pressable>
             </>
