@@ -22,6 +22,8 @@ export class S3Service {
   private readonly s3Endpoint: string | undefined;
   /** Public base for returned URLs (browser). Defaults to path-style `${endpoint}/${bucket}` when endpoint is set. */
   private readonly s3PublicBase: string | undefined;
+  /** True when running locally with placeholder creds and no S3 endpoint — uploads return a stub URL. */
+  private readonly s3Disabled: boolean;
 
   constructor(private config: ConfigService) {
     this.region = config.get('AWS_REGION', 'ap-south-1');
@@ -52,10 +54,12 @@ export class S3Service {
     });
     this.cloudfrontDomain = (config.get('CLOUDFRONT_DOMAIN') || '').replace(/\/$/, '') || null;
 
-    if (!isLocal && isDynamoLocalStyleCreds) {
+    this.s3Disabled = !isLocal && isDynamoLocalStyleCreds;
+    if (this.s3Disabled) {
       this.logger.warn(
         'AWS_ACCESS_KEY_ID/SECRET are the DynamoDB-local placeholder (local/local); ' +
-          'they are not used for S3. Set S3_ENDPOINT (e.g. MinIO) for local uploads, or use real AWS credentials / ~/.aws.',
+          'they are not used for S3. Set S3_ENDPOINT (e.g. MinIO) for local uploads, or use real AWS credentials / ~/.aws. ' +
+          'S3 uploads are DISABLED — stub URLs will be returned in local dev mode.',
       );
     }
 
@@ -77,6 +81,12 @@ export class S3Service {
   ): Promise<string> {
     const ext = mimetype.split('/')[1] || 'bin';
     const key = `${folder}/${uuidv4()}.${ext}`;
+
+    if (this.s3Disabled) {
+      const stubUrl = `local-dev://${this.bucket}/${key}`;
+      this.logger.warn(`S3 disabled (local dev) — returning stub URL: ${stubUrl}`);
+      return stubUrl;
+    }
 
     await this.s3.send(
       new PutObjectCommand({

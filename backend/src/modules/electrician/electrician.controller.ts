@@ -126,12 +126,9 @@ export class ElectricianController {
   ) {
     const aadharFile = files?.aadhar?.[0];
     const photoFile = files?.photo?.[0];
-    if (!aadharFile || !photoFile) {
-      throw new BadRequestException('aadhar and photo files are required');
-    }
     const [aadharUrl, photoUrl] = await Promise.all([
-      this.s3.upload(aadharFile.buffer, aadharFile.mimetype, 'electricians/aadhar'),
-      this.s3.upload(photoFile.buffer, photoFile.mimetype, 'electricians/photos'),
+      aadharFile ? this.s3.upload(aadharFile.buffer, aadharFile.mimetype, 'electricians/aadhar') : Promise.resolve(null),
+      photoFile ? this.s3.upload(photoFile.buffer, photoFile.mimetype, 'electricians/photos') : Promise.resolve(null),
     ]);
     return this.electrician.register(dto, {
       aadhar_url: aadharUrl,

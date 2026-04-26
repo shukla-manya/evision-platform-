@@ -85,7 +85,7 @@ export class ElectricianService {
 
   async register(
     dto: RegisterElectricianDto,
-    docs: { aadhar_url: string; photo_url: string },
+    docs: { aadhar_url: string | null; photo_url: string | null },
   ): Promise<{ message: string; electrician_id: string }> {
     const emailNorm = String(dto.email || '').trim().toLowerCase();
     if (!emailNorm) {
