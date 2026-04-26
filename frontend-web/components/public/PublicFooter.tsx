@@ -165,51 +165,34 @@ export function PublicFooter() {
             </ul>
           )}
 
-          {!loggedIn || role === 'admin' ? (
+          {!loggedIn ? (
             <>
               <p className="font-semibold text-white mt-5 mb-2 text-sm">Shop admin</p>
-              {!loggedIn ? (
-                <>
-                  <p className="text-[11px] text-white/50 leading-snug mb-2">
-                    Store owners: email + password on the admin app
-                  </p>
-                  <ul className="space-y-2 text-white/80">
-                    <li>
-                      <a
-                        href={publicAdminSignInUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-white transition-colors font-medium"
-                      >
-                        Admin sign in
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href={publicAdminRegisterUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-white transition-colors font-medium"
-                      >
-                        Register your shop
-                      </a>
-                    </li>
-                  </ul>
-                </>
-              ) : (
-                <p className="text-[11px] text-white/50 leading-snug mb-2">
-                  You&apos;re signed in as a shop admin. Open the dashboard to manage your store.
-                </p>
-              )}
-              {role === 'admin' ? (
-                <ul className="space-y-2 text-white/80 mt-2">
-                  <li>
-                    <Link href="/admin/dashboard" className="hover:text-white transition-colors font-medium">
-                      Open shop dashboard
-                    </Link>
-                  </li>
-                </ul>
-              ) : null}
+              <p className="text-[11px] text-white/50 leading-snug mb-2">
+                Store owners: email + password on the admin app
+              </p>
+              <ul className="space-y-2 text-white/80">
+                <li>
+                  <a
+                    href={publicAdminSignInUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors font-medium"
+                  >
+                    Admin sign in
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={publicAdminRegisterUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors font-medium"
+                  >
+                    Register your shop
+                  </a>
+                </li>
+              </ul>
             </>
           ) : null}
         </div>
