@@ -1664,15 +1664,16 @@ export default function App() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
+  centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: screenGutter, paddingVertical: 24, gap: 12 },
   /** ScrollView content — no flex:1 (avoids layout glitches with RN ScrollView). */
   centerBoxScrollable: {
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    paddingHorizontal: screenGutter,
+    paddingVertical: 24,
     gap: 12,
-    paddingBottom: 32,
+    paddingBottom: 36,
   },
   centerBoxNoFlex: { alignItems: 'center', paddingVertical: 8, paddingHorizontal: 8, gap: 8 },
   adminSignInScroll: { paddingTop: 8, paddingBottom: 32, flexGrow: 1 },
@@ -1683,7 +1684,12 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
   subtitle: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
   subtitleEm: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
-  listPad: { padding: 16, gap: 12 },
+  listPad: {
+    paddingHorizontal: screenGutter,
+    paddingTop: 16,
+    paddingBottom: 28,
+    gap: 14,
+  },
   input: {
     width: '100%',
     borderRadius: 10,
@@ -1729,10 +1735,10 @@ const styles = StyleSheet.create({
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   roleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   splashContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 32,
+    paddingHorizontal: screenGutter,
+    paddingVertical: 28,
     justifyContent: 'center',
-    maxWidth: 400,
+    maxWidth: 440,
     width: '100%',
     alignSelf: 'center',
   },
