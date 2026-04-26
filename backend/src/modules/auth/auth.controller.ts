@@ -87,7 +87,11 @@ export class AuthController {
 
   @Public()
   @Post('superadmin/login')
-  @ApiOperation({ summary: 'Superadmin: email + password → JWT' })
+  @ApiOperation({
+    summary: 'Superadmin: email + password → JWT',
+    description:
+      'Issues a session-bound token. Any previous superadmin token is invalidated. Requests must come from the same client IP as login (set TRUST_PROXY when behind a reverse proxy).',
+  })
   superadminLogin(@Body() dto: SuperadminLoginDto, @Req() req: Request) {
     return this.authService.superadminLogin(dto, getRequestClientIp(req));
   }
