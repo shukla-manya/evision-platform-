@@ -57,7 +57,7 @@ export function ElectricianListScreen({ navigation, route }: Props) {
     return (
       <SafeAreaView style={styles.center}>
         <Text style={styles.emptyTitle}>Something went wrong</Text>
-        <Text style={styles.muted}>We couldn&apos;t reach the server. Check your connection.</Text>
+        <Text style={styles.muted}>We could not reach the server. Check your connection.</Text>
         <Pressable style={styles.retryBtn} onPress={() => void load()}>
           <Text style={styles.retryLabel}>Try again</Text>
         </Pressable>

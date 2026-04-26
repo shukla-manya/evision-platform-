@@ -35,6 +35,41 @@ export class ProductsService {
     return this.dynamo.tableName('admins');
   }
 
+  /** Approved shops — used for indexed catalogue reads when no category filter is set. */
+  private async listApprovedAdminIds(): Promise<string[]> {
+    const rows = await this.dynamo.queryAllPages({
+      TableName: this.adminsTable(),
+      IndexName: 'StatusIndex',
+      KeyConditionExpression: '#s = :st',
+      ExpressionAttributeNames: { '#s': 'status' },
+      ExpressionAttributeValues: { ':st': 'approved' },
+    });
+    return rows.map((r) => String((r as { id?: unknown }).id || '')).filter(Boolean);
+  }
+
+  private async mapChunkedParallel<T, R>(items: T[], chunkSize: number, fn: (t: T) => Promise<R>): Promise<R[]> {
+    const out: R[] = [];
+    for (let i = 0; i < items.length; i += chunkSize) {
+      const chunk = items.slice(i, i + chunkSize);
+      out.push(...(await Promise.all(chunk.map(fn))));
+    }
+    return out;
+  }
+
+  private mergeProductChunks(chunks: Record<string, unknown>[][]): Record<string, unknown>[] {
+    const seen = new Set<string>();
+    const merged: Record<string, unknown>[] = [];
+    for (const chunk of chunks) {
+      for (const p of chunk) {
+        const id = String((p as { id?: unknown }).id || '');
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        merged.push(p);
+      }
+    }
+    return merged;
+  }
+
   /** Dealers without verified GST see customer catalog/cart pricing. */
   async effectivePriceRoleFromJwtUser(user?: { id?: string; role?: string } | null): Promise<PriceViewerRole> {
     if (!user?.role) return 'guest';
@@ -236,27 +271,30 @@ export class ProductsService {
     } else {
       const cats = await this.categories.listAll();
       if (!cats.length) {
-        items = await this.dynamo.scanAllPages({ TableName: this.productsTable() });
-      } else {
-        const chunks = await Promise.all(
-          (cats as { id: string }[]).map((c) =>
+        const adminIds = await this.listApprovedAdminIds();
+        if (!adminIds.length) {
+          items = await this.dynamo.scanAllPages({ TableName: this.productsTable() });
+        } else {
+          const chunks = await this.mapChunkedParallel(adminIds, 12, (adminId) =>
             this.dynamo.queryAllPages({
               TableName: this.productsTable(),
-              IndexName: 'CategoryIndex',
-              KeyConditionExpression: 'category_id = :cid',
-              ExpressionAttributeValues: { ':cid': c.id },
+              IndexName: 'AdminIndex',
+              KeyConditionExpression: 'admin_id = :aid',
+              ExpressionAttributeValues: { ':aid': adminId },
             }),
-          ),
-        );
-        const seen = new Set<string>();
-        for (const chunk of chunks) {
-          for (const p of chunk) {
-            const id = String((p as Record<string, unknown>).id || '');
-            if (!id || seen.has(id)) continue;
-            seen.add(id);
-            items.push(p as Record<string, unknown>);
-          }
+          );
+          items = this.mergeProductChunks(chunks);
         }
+      } else {
+        const chunks = await this.mapChunkedParallel(cats as { id: string }[], 12, (c) =>
+          this.dynamo.queryAllPages({
+            TableName: this.productsTable(),
+            IndexName: 'CategoryIndex',
+            KeyConditionExpression: 'category_id = :cid',
+            ExpressionAttributeValues: { ':cid': c.id },
+          }),
+        );
+        items = this.mergeProductChunks(chunks);
       }
     }
 

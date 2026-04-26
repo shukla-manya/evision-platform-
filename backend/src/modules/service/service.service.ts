@@ -177,6 +177,8 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
       id: uuidv4(),
       request_id: String(request.id),
       customer_id: customerId,
+      /** Mirrors customer_id for UserIndex (evision_service_bookings). */
+      user_id: customerId,
       electrician_id: electricianId,
       status: 'pending',
       job_status: null,
@@ -443,9 +445,21 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
   }
 
   async listCustomerActiveBookings(customerId: string): Promise<Record<string, unknown>[]> {
-    const bookings = await this.dynamo.scan({
-      TableName: this.bookingsTable(),
-    });
+    let bookings: Record<string, unknown>[];
+    try {
+      bookings = await this.dynamo.queryAllPages({
+        TableName: this.bookingsTable(),
+        IndexName: 'UserIndex',
+        KeyConditionExpression: 'user_id = :uid',
+        ExpressionAttributeValues: { ':uid': customerId },
+      });
+    } catch {
+      bookings = [];
+    }
+    if (!bookings.length) {
+      const all = await this.dynamo.scanAllPages({ TableName: this.bookingsTable() });
+      bookings = all.filter((row) => String(row.customer_id || '') === customerId);
+    }
     return bookings
       .filter(
         (row) =>
@@ -461,9 +475,21 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
   }
 
   async listCustomerBookingHistory(customerId: string): Promise<Record<string, unknown>[]> {
-    const bookings = await this.dynamo.scan({
-      TableName: this.bookingsTable(),
-    });
+    let bookings: Record<string, unknown>[];
+    try {
+      bookings = await this.dynamo.queryAllPages({
+        TableName: this.bookingsTable(),
+        IndexName: 'UserIndex',
+        KeyConditionExpression: 'user_id = :uid',
+        ExpressionAttributeValues: { ':uid': customerId },
+      });
+    } catch {
+      bookings = [];
+    }
+    if (!bookings.length) {
+      const all = await this.dynamo.scanAllPages({ TableName: this.bookingsTable() });
+      bookings = all.filter((row) => String(row.customer_id || '') === customerId);
+    }
     const mine = bookings.filter(
       (row) =>
         String(row.customer_id || '') === customerId &&

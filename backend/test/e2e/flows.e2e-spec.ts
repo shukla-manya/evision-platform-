@@ -823,6 +823,7 @@ describe('E2E flows (local)', () => {
           id: bookingId,
           request_id: requestId,
           customer_id: customerId,
+          user_id: customerId,
           electrician_id: elecId,
           status: 'pending',
           job_status: null,

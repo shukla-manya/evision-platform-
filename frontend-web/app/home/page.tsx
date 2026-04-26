@@ -188,7 +188,13 @@ export default function CustomerHomePage() {
           </h2>
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-thin">
             {topCats.length === 0 ? (
-              <p className="text-ev-muted text-sm">Categories loading…</p>
+              <div className="ev-card px-4 py-3 text-ev-muted text-sm max-w-md">
+                <p className="text-ev-text font-medium mb-1">No categories yet</p>
+                <p className="text-xs">Browse the full catalogue — products will appear here once categories are set up.</p>
+                <Link href="/shop" className="text-ev-primary text-sm font-medium mt-2 inline-block hover:underline">
+                  Open shop
+                </Link>
+              </div>
             ) : (
               topCats.map((c) => (
                 <Link
@@ -258,20 +264,30 @@ export default function CustomerHomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
-            {deals.slice(0, 3).map((p) => (
-              <Link key={p.id} href={`/products/${p.id}`} className="rounded-xl border border-ev-border overflow-hidden bg-ev-surface hover:border-ev-primary/30 transition-colors">
-                <div className="aspect-[4/3] bg-ev-surface2 relative">
-                  {p.images?.[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  ) : null}
-                </div>
-                <div className="p-2.5">
-                  <p className="text-xs font-medium text-ev-text line-clamp-2">{p.name}</p>
-                  <p className="text-ev-primary text-sm font-bold mt-1">{priceLabel(p, role)}</p>
-                </div>
-              </Link>
-            ))}
+            {deals.length === 0 ? (
+              <div className="col-span-full rounded-xl border border-ev-border border-dashed bg-ev-surface/60 px-4 py-8 text-center text-ev-muted text-sm">
+                <p className="text-ev-text font-medium mb-1">No products in the catalogue yet</p>
+                <p className="text-xs">When shops add listings, featured deals will show here.</p>
+                <Link href="/shop" className="text-ev-primary text-sm font-medium mt-3 inline-block hover:underline">
+                  Browse shop
+                </Link>
+              </div>
+            ) : (
+              deals.slice(0, 3).map((p) => (
+                <Link key={p.id} href={`/products/${p.id}`} className="rounded-xl border border-ev-border overflow-hidden bg-ev-surface hover:border-ev-primary/30 transition-colors">
+                  <div className="aspect-[4/3] bg-ev-surface2 relative">
+                    {p.images?.[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    ) : null}
+                  </div>
+                  <div className="p-2.5">
+                    <p className="text-xs font-medium text-ev-text line-clamp-2">{p.name}</p>
+                    <p className="text-ev-primary text-sm font-bold mt-1">{priceLabel(p, role)}</p>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </section>
 

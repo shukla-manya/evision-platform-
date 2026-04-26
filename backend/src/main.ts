@@ -16,10 +16,11 @@ async function bootstrap() {
     res.on('finish', () => {
       const ms = Date.now() - start;
       res.setHeader('X-Response-Time', `${ms}ms`);
-      if (ms >= 400) {
-        httpLogger.log(
-          `${req.method} ${req.originalUrl ?? (req as Request & { url?: string }).url ?? ''} ${res.statusCode} ${ms}ms`,
-        );
+      const path = req.originalUrl ?? (req as Request & { url?: string }).url ?? '';
+      if (ms >= 800) {
+        httpLogger.warn(`${req.method} ${path} ${res.statusCode} ${ms}ms`);
+      } else if (ms >= 250) {
+        httpLogger.log(`${req.method} ${path} ${res.statusCode} ${ms}ms`);
       }
     });
     next();

@@ -118,11 +118,17 @@ export const EVISION_DYNAMO_TABLES = [
     AttributeDefinitions: [
       { AttributeName: 'id', AttributeType: 'S' },
       { AttributeName: 'user_id', AttributeType: 'S' },
+      { AttributeName: 'razorpay_order_id', AttributeType: 'S' },
     ],
     GlobalSecondaryIndexes: [
       {
         IndexName: 'UserIndex',
         KeySchema: [{ AttributeName: 'user_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'RazorpayOrderIndex',
+        KeySchema: [{ AttributeName: 'razorpay_order_id', KeyType: 'HASH' }],
         Projection: { ProjectionType: 'ALL' },
       },
     ],

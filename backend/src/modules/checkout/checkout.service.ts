@@ -197,6 +197,18 @@ export class CheckoutService {
   }
 
   private async findOrderGroupByRazorpayOrderId(orderId: string): Promise<Record<string, unknown> | null> {
+    try {
+      const rows = await this.dynamo.query({
+        TableName: this.orderGroupsTable(),
+        IndexName: 'RazorpayOrderIndex',
+        KeyConditionExpression: 'razorpay_order_id = :roid',
+        ExpressionAttributeValues: { ':roid': orderId },
+        Limit: 5,
+      });
+      if (rows[0]) return rows[0];
+    } catch {
+      // Legacy tables without RazorpayOrderIndex — fall back to scan (slow).
+    }
     const groups = await this.dynamo.scan({
       TableName: this.orderGroupsTable(),
       FilterExpression: 'razorpay_order_id = :roid',
