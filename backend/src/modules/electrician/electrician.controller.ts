@@ -90,7 +90,7 @@ export class ElectricianController {
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['name', 'phone', 'email', 'otp', 'lat', 'lng', 'aadhar', 'photo'],
+      required: ['name', 'phone', 'email', 'otp', 'lat', 'lng'],
       properties: {
         name: { type: 'string', example: 'Ravi Kumar' },
         phone: { type: 'string', example: '+919876543210' },
