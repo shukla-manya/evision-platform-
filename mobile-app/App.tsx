@@ -29,6 +29,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
+import { resolveRegistrationCoordinates } from './src/geo-registration';
 import { Buffer } from 'buffer';
 import {
   setApiTokenGetter,
@@ -479,8 +480,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   const [otp, setOtp] = useState('');
   const [address, setAddress] = useState('');
   const [gstNo, setGstNo] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('');
+  const [deliveryPincode, setDeliveryPincode] = useState('');
   const [skills, setSkills] = useState('');
   const [aadharAsset, setAadharAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [photoAsset, setPhotoAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
