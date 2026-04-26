@@ -2054,9 +2054,10 @@ function AppShell() {
           props.navigation.navigate('PasswordReset', { role: 'electrician', phone })
         }
         fcmToken={fcmToken}
+        userRole={user?.role}
       />
     ),
-    [token, logout, fcmToken],
+    [token, logout, fcmToken, user?.role],
   );
   const adminFlow = useMemo(
     () => (props: any) => (
@@ -2115,7 +2116,7 @@ function AppShell() {
             <RootStack.Screen
               name="Main"
               component={
-                user?.role === 'electrician'
+                user?.role === 'electrician' || user?.role === 'electrician_pending' || user?.role === 'electrician_rejected'
                   ? electricianFlow
                   : user?.role === 'admin'
                   ? adminFlow
@@ -2125,7 +2126,7 @@ function AppShell() {
               }
               options={{ headerShown: false }}
             />
-            {user?.role !== 'electrician' && user?.role !== 'admin' && user?.role !== 'superadmin' && (
+            {user?.role !== 'electrician' && user?.role !== 'electrician_pending' && user?.role !== 'electrician_rejected' && user?.role !== 'admin' && user?.role !== 'superadmin' && (
               <>
                 <RootStack.Screen name="ProductDetail" component={productDetailScreen} options={{ title: 'Product Detail' }} />
                 <RootStack.Screen name="Checkout" component={CheckoutScreen} />

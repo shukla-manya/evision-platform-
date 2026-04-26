@@ -161,6 +161,7 @@ export type ElectricianProfile = {
   skills: string[];
   photo_url?: string;
   status: 'pending' | 'approved' | 'rejected';
+  reject_reason?: string | null;
   fcm_token?: string;
 };
 

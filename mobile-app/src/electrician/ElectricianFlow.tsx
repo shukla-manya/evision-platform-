@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -419,21 +419,101 @@ function EarningsHistoryScreen() {
   );
 }
 
+type FlowGate = 'loading' | 'pending' | 'rejected' | 'approved';
+
 export function ElectricianFlow({
   token,
   onLogout,
   onOpenPasswordReset,
   fcmToken,
+  userRole,
 }: {
   token: string;
   onLogout: () => void;
   onOpenPasswordReset: (phone?: string) => void;
   fcmToken: string | null;
+  userRole?: string;
 }) {
+  const isPendingOrRejected = userRole === 'electrician_pending' || userRole === 'electrician_rejected';
+  const [gate, setGate] = useState<FlowGate>(isPendingOrRejected ? 'loading' : 'approved');
+  const [rejectReason, setRejectReason] = useState('');
+  const fetchedRef = useRef(false);
+
   const activeJobScreen = useMemo(
     () => (props: any) => <ActiveJobScreen {...props} token={token} />,
     [token],
   );
+
+  useEffect(() => {
+    if (!isPendingOrRejected || fetchedRef.current) return;
+    fetchedRef.current = true;
+    electricianApi
+      .me()
+      .then(({ data }) => {
+        const profile = data as ElectricianProfile & { reject_reason?: string | null };
+        const st = String(profile?.status || '').toLowerCase();
+        if (st === 'rejected') {
+          setRejectReason(String(profile?.reject_reason || 'Your application was not approved at this time.'));
+          setGate('rejected');
+        } else {
+          setGate('pending');
+        }
+      })
+      .catch(() => {
+        if (userRole === 'electrician_rejected') {
+          setGate('rejected');
+        } else {
+          setGate('pending');
+        }
+      });
+  }, [isPendingOrRejected, userRole]);
+
+  if (gate === 'loading') {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <Text style={styles.meta}>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (gate === 'pending') {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Application under review</Text>
+          <Text style={styles.meta}>
+            Your profile and Aadhar card have been submitted. Our team will review your documents and get back to you within 24 hours.
+          </Text>
+          <Text style={styles.meta}>
+            You will receive an email and notification once your account is approved.
+          </Text>
+        </View>
+        <Pressable style={styles.dangerButton} onPress={onLogout}>
+          <Text style={styles.primaryButtonText}>Sign out</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
+
+  if (gate === 'rejected') {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Application not approved</Text>
+          <Text style={styles.meta}>
+            {rejectReason || 'Your application was not approved at this time.'}
+          </Text>
+          <Text style={styles.meta}>
+            You can submit a new application from the registration screen.
+          </Text>
+        </View>
+        <Pressable style={styles.dangerButton} onPress={onLogout}>
+          <Text style={styles.primaryButtonText}>Sign out</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <Stack.Navigator screenOptions={stackHeaderOptions}>
       <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Electrician Home' }} />
