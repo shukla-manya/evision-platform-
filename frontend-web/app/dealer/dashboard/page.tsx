@@ -20,6 +20,7 @@ import toast from 'react-hot-toast';
 import { catalogApi, ordersApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { clearAuth, getRole, getToken, parseJwt } from '@/lib/auth';
+import { ResponsiveSidebarShell } from '@/components/layout/ResponsiveSidebarShell';
 
 type OrderItem = {
   id: string;
