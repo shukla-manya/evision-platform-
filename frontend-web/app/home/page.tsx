@@ -9,6 +9,7 @@ import { getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
 import { getBrowseProductIds } from '@/lib/browse-history';
 import { publicBrandName } from '@/lib/public-brand';
+import { personalizedTimeGreetingIstWithWave } from '@/lib/time-greeting';
 
 type User = {
   name?: string;
@@ -28,11 +29,6 @@ type Product = {
 
 type SubOrder = { id: string; status?: string };
 type OrderGroup = { id: string; sub_orders?: SubOrder[] };
-
-function firstName(name?: string) {
-  if (!name?.trim()) return 'there';
-  return name.trim().split(/\s+/)[0] || 'there';
-}
 
 function formatInr(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
@@ -128,7 +124,7 @@ export default function CustomerHomePage() {
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
         <header className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-ev-text">
-            Hey {firstName(user?.name)} 👋
+            {personalizedTimeGreetingIstWithWave(user?.name, { whenEmpty: 'there' })}
           </h1>
           <p className="text-ev-muted text-sm">
             Your {publicBrandName} dashboard — orders and service in one place.

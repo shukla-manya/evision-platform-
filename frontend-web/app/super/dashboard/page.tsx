@@ -14,16 +14,10 @@ import {
   formatSuperadminINR,
   superadminOrderStatusTone,
 } from '@/lib/superadmin-analytics';
+import { personalizedTimeGreetingIst } from '@/lib/time-greeting';
 
 type AdminRow = { id: string; shop_name?: string; owner_name?: string; email?: string; created_at?: string };
 type ElectricianRow = { id: string; name?: string; email?: string; created_at?: string };
-
-function greetingLabel() {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
-}
 
 function displayNameFromEmail(email: string) {
   if (!email) return 'there';
@@ -177,7 +171,7 @@ export default function SuperDashboardPage() {
             <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-10">
               <div>
                 <p className="text-ev-muted text-sm mb-1">
-                  {greetingLabel()}, <span className="text-ev-text font-semibold">{greetName}</span>
+                  <span className="text-ev-text font-semibold">{personalizedTimeGreetingIst(greetName)}</span>
                 </p>
                 <h1 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight">Dashboard — Overview</h1>
                 <p className="text-ev-muted text-sm mt-1">{todayLabel}</p>

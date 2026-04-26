@@ -8,6 +8,7 @@ import { electricianApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { ElectricianShell } from '@/components/electrician/ElectricianShell';
 import { cleanText } from '@/lib/electrician-ui';
+import { personalizedTimeGreetingIst } from '@/lib/time-greeting';
 
 type ElectricianMe = {
   name?: string;
@@ -84,7 +85,6 @@ export default function ElectricianDashboardPage() {
     });
   }, [pending]);
 
-  const displayName = cleanText(me?.name, 'there');
   const rating = Number(me?.rating_avg || 0).toFixed(1);
   const jobsDone = historyCount;
 
@@ -99,7 +99,10 @@ export default function ElectricianDashboardPage() {
         <div className="max-w-2xl mx-auto space-y-6">
           <header className="space-y-1">
             <h1 className="text-xl sm:text-2xl font-bold text-ev-text leading-snug">
-              Hello {displayName} — <span className="text-ev-warning">⭐</span> {rating} · {jobsDone} jobs done
+              {personalizedTimeGreetingIst(me?.name, { whenEmpty: 'there' })}{' '}
+              <span className="text-ev-muted font-semibold">
+                — <span className="text-ev-warning">⭐</span> {rating} · {jobsDone} jobs done
+              </span>
             </h1>
           </header>
 

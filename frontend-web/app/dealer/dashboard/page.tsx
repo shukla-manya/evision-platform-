@@ -21,6 +21,7 @@ import { getApiErrorMessage } from '@/lib/api-errors';
 import { clearAuth, getRole, getToken, parseJwt } from '@/lib/auth';
 import { ResponsiveSidebarShell } from '@/components/layout/ResponsiveSidebarShell';
 import { EvisionLogo } from '@/components/brand/EvisionLogo';
+import { personalizedTimeGreetingIst } from '@/lib/time-greeting';
 
 type OrderItem = {
   id: string;
@@ -86,23 +87,6 @@ function dealerNameFromEmail(email?: string) {
 function firstName(name?: string) {
   if (!name?.trim()) return '';
   return name.trim().split(/\s+/)[0] || '';
-}
-
-/** Greeting bucket from clock in Asia/Kolkata (IST). */
-function greetingLabelIst(): string {
-  const hourStr =
-    new Intl.DateTimeFormat('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      hour: 'numeric',
-      hour12: false,
-    })
-      .formatToParts(new Date())
-      .find((p) => p.type === 'hour')?.value ?? '0';
-  const h = parseInt(hourStr, 10);
-  if (h >= 4 && h < 12) return 'Good morning';
-  if (h >= 12 && h < 17) return 'Good afternoon';
-  if (h >= 17 && h < 21) return 'Good evening';
-  return 'Good night';
 }
 
 function formatGreetName(raw: string) {
@@ -412,11 +396,9 @@ export default function DealerDashboardPage() {
             <header className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-ev-muted text-sm mb-1">
-                  {(() => {
-                    const g = greetingLabelIst();
-                    const n = formatGreetName(greetFirst);
-                    return n ? `${g}, ${n}.` : `${g}.`;
-                  })()}
+                  <span className="text-ev-text font-semibold">
+                    {personalizedTimeGreetingIst(greetFirst || undefined)}
+                  </span>
                 </p>
                 <h1 className="text-2xl font-bold text-ev-text">Dealer dashboard</h1>
                 <p className="text-ev-muted text-sm mt-1">Dealer account · GST verified</p>

@@ -17,6 +17,7 @@ import { adminApi } from '@/lib/api';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { orderNeedsShipment } from '@/lib/admin-orders';
 import { roleDisplayLabel } from '@/lib/user-roles';
+import { personalizedTimeGreetingIst } from '@/lib/time-greeting';
 
 type AdminMe = {
   shop_name?: string;
@@ -280,7 +281,9 @@ export default function AdminDashboardPage() {
       <main className="w-full min-w-0 max-w-6xl mx-auto space-y-8">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-ev-muted text-sm mb-1">Welcome,</p>
+            <p className="text-ev-muted text-sm mb-1">
+              <span className="text-ev-text font-semibold">{personalizedTimeGreetingIst(admin?.owner_name)}</span>
+            </p>
             <h1 className="text-2xl font-bold text-ev-text tracking-tight">{shopName}</h1>
             <p className="text-ev-muted text-sm mt-1">
               {metrics.toShipCount > 0 ? (
