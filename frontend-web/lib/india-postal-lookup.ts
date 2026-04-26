@@ -9,10 +9,7 @@ function normalizePostOffices(raw: unknown): PostalOfficeRow[] {
   return Array.isArray(raw) ? (raw as PostalOfficeRow[]) : [raw as PostalOfficeRow];
 }
 
-/** Returns a representative 6-digit pincode for the city name, or null if lookup fails. */
-export async function suggestPincodeForIndianCity(city: string): Promise<string | null> {
-  const q = city.trim();
-  if (q.length < MIN_CITY_LEN) return null;
+async function fetchPinForPostOfficeQuery(q: string): Promise<string | null> {
   try {
     const res = await fetch(`https://api.postalpincode.in/postoffice/${encodeURIComponent(q)}`);
     if (!res.ok) return null;
@@ -34,4 +31,17 @@ export async function suggestPincodeForIndianCity(city: string): Promise<string 
   } catch {
     return null;
   }
+}
+
+/** Returns a representative 6-digit pincode for the city name, or null if lookup fails. */
+export async function suggestPincodeForIndianCity(city: string): Promise<string | null> {
+  const q = city.trim().replace(/\s+/g, ' ');
+  if (q.length < MIN_CITY_LEN) return null;
+  const primary = await fetchPinForPostOfficeQuery(q);
+  if (primary) return primary;
+  if (!q.includes(' ')) return null;
+  const parts = q.split(' ').filter(Boolean);
+  const last = parts[parts.length - 1];
+  if (!last || last.length < MIN_CITY_LEN || last === q) return null;
+  return fetchPinForPostOfficeQuery(last);
 }
