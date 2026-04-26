@@ -96,6 +96,7 @@ function ShopListingInner() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const [catRes, prodRes] = await Promise.all([
         catalogApi.getCategories(),
@@ -110,6 +111,9 @@ function ShopListingInner() {
       setCategories(Array.isArray(catRes.data) ? catRes.data : []);
       setRawProducts(Array.isArray(prodRes.data) ? prodRes.data : []);
     } catch {
+      setLoadError(true);
+      setCategories([]);
+      setRawProducts([]);
       toast.error('Could not load catalogue');
     } finally {
       setLoading(false);
@@ -253,7 +257,15 @@ function ShopListingInner() {
               </select>
             </div>
 
-            {loading ? (
+            {loadError && !loading ? (
+              <div className="ev-card p-12 text-center space-y-4">
+                <p className="text-ev-text font-medium">We couldn&apos;t load the catalogue.</p>
+                <p className="text-ev-muted text-sm">Check your connection or try again in a moment.</p>
+                <button type="button" className="ev-btn-primary text-sm py-2 px-5" onClick={() => void load()}>
+                  Try again
+                </button>
+              </div>
+            ) : loading ? (
               <div className="flex flex-col items-center justify-center py-24 text-ev-muted gap-3">
                 <Loader2 className="animate-spin text-ev-primary" size={28} />
                 <span className="text-sm">Loading products…</span>

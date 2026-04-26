@@ -116,16 +116,20 @@ export default function MyOrdersPage() {
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canUseOrders = useMemo(() => role === 'customer' || role === 'dealer', [role]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [rows, setRows] = useState<OrderGroup[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const { data } = await ordersApi.myOrders();
       setRows(Array.isArray(data) ? (data as OrderGroup[]) : []);
     } catch {
+      setLoadError(true);
+      setRows([]);
       toast.error('Failed to load orders');
     } finally {
       setLoading(false);
@@ -176,7 +180,15 @@ export default function MyOrdersPage() {
         </Link>
       </div>
 
-      {loading ? (
+      {loadError && !loading ? (
+        <div className="ev-card p-12 text-center space-y-4">
+          <p className="text-ev-text font-medium">We couldn&apos;t load your orders.</p>
+          <p className="text-ev-muted text-sm">Check your connection or try again shortly.</p>
+          <button type="button" className="ev-btn-primary text-sm py-2 px-5" onClick={() => void load()}>
+            Try again
+          </button>
+        </div>
+      ) : loading ? (
         <div className="flex items-center gap-2 text-ev-muted justify-center py-24">
           <Loader2 className="animate-spin text-ev-primary" size={22} />
           Loading orders…
