@@ -77,7 +77,7 @@ export default function EmailDeliveryHistoryPage() {
 
   return (
     <SuperadminShell>
-      <main className="w-full min-w-0 max-w-none">
+      <main className="w-full min-w-0">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 rounded-xl bg-ev-primary/15 flex items-center justify-center">
             <Mail className="text-ev-primary" size={20} />

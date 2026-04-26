@@ -53,7 +53,7 @@ export default function SuperDealerGstPage() {
 
   return (
     <SuperadminShell>
-      <main className="w-full min-w-0 max-w-none">
+      <main className="w-full min-w-0">
         <h1 className="text-2xl font-bold text-ev-text mb-8">Dealer GST verification</h1>
 
         {loading ? (
