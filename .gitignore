@@ -161,6 +161,7 @@ $RECYCLE.BIN/
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json.example
+!.vscode/tasks.json
 
 # Cursor (local agent / UI state — optional; uncomment if you prefer not to track)
 # .cursor/

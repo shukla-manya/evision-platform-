@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "backend",
+      "label": "Dev: backend (watch)",
+      "detail": "Restarts the API when you save backend files (nest start --watch).",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "focus": false }
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "frontend-web",
+      "label": "Dev: frontend-web (HMR)",
+      "detail": "Hot reload in the browser when you save web files (next dev).",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "focus": false }
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "mobile-app",
+      "label": "Dev: mobile-app (Fast Refresh)",
+      "detail": "Reloads the app when you save mobile files (expo start).",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "focus": false }
+    }
+  ]
+}
