@@ -1029,18 +1029,19 @@ function PasswordResetScreen({
 function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [approvedShopsOnly, setApprovedShopsOnly] = useState(true);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await productApi.list();
+      const { data } = await productApi.list({ approved_shops_only: approvedShopsOnly });
       setProducts(data || []);
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'Failed to load products.'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [approvedShopsOnly]);
 
   useFocusEffect(useCallback(() => { void load(); }, [load]));
 
@@ -1052,6 +1053,25 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
         contentContainerStyle={styles.listPad}
         data={products}
         keyExtractor={(item) => item.id}
+        ListHeaderComponent={
+          <View style={styles.catalogFilterCard}>
+            <View style={{ flex: 1, paddingRight: 10 }}>
+              <Text style={styles.catalogFilterTitle}>Approved shops only</Text>
+              <Text style={styles.catalogFilterSub}>
+                Verified partner stores and the products they listed. Turn off to include shops still in review.
+              </Text>
+            </View>
+            <Switch
+              accessibilityLabel="Toggle approved shops only"
+              value={approvedShopsOnly}
+              onValueChange={(v) => {
+                setApprovedShopsOnly(v);
+              }}
+              trackColor={{ false: colors.border, true: colors.brandSoft }}
+              thumbColor={approvedShopsOnly ? colors.brandPrimary : colors.muted}
+            />
+          </View>
+        }
         renderItem={({ item }) => (
           <Pressable style={styles.card} onPress={() => navigation.navigate('ProductDetail', { product: item })}>
             <Text style={styles.cardTitle}>{item.name}</Text>
@@ -1816,6 +1836,19 @@ const styles = StyleSheet.create({
   cardDesc: { fontSize: 13, color: colors.textSecondary },
   bigPrice: { fontSize: 20, fontWeight: '700', color: colors.brandPrimary },
   empty: { textAlign: 'center', color: colors.muted, marginTop: 40 },
+  catalogFilterCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  catalogFilterTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  catalogFilterSub: { fontSize: 12, color: colors.textSecondary, marginTop: 4, lineHeight: 17 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   roleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   splashContent: {
