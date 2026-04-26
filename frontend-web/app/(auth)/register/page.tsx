@@ -188,6 +188,7 @@ export default function RegisterPage() {
 
   const phoneLast10 = phoneDigits.replace(/\D/g, '').slice(-10);
   const canSendShopperOtp = useMemo(() => {
+    if (accountTab !== 'customer' && accountTab !== 'dealer') return false;
     const name = `${firstName.trim()} ${lastName.trim()}`.trim();
     if (name.length < 2) return false;
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return false;
