@@ -292,9 +292,10 @@ export class ElectricianService {
   }
 
   async getMyBookings(electricianId: string): Promise<Record<string, unknown>[]> {
-    const items = await this.dynamo.scan({
+    const items = await this.dynamo.queryAllPages({
       TableName: this.dynamo.tableName('service_bookings'),
-      FilterExpression: 'electrician_id = :eid',
+      IndexName: 'ElectricianIndex',
+      KeyConditionExpression: 'electrician_id = :eid',
       ExpressionAttributeValues: { ':eid': electricianId },
     });
     return (items as Record<string, unknown>[]).sort(
@@ -320,10 +321,27 @@ export class ElectricianService {
   ): Promise<{ updated: boolean; available: boolean }> {
     const electrician = await this.dynamo.get(this.table(), { id: electricianId });
     if (!electrician) throw new NotFoundException('Electrician not found');
-    await this.dynamo.update(this.table(), { id: electricianId }, {
-      available,
-      updated_at: new Date().toISOString(),
-    });
+    const now = new Date().toISOString();
+    const approved = String(electrician.status) === 'approved';
+    if (available && approved) {
+      await this.dynamo.update(this.table(), { id: electricianId }, {
+        available: true,
+        discovery_key: 'LIVE',
+        updated_at: now,
+      });
+    } else if (!available) {
+      await this.dynamo.update(
+        this.table(),
+        { id: electricianId },
+        { available: false, updated_at: now },
+        ['discovery_key'],
+      );
+    } else {
+      await this.dynamo.update(this.table(), { id: electricianId }, {
+        available,
+        updated_at: now,
+      });
+    }
     return { updated: true, available };
   }
 
