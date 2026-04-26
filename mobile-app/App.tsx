@@ -3,7 +3,9 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  KeyboardAvoidingView,
   Linking,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -12,6 +14,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   CommonActions,
   DefaultTheme,
