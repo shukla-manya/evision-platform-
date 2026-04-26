@@ -37,7 +37,7 @@ export type OtpVerifyResponse = {
   is_registered: boolean;
 };
 
-export type PasswordResetRole = 'electrician' | 'admin';
+export type PasswordResetRole = 'admin';
 
 export type RegisterRequest = {
   name: string;

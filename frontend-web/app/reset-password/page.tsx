@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 import { PasswordInputWithToggle } from '@/components/auth/PasswordInputWithToggle';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
-import { PASSWORD_RESET_ROLE_OPTIONS, type PasswordResetApiRole } from '@/lib/user-roles';
+import type { PasswordResetApiRole } from '@/lib/user-roles';
 
 type ResetRole = PasswordResetApiRole;
 

@@ -26,7 +26,4 @@ export function roleDisplayLabel(role: string | undefined | null): string {
     .join(' ');
 }
 
-export const PASSWORD_RESET_ROLE_OPTIONS: { value: 'electrician' | 'admin'; label: string }[] = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'electrician', label: 'Technician' },
-];
+export const PASSWORD_RESET_ROLE_OPTIONS: { value: 'admin'; label: string }[] = [{ value: 'admin', label: 'Shop admin' }];
