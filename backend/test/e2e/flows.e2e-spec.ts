@@ -380,6 +380,34 @@ describe('E2E flows (local)', () => {
     );
     expect((invScan.Items || []).length).toBeGreaterThanOrEqual(1);
     expect(emailSpy.triggers).toContain('sendInvoiceGenerated');
+
+    const adminBJwt = adminToken(adminB, `b-${adminB}@e2e.invalid`);
+    const listB = await request(app.getHttpServer())
+      .get('/admin/orders')
+      .set('Authorization', `Bearer ${adminBJwt}`)
+      .expect(200);
+    const orderBId = (listB.body as any[]).find((o) => String(o.admin_id) === adminB)?.id as string;
+    expect(orderBId).toBeTruthy();
+    const shipB = await request(app.getHttpServer())
+      .post(`/admin/orders/${orderBId}/ship`)
+      .set('Authorization', `Bearer ${adminBJwt}`)
+      .send({ weight: 0.5 })
+      .expect(201);
+    const awbB = String((shipB.body as any).awb_number || '');
+    expect(awbB).toMatch(/^MOCKAWB/);
+    await request(app.getHttpServer())
+      .post('/webhooks/shiprocket')
+      .set('x-api-key', 'e2e-wh-token')
+      .send({ awb: awbB, current_status: 'delivered' })
+      .expect(201);
+    const invB = await docClient.send(
+      new ScanCommand({
+        TableName: 'evision_invoices',
+        FilterExpression: 'order_id = :oid',
+        ExpressionAttributeValues: { ':oid': orderBId },
+      }),
+    );
+    expect((invB.Items || []).length).toBeGreaterThanOrEqual(1);
   });
 
   it('payment failure creates failed group without sub-orders', async () => {

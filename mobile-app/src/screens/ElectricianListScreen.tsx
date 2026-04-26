@@ -53,13 +53,36 @@ export function ElectricianListScreen({ navigation, route }: Props) {
     );
   }
 
+  if (loadFailed) {
+    return (
+      <SafeAreaView style={styles.center}>
+        <Text style={styles.emptyTitle}>Something went wrong</Text>
+        <Text style={styles.muted}>We couldn&apos;t reach the server. Check your connection.</Text>
+        <Pressable style={styles.retryBtn} onPress={() => void load()}>
+          <Text style={styles.retryLabel}>Try again</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.screen}>
       <FlatList
-        contentContainerStyle={styles.list}
+        contentContainerStyle={rows.length === 0 ? styles.listEmpty : styles.list}
         data={rows}
         keyExtractor={(item) => String(item.id)}
-        ListEmptyComponent={<Text style={styles.muted}>No available electricians within 10 km.</Text>}
+        ListEmptyComponent={
+          <View style={styles.emptyWrap}>
+            <Text style={styles.emptyEmoji} accessibilityLabel="">
+              📍
+            </Text>
+            <Text style={styles.emptyTitle}>No electricians nearby</Text>
+            <Text style={styles.emptyBody}>
+              There are no approved, available technicians within 10 km of this location. Try again later or adjust the
+              service address when you submit your request.
+            </Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <Pressable
             style={styles.card}
