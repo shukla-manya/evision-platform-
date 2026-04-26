@@ -78,7 +78,7 @@ export function PublicFooter() {
                 Book a technician
               </Link>
             </li>
-            {!technician ? (
+            {!loggedIn ? (
               <li>
                 <Link href="/register?role=electrician" className="hover:text-white transition-colors">
                   Join as technician
