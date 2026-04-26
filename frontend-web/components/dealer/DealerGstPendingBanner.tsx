@@ -41,10 +41,11 @@ export function DealerGstPendingBanner() {
       role="status"
       className="w-full border-b border-amber-500/35 bg-amber-500/10 px-4 py-2.5 text-center text-sm text-amber-950 dark:text-amber-100"
     >
-      <span className="font-semibold">Dealer pricing coming soon</span>
+      <span className="font-semibold">Wholesale pricing after GST approval</span>
       <span className="text-amber-900/90 dark:text-amber-100/90">
         {' '}
-        — Your GST number is being verified. You&apos;ll see exclusive dealer prices once confirmed.
+        — Our team is verifying your GSTIN. Until then you can browse and buy at retail prices; after verification
+        you&apos;ll get an email and the full catalogue will show dealer (wholesale) prices at checkout.
       </span>
     </div>
   );

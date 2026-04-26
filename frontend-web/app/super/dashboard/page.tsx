@@ -243,6 +243,13 @@ export default function SuperDashboardPage() {
                     Technicians
                     <ChevronRight size={16} />
                   </Link>
+                  <Link
+                    href="/super/dealers"
+                    className="font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1"
+                  >
+                    Dealer GST
+                    <ChevronRight size={16} />
+                  </Link>
                 </div>
               </div>
               <div className="ev-card overflow-hidden border-ev-border">

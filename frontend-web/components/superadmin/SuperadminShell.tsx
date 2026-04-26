@@ -15,6 +15,7 @@ import {
   Mail,
   LogOut,
   Loader2,
+  ClipboardCheck,
 } from 'lucide-react';
 import { superadminApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
@@ -26,7 +27,7 @@ type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
-  badgeKey?: 'pending_shops' | 'pending_techs';
+  badgeKey?: 'pending_shops' | 'pending_techs' | 'pending_dealer_gst';
 };
 
 const nav: NavItem[] = [
@@ -34,6 +35,7 @@ const nav: NavItem[] = [
   { href: '/super/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/super/shop-registrations', label: 'Shop registrations', icon: Inbox, badgeKey: 'pending_shops' },
   { href: '/super/technicians', label: 'Technicians', icon: UserCog, badgeKey: 'pending_techs' },
+  { href: '/super/dealers', label: 'Dealer GST', icon: ClipboardCheck, badgeKey: 'pending_dealer_gst' },
   { href: '/super/shops', label: 'All shops', icon: Store },
   { href: '/super/settlements', label: 'Settlements', icon: Wallet },
   { href: '/super/reviews', label: 'Reviews', icon: Star },
@@ -45,6 +47,7 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [pendingAdminCount, setPendingAdminCount] = useState(0);
   const [pendingElectricianCount, setPendingElectricianCount] = useState(0);
+  const [pendingDealerGstCount, setPendingDealerGstCount] = useState(0);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -57,6 +60,9 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
       superadminApi
         .getPendingElectricians()
         .then((r) => setPendingElectricianCount(Array.isArray(r.data) ? r.data.length : 0)),
+      superadminApi
+        .getPendingDealerGst()
+        .then((r) => setPendingDealerGstCount(Array.isArray(r.data) ? r.data.length : 0)),
     ])
       .catch(() => {})
       .finally(() => setReady(true));
@@ -93,7 +99,9 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
               ? pendingAdminCount
               : badgeKey === 'pending_techs'
                 ? pendingElectricianCount
-                : 0;
+                : badgeKey === 'pending_dealer_gst'
+                  ? pendingDealerGstCount
+                  : 0;
           return (
             <Link
               key={href}
