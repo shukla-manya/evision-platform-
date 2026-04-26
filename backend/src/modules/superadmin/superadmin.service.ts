@@ -73,6 +73,48 @@ export class SuperadminService {
     return this.electricianService.reviewBySuperadmin(id, action, reason);
   }
 
+  /** Dealers registered but not yet GST-verified (wholesale pricing inactive until verified). */
+  async listPendingDealerGst(): Promise<
+    Array<{
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+      gst_no: string;
+      business_name: string | null;
+      created_at: string | null;
+    }>
+  > {
+    const users = await this.dynamo.scanAllPages({ TableName: this.dynamo.tableName('users') });
+    const out: Array<{
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+      gst_no: string;
+      business_name: string | null;
+      created_at: string | null;
+    }> = [];
+    for (const u of users) {
+      const r = u as Record<string, unknown>;
+      if (String(r.role || '') !== 'dealer') continue;
+      const gv = r.gst_verified;
+      if (gv === true || gv === 'true' || gv === 1 || gv === '1') continue;
+      const id = String(r.id || '');
+      if (!id) continue;
+      out.push({
+        id,
+        name: String(r.name || ''),
+        email: String(r.email || ''),
+        phone: String(r.phone || ''),
+        gst_no: String(r.gst_no || ''),
+        business_name: r.business_name != null ? String(r.business_name) : null,
+        created_at: r.created_at != null ? String(r.created_at) : null,
+      });
+    }
+    return out.sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+  }
+
   async listReviews() {
     return this.reviewsService.listAllForSuperadmin();
   }
@@ -337,7 +379,7 @@ export class SuperadminService {
     }
     await this.pushService.sendToToken(String(rec.fcm_token || '').trim() || null, {
       title: 'Dealer pricing is active',
-      body: 'Your GST is verified. Enjoy exclusive wholesale rates on all products.',
+      body: 'Your GST is verified. Browse the full catalogue at wholesale prices and complete checkout as a dealer.',
       data: { type: 'dealer_gst_verified' },
     });
 

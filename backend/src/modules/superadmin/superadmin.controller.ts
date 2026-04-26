@@ -92,6 +92,12 @@ export class SuperadminController {
     return this.superadminService.getPendingElectricians();
   }
 
+  @Get('pending-dealer-gst')
+  @ApiOperation({ summary: 'List dealers awaiting GST verification (wholesale pricing inactive)' })
+  listPendingDealerGst() {
+    return this.superadminService.listPendingDealerGst();
+  }
+
   @Put('users/:userId/verify-dealer-gst')
   @ApiOperation({ summary: 'Mark a dealer user as GST-verified (enables wholesale pricing)' })
   verifyDealerGst(@Param('userId') userId: string) {
