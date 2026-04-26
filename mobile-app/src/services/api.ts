@@ -232,6 +232,8 @@ export const electricianApi = {
     status: 'on_the_way' | 'reached' | 'work_started' | 'completed',
   ) => api.put(`/electrician/job/${bookingId}/status`, { status }),
   setAvailability: (online: boolean) => api.put('/electrician/me/availability', { online }),
+  updateGeo: (lat: number, lng: number) =>
+    api.patch<{ lat: number; lng: number; geo_captured_at: string }>('/electrician/me/geo', { lat, lng }),
   saveDeviceToken: (fcmToken: string) => api.post('/electrician/my/device-token', { fcm_token: fcmToken }),
   uploadWorkPhoto: (bookingId: string, formData: FormData) =>
     api.post(`/electrician/job/${bookingId}/photo`, formData, {
