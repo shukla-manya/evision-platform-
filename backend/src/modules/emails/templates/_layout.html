@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{email_title}}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#050b1a;font-family:'Segoe UI',system-ui,Arial,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">{{preheader}}</div>
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#050b1a;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;border-collapse:separate;">
+          <tr>
+            <td style="background:linear-gradient(135deg,#0d1626 0%,#1a2a4a 100%);border-radius:16px 16px 0 0;padding:32px 36px;text-align:center;border-bottom:3px solid {{header_border_color}};">
+              <div style="display:inline-flex;align-items:center;gap:10px;justify-content:center;">
+                <span style="font-size:28px;line-height:1;" aria-hidden="true">⚡</span>
+                <span style="color:#3b82f6;font-size:24px;font-weight:700;letter-spacing:-0.5px;">{{brand_name}}</span>
+              </div>
+              <p style="color:#94a3b8;margin:10px 0 0;font-size:13px;line-height:1.4;">E Vision Pvt. Ltd. · Faridabad, Haryana</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#0d1626;padding:36px 36px 28px;">
+              {{body_html}}
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#060d1c;padding:20px 36px;border-radius:0 0 16px 16px;text-align:center;border-top:1px solid #1e3a5f;">
+              <p style="color:#64748b;font-size:12px;margin:0 0 8px;line-height:1.5;">
+                © {{footer_year}} {{brand_name}} ·
+                <a href="{{frontend_url}}" style="color:#60a5fa;text-decoration:none;">Open app / website</a>
+              </p>
+              <p style="color:#475569;font-size:11px;margin:0;">Support: <a href="mailto:{{support_email}}" style="color:#94a3b8;text-decoration:none;">{{support_email}}</a></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

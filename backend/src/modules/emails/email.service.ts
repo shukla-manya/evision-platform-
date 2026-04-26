@@ -15,6 +15,13 @@ export interface SendEmailOptions {
   attachments?: any[];
 }
 
+type EmailLayoutMeta = {
+  email_title: string;
+  preheader: string;
+  /** Bottom border accent under header band */
+  header_border_color?: string;
+};
+
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
@@ -55,7 +62,6 @@ export class EmailService {
       this.logger.error(`Email failed [${opts.trigger_event}] → ${opts.to}: ${err.message}`);
     }
 
-    // Always log to DynamoDB
     await this.dynamo.put(this.dynamo.tableName('email_logs'), {
       id: uuidv4(),
       trigger_event: opts.trigger_event,
@@ -82,21 +88,122 @@ export class EmailService {
   }
 
   private interpolate(template: string, vars: Record<string, string>): string {
-    return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] || '');
+    return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? '');
+  }
+
+  brandDisplay(): string {
+    return this.config.get<string>('PUBLIC_BRAND_NAME')?.trim() || 'E Vision';
+  }
+
+  private supportEmail(): string {
+    return String(this.config.get('EMAIL_FROM') || '').trim() || 'support@example.com';
+  }
+
+  private frontendUrl(): string {
+    return String(this.config.get('FRONTEND_URL') || '').trim() || '#';
+  }
+
+  private escapeHtml(s: string): string {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  private hrefAttr(url: string): string {
+    return String(url).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  /** Safe HTML table rows for optional electrician registration fields. */
+  private electricianDetailRows(data: {
+    skills?: string;
+    address?: string;
+    aadhar_url?: string;
+    photo_url?: string;
+  }): string {
+    const rows: string[] = [];
+    if (data.skills?.trim()) {
+      rows.push(
+        `<tr><td style="color:#94a3b8;font-size:13px;padding:8px 0;width:140px;vertical-align:top;">Skills</td><td style="color:#e2e8f0;font-size:14px;padding:8px 0;">${this.escapeHtml(data.skills.trim())}</td></tr>`,
+      );
+    }
+    if (data.address?.trim()) {
+      rows.push(
+        `<tr><td style="color:#94a3b8;font-size:13px;padding:8px 0;width:140px;vertical-align:top;">Location</td><td style="color:#e2e8f0;font-size:14px;padding:8px 0;">${this.escapeHtml(data.address.trim())}</td></tr>`,
+      );
+    }
+    if (data.aadhar_url?.trim()) {
+      const u = this.hrefAttr(data.aadhar_url.trim());
+      rows.push(
+        `<tr><td style="color:#94a3b8;font-size:13px;padding:8px 0;width:140px;">Aadhar</td><td style="font-size:14px;padding:8px 0;"><a href="${u}" style="color:#3b82f6;text-decoration:none;">View document</a></td></tr>`,
+      );
+    }
+    if (data.photo_url?.trim()) {
+      const u = this.hrefAttr(data.photo_url.trim());
+      rows.push(
+        `<tr><td style="color:#94a3b8;font-size:13px;padding:8px 0;width:140px;">Photo</td><td style="font-size:14px;padding:8px 0;"><a href="${u}" style="color:#3b82f6;text-decoration:none;">View photo</a></td></tr>`,
+      );
+    }
+    return rows.join('');
+  }
+
+  private invoiceOptionalRows(data: { dealerInvoiceUrl?: string; gstInvoiceUrl?: string }): {
+    dealer_invoice_block: string;
+    gst_invoice_block: string;
+  } {
+    const dealer = data.dealerInvoiceUrl?.trim();
+    const gst = data.gstInvoiceUrl?.trim();
+    const dealer_invoice_block = dealer
+      ? `<tr><td colspan="2" style="padding:12px 0 0;border-top:1px solid #1e3a5f;"><p style="margin:0;color:#94a3b8;font-size:13px;">Dealer tax invoice</p><p style="margin:6px 0 0;"><a href="${this.hrefAttr(dealer)}" style="color:#60a5fa;font-size:14px;text-decoration:none;font-weight:600;">Download PDF</a></p></td></tr>`
+      : '';
+    const gst_invoice_block = gst
+      ? `<tr><td colspan="2" style="padding:12px 0 0;border-top:1px solid #1e3a5f;"><p style="margin:0;color:#94a3b8;font-size:13px;">GST tax invoice</p><p style="margin:6px 0 0;"><a href="${this.hrefAttr(gst)}" style="color:#60a5fa;font-size:14px;text-decoration:none;font-weight:600;">Download PDF</a></p></td></tr>`
+      : '';
+    return { dealer_invoice_block, gst_invoice_block };
+  }
+
+  private renderEmail(
+    fragmentName: string,
+    fragmentVars: Record<string, string>,
+    meta: EmailLayoutMeta,
+  ): string {
+    const mergedFragmentVars = { brand_name: this.brandDisplay(), ...fragmentVars };
+    const fragment = this.interpolate(this.loadTemplate(fragmentName), mergedFragmentVars);
+    const layout = this.loadTemplate('_layout');
+    const year = String(new Date().getFullYear());
+    return this.interpolate(layout, {
+      email_title: meta.email_title,
+      preheader: meta.preheader,
+      body_html: fragment,
+      brand_name: mergedFragmentVars.brand_name,
+      support_email: this.supportEmail(),
+      frontend_url: this.frontendUrl(),
+      footer_year: year,
+      header_border_color: meta.header_border_color || '#3b82f6',
+    });
   }
 
   async sendAdminRegistered(superadminEmail: string, adminData: { shopName: string; ownerName: string; email: string; phone: string }) {
-    const html = this.interpolate(this.loadTemplate('admin-registered'), {
-      shop_name: adminData.shopName,
-      owner_name: adminData.ownerName,
-      admin_email: adminData.email,
-      admin_phone: adminData.phone,
-      dashboard_url: `${this.config.get('FRONTEND_URL')}/super/shop-registrations`,
-    });
+    const html = this.renderEmail(
+      'admin-registered',
+      {
+        shop_name: adminData.shopName,
+        owner_name: adminData.ownerName,
+        admin_email: adminData.email,
+        admin_phone: adminData.phone,
+        dashboard_url: `${this.frontendUrl()}/super/shop-registrations`,
+      },
+      {
+        email_title: 'New shop registration',
+        preheader: `New shop registration: ${adminData.shopName} — action required in superadmin.`,
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: superadminEmail,
       to_role: 'superadmin',
-      subject: `New Admin Registration: ${adminData.shopName}`,
+      subject: `New shop registration: ${adminData.shopName}`,
       html,
       trigger_event: 'admin_registered',
     });
@@ -106,32 +213,48 @@ export class EmailService {
     adminEmail: string,
     data: { ownerName: string; shopName: string; loginUrl: string; setupPasswordUrl: string },
   ) {
-    const html = this.interpolate(this.loadTemplate('admin-approved'), {
-      owner_name: data.ownerName,
-      shop_name: data.shopName,
-      login_url: data.loginUrl,
-      setup_password_url: data.setupPasswordUrl,
-    });
+    const html = this.renderEmail(
+      'admin-approved',
+      {
+        owner_name: data.ownerName,
+        shop_name: data.shopName,
+        login_url: data.loginUrl,
+        setup_password_url: data.setupPasswordUrl,
+      },
+      {
+        email_title: 'Your shop was approved',
+        preheader: `${data.shopName} is approved — create your password to get started.`,
+        header_border_color: '#10b981',
+      },
+    );
     await this.send({
       to: adminEmail,
       to_role: 'admin',
-      subject: `🎉 Your Shop "${data.shopName}" has been approved — E Vision`,
+      subject: `Your shop "${data.shopName}" has been approved — ${this.brandDisplay()}`,
       html,
       trigger_event: 'admin_approved',
     });
   }
 
   async sendAdminRejected(adminEmail: string, data: { ownerName: string; shopName: string; reason: string }) {
-    const html = this.interpolate(this.loadTemplate('admin-rejected'), {
-      owner_name: data.ownerName,
-      shop_name: data.shopName,
-      reject_reason: data.reason,
-      support_email: this.config.get('EMAIL_FROM'),
-    });
+    const html = this.renderEmail(
+      'admin-rejected',
+      {
+        owner_name: data.ownerName,
+        shop_name: data.shopName,
+        reject_reason: data.reason,
+        support_email: this.supportEmail(),
+      },
+      {
+        email_title: 'Registration update',
+        preheader: `Update on your application for ${data.shopName}.`,
+        header_border_color: '#ef4444',
+      },
+    );
     await this.send({
       to: adminEmail,
       to_role: 'admin',
-      subject: `Update on your E Vision registration — ${data.shopName}`,
+      subject: `Update on your registration — ${data.shopName}`,
       html,
       trigger_event: 'admin_rejected',
     });
@@ -139,74 +262,116 @@ export class EmailService {
 
   async sendElectricianRegistered(
     superadminEmail: string,
-    data: { name: string; email: string; phone: string },
+    data: {
+      name: string;
+      email: string;
+      phone: string;
+      skills?: string;
+      address?: string;
+      aadhar_url?: string;
+      photo_url?: string;
+    },
   ) {
-    const html = this.interpolate(this.loadTemplate('electrician-registered'), {
-      electrician_name: data.name,
-      electrician_email: data.email,
-      electrician_phone: data.phone,
-      review_url: `${this.config.get('FRONTEND_URL')}/super/technicians`,
+    const detail_rows = this.electricianDetailRows({
+      skills: data.skills,
+      address: data.address,
+      aadhar_url: data.aadhar_url,
+      photo_url: data.photo_url,
     });
+    const html = this.renderEmail(
+      'electrician-registered',
+      {
+        electrician_name: data.name,
+        electrician_email: data.email,
+        electrician_phone: data.phone,
+        detail_rows,
+        review_url: `${this.frontendUrl()}/super/technicians`,
+      },
+      {
+        email_title: 'New technician registration',
+        preheader: `Technician ${data.name} submitted an application — review in superadmin.`,
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: superadminEmail,
       to_role: 'superadmin',
-      subject: `New Electrician Registration: ${data.name}`,
+      subject: `New technician registration: ${data.name}`,
       html,
       trigger_event: 'electrician_registered',
     });
   }
 
-  async sendElectricianApproved(
-    electricianEmail: string,
-    data: { name: string },
-  ) {
-    const brand = this.config.get<string>('PUBLIC_BRAND_NAME')?.trim() || 'LensCart';
-    const html = this.interpolate(this.loadTemplate('electrician-approved'), {
-      electrician_name: data.name,
-      brand_name: brand,
-      login_url: `${this.config.get('FRONTEND_URL')}/electrician/login`,
-    });
+  async sendElectricianApproved(electricianEmail: string, data: { name: string }) {
+    const brand = this.brandDisplay();
+    const html = this.renderEmail(
+      'electrician-approved',
+      {
+        electrician_name: data.name,
+        brand_name: brand,
+        login_url: `${this.frontendUrl()}/electrician/login`,
+      },
+      {
+        email_title: 'Technician account approved',
+        preheader: `${brand}: your technician account is approved. Sign in to get started.`,
+        header_border_color: '#10b981',
+      },
+    );
     await this.send({
       to: electricianEmail,
       to_role: 'electrician',
-      subject: `Welcome to ${brand} — your technician account is approved!`,
+      subject: `Welcome to ${brand} — your technician account is approved`,
       html,
       trigger_event: 'electrician_approved',
     });
   }
 
   async sendDealerGstVerified(dealerEmail: string, data: { name: string }) {
-    const html = this.interpolate(this.loadTemplate('dealer-gst-verified'), {
-      dealer_name: data.name,
-      brand_name: 'E Vision',
-      shop_url: `${this.config.get('FRONTEND_URL')}/`,
-    });
+    const brand = this.brandDisplay();
+    const html = this.renderEmail(
+      'dealer-gst-verified',
+      {
+        dealer_name: data.name,
+        brand_name: brand,
+        shop_url: `${this.frontendUrl()}/`,
+      },
+      {
+        email_title: 'Dealer pricing active',
+        preheader: `${brand}: your GST verification is complete — dealer pricing is active.`,
+        header_border_color: '#10b981',
+      },
+    );
     await this.send({
       to: dealerEmail,
       to_role: 'dealer',
-      subject: 'Your dealer pricing is now active — E Vision',
+      subject: `Your dealer pricing is now active — ${brand}`,
       html,
       trigger_event: 'dealer_gst_verified',
     });
   }
 
-  async sendElectricianRejected(
-    electricianEmail: string,
-    data: { name: string; reason: string },
-  ) {
-    const brand = this.config.get<string>('PUBLIC_BRAND_NAME')?.trim() || 'LensCart';
+  async sendElectricianRejected(electricianEmail: string, data: { name: string; reason: string }) {
+    const brand = this.brandDisplay();
     const support =
-      this.config.get<string>('TECHNICIAN_SUPPORT_EMAIL')?.trim() || 'support@lenscart.com';
-    const html = this.interpolate(this.loadTemplate('electrician-rejected'), {
-      electrician_name: data.name,
-      reason: data.reason,
-      brand_name: brand,
-      support_email: support,
-    });
+      this.config.get<string>('TECHNICIAN_SUPPORT_EMAIL')?.trim() || this.supportEmail();
+    const html = this.renderEmail(
+      'electrician-rejected',
+      {
+        electrician_name: data.name,
+        reason: data.reason,
+        brand_name: brand,
+        support_email: support,
+      },
+      {
+        email_title: 'Technician application update',
+        preheader: `Your ${brand} technician application could not be approved.`,
+        header_border_color: '#ef4444',
+      },
+    );
     await this.send({
       to: electricianEmail,
       to_role: 'electrician',
-      subject: `Your ${brand} technician application — action required`,
+      subject: `Your ${brand} technician application — update`,
       html,
       trigger_event: 'electrician_rejected',
     });
@@ -216,11 +381,19 @@ export class EmailService {
     electricianEmail: string,
     data: { electricianName: string; productName: string; distanceKm: number },
   ) {
-    const html = this.interpolate(this.loadTemplate('electrician-nearby-order-alert'), {
-      electrician_name: data.electricianName,
-      product_name: data.productName,
-      distance_km: String(data.distanceKm.toFixed(2)),
-    });
+    const html = this.renderEmail(
+      'electrician-nearby-order-alert',
+      {
+        electrician_name: data.electricianName,
+        product_name: data.productName,
+        distance_km: String(data.distanceKm.toFixed(2)),
+      },
+      {
+        email_title: 'Order near you',
+        preheader: `New ${data.productName} order about ${data.distanceKm.toFixed(1)} km away.`,
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: electricianEmail,
       to_role: 'electrician',
@@ -234,11 +407,19 @@ export class EmailService {
     electricianEmail: string,
     data: { electricianName: string; issue: string; expiresAt: string },
   ) {
-    const html = this.interpolate(this.loadTemplate('service-booking-request-electrician'), {
-      electrician_name: data.electricianName,
-      issue: data.issue,
-      expires_at: data.expiresAt,
-    });
+    const html = this.renderEmail(
+      'service-booking-request-electrician',
+      {
+        electrician_name: data.electricianName,
+        issue: data.issue,
+        expires_at: data.expiresAt,
+      },
+      {
+        email_title: 'New service booking',
+        preheader: 'A customer requested a service visit — respond before it expires.',
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: electricianEmail,
       to_role: 'electrician',
@@ -248,14 +429,19 @@ export class EmailService {
     });
   }
 
-  async sendClientBookingPending(
-    customerEmail: string,
-    data: { customerName: string; electricianName: string },
-  ) {
-    const html = this.interpolate(this.loadTemplate('service-booking-pending-client'), {
-      customer_name: data.customerName,
-      electrician_name: data.electricianName,
-    });
+  async sendClientBookingPending(customerEmail: string, data: { customerName: string; electricianName: string }) {
+    const html = this.renderEmail(
+      'service-booking-pending-client',
+      {
+        customer_name: data.customerName,
+        electrician_name: data.electricianName,
+      },
+      {
+        email_title: 'Booking request sent',
+        preheader: `Waiting for ${data.electricianName} to confirm your service request.`,
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -269,11 +455,19 @@ export class EmailService {
     customerEmail: string,
     data: { customerName: string; electricianName: string; electricianPhone: string },
   ) {
-    const html = this.interpolate(this.loadTemplate('service-booking-accepted-client'), {
-      customer_name: data.customerName,
-      electrician_name: data.electricianName,
-      electrician_phone: data.electricianPhone,
-    });
+    const html = this.renderEmail(
+      'service-booking-accepted-client',
+      {
+        customer_name: data.customerName,
+        electrician_name: data.electricianName,
+        electrician_phone: data.electricianPhone,
+      },
+      {
+        email_title: 'Booking confirmed',
+        preheader: `${data.electricianName} accepted your service booking.`,
+        header_border_color: '#10b981',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -283,14 +477,19 @@ export class EmailService {
     });
   }
 
-  async sendClientBookingDeclined(
-    customerEmail: string,
-    data: { customerName: string; electricianName: string },
-  ) {
-    const html = this.interpolate(this.loadTemplate('service-booking-declined-client'), {
-      customer_name: data.customerName,
-      electrician_name: data.electricianName,
-    });
+  async sendClientBookingDeclined(customerEmail: string, data: { customerName: string; electricianName: string }) {
+    const html = this.renderEmail(
+      'service-booking-declined-client',
+      {
+        customer_name: data.customerName,
+        electrician_name: data.electricianName,
+      },
+      {
+        email_title: 'Booking declined',
+        preheader: `${data.electricianName} declined your booking request.`,
+        header_border_color: '#ef4444',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -300,13 +499,18 @@ export class EmailService {
     });
   }
 
-  async sendClientBookingExpired(
-    customerEmail: string,
-    data: { customerName: string },
-  ) {
-    const html = this.interpolate(this.loadTemplate('service-booking-expired-client'), {
-      customer_name: data.customerName,
-    });
+  async sendClientBookingExpired(customerEmail: string, data: { customerName: string }) {
+    const html = this.renderEmail(
+      'service-booking-expired-client',
+      {
+        customer_name: data.customerName,
+      },
+      {
+        email_title: 'Booking expired',
+        preheader: 'Your service booking request timed out.',
+        header_border_color: '#f59e0b',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -320,11 +524,19 @@ export class EmailService {
     customerEmail: string,
     data: { customerName: string; electricianName: string; status: string },
   ) {
-    const html = this.interpolate(this.loadTemplate('service-job-status-client'), {
-      customer_name: data.customerName,
-      electrician_name: data.electricianName,
-      status: data.status,
-    });
+    const html = this.renderEmail(
+      'service-job-status-client',
+      {
+        customer_name: data.customerName,
+        electrician_name: data.electricianName,
+        status: data.status,
+      },
+      {
+        email_title: 'Service job update',
+        preheader: `Job update: ${data.status}`,
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -334,15 +546,20 @@ export class EmailService {
     });
   }
 
-  async sendClientReviewPrompt(
-    customerEmail: string,
-    data: { customerName: string; electricianName: string },
-  ) {
-    const html = this.interpolate(this.loadTemplate('service-review-prompt-client'), {
-      customer_name: data.customerName,
-      electrician_name: data.electricianName,
-      reviews_url: `${this.config.get('FRONTEND_URL')}/reviews`,
-    });
+  async sendClientReviewPrompt(customerEmail: string, data: { customerName: string; electricianName: string }) {
+    const html = this.renderEmail(
+      'service-review-prompt-client',
+      {
+        customer_name: data.customerName,
+        electrician_name: data.electricianName,
+        reviews_url: `${this.frontendUrl()}/reviews`,
+      },
+      {
+        email_title: 'Leave a review',
+        preheader: `How was your visit with ${data.electricianName}?`,
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -356,11 +573,19 @@ export class EmailService {
     electricianEmail: string,
     data: { electricianName: string; rating: number; comment: string },
   ) {
-    const html = this.interpolate(this.loadTemplate('electrician-review-received'), {
-      electrician_name: data.electricianName,
-      rating: String(data.rating),
-      comment: data.comment || 'No comment provided',
-    });
+    const html = this.renderEmail(
+      'electrician-review-received',
+      {
+        electrician_name: data.electricianName,
+        rating: String(data.rating),
+        comment: data.comment || 'No comment provided',
+      },
+      {
+        email_title: 'New review',
+        preheader: `You received a ${data.rating}-star review.`,
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: electricianEmail,
       to_role: 'electrician',
@@ -374,12 +599,20 @@ export class EmailService {
     customerEmail: string,
     data: { customerName: string; orderGroupId: string; amount: number },
   ) {
-    const html = this.interpolate(this.loadTemplate('payment-confirmed'), {
-      customer_name: data.customerName,
-      order_group_id: data.orderGroupId,
-      amount: String(data.amount.toFixed(2)),
-      orders_url: `${this.config.get('FRONTEND_URL')}/orders`,
-    });
+    const html = this.renderEmail(
+      'payment-confirmed',
+      {
+        customer_name: data.customerName,
+        order_group_id: data.orderGroupId,
+        amount: String(data.amount.toFixed(2)),
+        orders_url: `${this.frontendUrl()}/orders`,
+      },
+      {
+        email_title: 'Payment confirmed',
+        preheader: `Order ${data.orderGroupId} — payment received.`,
+        header_border_color: '#10b981',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -389,22 +622,27 @@ export class EmailService {
     });
   }
 
-  async sendPaymentConfirmedAdmin(
-    adminEmail: string,
-    data: { shopName: string; orderGroupId: string; amount: number },
-  ) {
-    const html = this.interpolate(this.loadTemplate('payment-confirmed'), {
-      customer_name: data.shopName,
-      order_group_id: data.orderGroupId,
-      amount: String(data.amount.toFixed(2)),
-      orders_url: `${this.config.get('FRONTEND_URL')}/admin/orders`,
-    });
+  async sendPaymentConfirmedAdmin(adminEmail: string, data: { shopName: string; orderGroupId: string; amount: number }) {
+    const html = this.renderEmail(
+      'payment-confirmed-admin',
+      {
+        shop_name: data.shopName,
+        order_group_id: data.orderGroupId,
+        amount: String(data.amount.toFixed(2)),
+        admin_orders_url: `${this.frontendUrl()}/admin/orders`,
+      },
+      {
+        email_title: 'New paid order',
+        preheader: `New paid order ${data.orderGroupId} for ${data.shopName}.`,
+        header_border_color: '#10b981',
+      },
+    );
     await this.send({
       to: adminEmail,
       to_role: 'admin',
-      subject: `New paid order received — ${data.orderGroupId}`,
+      subject: `New paid order — ${data.orderGroupId}`,
       html,
-      trigger_event: 'payment_confirmed',
+      trigger_event: 'payment_confirmed_admin',
     });
   }
 
@@ -412,12 +650,20 @@ export class EmailService {
     customerEmail: string,
     data: { customerName: string; orderGroupId: string; reason: string },
   ) {
-    const html = this.interpolate(this.loadTemplate('payment-failed'), {
-      customer_name: data.customerName,
-      order_group_id: data.orderGroupId,
-      reason: data.reason,
-      retry_url: `${this.config.get('FRONTEND_URL')}/cart`,
-    });
+    const html = this.renderEmail(
+      'payment-failed',
+      {
+        customer_name: data.customerName,
+        order_group_id: data.orderGroupId,
+        reason: data.reason,
+        retry_url: `${this.frontendUrl()}/cart`,
+      },
+      {
+        email_title: 'Payment failed',
+        preheader: `Payment failed for order ${data.orderGroupId}.`,
+        header_border_color: '#ef4444',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -427,16 +673,20 @@ export class EmailService {
     });
   }
 
-  async sendOrderCancelled(
-    toEmail: string,
-    toRole: 'customer' | 'admin',
-    data: { recipientName: string; orderGroupId: string },
-  ) {
-    const html = this.interpolate(this.loadTemplate('order-cancelled'), {
-      recipient_name: data.recipientName,
-      order_group_id: data.orderGroupId,
-      support_email: this.config.get('EMAIL_FROM'),
-    });
+  async sendOrderCancelled(toEmail: string, toRole: 'customer' | 'admin', data: { recipientName: string; orderGroupId: string }) {
+    const html = this.renderEmail(
+      'order-cancelled',
+      {
+        recipient_name: data.recipientName,
+        order_group_id: data.orderGroupId,
+        support_email: this.supportEmail(),
+      },
+      {
+        email_title: 'Order cancelled',
+        preheader: `Order ${data.orderGroupId} was cancelled.`,
+        header_border_color: '#f59e0b',
+      },
+    );
     await this.send({
       to: toEmail,
       to_role: toRole,
@@ -456,13 +706,21 @@ export class EmailService {
       trackingUrl: string;
     },
   ) {
-    const html = this.interpolate(this.loadTemplate('order-shipped'), {
-      customer_name: data.customerName,
-      order_id: data.orderId,
-      tracking_number: data.trackingNumber,
-      courier_name: data.courierName,
-      tracking_url: data.trackingUrl,
-    });
+    const html = this.renderEmail(
+      'order-shipped',
+      {
+        customer_name: data.customerName,
+        order_id: data.orderId,
+        tracking_number: data.trackingNumber,
+        courier_name: data.courierName,
+        tracking_url: data.trackingUrl,
+      },
+      {
+        email_title: 'Order shipped',
+        preheader: `Your order ${data.orderId} is on the way.`,
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -488,14 +746,22 @@ export class EmailService {
       out_for_delivery: 'Out for Delivery',
       delivered: 'Delivered',
     }[data.stage];
-    const html = this.interpolate(this.loadTemplate('order-stage-update'), {
-      customer_name: data.customerName,
-      order_id: data.orderId,
-      stage: stageLabel,
-      tracking_number: data.trackingNumber,
-      courier_name: data.courierName,
-      orders_url: `${this.config.get('FRONTEND_URL')}/orders`,
-    });
+    const html = this.renderEmail(
+      'order-stage-update',
+      {
+        customer_name: data.customerName,
+        order_id: data.orderId,
+        stage: stageLabel,
+        tracking_number: data.trackingNumber,
+        courier_name: data.courierName,
+        orders_url: `${this.frontendUrl()}/orders`,
+      },
+      {
+        email_title: `Order update: ${stageLabel}`,
+        preheader: `${data.orderId} — ${stageLabel}.`,
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -517,15 +783,27 @@ export class EmailService {
     },
     attachments: Array<{ filename: string; content: Buffer; contentType: string }>,
   ) {
-    const html = this.interpolate(this.loadTemplate('invoice-generated'), {
-      customer_name: data.customerName,
-      order_id: data.orderId,
-      invoice_number: data.invoiceNumber,
-      customer_invoice_url: data.customerInvoiceUrl,
-      dealer_invoice_url: data.dealerInvoiceUrl || '',
-      gst_invoice_url: data.gstInvoiceUrl || '',
-      orders_url: `${this.config.get('FRONTEND_URL')}/orders`,
+    const { dealer_invoice_block, gst_invoice_block } = this.invoiceOptionalRows({
+      dealerInvoiceUrl: data.dealerInvoiceUrl,
+      gstInvoiceUrl: data.gstInvoiceUrl,
     });
+    const html = this.renderEmail(
+      'invoice-generated',
+      {
+        customer_name: data.customerName,
+        order_id: data.orderId,
+        invoice_number: data.invoiceNumber,
+        customer_invoice_url: data.customerInvoiceUrl,
+        orders_url: `${this.frontendUrl()}/orders`,
+        dealer_invoice_block,
+        gst_invoice_block,
+      },
+      {
+        email_title: `Invoice ${data.invoiceNumber}`,
+        preheader: `Invoice ${data.invoiceNumber} for order ${data.orderId} is ready.`,
+        header_border_color: '#3b82f6',
+      },
+    );
     await this.send({
       to: customerEmail,
       to_role: 'customer',
@@ -535,5 +813,4 @@ export class EmailService {
       attachments,
     });
   }
-
 }

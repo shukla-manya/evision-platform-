@@ -1,77 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>New Admin Registration</title>
-</head>
-<body style="margin:0;padding:0;background-color:#050b1a;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#050b1a;padding:40px 20px;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-          <!-- Header -->
-          <tr>
-            <td style="background:linear-gradient(135deg,#0d1626 0%,#1a2a4a 100%);border-radius:16px 16px 0 0;padding:36px 40px;text-align:center;border-bottom:2px solid #3b82f6;">
-              <div style="display:inline-flex;align-items:center;gap:10px;">
-                <span style="font-size:28px;">⚡</span>
-                <span style="color:#3b82f6;font-size:26px;font-weight:700;letter-spacing:-0.5px;">E Vision</span>
-              </div>
-              <p style="color:#94a3b8;margin:8px 0 0;font-size:13px;">Pvt. Ltd. — Faridabad, Haryana</p>
-            </td>
-          </tr>
-          <!-- Body -->
-          <tr>
-            <td style="background:#0d1626;padding:40px;">
-              <h2 style="color:#e2e8f0;margin:0 0 8px;font-size:20px;font-weight:600;">New Shop Registration</h2>
-              <p style="color:#94a3b8;margin:0 0 28px;font-size:14px;">A new admin has registered and is awaiting your approval.</p>
-
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;overflow:hidden;border:1px solid #1e3a5f;">
-                <tr>
-                  <td style="padding:20px 24px;">
-                    <table width="100%" cellpadding="0" cellspacing="8">
-                      <tr>
-                        <td style="color:#94a3b8;font-size:13px;padding:6px 0;width:140px;">Shop Name</td>
-                        <td style="color:#e2e8f0;font-size:14px;font-weight:600;padding:6px 0;">{{shop_name}}</td>
-                      </tr>
-                      <tr>
-                        <td style="color:#94a3b8;font-size:13px;padding:6px 0;">Owner Name</td>
-                        <td style="color:#e2e8f0;font-size:14px;padding:6px 0;">{{owner_name}}</td>
-                      </tr>
-                      <tr>
-                        <td style="color:#94a3b8;font-size:13px;padding:6px 0;">Email</td>
-                        <td style="color:#3b82f6;font-size:14px;padding:6px 0;">{{admin_email}}</td>
-                      </tr>
-                      <tr>
-                        <td style="color:#94a3b8;font-size:13px;padding:6px 0;">Phone</td>
-                        <td style="color:#e2e8f0;font-size:14px;padding:6px 0;">{{admin_phone}}</td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
-
-              <div style="text-align:center;margin-top:32px;">
-                <a href="{{dashboard_url}}" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.2px;">
-                  Review Registration →
-                </a>
-              </div>
-
-              <p style="color:#64748b;font-size:12px;margin-top:28px;line-height:1.6;">
-                Log in to the superadmin panel to approve or reject this registration.
-                The admin will be notified by email of your decision.
-              </p>
-            </td>
-          </tr>
-          <!-- Footer -->
-          <tr>
-            <td style="background:#060d1c;padding:20px 40px;border-radius:0 0 16px 16px;text-align:center;border-top:1px solid #1e3a5f;">
-              <p style="color:#475569;font-size:12px;margin:0;">© 2024 E Vision Pvt. Ltd., Faridabad, Haryana · All rights reserved</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+<h2 style="color:#e2e8f0;margin:0 0 10px;font-size:20px;font-weight:600;">New shop registration</h2>
+<p style="color:#94a3b8;margin:0 0 24px;font-size:14px;line-height:1.6;">A new shop has registered and is awaiting approval in the superadmin panel.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;overflow:hidden;border:1px solid #1e3a5f;">
+  <tr>
+    <td style="padding:20px 24px;">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:8px 0;width:140px;">Shop</td>
+          <td style="color:#e2e8f0;font-size:14px;font-weight:600;padding:8px 0;">{{shop_name}}</td>
+        </tr>
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:8px 0;">Owner</td>
+          <td style="color:#e2e8f0;font-size:14px;padding:8px 0;">{{owner_name}}</td>
+        </tr>
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:8px 0;">Email</td>
+          <td style="color:#60a5fa;font-size:14px;padding:8px 0;">{{admin_email}}</td>
+        </tr>
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:8px 0;">Phone</td>
+          <td style="color:#e2e8f0;font-size:14px;padding:8px 0;">{{admin_phone}}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<div style="text-align:center;margin-top:28px;">
+  <a href="{{dashboard_url}}" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;">Review registration</a>
+</div>
+<p style="color:#64748b;font-size:12px;margin:24px 0 0;line-height:1.6;">Approve or reject from the superadmin dashboard. The applicant will be notified by email.</p>
