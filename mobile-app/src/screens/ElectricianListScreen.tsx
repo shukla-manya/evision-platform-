@@ -110,8 +110,9 @@ export function ElectricianListScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, backgroundColor: colors.background },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, backgroundColor: colors.background, padding: 24 },
   list: { padding: 16, gap: 12, paddingBottom: 32 },
+  listEmpty: { flexGrow: 1, padding: 24, justifyContent: 'center' },
   card: {
     backgroundColor: colors.surface,
     borderRadius: 12,
@@ -123,5 +124,17 @@ const styles = StyleSheet.create({
   name: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
   meta: { fontSize: 13, color: colors.textSecondary, marginTop: 4 },
   skills: { fontSize: 12, color: colors.muted, marginTop: 6 },
-  muted: { textAlign: 'center', color: colors.textSecondary, padding: 24 },
+  muted: { textAlign: 'center', color: colors.textSecondary, paddingHorizontal: 24 },
+  emptyWrap: { alignItems: 'center', paddingVertical: 32, paddingHorizontal: 12 },
+  emptyEmoji: { fontSize: 40, marginBottom: 12 },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, textAlign: 'center', marginBottom: 8 },
+  emptyBody: { fontSize: 14, color: colors.textSecondary, textAlign: 'center', lineHeight: 21, maxWidth: 320 },
+  retryBtn: {
+    marginTop: 16,
+    backgroundColor: colors.brandPrimary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+  },
+  retryLabel: { color: '#fff', fontWeight: '600', fontSize: 15 },
 });

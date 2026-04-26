@@ -653,7 +653,19 @@ describe('E2E flows (local)', () => {
       .send({ action: 'accept' })
       .expect(200);
 
-    for (const st of ['on_the_way', 'reached', 'work_started', 'completed'] as const) {
+    await request(app.getHttpServer())
+      .put(`/electrician/job/${bookingId}/status`)
+      .set('Authorization', `Bearer ${ej}`)
+      .send({ status: 'on_the_way' })
+      .expect(200);
+    const live = await request(app.getHttpServer())
+      .get(`/service/booking/${bookingId}`)
+      .set('Authorization', `Bearer ${cj}`)
+      .expect(200);
+    expect(String((live.body as any).booking?.job_status)).toBe('on_the_way');
+    expect((live.body as any).electrician?.id).toBeTruthy();
+
+    for (const st of ['reached', 'work_started', 'completed'] as const) {
       await request(app.getHttpServer())
         .put(`/electrician/job/${bookingId}/status`)
         .set('Authorization', `Bearer ${ej}`)
