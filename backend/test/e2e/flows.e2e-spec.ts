@@ -8,6 +8,7 @@ import * as net from 'net';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
@@ -171,10 +172,6 @@ describe('E2E flows (local)', () => {
 
   function adminToken(adminId: string, email: string) {
     return jwt.sign({ sub: adminId, role: 'admin', email, phone: '+919000000002' });
-  }
-
-  function superToken() {
-    return jwt.sign({ sub: 'SUPERADMIN', role: 'superadmin', email: 'sa@e2e.invalid' });
   }
 
   function electricianToken(id: string, email: string) {
@@ -859,6 +856,28 @@ describe('E2E flows (local)', () => {
     const dealerUser = uuidv4();
     const now = new Date().toISOString();
 
+    const saE2ePassword = 'e2e-superadmin-login-pw-12';
+    const saEmail = String(process.env.SUPERADMIN_EMAIL || 'superadmin-notify@e2e.invalid').toLowerCase();
+    await docClient.send(
+      new PutCommand({
+        TableName: 'evision_superadmin',
+        Item: {
+          id: 'SUPERADMIN',
+          name: 'E2E Superadmin',
+          email: saEmail,
+          phone: null,
+          password_hash: bcrypt.hashSync(saE2ePassword, 6),
+          role: 'superadmin',
+          created_at: now,
+        },
+      }),
+    );
+    const loginRes = await request(app.getHttpServer())
+      .post('/auth/superadmin/login')
+      .send({ email: saEmail, password: saE2ePassword })
+      .expect(200);
+    const sa = (loginRes.body as { access_token: string }).access_token;
+
     for (const [id, email] of [
       [pendingAdmin, `padm-${pendingAdmin}@e2e.invalid`],
       [rejectAdmin, `radm-${rejectAdmin}@e2e.invalid`],
@@ -880,7 +899,6 @@ describe('E2E flows (local)', () => {
       );
     }
 
-    const sa = superToken();
     await request(app.getHttpServer())
       .put(`/superadmin/admin/${pendingAdmin}/approve`)
       .set('Authorization', `Bearer ${sa}`)
