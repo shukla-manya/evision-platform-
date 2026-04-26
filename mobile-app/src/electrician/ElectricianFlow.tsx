@@ -26,7 +26,7 @@ type ElectricianStackParamList = {
   ActiveJob: undefined;
   UploadPhoto: { bookingId: string };
   Profile: undefined;
-  EarningsHistory: undefined;
+  JobHistory: undefined;
 };
 
 const Stack = createNativeStackNavigator<ElectricianStackParamList>();
