@@ -1,8 +1,10 @@
 import { IsString, Matches, IsOptional, IsIn, IsEmail, ValidateIf } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class SendOtpDto {
   @ApiProperty({ example: '+919876543210' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @IsString()
   @Matches(/^\+[1-9]\d{9,14}$/, { message: 'Phone must be in E.164 format e.g. +919876543210' })
   phone: string;
@@ -18,6 +20,7 @@ export class SendOtpDto {
 
   @ApiPropertyOptional({ example: 'user@example.com', description: 'Required when purpose is `signup`' })
   @ValidateIf((o) => o.purpose === 'signup')
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsEmail()
   email?: string;
 }

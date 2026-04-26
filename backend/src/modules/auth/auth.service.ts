@@ -72,12 +72,16 @@ export class AuthService {
       expires_at: expiresAt,
     });
 
-    const raw = this.config.get<string>('OTP_CONSOLE_ONLY');
+    const raw = this.config.get<string | boolean>('OTP_CONSOLE_ONLY');
+    const flag = String(raw ?? '')
+      .trim()
+      .toLowerCase();
     const consoleOnly =
       raw === undefined ||
       raw === '' ||
-      raw === '1' ||
-      raw.toLowerCase() === 'true';
+      flag === '1' ||
+      flag === 'true' ||
+      flag === 'yes';
 
     if (consoleOnly) {
       this.logger.log(`[OTP] ${phone} → ${otp} (valid 10 minutes)`);

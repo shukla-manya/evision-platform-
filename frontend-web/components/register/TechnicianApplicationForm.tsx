@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Loader2, Mail, MapPin, Navigation, Upload, User } from 'lucide-react';
@@ -97,7 +97,8 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       ? `+91 ${phoneLast10.slice(0, 2)}******${phoneLast10.slice(-2)}`
       : '+91 XXXXXXXXXX';
 
-  const validateDetails = useCallback((): boolean => {
+  /** Same scope as shopper signup OTP: identity + contact + service area only (not docs). */
+  const validateForOtpSend = useCallback((): boolean => {
     if (!techName.trim()) {
       toast.error('Enter your full name');
       return false;
@@ -106,7 +107,8 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       toast.error('Enter a valid 10-digit mobile number');
       return false;
     }
-    if (!techEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(techEmail)) {
+    const em = techEmail.trim();
+    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
       toast.error('Enter a valid email address');
       return false;
     }
@@ -118,6 +120,11 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       toast.error('Enter a valid 6-digit pincode');
       return false;
     }
+    return true;
+  }, [techName, phoneLast10.length, techEmail, techCity, techPin]);
+
+  const validateApplicationDetails = useCallback((): boolean => {
+    if (!validateForOtpSend()) return false;
     if (techSkills.size === 0) {
       toast.error('Select at least one skill');
       return false;
@@ -136,20 +143,14 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       return false;
     }
     return true;
-  }, [
-    techName,
-    phoneLast10.length,
-    techEmail,
-    techCity,
-    techPin,
-    techSkills.size,
-    techExperience,
-    aadharFile,
-    photoFile,
-  ]);
+  }, [validateForOtpSend, techSkills.size, techExperience, aadharFile, photoFile]);
+
+  const otpSendInFlight = useRef(false);
 
   const sendTechOtp = useCallback(async () => {
-    if (!validateDetails()) return;
+    if (!validateForOtpSend()) return;
+    if (otpSendInFlight.current) return;
+    otpSendInFlight.current = true;
     const phone = formatPhoneE164(techPhoneDigits);
     setOtpSending(true);
     try {
@@ -164,9 +165,10 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Failed to send OTP'));
     } finally {
+      otpSendInFlight.current = false;
       setOtpSending(false);
     }
-  }, [techPhoneDigits, techEmail, validateDetails]);
+  }, [techPhoneDigits, techEmail, validateForOtpSend]);
 
   useEffect(() => {
     if (step !== 'otp' || resendSeconds <= 0) return;
@@ -190,7 +192,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       toast.error('Enter the 6-digit OTP');
       return;
     }
-    if (!validateDetails()) return;
+    if (!validateApplicationDetails()) return;
 
     setLoading(true);
     try {
@@ -254,7 +256,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       <div className="ev-card p-8">
         {step === 'details' ? (
           <form
-            onSubmit={(e) => {
+            onSubmit={(e: FormEvent) => {
               e.preventDefault();
               void sendTechOtp();
             }}
