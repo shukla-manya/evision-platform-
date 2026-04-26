@@ -977,5 +977,18 @@ describe('E2E flows (local)', () => {
       }),
     );
     expect((u.Items || [])[0]?.gst_verified).toBe(true);
+
+    const reviewsRes = await request(app.getHttpServer())
+      .get('/superadmin/reviews')
+      .set('Authorization', `Bearer ${sa}`)
+      .expect(200);
+    const reviewRows = reviewsRes.body as { id?: string }[];
+    const anyReview = reviewRows.find((r) => typeof r?.id === 'string');
+    if (anyReview?.id) {
+      await request(app.getHttpServer())
+        .delete(`/superadmin/reviews/${anyReview.id}`)
+        .set('Authorization', `Bearer ${sa}`)
+        .expect(200);
+    }
   });
 });

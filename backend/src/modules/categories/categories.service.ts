@@ -51,7 +51,7 @@ export class CategoriesService {
   }
 
   private async categoryHasChildren(categoryId: string): Promise<boolean> {
-    const items = await this.dynamo.scan({
+    const items = await this.dynamo.scanAllPages({
       TableName: this.table(),
       FilterExpression: 'parent_id = :pid',
       ExpressionAttributeValues: { ':pid': categoryId },

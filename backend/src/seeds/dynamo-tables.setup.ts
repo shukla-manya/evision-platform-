@@ -1,3 +1,8 @@
+/**
+ * Table definitions for *new* environments (local Dynalite, fresh AWS account).
+ * Existing AWS tables are not altered by `setup:tables`; add GSIs there with
+ * UpdateTable (Console or IaC) to match new indexes before deploying code that uses them.
+ */
 import {
   DynamoDBClient,
   CreateTableCommand,
