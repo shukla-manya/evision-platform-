@@ -1,4 +1,5 @@
-import { Controller, Post, Body, UseGuards, Get, Put, Patch } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Put, Patch, Req } from '@nestjs/common';
+import type { Request } from 'express';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SendOtpDto } from './dto/send-otp.dto';
@@ -19,6 +20,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UpdateAddressBookDto } from './dto/update-address-book.dto';
 import { UpdateGeoDto } from './dto/update-geo.dto';
+import { getRequestClientIp } from '../../common/http/client-ip.util';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -86,8 +88,8 @@ export class AuthController {
   @Public()
   @Post('superadmin/login')
   @ApiOperation({ summary: 'Superadmin: email + password → JWT' })
-  superadminLogin(@Body() dto: SuperadminLoginDto) {
-    return this.authService.superadminLogin(dto);
+  superadminLogin(@Body() dto: SuperadminLoginDto, @Req() req: Request) {
+    return this.authService.superadminLogin(dto, getRequestClientIp(req));
   }
 
   @UseGuards(JwtAuthGuard)

@@ -35,6 +35,12 @@ async function bootstrap() {
 
   app.useWebSocketAdapter(new IoAdapter(app));
 
+  const trust = String(configService.get('TRUST_PROXY', '') || '').toLowerCase();
+  if (['1', 'true', 'yes'].includes(trust)) {
+    const httpServer = app.getHttpAdapter().getInstance() as { set?: (k: string, v: unknown) => void };
+    httpServer?.set?.('trust proxy', 1);
+  }
+
   app.enableCors({
     origin: [
       configService.get('FRONTEND_URL', 'http://localhost:3000'),

@@ -401,7 +401,7 @@ export class AuthService {
   }
 
   // ── Superadmin Login ──────────────────────────────────────────────────────
-  async superadminLogin(dto: SuperadminLoginDto): Promise<{ access_token: string }> {
+  async superadminLogin(dto: SuperadminLoginDto, clientIp: string): Promise<{ access_token: string }> {
     const sa = await this.dynamo.get(this.dynamo.tableName('superadmin'), { id: 'SUPERADMIN' });
     if (!sa) {
       throw new UnauthorizedException(
@@ -421,7 +421,27 @@ export class AuthService {
     if (!valid || storedEmail !== dtoEmail) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    const token = this.signToken('SUPERADMIN', 'superadmin', String(rec.email || '').trim());
+
+    const sessionId = uuidv4();
+    const ipNorm = normalizeClientIp(clientIp);
+    const now = new Date().toISOString();
+    await this.dynamo.update(
+      this.dynamo.tableName('superadmin'),
+      { id: 'SUPERADMIN' },
+      {
+        active_session_id: sessionId,
+        active_session_ip: ipNorm,
+        active_session_at: now,
+      },
+    );
+
+    const emailOut = String(rec.email || '').trim();
+    const token = this.jwt.sign({
+      sub: 'SUPERADMIN',
+      role: 'superadmin',
+      email: emailOut,
+      sa_sess: sessionId,
+    });
     return { access_token: token };
   }
 
