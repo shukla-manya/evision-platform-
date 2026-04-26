@@ -323,15 +323,7 @@ function UploadPhotoScreen({ route, navigation }: any) {
   );
 }
 
-function ProfileScreen({
-  onLogout,
-  onOpenPasswordReset,
-  fcmToken,
-}: {
-  onLogout: () => void;
-  onOpenPasswordReset: (phone?: string) => void;
-  fcmToken: string | null;
-}) {
+function ProfileScreen({ onLogout, fcmToken }: { onLogout: () => void; fcmToken: string | null }) {
   const [profile, setProfile] = useState<ElectricianProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -374,9 +366,12 @@ function ProfileScreen({
       <Pressable style={styles.secondaryButton} onPress={() => void loadProfile()}>
         <Text style={styles.secondaryButtonText}>Refresh</Text>
       </Pressable>
-      <Pressable style={styles.secondaryButton} onPress={() => onOpenPasswordReset(profile?.phone)}>
-        <Text style={styles.secondaryButtonText}>Change Password (OTP)</Text>
-      </Pressable>
+      <View style={styles.card}>
+        <Text style={styles.meta}>
+          You sign in with a code sent to your mobile. There is no separate password for your technician account in
+          this app.
+        </Text>
+      </View>
       <Pressable style={styles.dangerButton} onPress={onLogout}>
         <Text style={styles.primaryButtonText}>Logout</Text>
       </Pressable>
