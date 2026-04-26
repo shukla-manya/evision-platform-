@@ -55,11 +55,6 @@ export function PublicFooter() {
               </Link>
             </li>
             <li>
-              <Link href="/deals" className="hover:text-white transition-colors">
-                Deals
-              </Link>
-            </li>
-            <li>
               <Link href="/brands" className="hover:text-white transition-colors">
                 Brands
               </Link>

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Clock, Loader2, Package, Sparkles, Wrench } from 'lucide-react';
+import { ArrowRight, Loader2, Package, Sparkles, Wrench } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi, catalogApi, ordersApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
@@ -45,12 +45,6 @@ function priceLabel(p: Product, shopperRole?: string) {
 
 const inTransit = new Set(['shipment_created', 'picked_up', 'in_transit', 'out_for_delivery']);
 
-function endOfTodayMs() {
-  const d = new Date();
-  d.setHours(23, 59, 59, 999);
-  return d.getTime();
-}
-
 export default function CustomerHomePage() {
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const isShopper = role === 'customer' || role === 'dealer';
@@ -60,8 +54,6 @@ export default function CustomerHomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [orders, setOrders] = useState<OrderGroup[]>([]);
   const [forYou, setForYou] = useState<Product[]>([]);
-  const [deals, setDeals] = useState<Product[]>([]);
-  const [now, setNow] = useState(Date.now());
 
   const load = useCallback(async () => {
     if (!isShopper) return;
@@ -82,7 +74,6 @@ export default function CustomerHomePage() {
       const byId = new Map(all.map((p) => [p.id, p]));
       const rec = browseIds.map((id) => byId.get(id)).filter(Boolean) as Product[];
       setForYou(rec.slice(0, 8));
-      setDeals(all.filter((p) => p.price_customer != null).slice(0, 6));
     } catch {
       toast.error('Could not load your home');
     } finally {
@@ -94,11 +85,6 @@ export default function CustomerHomePage() {
     void load();
   }, [load]);
 
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
   const transitCount = useMemo(() => {
     let n = 0;
     for (const g of orders) {
@@ -109,18 +95,12 @@ export default function CustomerHomePage() {
     return n;
   }, [orders]);
 
-  const dealEnds = endOfTodayMs();
-  const countdown = Math.max(0, Math.floor((dealEnds - now) / 1000));
-  const hh = String(Math.floor(countdown / 3600)).padStart(2, '0');
-  const mm = String(Math.floor((countdown % 3600) / 60)).padStart(2, '0');
-  const ss = String(countdown % 60).padStart(2, '0');
-
   if (!isShopper) {
     return (
       <PublicShell>
         <main className="max-w-lg mx-auto px-4 py-20 text-center text-ev-muted">
           <p className="text-ev-text font-medium mb-2">Signed-in home</p>
-          <p className="text-sm mb-6">Sign in as a customer or dealer to see orders, deals, and technician booking.</p>
+          <p className="text-sm mb-6">Sign in as a customer or dealer to see orders and technician booking.</p>
           <Link href="/login" className="ev-btn-primary inline-flex">
             Sign in
           </Link>
@@ -150,7 +130,7 @@ export default function CustomerHomePage() {
             Hey {firstName(user?.name)} 👋
           </h1>
           <p className="text-ev-muted text-sm">
-            Your e vision dashboard — orders, deals, and service in one place.
+            Your e vision dashboard — orders and service in one place.
             {role === 'dealer' ? (
               <span className="block mt-1 text-ev-subtle">
                 Dealer pricing applies in the shop; open Dealer hub for GST invoices and wholesale stats.
@@ -245,50 +225,6 @@ export default function CustomerHomePage() {
               ))}
             </div>
           )}
-        </section>
-
-        <section className="ev-card p-6 border-ev-warning/20 bg-ev-warning/5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-ev-text flex items-center gap-2">
-                <Clock size={18} className="text-ev-warning" />
-                Today&apos;s deals
-              </h2>
-              <p className="text-ev-muted text-sm mt-1">Flash picks from the catalogue — ends at midnight.</p>
-              <p className="text-2xl font-mono font-bold text-ev-text tracking-tight mt-2">
-                {hh}:{mm}:{ss}
-              </p>
-            </div>
-            <Link href="/deals" className="ev-btn-primary text-sm py-2.5 px-5 self-start">
-              View all deals
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6">
-            {deals.length === 0 ? (
-              <div className="col-span-full rounded-xl border border-ev-border border-dashed bg-ev-surface/60 px-4 py-8 text-center text-ev-muted text-sm">
-                <p className="text-ev-text font-medium mb-1">No products in the catalogue yet</p>
-                <p className="text-xs">When shops add listings, featured deals will show here.</p>
-                <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 mt-3 inline-flex">
-                  Browse shop
-                </Link>
-              </div>
-            ) : (
-              deals.slice(0, 3).map((p) => (
-                <Link key={p.id} href={`/products/${p.id}`} className="rounded-xl border border-ev-border overflow-hidden bg-ev-surface hover:border-ev-primary/30 transition-colors">
-                  <div className="aspect-[4/3] bg-ev-surface2 relative">
-                    {p.images?.[0] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                    ) : null}
-                  </div>
-                  <div className="p-2.5">
-                    <p className="text-xs font-medium text-ev-text line-clamp-2">{p.name}</p>
-                    <p className="text-ev-primary text-sm font-bold mt-1">{priceLabel(p, role)}</p>
-                  </div>
-                </Link>
-              ))
-            )}
-          </div>
         </section>
 
         <section className="rounded-2xl border border-ev-border bg-ev-surface2/80 p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

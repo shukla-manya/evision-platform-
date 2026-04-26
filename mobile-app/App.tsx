@@ -1112,6 +1112,9 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvedShopsOnly, setApprovedShopsOnly] = useState(true);
+  const [approvedShopList, setApprovedShopList] = useState<Array<{ id: string; shop_name: string }>>([]);
+  const [shopFilter, setShopFilter] = useState('');
+  const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -1125,7 +1128,29 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
     }
   }, [approvedShopsOnly]);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await productApi.listApprovedShops();
+        if (cancelled) return;
+        setApprovedShopList(Array.isArray(data) ? data : []);
+      } catch {
+        if (!cancelled) setApprovedShopList([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   useFocusEffect(useCallback(() => { void load(); }, [load]));
+
+  const visibleProducts = useMemo(() => {
+    if (!shopFilter.trim()) return products;
+    const t = shopFilter.trim().toLowerCase();
+    return products.filter((p) => String(p.shop_name || '').trim().toLowerCase() === t);
+  }, [products, shopFilter]);
 
   if (loading) return <Loader text="Loading products..." />;
 
@@ -1133,27 +1158,87 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
     <SafeAreaView style={styles.screen}>
       <FlatList
         contentContainerStyle={styles.listPad}
-        data={products}
+        data={visibleProducts}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
-          <View style={styles.catalogFilterCard}>
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={styles.catalogFilterTitle}>Approved shops only</Text>
+          <View style={{ marginBottom: 14, gap: 12 }}>
+            <View style={[styles.catalogFilterCard, { marginBottom: 0 }]}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.catalogFilterTitle}>Approved shops only</Text>
+              </View>
+              <Switch
+                accessibilityLabel="Toggle approved shops only"
+                value={approvedShopsOnly}
+                onValueChange={(v) => {
+                  setApprovedShopsOnly(v);
+                }}
+                trackColor={{ false: colors.border, true: colors.brandSoft }}
+                thumbColor={approvedShopsOnly ? colors.brandPrimary : colors.muted}
+              />
             </View>
-            <Switch
-              accessibilityLabel="Toggle approved shops only"
-              value={approvedShopsOnly}
-              onValueChange={(v) => {
-                setApprovedShopsOnly(v);
-              }}
-              trackColor={{ false: colors.border, true: colors.brandSoft }}
-              thumbColor={approvedShopsOnly ? colors.brandPrimary : colors.muted}
-            />
+            <View style={[styles.shopPickerCard]}>
+              <Pressable
+                onPress={() => setShopsPanelOpen((o) => !o)}
+                style={styles.shopPickerToggle}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: shopsPanelOpen }}
+              >
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.catalogFilterTitle}>Shop / store</Text>
+                  <Text style={styles.cardMeta} numberOfLines={1}>
+                    {shopFilter || 'All shops'}
+                  </Text>
+                </View>
+                <Text style={styles.shopPickerChevron}>{shopsPanelOpen ? '▲' : '▼'}</Text>
+              </Pressable>
+              {shopsPanelOpen ? (
+                <ScrollView
+                  style={styles.shopPickerScroll}
+                  nestedScrollEnabled
+                  keyboardShouldPersistTaps="handled"
+                >
+                  <Pressable
+                    style={[styles.shopOption, !shopFilter && styles.shopOptionSelected]}
+                    onPress={() => {
+                      setShopFilter('');
+                      setShopsPanelOpen(false);
+                    }}
+                  >
+                    <Text style={[styles.shopOptionText, !shopFilter && styles.shopOptionTextSelected]}>All shops</Text>
+                  </Pressable>
+                  {approvedShopList.length === 0 ? (
+                    <Text style={[styles.cardMeta, { marginTop: 10 }]}>No approved shops in the directory yet.</Text>
+                  ) : (
+                    approvedShopList.map((row) => {
+                      const selected = shopFilter === row.shop_name;
+                      return (
+                        <Pressable
+                          key={row.id}
+                          style={[styles.shopOption, selected && styles.shopOptionSelected]}
+                          onPress={() => {
+                            setShopFilter(row.shop_name);
+                            setShopsPanelOpen(false);
+                          }}
+                        >
+                          <Text
+                            style={[styles.shopOptionText, selected && styles.shopOptionTextSelected]}
+                            numberOfLines={2}
+                          >
+                            {row.shop_name}
+                          </Text>
+                        </Pressable>
+                      );
+                    })
+                  )}
+                </ScrollView>
+              ) : null}
+            </View>
           </View>
         }
         renderItem={({ item }) => (
           <Pressable style={styles.card} onPress={() => navigation.navigate('ProductDetail', { product: item })}>
             <Text style={styles.cardTitle}>{item.name}</Text>
+            {!!item.shop_name && <Text style={styles.cardMeta}>{item.shop_name}</Text>}
             <Text style={styles.cardMeta}>
               {formatINR(getProductPriceForRole(item, userRole))}
             </Text>
@@ -1941,6 +2026,38 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
+  shopPickerCard: {
+    marginBottom: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  shopPickerToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  shopPickerChevron: { fontSize: 12, color: colors.textSecondary, width: 22, textAlign: 'center' },
+  shopPickerScroll: { maxHeight: 220, marginTop: 10 },
+  shopOption: {
+    marginTop: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.softPanel,
+  },
+  shopOptionSelected: {
+    borderColor: colors.brandPrimary,
+    backgroundColor: colors.brandSoft,
+  },
+  shopOptionText: { fontSize: 14, color: colors.textPrimary, fontWeight: '500' },
+  shopOptionTextSelected: { fontWeight: '700', color: colors.brandPrimary },
   catalogFilterTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   roleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },

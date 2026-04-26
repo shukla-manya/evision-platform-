@@ -118,7 +118,7 @@ const SECTIONS: { title: string; items: FaqItem[] }[] = [
         a: 'Approved partner shops list their own inventory and prices (within platform rules). Your contract for a product is with the fulfilling shop shown at checkout.',
       },
       {
-        q: 'Are deals and brands the same everywhere?',
+        q: 'Are promotions and brands the same everywhere?',
         a: 'Promotions and brand availability can vary by shop and stock. Check the product page and shop details before you buy.',
       },
     ],

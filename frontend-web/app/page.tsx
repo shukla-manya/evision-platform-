@@ -50,23 +50,6 @@ function formatInr(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 }
 
-function DealCountdown() {
-  const [left, setLeft] = useState(4 * 3600 + 32 * 60 + 18);
-  useEffect(() => {
-    const id = window.setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-  const h = Math.floor(left / 3600);
-  const m = Math.floor((left % 3600) / 60);
-  const s = left % 60;
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return (
-    <span className="font-mono text-ev-text font-semibold">
-      {pad(h)}h {pad(m)}m {pad(s)}s
-    </span>
-  );
-}
-
 export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,7 +101,7 @@ export default function HomePage() {
         </div>
         <div className="ev-container pt-12 pb-16 md:pt-16 md:pb-20 relative">
           <p className="text-ev-primary font-semibold text-xs uppercase tracking-[0.2em] mb-4 text-center">
-            New arrivals · Best deals · Top brands
+            New arrivals · Top brands · Expert stores
           </p>
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold text-ev-text tracking-tight leading-[1.12] mb-4">
@@ -130,9 +113,6 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/shop" className="ev-btn-primary inline-flex items-center justify-center gap-2 text-base py-3.5 px-8">
                 Shop Now <ArrowRight size={18} />
-              </Link>
-              <Link href="/deals" className="ev-btn-secondary inline-flex items-center justify-center gap-2 text-base py-3.5 px-8">
-                Browse Deals
               </Link>
             </div>
           </div>
@@ -232,40 +212,6 @@ export default function HomePage() {
           <Link href="/shop" className="ev-btn-primary inline-flex items-center justify-center gap-2 text-base py-3 px-8">
             View all products <ArrowRight size={16} />
           </Link>
-        </div>
-      </section>
-
-      <section className="py-16 px-4 sm:px-6 bg-ev-surface2/40 border-y border-ev-border">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-ev-text">Today&apos;s best deals</h2>
-              <p className="text-ev-muted text-sm mt-1">Limited-time pricing from partner stores</p>
-            </div>
-            <p className="text-sm text-ev-muted">
-              Ends in: <DealCountdown />
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {featured.slice(0, 3).map((p) => {
-              const base = Number(p.price_customer || 0);
-              const deal = Math.round(base * 0.88);
-              const off = base > 0 ? Math.round(((base - deal) / base) * 100) : 12;
-              return (
-                <Link key={p.id} href={`/products/${p.id}`} className="ev-card p-5 hover:border-ev-primary/30 transition-colors flex flex-col">
-                  <p className="text-ev-text font-semibold line-clamp-2">{p.name}</p>
-                  <p className="text-ev-subtle text-xs mt-1 truncate">{p.shop_name || 'Partner shop'}</p>
-                  <div className="mt-4 flex items-baseline gap-2 flex-wrap">
-                    <span className="text-ev-muted line-through text-sm">{base > 0 ? formatInr(base) : '—'}</span>
-                    <span className="text-ev-primary font-bold text-xl">{deal > 0 ? formatInr(deal) : formatInr(base)}</span>
-                    <span className="text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-ev-success/15 text-ev-success border border-ev-success/25">
-                      {off}% off
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
         </div>
       </section>
 

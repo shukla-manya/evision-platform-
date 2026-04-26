@@ -12,7 +12,6 @@ import { wishlistCount } from '@/lib/wishlist';
 
 const NAV_LINKS = [
   { href: '/shop', label: 'Shop' },
-  { href: '/deals', label: 'Deals' },
   { href: '/technician-services', label: 'Services' },
 ] as const;
 

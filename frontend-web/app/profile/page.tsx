@@ -200,7 +200,7 @@ export default function ProfilePage() {
                 />
               </label>
               <label className="flex items-center justify-between gap-4 text-sm text-ev-text cursor-pointer">
-                <span>Deals &amp; offers (push)</span>
+                <span>Offers &amp; promotions (push)</span>
                 <input
                   type="checkbox"
                   checked={pushOffers}
