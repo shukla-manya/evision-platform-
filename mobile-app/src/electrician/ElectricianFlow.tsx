@@ -14,6 +14,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
+import { PublicWebsiteLinks } from '../components/PublicWebsiteLinks';
 import { API_BASE_URL, electricianApi, ElectricianProfile, ServiceBooking } from '../services/api';
 import { createTrackingSocket } from '../services/trackingSocket';
 import { colors } from '../theme/colors';
@@ -369,6 +370,7 @@ function ProfileScreen({
           </>
         )}
       </View>
+      <PublicWebsiteLinks audience="signed_in" />
       <Pressable style={styles.secondaryButton} onPress={() => void loadProfile()}>
         <Text style={styles.secondaryButtonText}>Refresh</Text>
       </Pressable>

@@ -50,6 +50,7 @@ import {
 } from './src/services/api';
 import { clearSession, getToken, setElectricianProfile, setToken } from './src/services/storage';
 import { PasswordInputWithToggle } from './src/components/PasswordInputWithToggle';
+import { PublicWebsiteLinks } from './src/components/PublicWebsiteLinks';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { openRazorpayCheckout } from './src/services/razorpay';
 import { TrackingScreen } from './src/screens/TrackingScreen';
@@ -220,6 +221,7 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
         <Pressable style={styles.splashRegisterLink} onPress={() => navigation.navigate('Register', {})}>
           <Text style={styles.splashRegisterLinkText}>New user? Create an account</Text>
         </Pressable>
+        <PublicWebsiteLinks audience="signed_out" />
       </ScrollView>
     </SafeAreaView>
   );
@@ -331,6 +333,7 @@ function OtpSignInScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: strin
           <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('Register', {})}>
             <Text style={styles.buttonSecondaryText}>New user? Create an account</Text>
           </Pressable>
+          <PublicWebsiteLinks audience="signed_out" />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -421,6 +424,7 @@ function AdminSignInScreen({
             <Text style={styles.link}>Register as shop owner</Text>
           </Pressable>
         </View>
+        <PublicWebsiteLinks audience="signed_out" />
       </ScrollView>
     </SafeAreaView>
   );
@@ -1467,6 +1471,7 @@ function ProfileScreen({
             <Text style={styles.buttonSecondaryText}>Service history & reviews</Text>
           </Pressable>
         ) : null}
+        <PublicWebsiteLinks audience="signed_in" />
         <Pressable style={styles.button} onPress={onLogout}>
           <Text style={styles.buttonText}>Logout</Text>
         </Pressable>

@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { adminApi, catalogApi } from '../services/api';
+import { PublicWebsiteLinks } from '../components/PublicWebsiteLinks';
 import { colors } from '../theme/colors';
 import { screenGutter } from '../theme/layout';
 import { statusColor } from '../theme/status';
@@ -1204,6 +1205,7 @@ function SettingsScreen({
             </Pressable>
           </View>
         ) : null}
+        <PublicWebsiteLinks audience="signed_in" />
       </ScrollView>
     </SafeAreaView>
   );
