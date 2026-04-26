@@ -18,16 +18,12 @@ function normalizePhone(phone: string) {
 }
 
 export default function ResetPasswordPage() {
-  const [role, setRole] = useState<ResetRole>('admin');
+  const role: ResetRole = 'admin';
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [step, setStep] = useState<'start' | 'complete'>('start');
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setRole('admin');
-  }, []);
 
   async function startReset(e: React.FormEvent) {
     e.preventDefault();
