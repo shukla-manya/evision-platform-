@@ -30,7 +30,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
-import { resolveRegistrationCoordinates } from './src/geo-registration';
+import { getExpoGeolocation, resolveRegistrationCoordinates, reverseGeocodeIndia } from './src/geo-registration';
 import { suggestPincodeForIndianCity } from './src/india-postal-lookup';
 import { Buffer } from 'buffer';
 import {
@@ -499,6 +499,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   });
   const [sendingOtp, setSendingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [shopGeoLoading, setShopGeoLoading] = useState(false);
 
   const deliveryPinSuggestSeq = useRef(0);
   useEffect(() => {
