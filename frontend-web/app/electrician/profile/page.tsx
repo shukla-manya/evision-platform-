@@ -146,7 +146,6 @@ const quickLinks: {
 }[] = [
   { href: '/electrician/settings', label: 'Edit profile', icon: Pencil, variant: 'primary' },
   { href: '/electrician/reviews', label: 'Reviews', icon: MessageSquare },
-  { href: '/electrician/earnings', label: 'Earnings', icon: Wallet },
 ];
 
 export default function ElectricianProfilePage() {
