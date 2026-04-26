@@ -101,9 +101,39 @@ export class DynamoService implements OnModuleInit {
     return result.Items || [];
   }
 
+  /** Paginated query (DynamoDB returns at most 1MB per page). */
+  async queryAllPages(params: QueryCommandInput): Promise<any[]> {
+    const out: any[] = [];
+    let ExclusiveStartKey = params.ExclusiveStartKey;
+    for (;;) {
+      const result = await this.client.send(
+        new QueryCommand({ ...params, ExclusiveStartKey }),
+      );
+      out.push(...(result.Items || []));
+      ExclusiveStartKey = result.LastEvaluatedKey;
+      if (!ExclusiveStartKey) break;
+    }
+    return out;
+  }
+
   async scan(params: ScanCommandInput): Promise<any[]> {
     const result = await this.client.send(new ScanCommand(params));
     return result.Items || [];
+  }
+
+  /** Paginated scan — use sparingly; prefer GSIs and Query. */
+  async scanAllPages(params: ScanCommandInput): Promise<any[]> {
+    const out: any[] = [];
+    let ExclusiveStartKey = params.ExclusiveStartKey;
+    for (;;) {
+      const result = await this.client.send(
+        new ScanCommand({ ...params, ExclusiveStartKey }),
+      );
+      out.push(...(result.Items || []));
+      ExclusiveStartKey = result.LastEvaluatedKey;
+      if (!ExclusiveStartKey) break;
+    }
+    return out;
   }
 
   async queryOne(params: QueryCommandInput): Promise<any | null> {
