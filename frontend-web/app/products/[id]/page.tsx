@@ -201,7 +201,7 @@ export default function ProductDetailPage() {
                 Shop:{' '}
                 <Link
                   href={`/shop?search=${encodeURIComponent(product.shop_name)}`}
-                  className="text-ev-primary font-semibold hover:underline"
+                  className="inline-flex items-center rounded-lg border border-ev-border bg-ev-surface2 px-2.5 py-1 text-sm font-semibold text-ev-primary hover:border-ev-primary/40 transition-colors"
                 >
                   {product.shop_name}
                 </Link>
@@ -302,12 +302,12 @@ export default function ProductDetailPage() {
             </div>
 
             {!canBuy ? (
-              <p className="text-ev-muted text-sm">
-                <Link href="/login" className="text-ev-primary font-medium hover:underline">
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="text-ev-muted text-sm">Sign in to add to cart or wishlist.</p>
+                <Link href="/login" className="ev-btn-secondary text-sm py-2 px-4 inline-flex">
                   Sign in
-                </Link>{' '}
-                to add to cart or wishlist.
-              </p>
+                </Link>
+              </div>
             ) : null}
 
             <div className="ev-card p-4 space-y-3">

@@ -9,6 +9,9 @@ function isTechnicianRole(r: string | undefined) {
   return r === 'electrician' || r === 'electrician_pending' || r === 'electrician_rejected';
 }
 
+const btnPrimary = 'ev-btn-primary text-sm py-2.5 px-4 inline-flex items-center justify-center';
+const btnSecondary = 'ev-btn-secondary text-sm py-2.5 px-4 inline-flex items-center justify-center';
+
 export default function TechnicianServicesPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [role, setRole] = useState<string | undefined>(undefined);
@@ -32,49 +35,53 @@ export default function TechnicianServicesPage() {
           Service areas
         </p>
         {!loggedIn ? (
-          <p className="text-ev-muted text-sm mb-8 leading-relaxed">
-            Coverage expands with our technician network.{' '}
-            <Link href="/login" className="text-ev-primary font-medium hover:underline">
-              Sign in
-            </Link>{' '}
-            or{' '}
-            <Link href="/register" className="text-ev-primary font-medium hover:underline">
-              create an account
-            </Link>
-            , then book from{' '}
-            <Link href="/service/request" className="text-ev-primary font-medium hover:underline">
-              Book a technician
-            </Link>{' '}
-            or{' '}
-            <Link href="/orders" className="text-ev-primary font-medium hover:underline">
-              My orders
-            </Link>{' '}
-            once you have eligible purchases.
-          </p>
+          <>
+            <p className="text-ev-muted text-sm mb-4 leading-relaxed">
+              Coverage expands with our technician network. Sign in or create an account, then book from Book a technician or open My orders once you have eligible purchases.
+            </p>
+            <div className="flex flex-wrap gap-2 mb-8">
+              <Link href="/login" className={btnSecondary}>
+                Sign in
+              </Link>
+              <Link href="/register" className={btnSecondary}>
+                Create account
+              </Link>
+              <Link href="/service/request" className={btnPrimary}>
+                Book a technician
+              </Link>
+              <Link href="/orders" className={btnSecondary}>
+                My orders
+              </Link>
+            </div>
+          </>
         ) : shopper ? (
-          <p className="text-ev-muted text-sm mb-8 leading-relaxed">
-            Coverage expands with our technician network. Book installation or service from{' '}
-            <Link href="/service/request" className="text-ev-primary font-medium hover:underline">
-              Book a technician
-            </Link>{' '}
-            or from{' '}
-            <Link href="/orders" className="text-ev-primary font-medium hover:underline">
-              My orders
-            </Link>{' '}
-            for eligible items.
-          </p>
+          <>
+            <p className="text-ev-muted text-sm mb-4 leading-relaxed">
+              Coverage expands with our technician network. Book installation or service using the shortcuts below, or from My orders for eligible items.
+            </p>
+            <div className="flex flex-wrap gap-2 mb-8">
+              <Link href="/service/request" className={btnPrimary}>
+                Book a technician
+              </Link>
+              <Link href="/orders" className={btnSecondary}>
+                My orders
+              </Link>
+            </div>
+          </>
         ) : technician ? (
-          <p className="text-ev-muted text-sm mb-8 leading-relaxed">
-            Coverage expands as more technicians join. Manage your profile, areas, and job requests from{' '}
-            <Link href="/electrician/dashboard" className="text-ev-primary font-medium hover:underline">
-              Technician home
-            </Link>
-            .
-          </p>
+          <>
+            <p className="text-ev-muted text-sm mb-4 leading-relaxed">
+              Coverage expands as more technicians join. Manage your profile, areas, and job requests from Technician home.
+            </p>
+            <div className="flex flex-wrap gap-2 mb-8">
+              <Link href="/electrician/dashboard" className={btnPrimary}>
+                Technician home
+              </Link>
+            </div>
+          </>
         ) : (
           <p className="text-ev-muted text-sm mb-8 leading-relaxed">
-            Coverage expands with our technician network. Shoppers book from their account via Book a technician or My
-            orders after they sign in.
+            Coverage expands with our technician network. Shoppers book from their account via Book a technician or My orders after they sign in.
           </p>
         )}
       </main>
