@@ -68,7 +68,7 @@ export default function PaymentSettlementsPage() {
 
   return (
     <SuperadminShell>
-      <main className="w-full min-w-0 max-w-6xl">
+      <main className="w-full min-w-0 max-w-none">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 rounded-xl bg-ev-indigo/30 flex items-center justify-center">
             <Wallet className="text-white" size={20} />
