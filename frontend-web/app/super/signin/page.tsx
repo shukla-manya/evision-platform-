@@ -40,7 +40,7 @@ export default function SuperSignInPage() {
             <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
               <Camera size={22} className="text-white" />
             </div>
-            <span className="text-ev-text font-bold text-xl">LensCart</span>
+            <span className="text-ev-text font-bold text-xl">e vision</span>
           </div>
           <h1 className="text-2xl font-bold text-ev-text">Platform administration</h1>
           <p className="text-ev-muted text-sm mt-2 max-w-sm mx-auto leading-relaxed">

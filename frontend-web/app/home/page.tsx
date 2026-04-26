@@ -150,7 +150,7 @@ export default function CustomerHomePage() {
             Hey {firstName(user?.name)} 👋
           </h1>
           <p className="text-ev-muted text-sm">
-            Your LensCart dashboard — orders, deals, and service in one place.
+            Your e vision dashboard — orders, deals, and service in one place.
             {role === 'dealer' ? (
               <span className="block mt-1 text-ev-subtle">
                 Dealer pricing applies in the shop; open Dealer hub for GST invoices and wholesale stats.
