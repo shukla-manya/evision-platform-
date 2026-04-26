@@ -169,7 +169,7 @@ export const authApi = {
 };
 
 export const productApi = {
-  list: () => api.get<Product[]>('/products'),
+  list: (params?: { approved_shops_only?: boolean }) => api.get<Product[]>('/products', { params }),
   getById: (id: string) => api.get<Product>(`/products/${id}`),
 };
 
