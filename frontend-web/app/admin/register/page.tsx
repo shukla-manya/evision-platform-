@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Camera, Store, User, Mail, Phone, Building2, MapPin, MapPinned, Hash, Loader2, CheckCircle, ImagePlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
+import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
 
 export default function AdminRegisterPage() {
   const [loading, setLoading] = useState(false);
@@ -25,6 +26,20 @@ export default function AdminRegisterPage() {
   const set =
     (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const shopPinSuggestSeq = useRef(0);
+  useEffect(() => {
+    const c = form.city.trim();
+    if (c.length < 3) return;
+    const timer = window.setTimeout(() => {
+      const seq = ++shopPinSuggestSeq.current;
+      void suggestPincodeForIndianCity(c).then((pin) => {
+        if (seq !== shopPinSuggestSeq.current || !pin) return;
+        setForm((f) => ({ ...f, pincode: pin }));
+      });
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [form.city]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -170,10 +185,13 @@ export default function AdminRegisterPage() {
                       inputMode="numeric"
                       maxLength={6}
                       value={form.pincode}
-                      onChange={set('pincode')}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) }))
+                      }
                       required
                     />
                   </div>
+                  <p className="text-ev-subtle text-xs mt-1">Pincode fills from city when available (India Post data) — change if needed.</p>
                 </div>
                 <div className="sm:col-span-2">
                   <label className="ev-label">Shop logo (upload)</label>
