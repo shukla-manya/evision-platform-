@@ -141,7 +141,7 @@ export default function AdminProductsPage() {
                       <button
                         type="button"
                         onClick={() => router.push(`/admin/products/${p.id}/edit`)}
-                        className="text-ev-primary text-xs font-semibold hover:underline inline-flex items-center gap-1 mr-3"
+                        className="ev-btn-secondary text-xs py-1.5 px-2.5 inline-flex items-center gap-1 mr-2"
                       >
                         <Pencil size={12} />
                         Edit
@@ -150,7 +150,7 @@ export default function AdminProductsPage() {
                         type="button"
                         disabled={deleting === p.id}
                         onClick={() => void removeProduct(p.id, p.name)}
-                        className="text-red-600 text-xs font-semibold hover:underline inline-flex items-center gap-1 disabled:opacity-40"
+                        className="rounded-lg border border-red-600/40 text-red-600 text-xs font-semibold py-1.5 px-2.5 inline-flex items-center gap-1 hover:bg-red-600/5 disabled:opacity-40"
                       >
                         <Trash2 size={12} />
                         {deleting === p.id ? '…' : 'Delete'}
