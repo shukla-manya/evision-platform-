@@ -108,6 +108,7 @@ async function main() {
     sendToToken: async () => undefined,
   };
 
+  console.log('[e2e] dynamic-import AppModule + providers…');
   const [{ AppModule }, { EmailService: EmailCls }, { S3Service: S3Cls }, { PushService: PushCls }, { ServiceService: ServiceCls }] =
     await Promise.all([
       import('../../src/app.module'),
@@ -116,6 +117,7 @@ async function main() {
       import('../../src/modules/push/push.service'),
       import('../../src/modules/service/service.service'),
     ]);
+  console.log('[e2e] Nest TestingModule.compile()…');
 
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
@@ -127,6 +129,7 @@ async function main() {
     .overrideProvider(PushCls)
     .useValue(pushStub)
     .compile();
+  console.log('[e2e] compile done; init HTTP app…');
 
   const app = moduleRef.createNestApplication({ rawBody: true });
   app.useGlobalPipes(
