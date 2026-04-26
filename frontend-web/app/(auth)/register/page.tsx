@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Camera, User, Mail, MapPin, ArrowRight, Loader2 } from 'lucide-react';
@@ -12,6 +12,7 @@ import { TechnicianApplicationForm } from '@/components/register/TechnicianAppli
 import { publicBrandName } from '@/lib/public-brand';
 import { OtpCells } from '@/components/auth/OtpCells';
 import { resolveRegistrationCoordinates } from '@/lib/registration-geo';
+import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
 
 type AccountTab = 'customer' | 'dealer' | 'technician';
 type RegisterStep = 'details' | 'otp';
@@ -52,6 +53,36 @@ export default function RegisterPage() {
   const [businessAddress, setBusinessAddress] = useState('');
   const [businessCity, setBusinessCity] = useState('');
   const [businessPincode, setBusinessPincode] = useState('');
+
+  const customerPinSuggestSeq = useRef(0);
+  useEffect(() => {
+    if (accountTab !== 'customer') return;
+    const c = city.trim();
+    if (c.length < 3) return;
+    const timer = window.setTimeout(() => {
+      const seq = ++customerPinSuggestSeq.current;
+      void suggestPincodeForIndianCity(c).then((pin) => {
+        if (seq !== customerPinSuggestSeq.current || !pin) return;
+        setPincode(pin);
+      });
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [city, accountTab]);
+
+  const dealerPinSuggestSeq = useRef(0);
+  useEffect(() => {
+    if (accountTab !== 'dealer') return;
+    const c = businessCity.trim();
+    if (c.length < 3) return;
+    const timer = window.setTimeout(() => {
+      const seq = ++dealerPinSuggestSeq.current;
+      void suggestPincodeForIndianCity(c).then((pin) => {
+        if (seq !== dealerPinSuggestSeq.current || !pin) return;
+        setBusinessPincode(pin);
+      });
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [businessCity, accountTab]);
 
   const validateDetailsBeforeOtp = useCallback((): boolean => {
     const name = `${firstName.trim()} ${lastName.trim()}`.trim();
@@ -414,6 +445,7 @@ export default function RegisterPage() {
                               onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                               required
                             />
+                            <p className="text-ev-subtle text-xs mt-1.5">Filled from city when available — change if needed.</p>
                           </div>
                         </>
                       ) : (
@@ -467,6 +499,7 @@ export default function RegisterPage() {
                               onChange={(e) => setBusinessPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                               required
                             />
+                            <p className="text-ev-subtle text-xs mt-1.5">Filled from city when available — change if needed.</p>
                           </div>
                         </>
                       )}
