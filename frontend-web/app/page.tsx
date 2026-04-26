@@ -11,7 +11,6 @@ import {
   Loader2,
   Plus,
   Receipt,
-  ShoppingBag,
   Sparkles,
   Store,
   Truck,
@@ -141,28 +140,12 @@ export default function HomePage() {
       <section className="ev-container py-12 sm:py-16" id="trending">
         <div className="text-center mb-10 max-w-xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold text-ev-text">Trending right now</h2>
-          <p className="text-ev-muted text-sm mt-2 leading-relaxed">
-            Up to six products from the live catalogue (approved partner stores). They appear here automatically when
-            listings exist—same source as the shop, not a separate manual list.
-          </p>
         </div>
         {loading ? (
           <div className="flex justify-center py-16 text-ev-muted gap-2">
             <Loader2 className="animate-spin text-ev-primary" size={24} /> Loading products…
           </div>
-        ) : featured.length === 0 ? (
-          <div className="ev-card max-w-lg mx-auto p-10 sm:p-12 text-center">
-            <ShoppingBag className="mx-auto text-ev-subtle opacity-50" size={40} strokeWidth={1.5} />
-            <p className="text-ev-text font-semibold mt-5">Nothing to show here yet</p>
-            <p className="text-ev-muted text-sm mt-2 leading-relaxed">
-              Once approved shops publish active products, up to six will show in this row. Open the full catalogue to
-              browse everything available.
-            </p>
-            <Link href="/shop" className="ev-btn-primary inline-flex mt-6 text-sm py-2.5 px-6">
-              Go to shop
-            </Link>
-          </div>
-        ) : (
+        ) : featured.length === 0 ? null : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {featured.map((p) => {
               const img = p.images?.[0];
