@@ -39,9 +39,6 @@ export function PublicFooter() {
               </Link>
             </li>
             <li>
-              <span className="text-white/45">Careers</span>
-            </li>
-            <li>
               <Link href="/contact" className="hover:text-white transition-colors">
                 Contact us
               </Link>
