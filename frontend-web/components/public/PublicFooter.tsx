@@ -202,9 +202,11 @@ export function PublicFooter() {
                 FAQs
               </Link>
             </li>
-            <li>
-              <span className="text-white/45">Returns</span>
-            </li>
+            {!loggedIn ? (
+              <li>
+                <span className="text-white/45">Returns</span>
+              </li>
+            ) : null}
             <li>
               <Link href="/privacy" className="hover:text-white transition-colors">
                 Privacy policy
