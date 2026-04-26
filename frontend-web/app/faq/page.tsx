@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { PublicShell } from '@/components/public/PublicShell';
+import { FaqShopAdminSigninAnswer } from '@/components/public/FaqShopAdminSigninAnswer';
 import { publicBrandName } from '@/lib/public-brand';
-import { publicAdminRegisterUrl, publicAdminSignInUrl, publicLoginPath, publicRegisterPath } from '@/lib/public-links';
+import { publicLoginPath, publicRegisterPath } from '@/lib/public-links';
 
 export const metadata: Metadata = {
   title: `FAQs — ${publicBrandName}`,
@@ -44,20 +45,7 @@ const SECTIONS: { title: string; items: FaqItem[] }[] = [
       },
       {
         q: 'I run a shop on the platform. Where do I sign in?',
-        a: (
-          <>
-            Shop admins use a separate sign-in with{' '}
-            <strong className="text-ev-text">email and password</strong>, not mobile OTP. Use{' '}
-            <a href={publicAdminSignInUrl} className="text-ev-primary hover:text-ev-primary-light font-medium">
-              Admin sign in
-            </a>{' '}
-            (opens the admin site). New shops can{' '}
-            <a href={publicAdminRegisterUrl} className="text-ev-primary hover:text-ev-primary-light font-medium">
-              register
-            </a>{' '}
-            there or from the mobile app.
-          </>
-        ),
+        a: <FaqShopAdminSigninAnswer />,
       },
     ],
   },
