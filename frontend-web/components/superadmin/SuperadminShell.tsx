@@ -20,6 +20,7 @@ import {
 import { superadminApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
+import { ResponsiveSidebarShell } from '@/components/layout/ResponsiveSidebarShell';
 
 type NavItem = {
   href: string;
