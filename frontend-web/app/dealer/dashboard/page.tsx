@@ -135,11 +135,18 @@ export default function DealerDashboardPage() {
   const [profileName, setProfileName] = useState<string | undefined>(undefined);
   /** Set after mount so SSR + first client paint match (cookies are not available on the server). */
   const [clientJwtEmail, setClientJwtEmail] = useState('');
+  /**
+   * Gate personalized chrome until after mount. Otherwise `load()` can resolve /auth/me in the same
+   * tick as the JWT effect and set `profileName` before hydration finishes, producing a different
+   * mobile title on the client ("Work") vs server ("Dealer").
+   */
+  const [dealerShellReady, setDealerShellReady] = useState(false);
 
   useEffect(() => {
     const token = getToken();
     const payload = token ? parseJwt(token) : null;
     setClientJwtEmail(String(payload?.email || ''));
+    setDealerShellReady(true);
   }, []);
 
   const load = useCallback(async () => {
@@ -389,7 +396,9 @@ export default function DealerDashboardPage() {
 
   return (
     <ResponsiveSidebarShell
-      mobileTopBarTitle={greetFirst ? formatGreetName(greetFirst) : 'Dealer'}
+      mobileTopBarTitle={
+        dealerShellReady ? (greetFirst ? formatGreetName(greetFirst) : 'Dealer') : 'Dealer'
+      }
       sidebar={dealerSidebar}
     >
       <div className="mx-auto min-h-screen min-w-0 w-full max-w-6xl space-y-6 sm:space-y-8">
