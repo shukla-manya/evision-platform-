@@ -85,7 +85,7 @@ export class InvoicePdfService {
 
     doc
       .fontSize(18).fillColor(DARK).font('Helvetica-Bold')
-      .text('E VISION PVT. LTD.', 50, 28);
+      .text('e vision Pvt. Ltd.', 50, 28);
     doc
       .fontSize(9).fillColor(MUTED).font('Helvetica')
       .text(data.shop_name, 50, doc.y + 2);
@@ -247,7 +247,7 @@ export class InvoicePdfService {
     const bottom = doc.page.height - 50;
     this.hLine(doc, bottom);
     doc.fontSize(7).fillColor(MUTED).font('Helvetica')
-      .text('Computer-generated document — no signature required.  |  E Vision Pvt. Ltd.', 50, bottom + 8, {
+      .text('Computer-generated document — no signature required.  |  e vision Pvt. Ltd.', 50, bottom + 8, {
         align: 'center', width: doc.page.width - 100,
       });
   }
