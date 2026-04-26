@@ -464,6 +464,14 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
         ) : (
           <form onSubmit={submitTechnician} className="space-y-6">
             <div className="text-center space-y-2">
+              <button
+                type="button"
+                className="text-ev-primary text-sm font-medium hover:underline"
+                disabled={loading}
+                onClick={() => setStep('details')}
+              >
+                ← Edit details or documents
+              </button>
               <p className="text-ev-muted text-sm leading-relaxed">
                 6-digit code sent to {phoneMasked}. Verify and submit your application.
               </p>
