@@ -278,45 +278,55 @@ function OtpSignInScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: strin
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.centerBox}>
-        <Text style={styles.subtitle}>Sign in with your mobile number. We will send a 6-digit OTP.</Text>
-        {step === 'phone' ? (
-          <TextInput
-            style={styles.input}
-            placeholder="Mobile (10 digits)"
-            keyboardType="phone-pad"
-            value={phoneDigits}
-            onChangeText={(t) => setPhoneDigits(t.replace(/\D/g, '').slice(0, 10))}
-            maxLength={10}
-          />
-        ) : (
-          <>
-            <Text style={styles.cardMeta}>Code sent to +91 {phoneDigits}</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.centerBox, { flexGrow: 1, paddingBottom: 24 }]}
+        >
+          <Text style={styles.subtitle}>Sign in with your mobile number. We will send a 6-digit OTP.</Text>
+          {step === 'phone' ? (
             <TextInput
               style={styles.input}
-              placeholder="6-digit OTP"
-              keyboardType="number-pad"
-              value={otp}
-              onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
-              maxLength={6}
+              placeholder="Mobile (10 digits)"
+              keyboardType="phone-pad"
+              value={phoneDigits}
+              onChangeText={(t) => setPhoneDigits(t.replace(/\D/g, '').slice(0, 10))}
+              maxLength={10}
             />
-          </>
-        )}
+          ) : (
+            <>
+              <Text style={styles.cardMeta}>Code sent to +91 {phoneDigits}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="6-digit OTP"
+                keyboardType="number-pad"
+                value={otp}
+                onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
+                maxLength={6}
+              />
+            </>
+          )}
 
-        <Pressable style={styles.button} disabled={loading} onPress={step === 'phone' ? sendOtp : verifyOtpLogin}>
-          <Text style={styles.buttonText}>
-            {loading ? 'Please wait...' : step === 'phone' ? 'Send OTP' : 'Verify & sign in'}
-          </Text>
-        </Pressable>
-        {step === 'otp' ? (
-          <Pressable style={styles.buttonSecondary} onPress={() => { setStep('phone'); setOtp(''); }}>
-            <Text style={styles.buttonSecondaryText}>Change number</Text>
+          <Pressable style={styles.button} disabled={loading} onPress={step === 'phone' ? sendOtp : verifyOtpLogin}>
+            <Text style={styles.buttonText}>
+              {loading ? 'Please wait...' : step === 'phone' ? 'Send OTP' : 'Verify & sign in'}
+            </Text>
           </Pressable>
-        ) : null}
-        <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('Register', {})}>
-          <Text style={styles.buttonSecondaryText}>New user? Create an account</Text>
-        </Pressable>
-      </View>
+          {step === 'otp' ? (
+            <Pressable style={styles.buttonSecondary} onPress={() => { setStep('phone'); setOtp(''); }}>
+              <Text style={styles.buttonSecondaryText}>Change number</Text>
+            </Pressable>
+          ) : null}
+          <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('Register', {})}>
+            <Text style={styles.buttonSecondaryText}>New user? Create an account</Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -663,7 +673,15 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
 
   return (
     <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.listPad}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={[styles.listPad, { paddingBottom: 32 }]}
+        >
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Create account</Text>
           <Text style={styles.subtitle}>
