@@ -247,7 +247,15 @@ export default function AdminOrdersPage() {
           ))}
         </div>
 
-        {loading ? (
+        {loadFailed && !loading ? (
+          <div className="ev-card p-12 text-center space-y-4">
+            <p className="text-ev-text font-medium">We couldn&apos;t load orders.</p>
+            <p className="text-ev-muted text-sm">Check your connection or try again shortly.</p>
+            <button type="button" className="ev-btn-primary text-sm py-2 px-5" onClick={() => load()}>
+              Try again
+            </button>
+          </div>
+        ) : loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-16">
             <Loader2 className="animate-spin text-ev-primary" size={22} /> Loading…
           </div>
