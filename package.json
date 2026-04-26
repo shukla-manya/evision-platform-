@@ -1,0 +1,12 @@
+{
+  "name": "evision-platform",
+  "private": true,
+  "description": "Monorepo dev: Nest watch + Next HMR + Expo Fast Refresh",
+  "scripts": {
+    "dev": "concurrently -k -n api,web,expo -c cyan,magenta,yellow \"npm run dev --prefix backend\" \"npm run dev --prefix frontend-web\" \"npm run dev --prefix mobile-app\"",
+    "dev:stack": "concurrently -k -n api,web -c cyan,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend-web\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
