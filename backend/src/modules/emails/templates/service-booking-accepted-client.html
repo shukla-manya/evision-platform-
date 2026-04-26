@@ -1,59 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Booking Confirmed</title>
-</head>
-<body style="margin:0;padding:0;background-color:#050b1a;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#050b1a;padding:40px 20px;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-          <tr>
-            <td style="background:linear-gradient(135deg,#0d1626 0%,#1a2a4a 100%);border-radius:16px 16px 0 0;padding:36px 40px;text-align:center;border-bottom:2px solid #22c55e;">
-              <div style="display:inline-flex;align-items:center;gap:10px;">
-                <span style="font-size:28px;">⚡</span>
-                <span style="color:#3b82f6;font-size:26px;font-weight:700;letter-spacing:-0.5px;">E Vision</span>
-              </div>
-              <p style="color:#94a3b8;margin:8px 0 0;font-size:13px;">Pvt. Ltd. — Faridabad, Haryana</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="background:#0d1626;padding:40px;">
-
-              <div style="text-align:center;margin-bottom:28px;">
-                <div style="display:inline-block;background:#052e16;border:2px solid #22c55e;border-radius:50%;width:60px;height:60px;line-height:60px;font-size:28px;">✓</div>
-              </div>
-              <h2 style="color:#e2e8f0;margin:0 0 8px;font-size:20px;font-weight:600;text-align:center;">Booking Confirmed!</h2>
-              <p style="color:#94a3b8;margin:0 0 28px;font-size:14px;text-align:center;">
-                Hi {{customer_name}}, your service booking has been accepted.
-              </p>
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;overflow:hidden;border:1px solid #1e3a5f;margin-bottom:28px;">
-                <tr><td style="padding:20px 24px;">
-                  <table width="100%" cellpadding="0" cellspacing="4">
-                    <tr>
-                      <td style="color:#94a3b8;font-size:13px;padding:6px 0;width:140px;">Electrician</td>
-                      <td style="color:#e2e8f0;font-size:14px;font-weight:600;padding:6px 0;">{{electrician_name}}</td>
-                    </tr>
-                    <tr>
-                      <td style="color:#94a3b8;font-size:13px;padding:6px 0;">Contact</td>
-                      <td style="color:#22c55e;font-size:14px;padding:6px 0;">{{electrician_phone}}</td>
-                    </tr>
-                  </table>
-                </td></tr>
-              </table>
-              <p style="color:#94a3b8;font-size:13px;text-align:center;margin:0;">The electrician will arrive at your preferred time. You can reach them directly at the number above.</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="background:#060d1c;padding:20px 40px;border-radius:0 0 16px 16px;text-align:center;border-top:1px solid #1e3a5f;">
-              <p style="color:#475569;font-size:12px;margin:0;">© 2024 E Vision Pvt. Ltd., Faridabad, Haryana · All rights reserved</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+<div style="text-align:center;margin-bottom:22px;">
+  <div style="display:inline-block;background:#052e16;border:2px solid #22c55e;border-radius:50%;width:56px;height:56px;line-height:56px;font-size:24px;" aria-hidden="true">✓</div>
+</div>
+<h2 style="color:#e2e8f0;margin:0 0 8px;font-size:20px;font-weight:600;text-align:center;">Booking confirmed</h2>
+<p style="color:#94a3b8;margin:0 0 22px;font-size:14px;text-align:center;line-height:1.6;">
+  Hi {{customer_name}}, your service booking was accepted.
+</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;border:1px solid #1e3a5f;margin-bottom:18px;">
+  <tr>
+    <td style="padding:18px 22px;">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:6px 0;width:120px;">Technician</td>
+          <td style="color:#e2e8f0;font-size:14px;font-weight:600;padding:6px 0;">{{electrician_name}}</td>
+        </tr>
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:6px 0;">Contact</td>
+          <td style="color:#22c55e;font-size:14px;padding:6px 0;">{{electrician_phone}}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<p style="color:#94a3b8;font-size:13px;text-align:center;margin:0;line-height:1.6;">You can reach them directly at the number above. Track the visit in the {{brand_name}} app.</p>

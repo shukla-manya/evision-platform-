@@ -1,23 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Order Cancelled</title>
-</head>
-<body style="margin:0;padding:0;background:#050b1a;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 12px;background:#050b1a;">
-    <tr>
-      <td align="center">
-        <table width="620" cellpadding="0" cellspacing="0" style="max-width:620px;background:#0d1626;border:1px solid #1e3a5f;border-radius:14px;overflow:hidden;">
-          <tr><td style="padding:28px 28px 12px;color:#f59e0b;font-size:22px;font-weight:700;">Order Cancelled</td></tr>
-          <tr><td style="padding:0 28px 8px;color:#94a3b8;font-size:14px;">Hi {{recipient_name}},</td></tr>
-          <tr><td style="padding:0 28px 8px;color:#94a3b8;font-size:14px;">Order group <strong style="color:#e2e8f0;">{{order_group_id}}</strong> has been cancelled.</td></tr>
-          <tr><td style="padding:0 28px 24px;color:#94a3b8;font-size:14px;">If this was unexpected, contact <a href="mailto:{{support_email}}" style="color:#60a5fa;text-decoration:none;">{{support_email}}</a>.</td></tr>
-          <tr><td style="padding:16px 28px;color:#64748b;font-size:12px;border-top:1px solid #1e3a5f;">E Vision Pvt. Ltd.</td></tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+<div style="text-align:center;margin-bottom:20px;">
+  <div style="display:inline-block;background:#451a03;border:2px solid #f59e0b;border-radius:50%;width:56px;height:56px;line-height:56px;font-size:22px;" aria-hidden="true">⊘</div>
+</div>
+<h2 style="color:#f59e0b;margin:0 0 10px;font-size:22px;font-weight:700;text-align:center;">Order cancelled</h2>
+<p style="color:#94a3b8;margin:0 0 16px;font-size:14px;text-align:center;line-height:1.6;">
+  Hi {{recipient_name}}, order group <strong style="color:#e2e8f0;">{{order_group_id}}</strong> has been cancelled.
+</p>
+<p style="color:#94a3b8;margin:0;font-size:13px;text-align:center;line-height:1.6;">
+  If this was unexpected, contact
+  <a href="mailto:{{support_email}}" style="color:#60a5fa;text-decoration:none;">{{support_email}}</a>.
+</p>

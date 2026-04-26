@@ -1,25 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Invoice Generated</title>
-</head>
-<body style="margin:0;padding:0;background:#050b1a;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 12px;background:#050b1a;">
-    <tr><td align="center">
-      <table width="620" cellpadding="0" cellspacing="0" style="max-width:620px;background:#0d1626;border:1px solid #1e3a5f;border-radius:14px;overflow:hidden;">
-        <tr><td style="padding:26px 26px 8px;color:#3b82f6;font-size:22px;font-weight:700;">Invoice Generated</td></tr>
-        <tr><td style="padding:0 26px 8px;color:#94a3b8;font-size:14px;">Hi {{customer_name}}, your invoice is ready.</td></tr>
-        <tr><td style="padding:0 26px 8px;color:#94a3b8;font-size:14px;">Order ID: <strong style="color:#e2e8f0;">{{order_id}}</strong></td></tr>
-        <tr><td style="padding:0 26px 16px;color:#94a3b8;font-size:14px;">Invoice Number: <strong style="color:#e2e8f0;">{{invoice_number}}</strong></td></tr>
-        <tr><td style="padding:0 26px 8px;color:#94a3b8;font-size:14px;">Customer Invoice: <a href="{{customer_invoice_url}}" style="color:#60a5fa;">Download</a></td></tr>
-        <tr><td style="padding:0 26px 8px;color:#94a3b8;font-size:14px;">Dealer Invoice: <a href="{{dealer_invoice_url}}" style="color:#60a5fa;">Download</a></td></tr>
-        <tr><td style="padding:0 26px 18px;color:#94a3b8;font-size:14px;">GST Invoice: <a href="{{gst_invoice_url}}" style="color:#60a5fa;">Download</a></td></tr>
-        <tr><td style="padding:0 26px 26px;"><a href="{{orders_url}}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-size:14px;">View My Orders</a></td></tr>
-        <tr><td style="padding:14px 26px;color:#64748b;font-size:12px;border-top:1px solid #1e3a5f;">E Vision Pvt. Ltd.</td></tr>
+<div style="text-align:center;margin-bottom:20px;">
+  <div style="display:inline-block;background:#0c2340;border:2px solid #3b82f6;border-radius:50%;width:56px;height:56px;line-height:56px;font-size:22px;" aria-hidden="true">📄</div>
+</div>
+<h2 style="color:#3b82f6;margin:0 0 10px;font-size:22px;font-weight:700;text-align:center;">Invoice ready</h2>
+<p style="color:#94a3b8;margin:0 0 20px;font-size:14px;text-align:center;line-height:1.6;">
+  Hi {{customer_name}}, your invoice for order <strong style="color:#e2e8f0;">{{order_id}}</strong> is ready. PDFs are attached to this email when applicable.
+</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;border:1px solid #1e3a5f;margin-bottom:12px;">
+  <tr>
+    <td style="padding:18px 22px;">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:6px 0;">Invoice #</td>
+          <td style="color:#e2e8f0;font-size:14px;font-weight:600;padding:6px 0;text-align:right;">{{invoice_number}}</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding:14px 0 0;border-top:1px solid #1e3a5f;">
+            <p style="margin:0;color:#94a3b8;font-size:13px;">Customer invoice</p>
+            <p style="margin:6px 0 0;"><a href="{{customer_invoice_url}}" style="color:#60a5fa;font-size:14px;text-decoration:none;font-weight:600;">Download PDF</a></p>
+          </td>
+        </tr>
+        {{dealer_invoice_block}}
+        {{gst_invoice_block}}
       </table>
-    </td></tr>
-  </table>
-</body>
-</html>
+    </td>
+  </tr>
+</table>
+<div style="text-align:center;">
+  <a href="{{orders_url}}" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;">View my orders</a>
+</div>

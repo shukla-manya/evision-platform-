@@ -137,10 +137,17 @@ export class ElectricianService {
 
     const superadminEmail = this.config.get<string>('SUPERADMIN_EMAIL');
     if (superadminEmail) {
+      const skillsStr = Array.isArray(electrician.skills)
+        ? (electrician.skills as string[]).join(', ')
+        : String(dto.skills || '').trim();
       await this.email.sendElectricianRegistered(superadminEmail, {
         name: dto.name,
         email: dto.email,
         phone: dto.phone,
+        skills: skillsStr || undefined,
+        address: dto.address ? String(dto.address) : undefined,
+        aadhar_url: docs.aadhar_url,
+        photo_url: docs.photo_url,
       });
     }
     return {

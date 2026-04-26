@@ -1,22 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Order Shipped</title>
-</head>
-<body style="margin:0;padding:0;background:#050b1a;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 12px;background:#050b1a;">
-    <tr><td align="center">
-      <table width="620" cellpadding="0" cellspacing="0" style="max-width:620px;background:#0d1626;border:1px solid #1e3a5f;border-radius:14px;overflow:hidden;">
-        <tr><td style="padding:26px 26px 8px;color:#10b981;font-size:22px;font-weight:700;">Your order has been shipped</td></tr>
-        <tr><td style="padding:0 26px 8px;color:#94a3b8;font-size:14px;">Hi {{customer_name}}, order <strong style="color:#e2e8f0;">{{order_id}}</strong> is on the way.</td></tr>
-        <tr><td style="padding:0 26px 4px;color:#94a3b8;font-size:14px;">Courier: <strong style="color:#e2e8f0;">{{courier_name}}</strong></td></tr>
-        <tr><td style="padding:0 26px 18px;color:#94a3b8;font-size:14px;">Tracking Number: <strong style="color:#e2e8f0;">{{tracking_number}}</strong></td></tr>
-        <tr><td style="padding:0 26px 26px;"><a href="{{tracking_url}}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-size:14px;">Track Shipment</a></td></tr>
-        <tr><td style="padding:14px 26px;color:#64748b;font-size:12px;border-top:1px solid #1e3a5f;">E Vision Pvt. Ltd.</td></tr>
+<div style="text-align:center;margin-bottom:20px;">
+  <div style="display:inline-block;background:#0c2340;border:2px solid #3b82f6;border-radius:50%;width:56px;height:56px;line-height:56px;font-size:22px;" aria-hidden="true">📦</div>
+</div>
+<h2 style="color:#3b82f6;margin:0 0 10px;font-size:22px;font-weight:700;text-align:center;">Your order shipped</h2>
+<p style="color:#94a3b8;margin:0 0 20px;font-size:14px;text-align:center;line-height:1.6;">
+  Hi {{customer_name}}, order <strong style="color:#e2e8f0;">{{order_id}}</strong> is on the way.
+</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;border:1px solid #1e3a5f;margin-bottom:22px;">
+  <tr>
+    <td style="padding:18px 22px;">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:6px 0;">Courier</td>
+          <td style="color:#e2e8f0;font-size:14px;padding:6px 0;text-align:right;">{{courier_name}}</td>
+        </tr>
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:6px 0;">Tracking</td>
+          <td style="color:#e2e8f0;font-size:14px;font-weight:600;padding:6px 0;text-align:right;">{{tracking_number}}</td>
+        </tr>
       </table>
-    </td></tr>
-  </table>
-</body>
-</html>
+    </td>
+  </tr>
+</table>
+<div style="text-align:center;">
+  <a href="{{tracking_url}}" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;">Track shipment</a>
+</div>

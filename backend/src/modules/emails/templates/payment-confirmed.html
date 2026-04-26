@@ -1,24 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Payment Confirmed</title>
-</head>
-<body style="margin:0;padding:0;background:#050b1a;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 12px;background:#050b1a;">
-    <tr>
-      <td align="center">
-        <table width="620" cellpadding="0" cellspacing="0" style="max-width:620px;background:#0d1626;border:1px solid #1e3a5f;border-radius:14px;overflow:hidden;">
-          <tr><td style="padding:28px 28px 12px;color:#e2e8f0;font-size:22px;font-weight:700;">Payment Confirmed</td></tr>
-          <tr><td style="padding:0 28px 8px;color:#94a3b8;font-size:14px;">Hi {{customer_name}}, your payment was successful.</td></tr>
-          <tr><td style="padding:0 28px 22px;color:#94a3b8;font-size:14px;">Order Group: <strong style="color:#e2e8f0;">{{order_group_id}}</strong></td></tr>
-          <tr><td style="padding:0 28px 22px;color:#94a3b8;font-size:14px;">Amount Paid: <strong style="color:#10b981;">INR {{amount}}</strong></td></tr>
-          <tr><td style="padding:0 28px 28px;"><a href="{{orders_url}}" style="display:inline-block;background:#3b82f6;color:#fff;text-decoration:none;padding:10px 16px;border-radius:8px;font-size:14px;">View Orders</a></td></tr>
-          <tr><td style="padding:16px 28px;color:#64748b;font-size:12px;border-top:1px solid #1e3a5f;">E Vision Pvt. Ltd.</td></tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
+<div style="text-align:center;margin-bottom:20px;">
+  <div style="display:inline-block;background:#052e16;border:2px solid #10b981;border-radius:50%;width:56px;height:56px;line-height:56px;font-size:26px;" aria-hidden="true">✓</div>
+</div>
+<h2 style="color:#10b981;margin:0 0 10px;font-size:22px;font-weight:700;text-align:center;">Payment confirmed</h2>
+<p style="color:#94a3b8;margin:0 0 20px;font-size:14px;text-align:center;line-height:1.6;">
+  Hi {{customer_name}}, we received your payment successfully.
+</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;border:1px solid #1e3a5f;margin-bottom:22px;">
+  <tr>
+    <td style="padding:18px 22px;">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:8px 0;">Order</td>
+          <td style="color:#e2e8f0;font-size:14px;font-weight:600;padding:8px 0;text-align:right;">{{order_group_id}}</td>
+        </tr>
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:8px 0;">Amount (INR)</td>
+          <td style="color:#10b981;font-size:16px;font-weight:700;padding:8px 0;text-align:right;">{{amount}}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<div style="text-align:center;">
+  <a href="{{orders_url}}" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;">View orders</a>
+</div>
+<p style="color:#64748b;font-size:12px;margin:22px 0 0;text-align:center;line-height:1.5;">Thank you for shopping on {{brand_name}}.</p>

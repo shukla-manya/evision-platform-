@@ -1,0 +1,27 @@
+<div style="text-align:center;margin-bottom:20px;">
+  <div style="display:inline-block;background:#0c2340;border:2px solid #10b981;border-radius:50%;width:56px;height:56px;line-height:56px;font-size:24px;" aria-hidden="true">🛒</div>
+</div>
+<h2 style="color:#10b981;margin:0 0 10px;font-size:22px;font-weight:700;text-align:center;">New paid order</h2>
+<p style="color:#94a3b8;margin:0 0 20px;font-size:14px;text-align:center;line-height:1.6;">
+  Hello <strong style="color:#e2e8f0;">{{shop_name}}</strong> team — a customer completed payment for items from your shop in this order group.
+</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;border:1px solid #1e3a5f;margin-bottom:22px;">
+  <tr>
+    <td style="padding:18px 22px;">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:8px 0;">Order group</td>
+          <td style="color:#e2e8f0;font-size:14px;font-weight:600;padding:8px 0;text-align:right;">{{order_group_id}}</td>
+        </tr>
+        <tr>
+          <td style="color:#94a3b8;font-size:13px;padding:8px 0;">Your portion (INR)</td>
+          <td style="color:#10b981;font-size:16px;font-weight:700;padding:8px 0;text-align:right;">{{amount}}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<div style="text-align:center;">
+  <a href="{{admin_orders_url}}" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;">Open admin orders</a>
+</div>
+<p style="color:#64748b;font-size:12px;margin:22px 0 0;text-align:center;line-height:1.5;">Fulfill and ship from your {{brand_name}} admin dashboard.</p>

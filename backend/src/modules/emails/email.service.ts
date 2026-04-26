@@ -240,9 +240,9 @@ export class EmailService {
     const html = this.renderEmail(
       'admin-rejected',
       {
-        owner_name: data.ownerName,
-        shop_name: data.shopName,
-        reject_reason: data.reason,
+        owner_name: this.escapeHtml(data.ownerName),
+        shop_name: this.escapeHtml(data.shopName),
+        reject_reason: this.escapeHtml(data.reason),
         support_email: this.supportEmail(),
       },
       {
@@ -357,8 +357,8 @@ export class EmailService {
     const html = this.renderEmail(
       'electrician-rejected',
       {
-        electrician_name: data.name,
-        reason: data.reason,
+        electrician_name: this.escapeHtml(data.name),
+        reason: this.escapeHtml(data.reason),
         brand_name: brand,
         support_email: support,
       },
@@ -384,8 +384,8 @@ export class EmailService {
     const html = this.renderEmail(
       'electrician-nearby-order-alert',
       {
-        electrician_name: data.electricianName,
-        product_name: data.productName,
+        electrician_name: this.escapeHtml(data.electricianName),
+        product_name: this.escapeHtml(data.productName),
         distance_km: String(data.distanceKm.toFixed(2)),
       },
       {
@@ -410,8 +410,8 @@ export class EmailService {
     const html = this.renderEmail(
       'service-booking-request-electrician',
       {
-        electrician_name: data.electricianName,
-        issue: data.issue,
+        electrician_name: this.escapeHtml(data.electricianName),
+        issue: this.escapeHtml(data.issue),
         expires_at: data.expiresAt,
       },
       {
@@ -527,9 +527,9 @@ export class EmailService {
     const html = this.renderEmail(
       'service-job-status-client',
       {
-        customer_name: data.customerName,
-        electrician_name: data.electricianName,
-        status: data.status,
+        customer_name: this.escapeHtml(data.customerName),
+        electrician_name: this.escapeHtml(data.electricianName),
+        status: this.escapeHtml(data.status),
       },
       {
         email_title: 'Service job update',
@@ -576,9 +576,9 @@ export class EmailService {
     const html = this.renderEmail(
       'electrician-review-received',
       {
-        electrician_name: data.electricianName,
+        electrician_name: this.escapeHtml(data.electricianName),
         rating: String(data.rating),
-        comment: data.comment || 'No comment provided',
+        comment: this.escapeHtml(data.comment || 'No comment provided'),
       },
       {
         email_title: 'New review',
@@ -653,9 +653,9 @@ export class EmailService {
     const html = this.renderEmail(
       'payment-failed',
       {
-        customer_name: data.customerName,
-        order_group_id: data.orderGroupId,
-        reason: data.reason,
+        customer_name: this.escapeHtml(data.customerName),
+        order_group_id: this.escapeHtml(data.orderGroupId),
+        reason: this.escapeHtml(data.reason),
         retry_url: `${this.frontendUrl()}/cart`,
       },
       {
