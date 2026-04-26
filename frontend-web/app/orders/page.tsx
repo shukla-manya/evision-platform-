@@ -276,8 +276,9 @@ export default function MyOrdersPage() {
                                   href={sub.tracking_url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-ev-primary text-sm font-medium hover:underline"
+                                  className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5 shrink-0"
                                 >
+                                  <Truck size={14} />
                                   Track shipment
                                 </a>
                               ) : null}

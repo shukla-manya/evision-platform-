@@ -64,12 +64,10 @@ export default function ElectricianSettingsPage() {
               </li>
             ))}
           </ul>
-          <p className="text-ev-subtle text-xs">
-            Support:{' '}
-            <a href={`mailto:${ELECTRICIAN_SUPPORT_EMAIL}`} className="text-ev-primary hover:underline">
-              {ELECTRICIAN_SUPPORT_EMAIL}
-            </a>
-          </p>
+          <a href={`mailto:${ELECTRICIAN_SUPPORT_EMAIL}`} className="ev-btn-secondary text-sm py-2 px-4 inline-flex w-fit mt-2">
+            Email support
+          </a>
+          <p className="text-ev-subtle text-xs mt-2 font-mono">{ELECTRICIAN_SUPPORT_EMAIL}</p>
         </div>
       </div>
     </ElectricianShell>

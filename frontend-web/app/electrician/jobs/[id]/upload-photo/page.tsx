@@ -66,7 +66,7 @@ export default function ElectricianUploadPhotoPage() {
             )}
           </button>
         </form>
-        <Link href={`/electrician/bookings/${bookingId}`} className="text-ev-primary text-sm font-medium hover:underline">
+        <Link href={`/electrician/bookings/${bookingId}`} className="ev-btn-secondary text-sm py-2.5 px-4 inline-flex mt-4">
           Back to job
         </Link>
       </div>

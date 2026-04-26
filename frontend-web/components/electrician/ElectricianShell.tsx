@@ -48,12 +48,12 @@ function PendingApprovalView() {
         <p className="text-ev-subtle text-sm leading-relaxed">
           You&apos;ll receive an email and a notification here as soon as your account is approved.
         </p>
-        <p className="text-ev-subtle text-xs pt-2 border-t border-ev-border">
-          Questions? Contact us at{' '}
-          <a href={`mailto:${ELECTRICIAN_SUPPORT_EMAIL}`} className="text-ev-primary font-medium hover:underline">
-            {ELECTRICIAN_SUPPORT_EMAIL}
+        <div className="pt-4 border-t border-ev-border space-y-2">
+          <a href={`mailto:${ELECTRICIAN_SUPPORT_EMAIL}`} className="ev-btn-secondary text-sm py-2.5 px-4 inline-flex w-full justify-center">
+            Email support
           </a>
-        </p>
+          <p className="text-ev-subtle text-xs text-center font-mono break-all">{ELECTRICIAN_SUPPORT_EMAIL}</p>
+        </div>
       </div>
     </div>
   );
@@ -97,12 +97,12 @@ function RejectedView({ reason }: { reason: string }) {
             Register again
           </Link>
         </div>
-        <p className="text-ev-subtle text-xs text-center pt-2 border-t border-ev-border">
-          Questions?{' '}
-          <a href={`mailto:${ELECTRICIAN_SUPPORT_EMAIL}`} className="text-ev-primary font-medium hover:underline">
-            {ELECTRICIAN_SUPPORT_EMAIL}
+        <div className="pt-4 border-t border-ev-border space-y-2">
+          <a href={`mailto:${ELECTRICIAN_SUPPORT_EMAIL}`} className="ev-btn-secondary text-sm py-2.5 px-4 inline-flex w-full justify-center">
+            Email support
           </a>
-        </p>
+          <p className="text-ev-subtle text-xs text-center font-mono break-all">{ELECTRICIAN_SUPPORT_EMAIL}</p>
+        </div>
       </div>
     </div>
   );

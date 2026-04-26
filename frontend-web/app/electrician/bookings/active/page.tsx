@@ -47,12 +47,11 @@ export default function ElectricianActiveBookingsPage() {
             Loading…
           </div>
         ) : rows.length === 0 ? (
-          <div className="ev-card p-8 text-ev-muted text-sm text-center">
-            You have no active job. Accept a booking request or check{' '}
-            <Link href="/electrician/bookings/pending" className="text-ev-primary font-medium hover:underline">
-              booking requests
+          <div className="ev-card p-8 text-ev-muted text-sm text-center space-y-4">
+            <p>You have no active job. Accept a booking request or open pending booking requests.</p>
+            <Link href="/electrician/bookings/pending" className="ev-btn-secondary text-sm py-2.5 px-5 inline-flex justify-center">
+              Booking requests
             </Link>
-            .
           </div>
         ) : (
           <div className="space-y-3">

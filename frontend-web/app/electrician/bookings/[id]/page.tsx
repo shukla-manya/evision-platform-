@@ -197,7 +197,7 @@ export default function ElectricianBookingDetailPage() {
               {booking.customer_phone ? (
                 <a
                   href={`tel:${String(booking.customer_phone).replace(/\s/g, '')}`}
-                  className="inline-flex items-center gap-2 text-ev-primary font-medium text-sm hover:underline"
+                  className="ev-btn-secondary text-sm py-2 px-4 inline-flex items-center gap-2 w-fit"
                 >
                   <Phone size={16} />
                   {booking.customer_phone}

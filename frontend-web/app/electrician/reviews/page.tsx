@@ -65,7 +65,7 @@ export default function ElectricianReviewsPage() {
             <Star size={24} className="text-ev-warning" />
             My reviews
           </h1>
-          <Link href="/electrician/profile" className="text-sm text-ev-primary font-medium hover:underline">
+          <Link href="/electrician/profile" className="ev-btn-secondary text-sm py-2 px-4 inline-flex shrink-0">
             Profile
           </Link>
         </div>

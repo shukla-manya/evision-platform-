@@ -181,7 +181,7 @@ export default function DealerInvoicesPage() {
                     href={r.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-ev-primary text-sm font-medium inline-flex items-center gap-1 hover:underline"
+                    className="ev-btn-secondary text-sm py-2 px-4 inline-flex items-center gap-2 shrink-0"
                   >
                     <Download size={14} />
                     GST PDF

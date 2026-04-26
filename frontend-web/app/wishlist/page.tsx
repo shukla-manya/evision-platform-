@@ -102,7 +102,11 @@ export default function WishlistPage() {
                       {p.name}
                     </Link>
                     <p className="text-lg font-bold text-ev-text mt-2">{price > 0 ? formatInr(price) : '—'}</p>
-                    <button type="button" onClick={() => remove(p.id)} className="mt-auto text-sm text-ev-error hover:underline pt-3">
+                    <button
+                      type="button"
+                      onClick={() => remove(p.id)}
+                      className="mt-auto text-sm text-ev-error font-semibold pt-3 px-2 py-1.5 rounded-lg border border-ev-error/25 hover:bg-ev-error/5 self-start"
+                    >
                       Remove
                     </button>
                   </div>
