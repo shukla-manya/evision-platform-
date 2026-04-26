@@ -66,6 +66,7 @@ export class DynamoService implements OnModuleInit {
     table: string,
     key: Record<string, any>,
     updates: Record<string, any>,
+    removeAttrs?: string[],
   ): Promise<any> {
     const setExpressions: string[] = [];
     const names: Record<string, string> = {};
@@ -79,11 +80,17 @@ export class DynamoService implements OnModuleInit {
       values[valueKey] = v;
     }
 
+    const removeNames = (removeAttrs || []).filter(Boolean);
+    for (const k of removeNames) {
+      names[`#r_${k}`] = k;
+    }
+    const removeExpr = removeNames.length ? ` REMOVE ${removeNames.map((k) => `#r_${k}`).join(', ')}` : '';
+
     const result = await this.client.send(
       new UpdateCommand({
         TableName: table,
         Key: key,
-        UpdateExpression: `SET ${setExpressions.join(', ')}`,
+        UpdateExpression: `SET ${setExpressions.join(', ')}${removeExpr}`,
         ExpressionAttributeNames: names,
         ExpressionAttributeValues: values,
         ReturnValues: 'ALL_NEW',
