@@ -130,7 +130,7 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
   if (loading) {
     return (
       <AdminShell>
-        <main className="p-10 flex items-center gap-2 text-ev-muted">
+        <main className="w-full min-w-0 flex items-center gap-2 py-8 text-ev-muted">
           <Loader2 className="animate-spin text-ev-primary" size={22} />
           Loading…
         </main>
