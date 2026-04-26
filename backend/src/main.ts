@@ -54,8 +54,9 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = configService.get('PORT', 4000);
-  await app.listen(port);
+  const port = configService.get('PORT', 8000);
+  const host = configService.get('HOST', '127.0.0.1');
+  await app.listen(port, host);
   console.log(`\n⚡ e vision API running on http://localhost:${port}`);
   console.log(`📖 Swagger docs: http://localhost:${port}/api/docs\n`);
 }
