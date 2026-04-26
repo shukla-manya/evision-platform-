@@ -13,7 +13,7 @@ import { publicBrandName } from '@/lib/public-brand';
 import { OtpCells } from '@/components/auth/OtpCells';
 import { getBrowserGeolocation, resolveRegistrationCoordinates, reverseGeocodeIndia } from '@/lib/registration-geo';
 import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
-import { ACCOUNT_ROLES_SUMMARY, REGISTER_SELF_SERVE_TABS } from '@/lib/user-roles';
+import { REGISTER_SELF_SERVE_TABS } from '@/lib/user-roles';
 
 type AccountTab = 'customer' | 'dealer' | 'technician';
 type RegisterStep = 'details' | 'otp';
@@ -308,7 +308,6 @@ export default function RegisterPage() {
           <p className="text-ev-muted text-sm mt-1 max-w-md mx-auto leading-relaxed">
             Choose your account type to get started
           </p>
-          
         </div>
 
         <div className="ev-card p-1 flex flex-col sm:flex-row gap-1 mb-6">

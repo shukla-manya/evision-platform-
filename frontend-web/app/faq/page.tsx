@@ -5,7 +5,6 @@ import { PublicShell } from '@/components/public/PublicShell';
 import { FaqShopAdminSigninAnswer } from '@/components/public/FaqShopAdminSigninAnswer';
 import { publicBrandName } from '@/lib/public-brand';
 import { publicLoginPath, publicRegisterPath } from '@/lib/public-links';
-import { ACCOUNT_ROLES_SUMMARY } from '@/lib/user-roles';
 
 export const metadata: Metadata = {
   title: `FAQs — ${publicBrandName}`,
@@ -39,9 +38,7 @@ const SECTIONS: { title: string; items: FaqItem[] }[] = [
             <Link href={publicRegisterPath} className="text-ev-primary hover:text-ev-primary-light font-medium">
               Sign up
             </Link>{' '}
-            and choose Customer, Dealer, or Technician. Account types on the platform are{' '}
-            {ACCOUNT_ROLES_SUMMARY}. Admin (shop) sign-up is separate; Superadmin is provisioned by the platform team.
-            Each path asks for the details we need for that role.
+            and choose Customer, Dealer, or Technician. Each path asks for the details we need for that role.
           </>
         ),
       },
