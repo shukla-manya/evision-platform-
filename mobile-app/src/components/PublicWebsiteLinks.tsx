@@ -30,7 +30,7 @@ export function PublicWebsiteLinks({ audience }: { audience: 'signed_in' | 'sign
           onPress={() => void Linking.openURL(publicWebUrl('/login'))}
           style={styles.returnsHit}
         >
-          <Text style={styles.muted}>Returns</Text>
+          <Text style={styles.returnsLabel}>Returns</Text>
         </Pressable>
       ) : null}
     </View>
@@ -72,10 +72,10 @@ const styles = StyleSheet.create({
     color: colors.brandPrimary,
     fontWeight: '700',
   },
-  muted: {
-    fontSize: 13,
-    color: colors.muted,
-    fontWeight: '600',
+  returnsLabel: {
+    fontSize: 14,
+    color: colors.brandPrimary,
+    fontWeight: '700',
   },
   returnsHit: {
     marginTop: 12,

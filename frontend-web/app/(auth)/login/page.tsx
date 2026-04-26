@@ -200,12 +200,12 @@ function LoginPageInner() {
                   </>
                 )}
               </button>
-              <p className="text-center text-ev-subtle text-sm">
-                New here?{' '}
-                <Link href="/register" className="text-ev-primary font-medium hover:underline">
+              <div className="flex flex-col gap-2 items-stretch pt-1">
+                <span className="text-center text-ev-subtle text-sm">New here?</span>
+                <Link href="/register" className="ev-btn-secondary text-sm py-2.5 px-4 text-center">
                   Create account
                 </Link>
-              </p>
+              </div>
               <p className="text-center text-ev-muted text-xs leading-relaxed">
                 Works for customers, dealers and technicians
               </p>

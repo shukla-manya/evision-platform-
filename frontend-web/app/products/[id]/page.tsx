@@ -301,15 +301,6 @@ export default function ProductDetailPage() {
               </button>
             </div>
 
-            {!canBuy ? (
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="text-ev-muted text-sm">Sign in to add to cart or wishlist.</p>
-                <Link href="/login" className="ev-btn-secondary text-sm py-2 px-4 inline-flex">
-                  Sign in
-                </Link>
-              </div>
-            ) : null}
-
             <div className="ev-card p-4 space-y-3">
               <div className="flex items-start gap-2">
                 <Truck size={18} className="text-ev-primary shrink-0 mt-0.5" />
