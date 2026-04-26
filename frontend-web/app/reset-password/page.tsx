@@ -65,28 +65,15 @@ export default function ResetPasswordPage() {
         <div className="ev-card p-8">
           <h1 className="text-2xl font-bold text-ev-text mb-1">Reset password</h1>
           <p className="text-ev-muted text-sm mb-6">
-            <strong className="text-ev-text">Admin</strong> and <strong className="text-ev-text">Technician</strong>{' '}
-            (password accounts) only. We SMS a 6-digit code to the <strong className="text-ev-text">mobile on your account</strong>{' '}
-            — not email. <strong className="text-ev-text">Customer</strong> and <strong className="text-ev-text">Dealer</strong>{' '}
-            sign in with OTP only; <strong className="text-ev-text">Superadmin</strong> uses the dedicated sign-in page.
+            For <strong className="text-ev-text">approved shop admins</strong> only. We SMS a 6-digit code to the{' '}
+            <strong className="text-ev-text">mobile on your shop account</strong>.{' '}
+            <strong className="text-ev-text">Technicians</strong>, <strong className="text-ev-text">customers</strong>, and{' '}
+            <strong className="text-ev-text">dealers</strong> sign in with a mobile OTP — no password reset here.{' '}
+            <strong className="text-ev-text">Superadmin</strong> uses the dedicated sign-in page.
           </p>
 
           {step === 'start' ? (
             <form onSubmit={startReset} className="space-y-4">
-              <div>
-                <label className="ev-label">Role</label>
-                <select
-                  className="ev-input"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as ResetRole)}
-                >
-                  {PASSWORD_RESET_ROLE_OPTIONS.map(({ value, label }) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
               <div>
                 <label className="ev-label">Mobile number</label>
                 <input
