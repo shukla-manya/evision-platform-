@@ -177,6 +177,19 @@ export class AuthService {
         ]
       : [];
 
+    let regLat: number | null = null;
+    let regLng: number | null = null;
+    let geo_captured_at: string | null = null;
+    if (dto.lat != null && dto.lng != null) {
+      const la = Number(dto.lat);
+      const ln = Number(dto.lng);
+      if (!Number.isNaN(la) && !Number.isNaN(ln) && la >= -90 && la <= 90 && ln >= -180 && ln <= 180) {
+        regLat = la;
+        regLng = ln;
+        geo_captured_at = new Date().toISOString();
+      }
+    }
+
     const user = {
       id,
       name: dto.name,
@@ -192,6 +205,9 @@ export class AuthService {
       business_pincode: dto.role === 'dealer' ? String(dto.business_pincode || '').replace(/\D/g, '').slice(0, 6) : null,
       fcm_token: null,
       address_book: addressBook,
+      lat: regLat,
+      lng: regLng,
+      geo_captured_at,
       created_at: new Date().toISOString(),
     };
 
@@ -237,6 +253,28 @@ export class AuthService {
       { password_hash, updated_at: new Date().toISOString() },
     );
     return { updated: true, role: normalizedRole };
+  }
+
+  async updateShopperGeo(userId: string, lat: number, lng: number): Promise<{ lat: number; lng: number; geo_captured_at: string }> {
+    const user = await this.dynamo.get(this.dynamo.tableName('users'), { id: userId });
+    if (!user) throw new NotFoundException('User not found');
+    const role = String(user.role || '');
+    if (role !== 'customer' && role !== 'dealer') {
+      throw new BadRequestException('Only customers and dealers can update stored coordinates this way');
+    }
+    const la = Number(lat);
+    const ln = Number(lng);
+    if (Number.isNaN(la) || Number.isNaN(ln) || la < -90 || la > 90 || ln < -180 || ln > 180) {
+      throw new BadRequestException('Invalid lat/lng');
+    }
+    const now = new Date().toISOString();
+    await this.dynamo.update(this.dynamo.tableName('users'), { id: userId }, {
+      lat: la,
+      lng: ln,
+      geo_captured_at: now,
+      updated_at: now,
+    });
+    return { lat: la, lng: ln, geo_captured_at: now };
   }
 
   async updateDeviceToken(userId: string, fcmToken: string): Promise<{ updated: boolean }> {

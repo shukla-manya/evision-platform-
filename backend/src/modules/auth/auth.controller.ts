@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Get, Put } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get, Put, Patch } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SendOtpDto } from './dto/send-otp.dto';
@@ -18,6 +18,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { UpdateAddressBookDto } from './dto/update-address-book.dto';
+import { UpdateGeoDto } from './dto/update-geo.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -116,5 +117,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Replace saved delivery addresses for checkout' })
   replaceAddressBook(@CurrentUser() user: { id: string }, @Body() dto: UpdateAddressBookDto) {
     return this.authService.replaceAddressBook(user.id, dto.addresses);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('customer', 'dealer')
+  @Patch('me/geo')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update last-known coordinates (e.g. after enabling location in settings)' })
+  updateGeo(@CurrentUser() user: { id: string }, @Body() dto: UpdateGeoDto) {
+    return this.authService.updateShopperGeo(user.id, dto.lat, dto.lng);
   }
 }

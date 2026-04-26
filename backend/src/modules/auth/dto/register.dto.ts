@@ -1,4 +1,17 @@
-import { IsString, IsEmail, IsEnum, IsOptional, Matches, MinLength, Length, ValidateIf } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  Matches,
+  MinLength,
+  Length,
+  ValidateIf,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -60,6 +73,22 @@ export class RegisterDto {
   @IsString()
   @Matches(/^\d{6}$/, { message: 'Business pincode must be 6 digits' })
   business_pincode?: string;
+
+  @ApiPropertyOptional({ example: 28.4089, description: 'Optional: device or resolved latitude at signup' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  lat?: number;
+
+  @ApiPropertyOptional({ example: 77.3178, description: 'Optional: device or resolved longitude at signup' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  lng?: number;
 }
 
 export class AdminLoginDto {
