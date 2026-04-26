@@ -154,9 +154,6 @@ export function PublicFooter() {
           {!loggedIn ? (
             <>
               <p className="font-semibold text-white mb-2 text-sm">Shop admin</p>
-              <p className="text-[11px] text-white/50 leading-snug mb-2">
-                Store owners: email + password on the admin app
-              </p>
               <ul className="space-y-2 text-white/80">
                 <li>
                   <a
