@@ -2006,5 +2006,4 @@ const styles = StyleSheet.create({
   roleChipTextActive: { color: colors.brandPrimary, fontWeight: '600' },
   remove: { color: colors.error, fontWeight: '600' },
   shopTotal: { marginTop: 8, fontWeight: '700', color: colors.textPrimary },
-  link: { marginTop: 6, color: colors.brandPrimary, fontWeight: '600' },
 });
