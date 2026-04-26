@@ -70,6 +70,7 @@ import { LeaveReviewScreen } from './src/screens/LeaveReviewScreen';
 import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 import { EvisionLogo } from './src/components/EvisionLogo';
 import { screenGutter } from './src/theme/layout';
+import { publicWebUrl } from './src/config/publicWeb';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
 
@@ -1203,6 +1204,10 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
 
   useFocusEffect(useCallback(() => { void load(); }, [load]));
 
+  useEffect(() => {
+    void load();
+  }, [approvedShopsOnly, browseCategoryId, browseSearch]);
+
   const visibleProducts = useMemo(() => {
     if (!shopFilter.trim()) return products;
     const t = shopFilter.trim().toLowerCase();
@@ -1219,6 +1224,64 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
           <View style={{ marginBottom: 14, gap: 12 }}>
+            <View style={styles.categorySection}>
+              <View style={styles.categorySectionHeader}>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={styles.categorySectionTitle}>Shop by category</Text>
+                  <Text style={styles.categorySectionSubtitle}>Browse the catalogue by aisle</Text>
+                </View>
+                <Pressable
+                  onPress={() => void Linking.openURL(publicWebUrl('/shop'))}
+                  hitSlop={8}
+                  accessibilityRole="link"
+                  accessibilityLabel="Open full shop on the web"
+                >
+                  <Text style={styles.categorySeeAll}>See all</Text>
+                </Pressable>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryScrollInner}
+              >
+                {SHOP_CATEGORY_TILES_MOBILE.map((tile, i) => {
+                  const active = browseLabel === tile.label;
+                  return (
+                    <Pressable
+                      key={tile.label}
+                      onPress={() => {
+                        const p = resolveCatalogBrowseParams(tile.label, i, apiCategories);
+                        setBrowseCategoryId(p.category_id);
+                        setBrowseSearch(p.category_id ? undefined : p.search);
+                        setBrowseLabel(tile.label);
+                      }}
+                      style={[styles.categoryTile, active && styles.categoryTileActive]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                    >
+                      <View style={[styles.categoryTileArt, { backgroundColor: tile.iconBg }]}>
+                        <MaterialCommunityIcons name={tile.icon} size={28} color={tile.iconColor} />
+                      </View>
+                      <Text style={styles.categoryTileLabel} numberOfLines={2}>
+                        {tile.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+              {browseLabel ? (
+                <Pressable
+                  style={styles.categoryClearChip}
+                  onPress={() => {
+                    setBrowseCategoryId(undefined);
+                    setBrowseSearch(undefined);
+                    setBrowseLabel(null);
+                  }}
+                >
+                  <Text style={styles.categoryClearChipText}>Clear · {browseLabel}</Text>
+                </Pressable>
+              ) : null}
+            </View>
             <View style={[styles.catalogFilterCard, { marginBottom: 0 }]}>
               <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={styles.catalogFilterTitle}>Approved shops only</Text>
@@ -2116,6 +2179,65 @@ const styles = StyleSheet.create({
   shopOptionText: { fontSize: 14, color: colors.textPrimary, fontWeight: '500' },
   shopOptionTextSelected: { fontWeight: '700', color: colors.brandPrimary },
   catalogFilterTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  categorySection: { marginBottom: 2 },
+  categorySectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
+  },
+  categorySectionTitle: { fontSize: 18, fontWeight: '800', color: colors.textPrimary, letterSpacing: -0.3 },
+  categorySectionSubtitle: { fontSize: 12, color: colors.textSecondary, marginTop: 4, lineHeight: 16 },
+  categorySeeAll: { fontSize: 14, fontWeight: '700', color: colors.brandPrimary, paddingTop: 2 },
+  categoryScrollInner: { flexDirection: 'row', gap: 10, paddingBottom: 4, paddingRight: 4 },
+  categoryTile: {
+    width: 108,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  categoryTileActive: {
+    borderColor: colors.brandPrimary,
+    borderWidth: 2,
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+  },
+  categoryTileArt: {
+    height: 78,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  categoryTileLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    lineHeight: 14,
+    minHeight: 40,
+  },
+  categoryClearChip: {
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    backgroundColor: colors.brandSoft,
+    borderWidth: 1,
+    borderColor: colors.brandPrimary,
+  },
+  categoryClearChipText: { fontSize: 13, fontWeight: '700', color: colors.brandPrimary },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   roleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   splashContent: {
