@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNumberString, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { Allow, IsEmail, IsNumberString, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 
 export class RegisterElectricianDto {
   @ApiProperty({ example: 'Ravi Kumar' })
@@ -44,4 +44,16 @@ export class RegisterElectricianDto {
   @IsOptional()
   @IsString()
   skills?: string;
+
+  /** Multipart file field — validated in controller via `@UploadedFiles()`; must exist on DTO for `forbidNonWhitelisted`. */
+  @ApiPropertyOptional({ type: 'string', format: 'binary' })
+  @IsOptional()
+  @Allow()
+  aadhar?: unknown;
+
+  /** Multipart file field — validated in controller via `@UploadedFiles()`. */
+  @ApiPropertyOptional({ type: 'string', format: 'binary' })
+  @IsOptional()
+  @Allow()
+  photo?: unknown;
 }
