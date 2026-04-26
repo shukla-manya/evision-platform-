@@ -132,16 +132,20 @@ export default function DealerDashboardPage() {
   const [orders, setOrders] = useState<OrderGroup[]>([]);
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [downloading, setDownloading] = useState(false);
+  const [profileName, setProfileName] = useState<string | undefined>(undefined);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [ordersRes, productsRes] = await Promise.all([
+      const [ordersRes, productsRes, meRes] = await Promise.all([
         ordersApi.myOrders(),
         catalogApi.getProducts().catch(() => ({ data: [] })),
+        authApi.me().catch(() => ({ data: {} })),
       ]);
       setOrders(Array.isArray(ordersRes.data) ? (ordersRes.data as OrderGroup[]) : []);
       setProducts(Array.isArray(productsRes.data) ? (productsRes.data as CatalogProduct[]) : []);
+      const meUser = (meRes.data as { user?: { name?: string } })?.user;
+      setProfileName(typeof meUser?.name === 'string' ? meUser.name : undefined);
     } catch {
       toast.error('Failed to load dealer dashboard');
     } finally {
@@ -169,10 +173,23 @@ export default function DealerDashboardPage() {
     const token = getToken();
     const payload = token ? parseJwt(token) : null;
     const email = String(payload?.email || '');
-    const company = dealerNameFromEmail(email);
-    const branded = company === 'Dealer account' ? company : `${company} Cameras`;
-    return { company: branded, initials: initials(company), email };
+    const fromEmail = dealerNameFromEmail(email);
+    return { initials: initials(fromEmail), email };
   }, []);
+
+  const greetFirst = useMemo(() => {
+    const fromProfile = firstName(profileName);
+    if (fromProfile) return fromProfile;
+    const derived = dealerNameFromEmail(dealerIdentity.email);
+    if (derived === 'Dealer account') return '';
+    return firstName(derived) || derived;
+  }, [profileName, dealerIdentity.email]);
+
+  const greetingLine = useMemo(() => {
+    const g = greetingLabelIst();
+    const n = formatGreetName(greetFirst);
+    return n ? `${g}, ${n}.` : `${g}.`;
+  }, [greetFirst]);
 
   const computed = useMemo(() => {
     const successful = orders.filter((o) => String(o.status || '').toLowerCase() !== 'payment_failed');
