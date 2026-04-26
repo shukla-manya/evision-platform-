@@ -151,10 +151,14 @@ export class ShiprocketService {
   }
 
   async findOrderByAwb(awb: string): Promise<Record<string, unknown> | null> {
-    const items = await this.dynamo.scan({
+    const trimmed = String(awb || '').trim();
+    if (!trimmed) return null;
+    const items = await this.dynamo.query({
       TableName: this.dynamo.tableName('orders'),
-      FilterExpression: 'awb_number = :awb',
-      ExpressionAttributeValues: { ':awb': awb },
+      IndexName: 'AwbIndex',
+      KeyConditionExpression: 'awb_number = :awb',
+      ExpressionAttributeValues: { ':awb': trimmed },
+      Limit: 1,
     });
     return (items[0] as Record<string, unknown>) ?? null;
   }

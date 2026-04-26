@@ -61,7 +61,7 @@ export class CategoriesService {
   }
 
   async listAll(): Promise<any[]> {
-    const items = await this.dynamo.scan({ TableName: this.table() });
+    const items = await this.dynamo.scanAllPages({ TableName: this.table() });
     return items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }
 

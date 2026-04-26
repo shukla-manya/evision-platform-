@@ -85,14 +85,19 @@ export class DynamoService implements OnModuleInit {
       names[`#r_${k}`] = k;
     }
     const removeExpr = removeNames.length ? ` REMOVE ${removeNames.map((k) => `#r_${k}`).join(', ')}` : '';
+    const setPart = setExpressions.length ? `SET ${setExpressions.join(', ')}` : '';
+    const updateExpression = `${setPart}${removeExpr}`.trim();
+    if (!updateExpression) {
+      throw new Error('DynamoService.update: empty update and remove');
+    }
 
     const result = await this.client.send(
       new UpdateCommand({
         TableName: table,
         Key: key,
-        UpdateExpression: `SET ${setExpressions.join(', ')}${removeExpr}`,
+        UpdateExpression: updateExpression,
         ExpressionAttributeNames: names,
-        ExpressionAttributeValues: values,
+        ...(Object.keys(values).length ? { ExpressionAttributeValues: values } : {}),
         ReturnValues: 'ALL_NEW',
       }),
     );
@@ -110,11 +115,13 @@ export class DynamoService implements OnModuleInit {
 
   /** Paginated query (DynamoDB returns at most 1MB per page). */
   async queryAllPages(params: QueryCommandInput): Promise<any[]> {
+    const { ExclusiveStartKey: _start, ...rest } = params;
+    void _start;
     const out: any[] = [];
-    let ExclusiveStartKey = params.ExclusiveStartKey;
+    let ExclusiveStartKey: Record<string, unknown> | undefined;
     for (;;) {
       const result = await this.client.send(
-        new QueryCommand({ ...params, ExclusiveStartKey }),
+        new QueryCommand({ ...rest, ExclusiveStartKey }),
       );
       out.push(...(result.Items || []));
       ExclusiveStartKey = result.LastEvaluatedKey;
@@ -130,11 +137,13 @@ export class DynamoService implements OnModuleInit {
 
   /** Paginated scan — use sparingly; prefer GSIs and Query. */
   async scanAllPages(params: ScanCommandInput): Promise<any[]> {
+    const { ExclusiveStartKey: _start, ...rest } = params;
+    void _start;
     const out: any[] = [];
-    let ExclusiveStartKey = params.ExclusiveStartKey;
+    let ExclusiveStartKey: Record<string, unknown> | undefined;
     for (;;) {
       const result = await this.client.send(
-        new ScanCommand({ ...params, ExclusiveStartKey }),
+        new ScanCommand({ ...rest, ExclusiveStartKey }),
       );
       out.push(...(result.Items || []));
       ExclusiveStartKey = result.LastEvaluatedKey;

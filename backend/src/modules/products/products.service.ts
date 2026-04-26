@@ -223,12 +223,45 @@ export class ProductsService {
     role: PriceViewerRole,
     query: ListProductsQueryDto,
   ): Promise<Record<string, unknown>[]> {
-    const scan = await this.dynamo.scan({ TableName: this.productsTable() });
-    let items = scan.filter((p) => p.active !== false);
+    let items: Record<string, unknown>[] = [];
 
     if (query.category_id) {
-      items = items.filter((p) => p.category_id === query.category_id);
+      await this.categories.requireCategory(query.category_id);
+      items = await this.dynamo.queryAllPages({
+        TableName: this.productsTable(),
+        IndexName: 'CategoryIndex',
+        KeyConditionExpression: 'category_id = :cid',
+        ExpressionAttributeValues: { ':cid': query.category_id },
+      });
+    } else {
+      const cats = await this.categories.listAll();
+      if (!cats.length) {
+        items = await this.dynamo.scanAllPages({ TableName: this.productsTable() });
+      } else {
+        const chunks = await Promise.all(
+          (cats as { id: string }[]).map((c) =>
+            this.dynamo.queryAllPages({
+              TableName: this.productsTable(),
+              IndexName: 'CategoryIndex',
+              KeyConditionExpression: 'category_id = :cid',
+              ExpressionAttributeValues: { ':cid': c.id },
+            }),
+          ),
+        );
+        const seen = new Set<string>();
+        for (const chunk of chunks) {
+          for (const p of chunk) {
+            const id = String((p as Record<string, unknown>).id || '');
+            if (!id || seen.has(id)) continue;
+            seen.add(id);
+            items.push(p as Record<string, unknown>);
+          }
+        }
+      }
     }
+
+    items = items.filter((p) => p.active !== false);
+
     if (query.brand?.trim()) {
       const b = query.brand.trim().toLowerCase();
       items = items.filter((p) => (p.brand || '').toLowerCase().includes(b));

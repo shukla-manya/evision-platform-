@@ -130,6 +130,9 @@ export const EVISION_DYNAMO_TABLES = [
       { AttributeName: 'id', AttributeType: 'S' },
       { AttributeName: 'group_id', AttributeType: 'S' },
       { AttributeName: 'admin_id', AttributeType: 'S' },
+      { AttributeName: 'user_id', AttributeType: 'S' },
+      { AttributeName: 'status', AttributeType: 'S' },
+      { AttributeName: 'awb_number', AttributeType: 'S' },
     ],
     GlobalSecondaryIndexes: [
       {
@@ -140,6 +143,24 @@ export const EVISION_DYNAMO_TABLES = [
       {
         IndexName: 'AdminIndex',
         KeySchema: [{ AttributeName: 'admin_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'UserIndex',
+        KeySchema: [{ AttributeName: 'user_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'OrderStatusIndex',
+        KeySchema: [
+          { AttributeName: 'status', KeyType: 'HASH' },
+          { AttributeName: 'id', KeyType: 'RANGE' },
+        ],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'AwbIndex',
+        KeySchema: [{ AttributeName: 'awb_number', KeyType: 'HASH' }],
         Projection: { ProjectionType: 'ALL' },
       },
     ],
@@ -194,11 +215,12 @@ export const EVISION_DYNAMO_TABLES = [
     BillingMode: 'PAY_PER_REQUEST',
     KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
     AttributeDefinitions: [
-      { AttributeName: 'id',      AttributeType: 'S' },
-      { AttributeName: 'phone',   AttributeType: 'S' },
-      { AttributeName: 'email',   AttributeType: 'S' },
-      { AttributeName: 'status',  AttributeType: 'S' },
-      { AttributeName: 'user_id', AttributeType: 'S' },
+      { AttributeName: 'id',             AttributeType: 'S' },
+      { AttributeName: 'phone',          AttributeType: 'S' },
+      { AttributeName: 'email',          AttributeType: 'S' },
+      { AttributeName: 'status',         AttributeType: 'S' },
+      { AttributeName: 'user_id',        AttributeType: 'S' },
+      { AttributeName: 'discovery_key',  AttributeType: 'S' },
     ],
     GlobalSecondaryIndexes: [
       {
@@ -219,6 +241,14 @@ export const EVISION_DYNAMO_TABLES = [
       {
         IndexName: 'UserIndex',
         KeySchema: [{ AttributeName: 'user_id', KeyType: 'HASH' }],
+        Projection: { ProjectionType: 'ALL' },
+      },
+      {
+        IndexName: 'LiveElectriciansIndex',
+        KeySchema: [
+          { AttributeName: 'discovery_key', KeyType: 'HASH' },
+          { AttributeName: 'id', KeyType: 'RANGE' },
+        ],
         Projection: { ProjectionType: 'ALL' },
       },
     ],
