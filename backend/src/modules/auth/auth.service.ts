@@ -32,7 +32,36 @@ export class AuthService {
   ) {}
 
   // ── OTP ──────────────────────────────────────────────────────────────────
-  async sendOtp(phone: string): Promise<{ message: string }> {
+  async sendOtp(
+    phone: string,
+    opts?: { purpose?: 'login' | 'signup'; email?: string },
+  ): Promise<{ message: string }> {
+    const purpose = opts?.purpose ?? 'login';
+    if (purpose === 'signup') {
+      const emailNorm = String(opts?.email || '').trim().toLowerCase();
+      if (!emailNorm) {
+        throw new BadRequestException('Email is required when requesting signup OTP');
+      }
+      const [existingPhone, existingEmailUser, ecPhone, ecEmail] = await Promise.all([
+        this.findUserByPhone(phone),
+        this.findUserByEmail(emailNorm),
+        this.findElectricianByPhone(phone),
+        this.findElectricianByEmail(emailNorm),
+      ]);
+      if (existingPhone) {
+        throw new ConflictException('This phone number is already registered. Sign in instead.');
+      }
+      if (ecPhone) {
+        throw new ConflictException('This phone number is already used for a technician account.');
+      }
+      if (existingEmailUser) {
+        throw new ConflictException('Email already registered');
+      }
+      if (ecEmail) {
+        throw new ConflictException('Email already registered for a technician account');
+      }
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 min TTL
 
@@ -153,17 +182,25 @@ export class AuthService {
       }
     }
 
-    const [existingPhone, existingEmail] = await Promise.all([
+    const emailNorm = String(dto.email || '').trim().toLowerCase();
+    if (!emailNorm) {
+      throw new BadRequestException('Email is required');
+    }
+
+    const [existingPhone, existingEmail, electricianPhone, electricianEmail] = await Promise.all([
       this.findUserByPhone(dto.phone),
-      this.findUserByEmail(dto.email),
+      this.findUserByEmail(emailNorm),
+      this.findElectricianByPhone(dto.phone),
+      this.findElectricianByEmail(emailNorm),
     ]);
 
     if (existingPhone) throw new ConflictException('Phone number already registered');
     if (existingEmail) throw new ConflictException('Email already registered');
-
-    const electricianPhone = await this.findElectricianByPhone(dto.phone);
     if (electricianPhone) {
       throw new ConflictException('This phone number is already used for a technician account');
+    }
+    if (electricianEmail) {
+      throw new ConflictException('Email already registered for a technician account');
     }
 
     const id = uuidv4();
@@ -194,7 +231,7 @@ export class AuthService {
       id,
       name: dto.name,
       phone: dto.phone,
-      email: dto.email,
+      email: emailNorm,
       password_hash: null,
       role: dto.role,
       gst_no: dto.gst_no || null,
@@ -213,7 +250,7 @@ export class AuthService {
 
     await this.dynamo.put(this.dynamo.tableName('users'), user);
 
-    const token = this.signToken(id, dto.role, dto.email, dto.phone);
+    const token = this.signToken(id, dto.role, emailNorm, dto.phone);
     const { ...safeUser } = user;
     return { access_token: token, user: safeUser };
   }

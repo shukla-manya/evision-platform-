@@ -32,7 +32,7 @@ export class AuthController {
       'Send OTP (logged to server console when OTP_CONSOLE_ONLY=true; otherwise Twilio SMS)',
   })
   sendOtp(@Body() dto: SendOtpDto) {
-    return this.authService.sendOtp(dto.phone);
+    return this.authService.sendOtp(dto.phone, { purpose: dto.purpose, email: dto.email });
   }
 
   @Public()

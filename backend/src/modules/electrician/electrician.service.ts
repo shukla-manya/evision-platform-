@@ -85,7 +85,12 @@ export class ElectricianService {
     dto: RegisterElectricianDto,
     docs: { aadhar_url: string; photo_url: string },
   ): Promise<{ message: string; electrician_id: string }> {
-    const existing = await this.findByEmail(dto.email);
+    const emailNorm = String(dto.email || '').trim().toLowerCase();
+    if (!emailNorm) {
+      throw new BadRequestException('Email is required');
+    }
+
+    const existing = await this.findByEmail(emailNorm);
     if (existing) throw new ConflictException('Email already registered');
 
     const existingPhone = await this.findByPhone(dto.phone);
@@ -102,6 +107,17 @@ export class ElectricianService {
       throw new ConflictException('This phone is already registered for a shopper account');
     }
 
+    const userAtEmail = await this.dynamo.query({
+      TableName: this.dynamo.tableName('users'),
+      IndexName: 'EmailIndex',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues: { ':email': emailNorm },
+      Limit: 1,
+    });
+    if (userAtEmail[0]) {
+      throw new ConflictException('This email is already registered for a shopper account');
+    }
+
     const id = uuidv4();
     const rawPwd = dto.password?.trim();
     const secret =
@@ -112,7 +128,7 @@ export class ElectricianService {
       id,
       name: dto.name,
       phone: dto.phone,
-      email: dto.email,
+      email: emailNorm,
       password_hash: passwordHash,
       address: dto.address || null,
       lat: Number(dto.lat),
