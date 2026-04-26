@@ -69,8 +69,8 @@ export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }:
           'ev-sidebar z-50 flex flex-col w-64 max-w-[min(18rem,calc(100vw-2.5rem))] border-r border-white/10',
           'fixed inset-y-0 left-0 transition-transform duration-200 ease-out',
           'pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]',
-          'lg:translate-x-0 lg:pb-0 lg:pt-0',
-          drawerOpen ? 'translate-x-0 shadow-ev-lg' : '-translate-x-full lg:translate-x-0',
+          'md:translate-x-0 md:pb-0 md:pt-0',
+          drawerOpen ? 'translate-x-0 shadow-ev-lg' : '-translate-x-full md:translate-x-0',
         ].join(' ')}
       >
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -78,7 +78,7 @@ export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }:
         </div>
       </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden pt-14 lg:ml-64 lg:pt-0">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden pt-14 md:ml-64 md:pt-0">
         <div className="ev-shell-body flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>
       </div>
     </div>
