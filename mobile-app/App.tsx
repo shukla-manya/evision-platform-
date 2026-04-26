@@ -47,6 +47,7 @@ import {
   API_BASE_URL,
 } from './src/services/api';
 import { clearSession, getToken, setElectricianProfile, setToken } from './src/services/storage';
+import { PasswordInputWithToggle } from './src/components/PasswordInputWithToggle';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { openRazorpayCheckout } from './src/services/razorpay';
 import { TrackingScreen } from './src/screens/TrackingScreen';
@@ -394,10 +395,9 @@ function AdminSignInScreen({
             autoComplete="email"
             textContentType="username"
           />
-          <TextInput
+          <PasswordInputWithToggle
             style={styles.input}
             placeholder="Password"
-            secureTextEntry
             value={password}
             onChangeText={setPassword}
             autoComplete="password"
@@ -914,12 +914,13 @@ function PasswordResetScreen({
                 value={otp}
                 onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
               />
-              <TextInput
+              <PasswordInputWithToggle
                 style={styles.input}
                 placeholder="New password"
-                secureTextEntry
                 value={newPassword}
                 onChangeText={setNewPassword}
+                autoComplete="password-new"
+                textContentType="newPassword"
               />
             </>
           )}
