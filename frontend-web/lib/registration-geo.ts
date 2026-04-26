@@ -83,16 +83,54 @@ export function getBrowserGeolocation(timeoutMs = 12000): Promise<{ lat: number;
 }
 
 export async function geocodeIndia(city: string, pincode: string): Promise<{ lat: number; lng: number }> {
-  const q = `${pincode.trim()} ${city.trim()} India`;
-  const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
-    { headers: { ...NOMINATIM_HEADERS } },
-  );
-  if (!res.ok) throw new Error('Location lookup failed');
-  const data = (await res.json()) as { lat?: string; lon?: string }[];
-  const hit = data?.[0];
-  if (!hit?.lat || !hit?.lon) throw new Error('Could not find that city and pincode on the map');
-  return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
+  const pin = pincode.trim();
+  const cty = city.trim();
+
+  // Structured pincode lookup — Nominatim indexes Indian pincodes well with this param
+  if (/^\d{6}$/.test(pin)) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&postalcode=${encodeURIComponent(pin)}&countrycodes=in`,
+        { headers: { ...NOMINATIM_HEADERS } },
+      );
+      if (res.ok) {
+        const data = (await res.json()) as { lat?: string; lon?: string }[];
+        const hit = data?.[0];
+        if (hit?.lat && hit?.lon) return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
+      }
+    } catch { /* fall through */ }
+  }
+
+  // Free-text city + pincode
+  try {
+    const q = [pin, cty, 'India'].filter(Boolean).join(' ');
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
+      { headers: { ...NOMINATIM_HEADERS } },
+    );
+    if (res.ok) {
+      const data = (await res.json()) as { lat?: string; lon?: string }[];
+      const hit = data?.[0];
+      if (hit?.lat && hit?.lon) return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
+    }
+  } catch { /* fall through */ }
+
+  // City-only fallback
+  if (cty) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(cty + ' India')}`,
+        { headers: { ...NOMINATIM_HEADERS } },
+      );
+      if (res.ok) {
+        const data = (await res.json()) as { lat?: string; lon?: string }[];
+        const hit = data?.[0];
+        if (hit?.lat && hit?.lon) return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
+      }
+    } catch { /* fall through */ }
+  }
+
+  throw new Error('Could not resolve location from city and pincode');
 }
 
 /** Prefer device GPS; fall back to city + pincode centroid (India). */
