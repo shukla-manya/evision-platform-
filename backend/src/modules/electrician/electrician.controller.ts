@@ -90,10 +90,11 @@ export class ElectricianController {
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['name', 'phone', 'email', 'lat', 'lng', 'aadhar', 'photo'],
+      required: ['name', 'phone', 'email', 'otp', 'lat', 'lng', 'aadhar', 'photo'],
       properties: {
         name: { type: 'string', example: 'Ravi Kumar' },
         phone: { type: 'string', example: '+919876543210' },
+        otp: { type: 'string', example: '482931', description: '6-digit OTP from /auth/send-otp' },
         email: { type: 'string', example: 'ravi@example.com' },
         password: { type: 'string', example: 'SecurePass@123', description: 'Optional' },
         address: { type: 'string', example: 'Sector 15, Faridabad' },

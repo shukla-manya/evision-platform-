@@ -153,7 +153,10 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     const phone = formatPhoneE164(techPhoneDigits);
     setOtpSending(true);
     try {
-      await authApi.sendOtp(phone);
+      await authApi.sendOtp(phone, {
+        purpose: 'signup',
+        email: techEmail.trim().toLowerCase(),
+      });
       setOtpCells(['', '', '', '', '', '']);
       setOtpKey((k) => k + 1);
       setStep('otp');
@@ -163,7 +166,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     } finally {
       setOtpSending(false);
     }
-  }, [techPhoneDigits, validateDetails]);
+  }, [techPhoneDigits, techEmail, validateDetails]);
 
   useEffect(() => {
     if (step !== 'otp' || resendSeconds <= 0) return;
@@ -200,7 +203,6 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
         return;
       }
       const { lat, lng } = coords;
-      await authApi.verifyOtp(phone, otp.replace(/\D/g, ''));
       const skillsCsv = Array.from(techSkills).join(',');
       const exp = techExperience.trim();
       const addressLine = [exp ? `Experience: ${exp} yrs` : null, `${techCity.trim()}, ${techPin.trim()}, India`]
@@ -210,6 +212,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       const fd = new FormData();
       fd.append('name', techName.trim());
       fd.append('phone', phone);
+      fd.append('otp', otp.replace(/\D/g, ''));
       fd.append('email', techEmail.trim().toLowerCase());
       fd.append('address', addressLine);
       fd.append('lat', String(lat));
@@ -226,7 +229,9 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 401) {
-        toast.error('Incorrect or expired code. Request a new OTP if needed.');
+        toast.error(
+          getApiErrorMessage(err, 'Incorrect or expired OTP. Request a new OTP and try again.'),
+        );
       } else if (status === 409) {
         toast.error(
           getApiErrorMessage(
@@ -234,6 +239,8 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
             'This email or phone is already registered. Sign in or use different details.',
           ),
         );
+      } else if (status === 400) {
+        toast.error(getApiErrorMessage(err, 'Check your details and documents, then try again.'));
       } else {
         toast.error(getApiErrorMessage(err, 'Submission failed. Please try again.'));
       }
@@ -488,17 +495,6 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
                 </button>
               )}
             </p>
-            <button
-              type="button"
-              onClick={() => {
-                setStep('details');
-                setOtpCells(['', '', '', '', '', '']);
-                setResendSeconds(0);
-              }}
-              className="w-full text-center text-ev-subtle text-sm hover:text-ev-muted"
-            >
-              ← Edit application
-            </button>
           </form>
         )}
 

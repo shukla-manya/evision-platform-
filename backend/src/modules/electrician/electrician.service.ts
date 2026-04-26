@@ -12,6 +12,7 @@ import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { EmailService } from '../emails/email.service';
 import { RegisterElectricianDto } from './dto/register-electrician.dto';
 import { PushService } from '../push/push.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class ElectricianService {
@@ -22,6 +23,7 @@ export class ElectricianService {
     private email: EmailService,
     private config: ConfigService,
     private push: PushService,
+    private auth: AuthService,
   ) {}
 
   private table() {
@@ -117,6 +119,8 @@ export class ElectricianService {
     if (userAtEmail[0]) {
       throw new ConflictException('This email is already registered for a shopper account');
     }
+
+    await this.auth.consumeRegistrationOtp(dto.phone, dto.otp);
 
     const id = uuidv4();
     const rawPwd = dto.password?.trim();

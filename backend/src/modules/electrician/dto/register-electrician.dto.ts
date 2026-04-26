@@ -1,5 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Allow, IsEmail, IsNumberString, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import {
+  Allow,
+  IsEmail,
+  IsNumberString,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+  MinLength,
+} from 'class-validator';
 
 export class RegisterElectricianDto {
   @ApiProperty({ example: 'Ravi Kumar' })
@@ -11,6 +20,12 @@ export class RegisterElectricianDto {
   @IsString()
   @Matches(/^\+[1-9]\d{9,14}$/, { message: 'Phone must be E.164 format' })
   phone: string;
+
+  @ApiProperty({ example: '482931', description: '6-digit OTP from POST /auth/send-otp for this phone' })
+  @IsString()
+  @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
+  @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
+  otp: string;
 
   @ApiProperty({ example: 'ravi.electrician@example.com' })
   @IsEmail()

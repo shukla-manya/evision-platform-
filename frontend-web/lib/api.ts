@@ -11,6 +11,16 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = Cookies.get('ev_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  // Default instance header is application/json. For FormData, axios would otherwise
+  // JSON-serialize the payload (see axios transformRequest) and uploads would be empty.
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    if (typeof config.headers.delete === 'function') {
+      config.headers.delete('Content-Type');
+    } else {
+      delete (config.headers as Record<string, unknown>)['Content-Type'];
+      delete (config.headers as Record<string, unknown>)['content-type'];
+    }
+  }
   return config;
 });
 

@@ -597,7 +597,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     if (role === 'shop_owner') return;
     try {
       setSendingOtp(true);
-      if (role === 'customer' || role === 'dealer') {
+      if (role === 'customer' || role === 'dealer' || role === 'electrician') {
         await authApi.sendOtp(normalizePhone(phone), {
           purpose: 'signup',
           email: email.trim().toLowerCase(),
@@ -708,9 +708,15 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
           );
           return;
         }
+        const otpDigits = otp.replace(/\D/g, '');
+        if (otpDigits.length !== 6) {
+          Alert.alert('OTP required', 'Enter the 6-digit code sent to your phone, or tap Send OTP first.');
+          return;
+        }
         const fd = new FormData();
         fd.append('name', name.trim());
         fd.append('phone', normalizePhone(phone));
+        fd.append('otp', otpDigits);
         fd.append('email', email.trim().toLowerCase());
         fd.append('lat', String(coords.lat));
         fd.append('lng', String(coords.lng));
@@ -763,7 +769,18 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         phone: payload.phone ? String(payload.phone) : undefined,
       });
     } catch (err) {
-      Alert.alert('Error', asApiError(err, 'Registration failed.'));
+      const axiosErr = err as AxiosError<{ message?: string | string[] }>;
+      const status = axiosErr?.response?.status;
+      const msg = asApiError(err, 'Registration failed.');
+      if (status === 401) {
+        Alert.alert('OTP', msg);
+      } else if (status === 409) {
+        Alert.alert('Already registered', msg);
+      } else if (status === 400) {
+        Alert.alert('Check your details', msg);
+      } else {
+        Alert.alert('Error', msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -997,7 +1014,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
               />
             </>
           )}
-          {role !== 'electrician' && role !== 'shop_owner' && (
+          {role !== 'shop_owner' && (
             <>
               <TextInput
                 style={styles.input}

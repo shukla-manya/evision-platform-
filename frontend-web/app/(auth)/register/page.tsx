@@ -666,18 +666,6 @@ export default function RegisterPage() {
                           </button>
                         )}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRegisterStep('details');
-                          setRegisterOtpCells(['', '', '', '', '', '']);
-                          setResendSeconds(0);
-                          setOtpAttemptsLeft(OTP_ATTEMPTS);
-                        }}
-                        className="w-full text-center text-ev-subtle text-sm hover:text-ev-muted"
-                      >
-                        ← Edit details
-                      </button>
                     </form>
 
                     <p className="text-center text-ev-subtle text-sm mt-6">

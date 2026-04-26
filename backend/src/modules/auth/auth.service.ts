@@ -587,6 +587,11 @@ export class AuthService {
     await this.dynamo.delete(this.dynamo.tableName('otps'), { phone });
   }
 
+  /** Used by technician self-registration: validate and delete OTP in one step with multipart submit. */
+  async consumeRegistrationOtp(phone: string, otp: string): Promise<void> {
+    await this.consumeOtp(phone, otp);
+  }
+
   async replaceAddressBook(
     userId: string,
     addresses: AddressBookEntryDto[],
