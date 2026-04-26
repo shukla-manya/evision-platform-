@@ -108,7 +108,7 @@ export class ElectricianController {
   })
   @ApiOperation({
     summary:
-      'Electrician self-registration with Aadhar + photo upload to S3 (status=pending)',
+      'Electrician self-registration; optional Aadhar + photo upload to S3 (status=pending)',
   })
   @UseInterceptors(
     FileFieldsInterceptor([

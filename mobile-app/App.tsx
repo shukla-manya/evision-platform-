@@ -583,8 +583,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
       }
     }
     if (role === 'electrician') {
-      if (!skills.trim() || !aadharAsset || !photoAsset) {
-        return 'Enter your skills and upload Aadhar and profile photo before requesting OTP.';
+      if (!skills.trim()) {
+        return 'Enter your skills before requesting OTP.';
       }
       if (!deliveryCity.trim() || !/^\d{6}$/.test(deliveryPincode.replace(/\D/g, ''))) {
         return 'Enter service city and a valid 6-digit pincode.';
@@ -601,8 +601,6 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     deliveryPincode,
     gstNo,
     skills,
-    aadharAsset,
-    photoAsset,
   ]);
 
   const registrationOtpReady = getRegisterOtpError() === null;
@@ -741,21 +739,9 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
       Alert.alert('Address required', 'Enter your delivery address.');
       return;
     }
-    if (role === 'electrician') {
-      if (!aadharAsset || !photoAsset) {
-        Alert.alert('Documents required', 'Aadhar and profile photo are required for technician registration.');
-        return;
-      }
-    }
     try {
       setLoading(true);
       if (role === 'electrician') {
-        const aadhar = aadharAsset;
-        const photo = photoAsset;
-        if (!aadhar || !photo) {
-          Alert.alert('Documents required', 'Aadhar and profile photo are required for technician registration.');
-          return;
-        }
         const coords = deliveryCachedGpsRef.current ?? await resolveRegistrationCoordinates(deliveryCity, pin6);
         const otpDigits = otp.replace(/\D/g, '');
         if (otpDigits.length !== 6) {
@@ -774,16 +760,20 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         const addressLine = [address.trim() || null, `${deliveryCity.trim()}, ${pin6}, India`].filter(Boolean).join(' · ');
         fd.append('address', addressLine);
         if (skills.trim()) fd.append('skills', skills.trim());
-        fd.append('aadhar', {
-          uri: aadhar.uri,
-          name: aadhar.fileName || `aadhar-${Date.now()}.jpg`,
-          type: aadhar.mimeType || 'image/jpeg',
-        } as never);
-        fd.append('photo', {
-          uri: photo.uri,
-          name: photo.fileName || `photo-${Date.now()}.jpg`,
-          type: photo.mimeType || 'image/jpeg',
-        } as never);
+        if (aadharAsset) {
+          fd.append('aadhar', {
+            uri: aadharAsset.uri,
+            name: aadharAsset.fileName || `aadhar-${Date.now()}.jpg`,
+            type: aadharAsset.mimeType || 'image/jpeg',
+          } as never);
+        }
+        if (photoAsset) {
+          fd.append('photo', {
+            uri: photoAsset.uri,
+            name: photoAsset.fileName || `photo-${Date.now()}.jpg`,
+            type: photoAsset.mimeType || 'image/jpeg',
+          } as never);
+        }
         await electricianRegisterApi.register(fd);
         Alert.alert(
           'Registration submitted',
@@ -1004,7 +994,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                     onPress={async () => setAadharAsset(await pickImageAsset('Aadhar document'))}
                   >
                     <Text style={styles.buttonSecondaryText}>
-                      {aadharAsset ? `Aadhar: ${aadharAsset.fileName || 'selected'}` : 'Upload Aadhar document'}
+                      {aadharAsset ? `Aadhar: ${aadharAsset.fileName || 'selected'}` : 'Upload Aadhar document (optional)'}
                     </Text>
                   </Pressable>
                   <Pressable
@@ -1013,7 +1003,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                     onPress={async () => setPhotoAsset(await pickImageAsset('profile photo'))}
                   >
                     <Text style={styles.buttonSecondaryText}>
-                      {photoAsset ? `Photo: ${photoAsset.fileName || 'selected'}` : 'Upload profile photo'}
+                      {photoAsset ? `Photo: ${photoAsset.fileName || 'selected'}` : 'Upload profile photo (optional)'}
                     </Text>
                   </Pressable>
                 </>

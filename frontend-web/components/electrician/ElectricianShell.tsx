@@ -42,8 +42,8 @@ function PendingApprovalView() {
         </div>
         <h1 className="text-xl font-bold text-ev-text">Application under review</h1>
         <p className="text-ev-muted text-sm leading-relaxed">
-          Your profile and Aadhar card have been submitted to our team. We&apos;ll review your documents and get back to
-          you within 24 hours.
+          Your technician application has been submitted to our team. We&apos;ll review it and get back to you within
+          24 hours.
         </p>
         <p className="text-ev-subtle text-sm leading-relaxed">
           You&apos;ll receive an email and a notification here as soon as your account is approved.

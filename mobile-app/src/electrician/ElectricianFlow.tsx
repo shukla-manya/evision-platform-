@@ -482,7 +482,7 @@ export function ElectricianFlow({
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Application under review</Text>
           <Text style={styles.meta}>
-            Your profile and Aadhar card have been submitted. Our team will review your documents and get back to you within 24 hours.
+            Your technician application has been submitted. Our team will review it and get back to you within 24 hours.
           </Text>
           <Text style={styles.meta}>
             You will receive an email and notification once your account is approved.

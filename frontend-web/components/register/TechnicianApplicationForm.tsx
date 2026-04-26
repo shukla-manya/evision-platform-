@@ -112,9 +112,8 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     }
     const y = Number(techExperience.trim());
     if (y < 0 || y > 60) return 'Years of experience must be between 0 and 60';
-    if (!aadharFile || !photoFile) return 'Upload your Aadhar document and your photo';
     return null;
-  }, [techName, phoneLast10.length, techEmail, techCity, techPin, techSkills, techExperience, aadharFile, photoFile]);
+  }, [techName, phoneLast10.length, techEmail, techCity, techPin, techSkills, techExperience]);
 
   const validateCompleteTechnicianForm = useCallback((): boolean => {
     const err = getTechnicianFieldError();
@@ -197,12 +196,12 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
         fd.append('lng', String(coords.lng));
       }
       fd.append('skills', skillsCsv);
-      fd.append('aadhar', aadharFile!);
-      fd.append('photo', photoFile!);
+      if (aadharFile) fd.append('aadhar', aadharFile);
+      if (photoFile) fd.append('photo', photoFile);
 
       await registerElectricianFormData(fd);
       toast.success(
-        "Application submitted! Our team will review your Aadhar and profile within 24 hours. You'll receive an email and app notification once approved.",
+        "Application submitted! Our team will review your application within 24 hours. You'll receive an email and app notification once approved.",
       );
       router.push('/login');
     } catch (err: unknown) {
@@ -378,10 +377,10 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
             </div>
 
             <div>
-              <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider mb-3">Documents</p>
+              <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider mb-3">Documents (optional)</p>
               <div className="space-y-5">
                 <div>
-                  <span className="ev-label">Aadhar card photo</span>
+                  <span className="ev-label">Aadhar card photo (optional)</span>
                   <p className="text-ev-subtle text-xs mt-0.5 mb-2">JPG or PDF</p>
                   <label className="mt-2 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-ev-border bg-ev-surface2 px-4 py-8 cursor-pointer hover:border-ev-primary/50 transition-colors relative">
                     <Upload size={22} className="text-ev-muted" />
@@ -398,7 +397,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
                 </div>
 
                 <div>
-                  <span className="ev-label">Your photo / selfie</span>
+                  <span className="ev-label">Your photo / selfie (optional)</span>
                   <label className="mt-2 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-ev-border bg-ev-surface2 px-4 py-8 cursor-pointer hover:border-ev-primary/50 transition-colors relative">
                     <Upload size={22} className="text-ev-muted" />
                     <span className="text-sm text-ev-muted text-center px-2">
