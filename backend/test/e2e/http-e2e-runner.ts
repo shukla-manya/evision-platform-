@@ -15,11 +15,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import { AppModule } from '../../src/app.module';
-import { EmailService } from '../../src/modules/emails/email.service';
-import { S3Service } from '../../src/common/s3/s3.service';
-import { PushService } from '../../src/modules/push/push.service';
-import { ServiceService } from '../../src/modules/service/service.service';
 import { ensureEvisionDynamoTables } from '../../src/seeds/dynamo-tables.setup';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -29,7 +24,10 @@ function razorpayClientSignature(orderId: string, paymentId: string, secret: str
   return createHmac('sha256', secret).update(`${orderId}|${paymentId}`).digest('hex');
 }
 
-function createEmailSpy(): { service: EmailService; triggers: string[] } {
+function createEmailSpy(): {
+  service: import('../../src/modules/emails/email.service').EmailService;
+  triggers: string[];
+} {
   const triggers: string[] = [];
   const service = new Proxy(
     {},
@@ -42,7 +40,7 @@ function createEmailSpy(): { service: EmailService; triggers: string[] } {
         };
       },
     },
-  ) as EmailService;
+  ) as import('../../src/modules/emails/email.service').EmailService;
   return { service, triggers };
 }
 
@@ -94,7 +92,7 @@ async function main() {
 
   const pdfFixture = await startPdfHttpServer();
   let uploadSeq = 0;
-  const s3Stub: Partial<S3Service> = {
+  const s3Stub: Partial<import('../../src/common/s3/s3.service').S3Service> = {
     upload: async () => {
       uploadSeq += 1;
       return `${pdfFixture.baseUrl}/invoice-${uploadSeq}.pdf`;
@@ -106,18 +104,27 @@ async function main() {
   };
 
   const emailSpy = createEmailSpy();
-  const pushStub: Partial<PushService> = {
+  const pushStub: Partial<import('../../src/modules/push/push.service').PushService> = {
     sendToToken: async () => undefined,
   };
+
+  const [{ AppModule }, { EmailService: EmailCls }, { S3Service: S3Cls }, { PushService: PushCls }, { ServiceService: ServiceCls }] =
+    await Promise.all([
+      import('../../src/app.module'),
+      import('../../src/modules/emails/email.service'),
+      import('../../src/common/s3/s3.service'),
+      import('../../src/modules/push/push.service'),
+      import('../../src/modules/service/service.service'),
+    ]);
 
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
   })
-    .overrideProvider(EmailService)
+    .overrideProvider(EmailCls)
     .useValue(emailSpy.service)
-    .overrideProvider(S3Service)
+    .overrideProvider(S3Cls)
     .useValue(s3Stub)
-    .overrideProvider(PushService)
+    .overrideProvider(PushCls)
     .useValue(pushStub)
     .compile();
 
@@ -324,6 +331,31 @@ async function main() {
     );
     assert.ok((invScan.Items || []).length >= 1);
     assert.ok(emailSpy.triggers.includes('sendInvoiceGenerated'));
+
+    const adminBJwt = adminToken(adminB, `b-${adminB}@e2e.invalid`);
+    const listB = await request(app.getHttpServer()).get('/admin/orders').set('Authorization', `Bearer ${adminBJwt}`).expect(200);
+    const orderBId = (listB.body as any[]).find((o) => String(o.admin_id) === adminB)?.id as string;
+    assert.ok(orderBId);
+    const shipB = await request(app.getHttpServer())
+      .post(`/admin/orders/${orderBId}/ship`)
+      .set('Authorization', `Bearer ${adminBJwt}`)
+      .send({ weight: 0.5 })
+      .expect(201);
+    const awbB = String((shipB.body as any).awb_number || '');
+    assert.match(awbB, /^MOCKAWB/);
+    await request(app.getHttpServer())
+      .post('/webhooks/shiprocket')
+      .set('x-api-key', 'e2e-wh-token')
+      .send({ awb: awbB, current_status: 'delivered' })
+      .expect(201);
+    const invB = await docClient.send(
+      new ScanCommand({
+        TableName: 'evision_invoices',
+        FilterExpression: 'order_id = :oid',
+        ExpressionAttributeValues: { ':oid': orderBId },
+      }),
+    );
+    assert.ok((invB.Items || []).length >= 1);
   }
 
   console.log('[e2e] payment failure');
@@ -541,7 +573,20 @@ async function main() {
       .set('Authorization', `Bearer ${ej}`)
       .send({ action: 'accept' })
       .expect(200);
-    for (const st of ['on_the_way', 'reached', 'work_started', 'completed'] as const) {
+    for (const st of ['on_the_way'] as const) {
+      await request(app.getHttpServer())
+        .put(`/electrician/job/${bookingId}/status`)
+        .set('Authorization', `Bearer ${ej}`)
+        .send({ status: st })
+        .expect(200);
+    }
+    const live = await request(app.getHttpServer())
+      .get(`/service/booking/${bookingId}`)
+      .set('Authorization', `Bearer ${cj}`)
+      .expect(200);
+    assert.equal(String((live.body as any).booking?.job_status), 'on_the_way');
+    assert.ok((live.body as any).electrician?.id);
+    for (const st of ['reached', 'work_started', 'completed'] as const) {
       await request(app.getHttpServer())
         .put(`/electrician/job/${bookingId}/status`)
         .set('Authorization', `Bearer ${ej}`)
@@ -702,7 +747,7 @@ async function main() {
         },
       }),
     );
-    const svc = app.get(ServiceService);
+    const svc = app.get(ServiceCls);
     const r = await svc.expirePendingBookings();
     assert.ok(r.expired >= 1);
     const b = await docClient.send(
@@ -842,6 +887,19 @@ async function main() {
       }),
     );
     assert.equal((u.Items || [])[0]?.gst_verified, true);
+
+    const reviewsRes = await request(app.getHttpServer())
+      .get('/superadmin/reviews')
+      .set('Authorization', `Bearer ${sa}`)
+      .expect(200);
+    const reviewRows = reviewsRes.body as { id?: string }[];
+    const anyReview = reviewRows.find((r) => typeof r?.id === 'string');
+    if (anyReview?.id) {
+      await request(app.getHttpServer())
+        .delete(`/superadmin/reviews/${anyReview.id}`)
+        .set('Authorization', `Bearer ${sa}`)
+        .expect(200);
+    }
   }
 
   await app.close();
