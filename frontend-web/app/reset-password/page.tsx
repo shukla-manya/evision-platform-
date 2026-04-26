@@ -26,11 +26,7 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const queryRole = new URLSearchParams(window.location.search).get('role');
-    const allowed = PASSWORD_RESET_ROLE_OPTIONS.map((o) => o.value);
-    if (queryRole && allowed.includes(queryRole as ResetRole)) {
-      setRole(queryRole as ResetRole);
-    }
+    setRole('admin');
   }, []);
 
   async function startReset(e: React.FormEvent) {

@@ -29,12 +29,11 @@ export function roleDisplayLabel(role: string | undefined | null): string {
     .join(' ');
 }
 
-/** Roles that support SMS password reset (API values). */
-export type PasswordResetApiRole = 'electrician' | 'admin';
+/** Shop admins reset password via SMS OTP; technicians sign in with OTP only (no password on web). */
+export type PasswordResetApiRole = 'admin';
 
 export const PASSWORD_RESET_ROLE_OPTIONS: { value: PasswordResetApiRole; label: string }[] = [
-  { value: 'admin', label: 'Admin' },
-  { value: 'electrician', label: 'Technician' },
+  { value: 'admin', label: 'Shop admin' },
 ];
 
 /** Public self-serve registration tabs (technician = electrician in API). */
