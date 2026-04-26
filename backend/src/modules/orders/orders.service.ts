@@ -363,10 +363,15 @@ export class OrdersService {
     return updated;
   }
 
-  /** Called by ShiprocketWebhookController on each status update */
+  /** Called by OrdersWebhookController: POST /webhooks/shiprocket (x-api-key or x-shiprocket-token). */
   async handleShiprocketWebhook(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
     const awb = String(payload.awb || payload.awb_code || '');
-    const rawStatus = String(payload.current_status || payload.status || '').toLowerCase().trim();
+    const rawStatus = String(payload.current_status || payload.status || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
     const statusMap: Record<string, string> = {
       'picked up': 'picked_up',

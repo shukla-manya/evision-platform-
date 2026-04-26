@@ -94,4 +94,65 @@ describe('OrdersService', () => {
       expect(subs[0].shop_name).toBe('Test Shop');
     });
   });
+
+  describe('handleShiprocketWebhook', () => {
+    it('maps underscore and hyphen status strings to internal stages', async () => {
+      const orderId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+      const sendStage = jest.fn().mockResolvedValue(undefined);
+      const findAwb = jest.fn().mockResolvedValue({
+        id: orderId,
+        user_id: 'u1',
+        status: 'shipment_created',
+        courier_name: 'TestCourier',
+      });
+      const dynamo = {
+        tableName: jest.fn((name: string) => `t_${name}`),
+        update: jest.fn().mockResolvedValue({}),
+        get: jest.fn().mockResolvedValue({ email: 'c@test.local', name: 'C' }),
+        query: jest.fn(),
+        queryOne: jest.fn(),
+        put: jest.fn(),
+      } as unknown as DynamoService;
+
+      const svc = new OrdersService(
+        dynamo,
+        { sendOrderStageUpdate: sendStage } as unknown as EmailService,
+        { findOrderByAwb: findAwb } as unknown as ShiprocketService,
+        {} as S3Service,
+        { sendToToken: jest.fn().mockResolvedValue(undefined) } as unknown as PushService,
+      );
+
+      const res = await svc.handleShiprocketWebhook({
+        awb_code: 'AWB123',
+        current_status: 'IN_TRANSIT',
+      });
+      expect(res).toMatchObject({ ok: true, order_id: orderId, status: 'in_transit' });
+      expect(findAwb).toHaveBeenCalledWith('AWB123');
+      expect(sendStage).toHaveBeenCalledWith(
+        'c@test.local',
+        expect.objectContaining({ stage: 'in_transit', orderId }),
+      );
+    });
+
+    it('ignores statuses outside the actionable map', async () => {
+      const dynamo = {
+        tableName: jest.fn((name: string) => `t_${name}`),
+        update: jest.fn(),
+        get: jest.fn(),
+      } as unknown as DynamoService;
+      const svc = new OrdersService(
+        dynamo,
+        {} as EmailService,
+        { findOrderByAwb: jest.fn() } as unknown as ShiprocketService,
+        {} as S3Service,
+        {} as PushService,
+      );
+      const res = await svc.handleShiprocketWebhook({
+        awb_code: 'AWB123',
+        current_status: 'manifested',
+      });
+      expect(res).toEqual(expect.objectContaining({ ok: true, ignored: true }));
+      expect(dynamo.update).not.toHaveBeenCalled();
+    });
+  });
 });
