@@ -71,6 +71,7 @@ import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 import { EvisionLogo } from './src/components/EvisionLogo';
 import { screenGutter } from './src/theme/layout';
 import { publicWebUrl } from './src/config/publicWeb';
+import { ACCOUNT_ROLES_SUMMARY, PASSWORD_RESET_ROLE_OPTIONS } from './src/lib/userRoles';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
 
@@ -472,7 +473,7 @@ const REGISTER_ROLE_TABS: { value: RegisterInitialRole; label: string }[] = [
   { value: 'customer', label: 'Customer' },
   { value: 'dealer', label: 'Dealer' },
   { value: 'electrician', label: 'Technician' },
-  { value: 'shop_owner', label: 'Shop owner' },
+  { value: 'shop_owner', label: 'Admin' },
 ];
 
 function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<RootStackParamList, 'Register'>; navigation: any; onLoggedIn: (token: string, user: AppUser) => void }) {
@@ -752,7 +753,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Create account</Text>
           <Text style={styles.subtitle}>
-            Customer · Dealer · Technician · Shop owner — same app, your dashboard matches your role after sign-in.
+            {ACCOUNT_ROLES_SUMMARY} — same app; your dashboard matches your role after sign-in. Admin tab is shop
+            registration; Superadmin is provisioned separately.
           </Text>
           <View style={styles.roleRow}>
             {REGISTER_ROLE_TABS.map(({ value, label }) => (
@@ -1040,26 +1042,23 @@ function PasswordResetScreen({
     }
   };
 
-  const roleOptions: PasswordResetRole[] = ['electrician', 'admin'];
-
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.listPad}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Reset Password</Text>
           <Text style={styles.subtitle}>
-            Shop admin or technician only. Enter the mobile number on your account; we text a 6-digit OTP — no email reset.
+            Admin and Technician (password accounts) only. We SMS a 6-digit OTP to the mobile on your account — not
+            email. Customer and Dealer use OTP sign-in; Superadmin uses the web sign-in flow.
           </Text>
           <View style={styles.roleRow}>
-            {roleOptions.map((option) => (
+            {PASSWORD_RESET_ROLE_OPTIONS.map(({ value, label }) => (
               <Pressable
-                key={option}
-                onPress={() => setRole(option)}
-                style={[styles.roleChip, role === option && styles.roleChipActive]}
+                key={value}
+                onPress={() => setRole(value)}
+                style={[styles.roleChip, role === value && styles.roleChipActive]}
               >
-                <Text style={[styles.roleChipText, role === option && styles.roleChipTextActive]}>
-                  {option}
-                </Text>
+                <Text style={[styles.roleChipText, role === value && styles.roleChipTextActive]}>{label}</Text>
               </Pressable>
             ))}
           </View>

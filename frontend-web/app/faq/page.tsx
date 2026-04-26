@@ -5,6 +5,7 @@ import { PublicShell } from '@/components/public/PublicShell';
 import { FaqShopAdminSigninAnswer } from '@/components/public/FaqShopAdminSigninAnswer';
 import { publicBrandName } from '@/lib/public-brand';
 import { publicLoginPath, publicRegisterPath } from '@/lib/public-links';
+import { ACCOUNT_ROLES_SUMMARY } from '@/lib/user-roles';
 
 export const metadata: Metadata = {
   title: `FAQs — ${publicBrandName}`,

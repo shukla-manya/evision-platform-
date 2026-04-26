@@ -16,6 +16,7 @@ import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { orderNeedsShipment } from '@/lib/admin-orders';
+import { roleDisplayLabel } from '@/lib/user-roles';
 
 type AdminMe = {
   shop_name?: string;
@@ -407,10 +408,15 @@ export default function AdminDashboardPage() {
                   ) : (
                     shipRows.map(({ list: o, detail }) => {
                       const cust = detail?.customer;
-                      const role = String(cust?.role || '').toLowerCase();
+                      const role = String(cust?.role || '').trim();
                       const buyerName = cust?.name || cust?.email || 'Customer';
+                      const roleLabel = role ? roleDisplayLabel(role) : 'Customer';
                       const buyer =
-                        role === 'dealer' && cust?.name ? `Dealer: ${cust.name}` : buyerName;
+                        role === 'dealer' && cust?.name
+                          ? `${roleLabel}: ${cust.name}`
+                          : role && role !== 'customer' && cust?.name
+                            ? `${roleLabel}: ${cust.name}`
+                            : buyerName;
                       const items = detail?.items?.length
                         ? detail.items
                             .map((it) => `${it.product_name ?? 'Item'} ×${it.quantity ?? 1}`)

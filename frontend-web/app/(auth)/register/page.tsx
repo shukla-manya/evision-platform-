@@ -13,6 +13,7 @@ import { publicBrandName } from '@/lib/public-brand';
 import { OtpCells } from '@/components/auth/OtpCells';
 import { getBrowserGeolocation, resolveRegistrationCoordinates, reverseGeocodeIndia } from '@/lib/registration-geo';
 import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
+import { ACCOUNT_ROLES_SUMMARY, REGISTER_SELF_SERVE_TABS } from '@/lib/user-roles';
 
 type AccountTab = 'customer' | 'dealer' | 'technician';
 type RegisterStep = 'details' | 'otp';
@@ -307,10 +308,17 @@ export default function RegisterPage() {
           <p className="text-ev-muted text-sm mt-1 max-w-md mx-auto leading-relaxed">
             Choose your account type to get started
           </p>
+          <p className="text-ev-muted text-xs mt-3 max-w-md mx-auto leading-relaxed">
+            {ACCOUNT_ROLES_SUMMARY}. Register here as customer, dealer, or technician.{' '}
+            <Link href="/admin/register" className="text-ev-primary font-medium underline-offset-2 hover:underline">
+              Admin
+            </Link>{' '}
+            (shop) sign-up is separate; Superadmin access is provisioned separately.
+          </p>
         </div>
 
         <div className="ev-card p-1 flex flex-col sm:flex-row gap-1 mb-6">
-          {(['customer', 'dealer', 'technician'] as const).map((key) => (
+          {REGISTER_SELF_SERVE_TABS.map(({ key, label }) => (
             <button
               key={key}
               type="button"
@@ -325,7 +333,7 @@ export default function RegisterPage() {
                 accountTab === key ? 'bg-ev-primary text-white shadow-ev-glow' : 'text-ev-muted hover:text-ev-text'
               }`}
             >
-              {key === 'customer' ? 'Customer' : key === 'dealer' ? 'Dealer' : 'Technician'}
+              {label}
             </button>
           ))}
         </div>

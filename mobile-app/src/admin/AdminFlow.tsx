@@ -22,6 +22,7 @@ import { PublicWebsiteLinks } from '../components/PublicWebsiteLinks';
 import { colors } from '../theme/colors';
 import { screenGutter } from '../theme/layout';
 import { statusColor } from '../theme/status';
+import { roleDisplayLabel } from '../lib/userRoles';
 
 type AdminStackParamList = {
   Dashboard: undefined;
@@ -965,7 +966,7 @@ function OrderDetailScreen({ route, navigation }: any) {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Customer</Text>
+          <Text style={styles.cardTitle}>Buyer</Text>
           <View style={{ marginTop: 10, gap: 10 }}>
             <View>
               <Text style={styles.kicker}>Name</Text>
@@ -973,7 +974,9 @@ function OrderDetailScreen({ route, navigation }: any) {
             </View>
             <View>
               <Text style={styles.kicker}>Role</Text>
-              <Text style={styles.cardMeta}>{String(order.customer?.role || '—')}</Text>
+              <Text style={styles.cardMeta}>
+                {order.customer?.role ? roleDisplayLabel(String(order.customer.role)) : '—'}
+              </Text>
             </View>
             <View>
               <Text style={styles.kicker}>Email</Text>

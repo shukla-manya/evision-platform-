@@ -7,10 +7,9 @@ import toast from 'react-hot-toast';
 import { PasswordInputWithToggle } from '@/components/auth/PasswordInputWithToggle';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
+import { PASSWORD_RESET_ROLE_OPTIONS, type PasswordResetApiRole } from '@/lib/user-roles';
 
-type ResetRole = 'electrician' | 'admin';
-
-const ROLES: ResetRole[] = ['electrician', 'admin'];
+type ResetRole = PasswordResetApiRole;
 
 function normalizePhone(phone: string) {
   const trimmed = phone.trim();
@@ -28,7 +27,8 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const queryRole = new URLSearchParams(window.location.search).get('role');
-    if (queryRole && ROLES.includes(queryRole as ResetRole)) {
+    const allowed = PASSWORD_RESET_ROLE_OPTIONS.map((o) => o.value);
+    if (queryRole && allowed.includes(queryRole as ResetRole)) {
       setRole(queryRole as ResetRole);
     }
   }, []);
@@ -69,7 +69,10 @@ export default function ResetPasswordPage() {
         <div className="ev-card p-8">
           <h1 className="text-2xl font-bold text-ev-text mb-1">Reset password</h1>
           <p className="text-ev-muted text-sm mb-6">
-            Shop admins and technicians only. We send a 6-digit code by SMS to the <strong className="text-ev-text">mobile number on your account</strong> — not email. Customers and dealers sign in with OTP only and have no password here.
+            <strong className="text-ev-text">Admin</strong> and <strong className="text-ev-text">Technician</strong>{' '}
+            (password accounts) only. We SMS a 6-digit code to the <strong className="text-ev-text">mobile on your account</strong>{' '}
+            — not email. <strong className="text-ev-text">Customer</strong> and <strong className="text-ev-text">Dealer</strong>{' '}
+            sign in with OTP only; <strong className="text-ev-text">Superadmin</strong> uses the dedicated sign-in page.
           </p>
 
           {step === 'start' ? (
@@ -81,9 +84,9 @@ export default function ResetPasswordPage() {
                   value={role}
                   onChange={(e) => setRole(e.target.value as ResetRole)}
                 >
-                  {ROLES.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
+                  {PASSWORD_RESET_ROLE_OPTIONS.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
                     </option>
                   ))}
                 </select>

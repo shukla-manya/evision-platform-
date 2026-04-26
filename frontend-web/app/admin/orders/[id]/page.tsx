@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { ADMIN_SHIPPABLE_STATUSES } from '@/lib/admin-orders';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { roleDisplayLabel } from '@/lib/user-roles';
 
 type OrderItem = {
   id: string;
@@ -82,8 +83,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   );
 
   const buyerType = useMemo(() => {
-    const r = String(order?.customer?.role || '').toLowerCase();
-    return r === 'dealer' ? 'Dealer' : 'Customer';
+    const r = String(order?.customer?.role || '').trim();
+    if (!r) return 'Customer';
+    return roleDisplayLabel(r);
   }, [order]);
 
   const load = useCallback(async () => {
