@@ -81,8 +81,8 @@ export function PublicNavbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 ev-header border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 min-h-16 flex items-center gap-3 py-2">
+    <header className="sticky top-0 z-50 ev-header border-b border-white/10 pt-[env(safe-area-inset-top)]">
+      <div className="mx-auto flex min-h-14 max-w-7xl items-center gap-3 px-4 py-2 sm:min-h-16 sm:px-6">
         <Link href="/" className="flex items-center gap-2 shrink-0 min-w-0">
           <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
             <Camera size={18} className="text-white" />
