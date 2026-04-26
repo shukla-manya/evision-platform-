@@ -128,9 +128,15 @@ export default function HomePage() {
             <p className="text-ev-muted text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
               Shop from 4 expert stores. Exclusive prices for dealers. Expert technician services at your doorstep.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
               <Link href="/shop" className="ev-btn-primary inline-flex items-center justify-center gap-2 text-base py-3.5 px-8">
                 Shop Now <ArrowRight size={18} />
+              </Link>
+              <Link
+                href="/shop"
+                className="ev-btn-secondary inline-flex items-center justify-center gap-2 text-base py-3.5 px-8"
+              >
+                See all <ChevronRight size={18} aria-hidden />
               </Link>
             </div>
           </div>
@@ -148,10 +154,10 @@ export default function HomePage() {
             </div>
             <Link
               href="/shop"
-              className="inline-flex items-center gap-1 self-start text-sm font-semibold text-ev-primary hover:text-ev-primary-dark transition-colors group shrink-0"
+              className="ev-btn-secondary inline-flex items-center justify-center gap-2 text-sm py-2.5 px-5 self-start sm:self-auto shrink-0 shadow-ev-sm"
             >
               See all
-              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+              <ChevronRight className="w-4 h-4" aria-hidden />
             </Link>
           </div>
 
@@ -263,7 +269,7 @@ export default function HomePage() {
         )}
         <div className="text-center mt-10">
           <Link href="/shop" className="ev-btn-primary inline-flex items-center justify-center gap-2 text-base py-3 px-8">
-            View all products <ArrowRight size={16} />
+            See all <ArrowRight size={16} aria-hidden />
           </Link>
         </div>
       </section>
