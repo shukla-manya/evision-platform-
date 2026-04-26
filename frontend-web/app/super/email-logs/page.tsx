@@ -88,7 +88,7 @@ export default function EmailDeliveryHistoryPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 my-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 my-8">
           <div>
             <label className="text-xs text-ev-muted block mb-1">Date from</label>
             <input type="date" className="ev-input py-2 text-sm" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
@@ -98,11 +98,31 @@ export default function EmailDeliveryHistoryPage() {
             <input type="date" className="ev-input py-2 text-sm" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           </div>
           <div>
-            <label className="text-xs text-ev-muted block mb-1">Trigger type</label>
+            <label className="text-xs text-ev-muted block mb-1">Trigger (quick)</label>
+            <select
+              className="ev-input py-2 text-sm"
+              value={triggerPresetSelectValue(event)}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === '') setEvent('');
+                else if (v !== 'custom') setEvent(v);
+              }}
+            >
+              <option value="">Any trigger</option>
+              {EMAIL_TRIGGER_PRESETS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+              <option value="custom">Custom…</option>
+            </select>
+          </div>
+          <div className="xl:col-span-2">
+            <label className="text-xs text-ev-muted block mb-1">Trigger (exact text)</label>
             <input
               type="text"
-              className="ev-input py-2 text-sm"
-              placeholder="e.g. admin_approved"
+              className="ev-input py-2 text-sm font-mono"
+              placeholder="e.g. service_review_prompt"
               value={event}
               onChange={(e) => setEvent(e.target.value)}
             />
@@ -114,6 +134,7 @@ export default function EmailDeliveryHistoryPage() {
               <option value="superadmin">superadmin</option>
               <option value="admin">admin</option>
               <option value="customer">customer</option>
+              <option value="dealer">dealer</option>
               <option value="electrician">electrician</option>
             </select>
           </div>
