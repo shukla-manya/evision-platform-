@@ -40,7 +40,7 @@ export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }:
 
   return (
     <div className="min-h-screen bg-ev-bg flex min-w-0">
-      <header className="lg:hidden fixed top-0 inset-x-0 z-20 flex h-14 min-h-14 items-center gap-3 border-b border-white/10 bg-ev-navbar/95 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md supports-[padding:max(0px)]:pt-[max(env(safe-area-inset-top),0.5rem)]">
+      <header className="lg:hidden fixed top-0 inset-x-0 z-20 flex h-14 min-h-14 items-center gap-3 border-b border-white/10 bg-ev-navbar/95 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md">
         <button
           type="button"
           className="rounded-lg p-2 text-white/90 -ml-1 hover:bg-white/10 shrink-0"

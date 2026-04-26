@@ -18,6 +18,7 @@ import {
 import { adminApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
 import { orderNeedsShipment } from '@/lib/admin-orders';
+import { ResponsiveSidebarShell } from '@/components/layout/ResponsiveSidebarShell';
 
 type AdminMe = {
   shop_name?: string;
