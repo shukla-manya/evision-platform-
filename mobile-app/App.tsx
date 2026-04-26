@@ -54,6 +54,7 @@ import {
 import { clearSession, getToken, setElectricianProfile, setToken } from './src/services/storage';
 import { PasswordInputWithToggle } from './src/components/PasswordInputWithToggle';
 import { PublicWebsiteLinks } from './src/components/PublicWebsiteLinks';
+import { SuperadminWebQueueLinks } from './src/components/SuperadminWebQueueLinks';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { openRazorpayCheckout } from './src/services/razorpay';
 import { TrackingScreen } from './src/screens/TrackingScreen';
@@ -226,6 +227,7 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
         <Pressable style={[styles.buttonSecondary, { marginTop: 20 }]} onPress={() => navigation.navigate('Register', {})}>
           <Text style={styles.buttonSecondaryText}>Create an account</Text>
         </Pressable>
+        <SuperadminWebQueueLinks />
         <PublicWebsiteLinks audience="signed_out" />
       </ScrollView>
     </SafeAreaView>
@@ -429,6 +431,7 @@ function AdminSignInScreen({
             <Text style={styles.buttonSecondaryText}>Register as shop owner</Text>
           </Pressable>
         </View>
+        <SuperadminWebQueueLinks />
         <PublicWebsiteLinks audience="signed_out" />
       </ScrollView>
     </SafeAreaView>
