@@ -528,6 +528,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   const [loading, setLoading] = useState(false);
   const [shopGeoLoading, setShopGeoLoading] = useState(false);
   const [deliveryGeoLoading, setDeliveryGeoLoading] = useState(false);
+  /** After OTP is sent (customer / dealer / technician), lock identity & address fields — same policy as web. */
+  const [registerDetailsLocked, setRegisterDetailsLocked] = useState(false);
 
   const deliveryPinSuggestSeq = useRef(0);
   useEffect(() => {
@@ -558,6 +560,10 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     }, 450);
     return () => clearTimeout(timer);
   }, [city, role]);
+
+  useEffect(() => {
+    setRegisterDetailsLocked(false);
+  }, [role]);
 
   const goToSignInHome = () => {
     navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Auth' }] }));
@@ -606,12 +612,15 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         await authApi.sendOtp(normalizePhone(phone));
       }
       Alert.alert('OTP sent', 'Use this OTP to complete registration.');
+      setRegisterDetailsLocked(true);
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'Failed to send OTP.'));
     } finally {
       setSendingOtp(false);
     }
   };
+
+  const lockReg = registerDetailsLocked && role !== 'shop_owner';
 
   const submit = async () => {
     if (role === 'shop_owner') {
@@ -903,7 +912,13 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
             </>
           ) : (
             <>
-              <TextInput style={styles.input} placeholder="Full name" value={name} onChangeText={setName} />
+              <TextInput
+                style={styles.input}
+                placeholder="Full name"
+                value={name}
+                onChangeText={setName}
+                editable={!lockReg}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -911,6 +926,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
+                editable={!lockReg}
               />
               <TextInput
                 style={styles.input}
@@ -919,6 +935,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 value={phone}
                 onChangeText={(t) => setPhone(t.replace(/\D/g, '').slice(0, 10))}
                 maxLength={10}
+                editable={!lockReg}
               />
               {role === 'dealer' && (
                 <TextInput
@@ -927,17 +944,32 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                   value={gstNo}
                   onChangeText={setGstNo}
                   autoCapitalize="characters"
+                  editable={!lockReg}
                 />
               )}
               {role === 'electrician' && (
                 <>
-                  <TextInput style={styles.input} placeholder="Skills (comma-separated)" value={skills} onChangeText={setSkills} />
-                  <Pressable style={styles.buttonSecondary} onPress={async () => setAadharAsset(await pickImageAsset('Aadhar document'))}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Skills (comma-separated)"
+                    value={skills}
+                    onChangeText={setSkills}
+                    editable={!lockReg}
+                  />
+                  <Pressable
+                    style={styles.buttonSecondary}
+                    disabled={lockReg}
+                    onPress={async () => setAadharAsset(await pickImageAsset('Aadhar document'))}
+                  >
                     <Text style={styles.buttonSecondaryText}>
                       {aadharAsset ? `Aadhar: ${aadharAsset.fileName || 'selected'}` : 'Upload Aadhar document'}
                     </Text>
                   </Pressable>
-                  <Pressable style={styles.buttonSecondary} onPress={async () => setPhotoAsset(await pickImageAsset('profile photo'))}>
+                  <Pressable
+                    style={styles.buttonSecondary}
+                    disabled={lockReg}
+                    onPress={async () => setPhotoAsset(await pickImageAsset('profile photo'))}
+                  >
                     <Text style={styles.buttonSecondaryText}>
                       {photoAsset ? `Photo: ${photoAsset.fileName || 'selected'}` : 'Upload profile photo'}
                     </Text>
@@ -948,7 +980,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 <>
                   <Pressable
                     style={[styles.buttonSecondary, deliveryGeoLoading && { opacity: 0.7 }]}
-                    disabled={deliveryGeoLoading}
+                    disabled={deliveryGeoLoading || lockReg}
                     onPress={async () => {
                       setDeliveryGeoLoading(true);
                       try {
@@ -984,7 +1016,13 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                     </Text>
                   </Pressable>
                   <Text style={styles.captionNote}>Or enter city, pincode, and street address manually below.</Text>
-                  <TextInput style={styles.input} placeholder="City" value={deliveryCity} onChangeText={setDeliveryCity} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="City"
+                    value={deliveryCity}
+                    onChangeText={setDeliveryCity}
+                    editable={!lockReg}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Pincode (6 digits)"
@@ -992,6 +1030,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                     maxLength={6}
                     value={deliveryPincode}
                     onChangeText={(t) => setDeliveryPincode(t.replace(/\D/g, '').slice(0, 6))}
+                    editable={!lockReg}
                   />
                   {role !== 'dealer' ? (
                     <Text style={styles.captionNote}>
@@ -1011,6 +1050,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 }
                 value={address}
                 onChangeText={setAddress}
+                editable={!lockReg}
               />
             </>
           )}
