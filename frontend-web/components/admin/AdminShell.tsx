@@ -120,7 +120,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         ) : null}
       </div>
-      <nav className="flex-1 min-h-0 p-3 space-y-0.5">
+      <nav className="p-3 space-y-0.5">
         {navItems.map(({ href, label, icon: Icon, badge }) => {
           const active =
             pathname === href || (href !== '/admin/dashboard' && pathname.startsWith(href + '/'));
@@ -148,7 +148,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           );
         })}
       </nav>
-      <div className="p-3 border-t ev-sidebar-border shrink-0 mt-auto">
+      <div className="p-3 border-t ev-sidebar-border shrink-0">
         <button
           type="button"
           onClick={() => {

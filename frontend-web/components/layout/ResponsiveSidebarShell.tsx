@@ -66,7 +66,7 @@ export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }:
       <aside
         id="app-sidebar-drawer"
         className={[
-          'ev-sidebar z-50 flex w-64 max-w-[min(18rem,calc(100vw-2.5rem))] flex-col border-r border-white/10',
+          'ev-sidebar z-50 flex flex-col w-64 max-w-[min(18rem,calc(100vw-2.5rem))] border-r border-white/10',
           'fixed inset-y-0 left-0 transition-transform duration-200 ease-out',
           'pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]',
           'lg:translate-x-0 lg:pb-0 lg:pt-0',
