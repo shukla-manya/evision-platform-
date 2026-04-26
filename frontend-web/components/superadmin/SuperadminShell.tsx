@@ -48,14 +48,21 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
   const [pendingAdminCount, setPendingAdminCount] = useState(0);
   const [pendingElectricianCount, setPendingElectricianCount] = useState(0);
   const [pendingDealerGstCount, setPendingDealerGstCount] = useState(0);
-  const [ready, setReady] = useState(false);
+  /** null = auth not checked yet (brief); true = show shell; false = redirecting away */
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (getRole() !== 'superadmin') {
       router.replace('/super/signin');
+      setAuthorized(false);
       return;
     }
-    Promise.all([
+    setAuthorized(true);
+  }, [router]);
+
+  useEffect(() => {
+    if (authorized !== true) return;
+    void Promise.all([
       superadminApi.getPendingAdmins().then((r) => setPendingAdminCount(Array.isArray(r.data) ? r.data.length : 0)),
       superadminApi
         .getPendingElectricians()
@@ -63,16 +70,14 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
       superadminApi
         .getPendingDealerGst()
         .then((r) => setPendingDealerGstCount(Array.isArray(r.data) ? r.data.length : 0)),
-    ])
-      .catch(() => {})
-      .finally(() => setReady(true));
-  }, [router]);
+    ]).catch(() => {});
+  }, [authorized]);
 
-  if (!ready) {
+  if (authorized !== true) {
     return (
       <div className="min-h-screen bg-ev-bg flex items-center justify-center text-ev-muted gap-2">
         <Loader2 className="animate-spin text-ev-primary" size={24} />
-        Loading…
+        {authorized === false ? 'Redirecting…' : 'Loading…'}
       </div>
     );
   }
@@ -141,7 +146,9 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ResponsiveSidebarShell mobileTopBarTitle={publicBrandName} sidebar={sidebar}>
-      <div className="min-h-screen min-w-0 overflow-x-hidden overflow-y-auto">{children}</div>
+      <div className="min-h-screen min-w-0 overflow-y-auto overflow-x-hidden [overflow-x:clip] supports-[overflow:clip]:overflow-x-clip">
+        {children}
+      </div>
     </ResponsiveSidebarShell>
   );
 }
