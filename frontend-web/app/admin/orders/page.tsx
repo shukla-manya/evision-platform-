@@ -281,7 +281,10 @@ export default function AdminOrdersPage() {
                 {filtered.map((row) => (
                   <tr key={row.id} className="hover:bg-ev-surface2/80 transition-colors">
                     <td className="px-4 py-3 font-mono text-xs">
-                      <Link href={`/admin/orders/${row.id}`} className="text-ev-primary hover:underline font-semibold">
+                      <Link
+                        href={`/admin/orders/${row.id}`}
+                        className="ev-btn-secondary text-xs py-1.5 px-2.5 inline-flex font-mono font-semibold"
+                      >
                         {orderShortRef(row.id)}
                       </Link>
                     </td>
@@ -318,9 +321,10 @@ export default function AdminOrdersPage() {
                               href={row.tracking_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-ev-primary text-xs hover:underline mt-0.5 inline-block"
+                              className="ev-btn-secondary text-xs py-1.5 px-2.5 inline-flex items-center gap-1 mt-1.5"
                             >
-                              Track →
+                              <Truck size={12} />
+                              Track
                             </a>
                           )}
                           <DeliveryTimeline order={row} />
@@ -339,7 +343,7 @@ export default function AdminOrdersPage() {
                           <Truck size={13} /> Generate shipment
                         </button>
                       ) : (
-                        <Link href={`/admin/orders/${row.id}`} className="text-ev-primary text-xs font-medium hover:underline">
+                        <Link href={`/admin/orders/${row.id}`} className="ev-btn-secondary text-xs py-1.5 px-3 inline-flex">
                           View
                         </Link>
                       )}

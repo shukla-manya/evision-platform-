@@ -1322,8 +1322,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   dangerOutlineText: { color: colors.error, fontWeight: '700' },
-  link: { color: colors.brandPrimary, fontWeight: '600', fontSize: 13 },
-  linkDanger: { color: colors.error, fontWeight: '700', fontSize: 12 },
   outlineButton: {
     alignSelf: 'flex-start',
     borderWidth: 2,
