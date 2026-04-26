@@ -35,6 +35,24 @@ export class ProductsService {
     return this.dynamo.tableName('admins');
   }
 
+  /** Public directory: approved shop admins for storefront filters. */
+  async listApprovedShopsPublic(): Promise<{ id: string; shop_name: string }[]> {
+    const rows = await this.dynamo.queryAllPages({
+      TableName: this.adminsTable(),
+      IndexName: 'StatusIndex',
+      KeyConditionExpression: '#s = :st',
+      ExpressionAttributeNames: { '#s': 'status' },
+      ExpressionAttributeValues: { ':st': 'approved' },
+    });
+    return rows
+      .map((r) => ({
+        id: String((r as { id?: unknown }).id || ''),
+        shop_name: String((r as { shop_name?: unknown }).shop_name || 'Shop'),
+      }))
+      .filter((x) => x.id)
+      .sort((a, b) => a.shop_name.localeCompare(b.shop_name, undefined, { sensitivity: 'base' }));
+  }
+
   /** Approved shops — used for indexed catalogue reads when no category filter is set. */
   private async listApprovedAdminIds(): Promise<string[]> {
     const rows = await this.dynamo.queryAllPages({

@@ -100,6 +100,7 @@ export const catalogApi = {
   getProducts: (params?: Record<string, string | number | boolean | undefined>) =>
     api.get('/products', { params }),
   getProduct: (id: string) => api.get(`/products/${id}`),
+  getApprovedShops: () => api.get<Array<{ id: string; shop_name: string }>>('/products/shops/approved'),
 };
 
 // ── Cart / Checkout ────────────────────────────────────────────────────────

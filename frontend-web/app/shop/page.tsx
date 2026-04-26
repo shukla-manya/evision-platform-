@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronUp, Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
@@ -29,6 +29,8 @@ type Product = {
 type Category = { id: string; name: string; parent_id?: string | null };
 
 type SortKey = 'relevance' | 'price_asc' | 'price_desc' | 'newest' | 'rating';
+
+type ApprovedShopRow = { id: string; shop_name: string };
 
 function formatInr(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
@@ -69,6 +71,8 @@ function ShopListingInner() {
   const [categoryId, setCategoryId] = useState('');
   const [brand, setBrand] = useState('');
   const [shopFilter, setShopFilter] = useState('');
+  const [approvedShopDirectory, setApprovedShopDirectory] = useState<ApprovedShopRow[]>([]);
+  const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
   const [approvedShopsOnly, setApprovedShopsOnly] = useState(true);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
@@ -81,6 +85,22 @@ function ShopListingInner() {
 
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canAddToCart = role === 'customer' || role === 'dealer';
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await catalogApi.getApprovedShops();
+        if (cancelled) return;
+        setApprovedShopDirectory(Array.isArray(data) ? (data as ApprovedShopRow[]) : []);
+      } catch {
+        if (!cancelled) setApprovedShopDirectory([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const q = (searchParams.get('search') || searchParams.get('q') || '').trim();
@@ -131,7 +151,7 @@ function ShopListingInner() {
     let list = [...rawProducts];
     if (shopFilter.trim()) {
       const s = shopFilter.trim().toLowerCase();
-      list = list.filter((p) => String(p.shop_name || '').toLowerCase().includes(s));
+      list = list.filter((p) => String(p.shop_name || '').trim().toLowerCase() === s);
     }
     if (inStockOnly) list = list.filter((p) => p.stock == null || Number(p.stock) > 0);
     const mr = Number(minRating);
@@ -208,13 +228,73 @@ function ShopListingInner() {
                 />
               </div>
               <div>
-                <label className="ev-label text-xs">Shop / store name</label>
-                <input
-                  className="ev-input py-2 text-sm mt-1"
-                  value={shopFilter}
-                  onChange={(e) => setShopFilter(e.target.value)}
-                  placeholder="Filter list by name…"
-                />
+                <label className="ev-label text-xs" id="shop-filter-label">
+                  Shop / store name
+                </label>
+                <button
+                  type="button"
+                  id="shop-filter-toggle"
+                  aria-expanded={shopsPanelOpen}
+                  aria-controls="shop-filter-list"
+                  aria-labelledby="shop-filter-label shop-filter-toggle"
+                  onClick={() => setShopsPanelOpen((o) => !o)}
+                  className="ev-input py-2.5 text-sm w-full mt-1 flex items-center justify-between gap-2 text-left text-ev-text hover:border-ev-primary/40 transition-colors"
+                >
+                  <span className={shopFilter ? 'font-medium text-ev-text truncate' : 'text-ev-muted'}>
+                    {shopFilter || 'All shops'}
+                  </span>
+                  {shopsPanelOpen ? <ChevronUp size={18} className="text-ev-muted shrink-0" /> : <ChevronDown size={18} className="text-ev-muted shrink-0" />}
+                </button>
+                {shopsPanelOpen ? (
+                  <div
+                    id="shop-filter-list"
+                    role="listbox"
+                    className="mt-2 max-h-52 overflow-y-auto rounded-xl border border-ev-border bg-ev-surface2/60 p-2 space-y-1.5"
+                  >
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={!shopFilter}
+                      onClick={() => {
+                        setShopFilter('');
+                        setShopsPanelOpen(false);
+                      }}
+                      className={`w-full text-left text-sm py-2.5 px-3 rounded-lg border transition-colors ${
+                        !shopFilter
+                          ? 'border-ev-primary bg-ev-primary/10 text-ev-text font-semibold'
+                          : 'border-transparent text-ev-muted hover:bg-ev-surface hover:text-ev-text'
+                      }`}
+                    >
+                      All shops
+                    </button>
+                    {approvedShopDirectory.length === 0 ? (
+                      <p className="text-ev-subtle text-xs px-2 py-2">No approved shops in the directory yet.</p>
+                    ) : (
+                      approvedShopDirectory.map((row) => {
+                        const selected = shopFilter === row.shop_name;
+                        return (
+                          <button
+                            key={row.id}
+                            type="button"
+                            role="option"
+                            aria-selected={selected}
+                            onClick={() => {
+                              setShopFilter(row.shop_name);
+                              setShopsPanelOpen(false);
+                            }}
+                            className={`w-full text-left text-sm py-2.5 px-3 rounded-lg border transition-colors truncate ${
+                              selected
+                                ? 'border-ev-primary bg-ev-primary/10 text-ev-text font-semibold'
+                                : 'border-transparent text-ev-text hover:bg-ev-surface'
+                            }`}
+                          >
+                            {row.shop_name}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                ) : null}
                 <label className="flex items-start gap-2.5 text-sm text-ev-text cursor-pointer mt-3">
                   <input
                     type="checkbox"

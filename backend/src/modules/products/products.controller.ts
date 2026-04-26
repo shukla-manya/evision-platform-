@@ -12,6 +12,15 @@ export class ProductsController {
 
   @Public()
   @UseGuards(OptionalJwtAuthGuard)
+  @Get('shops/approved')
+  @ApiOperation({ summary: 'List approved partner shops (id + display name) for catalogue filters' })
+  @ApiBearerAuth()
+  async approvedShops() {
+    return this.products.listApprovedShopsPublic();
+  }
+
+  @Public()
+  @UseGuards(OptionalJwtAuthGuard)
   @Get()
   @ApiOperation({
     summary:
