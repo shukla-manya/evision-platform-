@@ -191,12 +191,7 @@ export default function CustomerHomePage() {
         </section>
 
         <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-ev-text">For you</h2>
-            <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 inline-flex shrink-0">
-              Browse all
-            </Link>
-          </div>
+          <h2 className="text-lg font-bold text-ev-text mb-3">For you</h2>
           {forYou.length === 0 ? (
             <div className="ev-card p-8 text-center text-ev-muted text-sm">
               Explore products to build personalised recommendations from your browse history.
