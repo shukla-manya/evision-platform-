@@ -335,7 +335,7 @@ export default function DealerDashboardPage() {
     { href: '/orders', label: 'My orders', icon: ShoppingBag, badge: computed.activeOrders },
     { href: '/dealer/invoices', label: 'Invoices', icon: FileText },
     { href: '/dealer/service', label: 'Service', icon: LifeBuoy },
-    { href: '/dealer/account', label: 'Account', icon: UserRound },
+    { href: '/profile', label: 'Account', icon: UserRound },
   ];
 
   const dealerSidebar = (
