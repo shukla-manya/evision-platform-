@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import axios from 'axios';
 import { Camera, User, Mail, MapPin, ArrowRight, Loader2, Navigation } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
@@ -190,7 +191,7 @@ export default function RegisterPage() {
     const phone = formatPhoneE164(phoneDigits);
     setOtpSending(true);
     try {
-      await authApi.sendOtp(phone);
+      await authApi.sendOtp(phone, { purpose: 'signup', email: email.trim().toLowerCase() });
       setRegisterOtpCells(['', '', '', '', '', '']);
       setRegisterOtpKey((k) => k + 1);
       setOtpAttemptsLeft(OTP_ATTEMPTS);
@@ -201,7 +202,7 @@ export default function RegisterPage() {
     } finally {
       setOtpSending(false);
     }
-  }, [phoneDigits, validateDetailsBeforeOtp]);
+  }, [phoneDigits, email, validateDetailsBeforeOtp]);
 
   useEffect(() => {
     if (registerStep !== 'otp' || resendSeconds <= 0) return;
@@ -235,7 +236,7 @@ export default function RegisterPage() {
       const { data } = await authApi.register({
         name,
         phone,
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         role: accountTab,
         otp,
         gst_no: accountTab === 'dealer' ? gstNo.trim() : undefined,
