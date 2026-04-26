@@ -99,58 +99,38 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       ? `+91 ${phoneLast10.slice(0, 2)}******${phoneLast10.slice(-2)}`
       : '+91 XXXXXXXXXX';
 
-  /** Same scope as shopper signup OTP: identity + contact + service area only (not docs). */
-  const validateForOtpSend = useCallback((): boolean => {
-    if (!techName.trim()) {
-      toast.error('Enter your full name');
-      return false;
-    }
-    if (phoneLast10.length !== 10) {
-      toast.error('Enter a valid 10-digit mobile number');
-      return false;
-    }
+  const getTechnicianFieldError = useCallback((): string | null => {
+    if (!techName.trim()) return 'Enter your full name';
+    if (phoneLast10.length !== 10) return 'Enter a valid 10-digit mobile number';
     const em = techEmail.trim();
-    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
-      toast.error('Enter a valid email address');
-      return false;
-    }
-    if (!techCity.trim()) {
-      toast.error('Enter your city');
-      return false;
-    }
-    if (!/^\d{6}$/.test(techPin.trim())) {
-      toast.error('Enter a valid 6-digit pincode');
-      return false;
-    }
-    return true;
-  }, [techName, phoneLast10.length, techEmail, techCity, techPin]);
-
-  const validateApplicationDetails = useCallback((): boolean => {
-    if (!validateForOtpSend()) return false;
-    if (techSkills.size === 0) {
-      toast.error('Select at least one skill');
-      return false;
-    }
+    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return 'Enter a valid email address';
+    if (!techCity.trim()) return 'Enter your city';
+    if (!/^\d{6}$/.test(techPin.trim())) return 'Enter a valid 6-digit pincode';
+    if (techSkills.size === 0) return 'Select at least one skill';
     if (techExperience.trim() === '' || !/^\d{1,2}$/.test(techExperience.trim())) {
-      toast.error('Enter years of experience (0–60)');
-      return false;
+      return 'Enter years of experience (0–60)';
     }
     const y = Number(techExperience.trim());
-    if (y < 0 || y > 60) {
-      toast.error('Years of experience must be between 0 and 60');
-      return false;
-    }
-    if (!aadharFile || !photoFile) {
-      toast.error('Upload your Aadhar document and your photo');
+    if (y < 0 || y > 60) return 'Years of experience must be between 0 and 60';
+    if (!aadharFile || !photoFile) return 'Upload your Aadhar document and your photo';
+    return null;
+  }, [techName, phoneLast10.length, techEmail, techCity, techPin, techSkills, techExperience, aadharFile, photoFile]);
+
+  const validateCompleteTechnicianForm = useCallback((): boolean => {
+    const err = getTechnicianFieldError();
+    if (err) {
+      toast.error(err);
       return false;
     }
     return true;
-  }, [validateForOtpSend, techSkills.size, techExperience, aadharFile, photoFile]);
+  }, [getTechnicianFieldError]);
+
+  const canSendTechnicianOtp = getTechnicianFieldError() === null;
 
   const otpSendInFlight = useRef(false);
 
   const sendTechOtp = useCallback(async () => {
-    if (!validateForOtpSend()) return;
+    if (!validateCompleteTechnicianForm()) return;
     if (otpSendInFlight.current) return;
     otpSendInFlight.current = true;
     const phone = formatPhoneE164(techPhoneDigits);
@@ -170,7 +150,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       otpSendInFlight.current = false;
       setOtpSending(false);
     }
-  }, [techPhoneDigits, techEmail, validateForOtpSend]);
+  }, [techPhoneDigits, techEmail, validateCompleteTechnicianForm]);
 
   useEffect(() => {
     if (step !== 'otp' || resendSeconds <= 0) return;
@@ -194,7 +174,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       toast.error('Enter the 6-digit OTP');
       return;
     }
-    if (!validateApplicationDetails()) return;
+    if (!validateCompleteTechnicianForm()) return;
 
     setLoading(true);
     try {
@@ -398,11 +378,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
             </div>
 
             <div>
-              <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider mb-1">Documents</p>
-              <p className="text-ev-muted text-xs mb-3 leading-relaxed">
-                Required before you verify and submit. You can still request the OTP once contact details and service area
-                above are filled.
-              </p>
+              <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider mb-3">Documents</p>
               <div className="space-y-5">
                 <div>
                   <span className="ev-label">Aadhar card photo</span>
@@ -443,7 +419,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
             <button
               type="submit"
               className="ev-btn-primary w-full flex items-center justify-center gap-2"
-              disabled={otpSending || phoneLast10.length !== 10}
+              disabled={otpSending || !canSendTechnicianOtp}
             >
               {otpSending ? (
                 <>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
@@ -179,6 +179,35 @@ export default function RegisterPage() {
     city,
     pincode,
     accountTab,
+    gstNo,
+    businessName,
+    businessAddress,
+    businessCity,
+    businessPincode,
+  ]);
+
+  const phoneLast10ForOtp = phoneDigits.replace(/\D/g, '').slice(-10);
+  const canSendShopperOtp = useMemo(() => {
+    const name = `${firstName.trim()} ${lastName.trim()}`.trim();
+    if (name.length < 2) return false;
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return false;
+    if (phoneLast10ForOtp.length !== 10) return false;
+    if (accountTab === 'customer') {
+      if (!address.trim() || !city.trim() || !/^\d{6}$/.test(pincode.replace(/\D/g, ''))) return false;
+    } else {
+      if (!gstNo.trim() || !businessName.trim() || !businessAddress.trim() || !businessCity.trim()) return false;
+      if (!/^\d{6}$/.test(businessPincode.replace(/\D/g, ''))) return false;
+    }
+    return true;
+  }, [
+    firstName,
+    lastName,
+    email,
+    phoneLast10ForOtp,
+    accountTab,
+    address,
+    city,
+    pincode,
     gstNo,
     businessName,
     businessAddress,
@@ -602,7 +631,7 @@ export default function RegisterPage() {
                       <button
                         type="submit"
                         className="ev-btn-primary w-full flex items-center justify-center gap-2"
-                        disabled={otpSending || phoneLast10.length !== 10}
+                        disabled={otpSending || !canSendShopperOtp}
                       >
                         {otpSending ? (
                           <>
