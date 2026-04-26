@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Store, ShoppingBag, Mail, ChevronRight, Loader2 } from 'lucide-react';
+import { Store, ShoppingBag, Mail, Loader2, Inbox, UserCog, ClipboardCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { superadminApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
@@ -225,32 +225,33 @@ export default function SuperDashboardPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-10">
+              <Link
+                href="/super/shop-registrations"
+                className="ev-btn-secondary text-sm py-3 px-4 inline-flex items-center justify-center gap-2 font-semibold w-full"
+              >
+                <Inbox size={18} className="text-ev-primary shrink-0" aria-hidden />
+                Shop queue
+              </Link>
+              <Link
+                href="/super/technicians"
+                className="ev-btn-secondary text-sm py-3 px-4 inline-flex items-center justify-center gap-2 font-semibold w-full"
+              >
+                <UserCog size={18} className="text-ev-primary shrink-0" aria-hidden />
+                Technicians
+              </Link>
+              <Link
+                href="/super/dealers"
+                className="ev-btn-secondary text-sm py-3 px-4 inline-flex items-center justify-center gap-2 font-semibold w-full"
+              >
+                <ClipboardCheck size={18} className="text-ev-primary shrink-0" aria-hidden />
+                Dealer GST
+              </Link>
+            </div>
+
             <section className="mb-10">
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4">
                 <h2 className="text-lg font-bold text-ev-text">Pending approvals</h2>
-                <div className="flex gap-3 text-sm">
-                  <Link
-                    href="/super/shop-registrations"
-                    className="font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1"
-                  >
-                    Shop queue
-                    <ChevronRight size={16} />
-                  </Link>
-                  <Link
-                    href="/super/technicians"
-                    className="font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1"
-                  >
-                    Technicians
-                    <ChevronRight size={16} />
-                  </Link>
-                  <Link
-                    href="/super/dealers"
-                    className="font-semibold text-ev-primary hover:text-ev-primary-light inline-flex items-center gap-1"
-                  >
-                    Dealer GST
-                    <ChevronRight size={16} />
-                  </Link>
-                </div>
               </div>
               <div className="ev-card overflow-hidden border-ev-border">
                 <div className="overflow-x-auto">
@@ -473,9 +474,6 @@ export default function SuperDashboardPage() {
             </section>
 
             <div className="flex flex-wrap gap-3">
-              <Link href="/super/shop-registrations" className="ev-btn-secondary text-sm py-2.5 px-4">
-                Shop registrations
-              </Link>
               <Link href="/super/shops" className="ev-btn-secondary text-sm py-2.5 px-4">
                 All shops
               </Link>
