@@ -293,58 +293,60 @@ export default function DealerDashboardPage() {
     { href: '/dealer/account', label: 'Account', icon: UserRound },
   ];
 
-  return (
-    <div className="min-h-screen bg-ev-bg flex">
-      <aside className="ev-sidebar w-60 sm:w-64 flex flex-col fixed inset-y-0 z-30">
-        <div className="p-5 border-b ev-sidebar-border">
-          <Link href="/dealer/dashboard" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
-              <Camera size={18} className="text-white" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-white font-bold text-sm truncate">e vision Pro</p>
-              <p className="ev-sidebar-muted text-xs">Dealer dashboard</p>
-            </div>
-          </Link>
-        </div>
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {nav.map(({ href, label, icon: Icon, badge }) => {
-            const active = pathname === href;
-            return (
-              <Link
-                key={label}
-                href={href}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  active ? 'ev-sidebar-link-active' : 'ev-sidebar-link'
-                }`}
-              >
-                <Icon size={17} />
-                <span className="flex-1 truncate">{label}</span>
-                {badge && badge > 0 ? (
-                  <span className="shrink-0 min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full bg-ev-primary text-white text-[10px] font-bold">
-                    {badge > 99 ? '99+' : badge}
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="p-3 border-t ev-sidebar-border">
-          <button
-            type="button"
-            onClick={() => {
-              clearAuth();
-              router.push('/login');
-            }}
-            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-white/65 hover:text-red-300 hover:bg-red-500/10 text-sm transition-colors"
-          >
-            <LogOut size={16} />
-            Sign out
-          </button>
-        </div>
-      </aside>
+  const dealerSidebar = (
+    <>
+      <div className="p-5 border-b ev-sidebar-border shrink-0">
+        <Link href="/dealer/dashboard" className="flex items-center gap-2.5">
+          <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
+            <Camera size={18} className="text-white" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-white font-bold text-sm truncate">e vision Pro</p>
+            <p className="ev-sidebar-muted text-xs">Dealer dashboard</p>
+          </div>
+        </Link>
+      </div>
+      <nav className="p-3 space-y-0.5">
+        {nav.map(({ href, label, icon: Icon, badge }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={label}
+              href={href}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                active ? 'ev-sidebar-link-active' : 'ev-sidebar-link'
+              }`}
+            >
+              <Icon size={17} />
+              <span className="flex-1 min-w-0 truncate">{label}</span>
+              {badge && badge > 0 ? (
+                <span className="shrink-0 min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full bg-ev-primary text-white text-[10px] font-bold">
+                  {badge > 99 ? '99+' : badge}
+                </span>
+              ) : null}
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="p-3 border-t ev-sidebar-border shrink-0">
+        <button
+          type="button"
+          onClick={() => {
+            clearAuth();
+            router.push('/login');
+          }}
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-white/65 hover:text-red-300 hover:bg-red-500/10 text-sm transition-colors"
+        >
+          <LogOut size={16} />
+          Sign out
+        </button>
+      </div>
+    </>
+  );
 
-      <div className="flex-1 ml-60 sm:ml-64 min-h-screen p-6 sm:p-10 space-y-8 max-w-6xl">
+  return (
+    <ResponsiveSidebarShell mobileTopBarTitle={dealerIdentity.company} sidebar={dealerSidebar}>
+      <div className="mx-auto min-h-screen min-w-0 w-full max-w-6xl space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-10">
         {loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-20">
             <Loader2 className="animate-spin text-ev-primary" size={22} />
