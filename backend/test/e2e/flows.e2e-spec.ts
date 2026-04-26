@@ -116,6 +116,8 @@ describe('E2E flows (local)', () => {
       sendToToken: jest.fn(async () => undefined),
     };
 
+    // eslint-disable-next-line no-console
+    console.log('[e2e] dynamic-import AppModule + providers…');
     const [{ AppModule }, { EmailService: EmailCls }, { S3Service: S3Cls }, { PushService: PushCls }] =
       await Promise.all([
         import('../../src/app.module'),
@@ -123,6 +125,8 @@ describe('E2E flows (local)', () => {
         import('../../src/common/s3/s3.service'),
         import('../../src/modules/push/push.service'),
       ]);
+    // eslint-disable-next-line no-console
+    console.log('[e2e] Nest TestingModule.compile()…');
     moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
@@ -133,6 +137,8 @@ describe('E2E flows (local)', () => {
       .overrideProvider(PushCls)
       .useValue(pushStub)
       .compile();
+    // eslint-disable-next-line no-console
+    console.log('[e2e] compile done; init HTTP app…');
 
     app = moduleRef.createNestApplication({ rawBody: true });
     app.useGlobalPipes(
