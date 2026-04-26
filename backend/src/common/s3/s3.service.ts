@@ -31,13 +31,16 @@ export class S3Service {
     const isLocal = Boolean(this.s3Endpoint);
     const accessKeyId = config.get<string>('AWS_ACCESS_KEY_ID');
     const secretAccessKey = config.get<string>('AWS_SECRET_ACCESS_KEY');
+    /** Same dummy pair as DynamoDB Local / e2e — must not be sent to real AWS S3. */
+    const isDynamoLocalStyleCreds =
+      accessKeyId === 'local' && secretAccessKey === 'local';
     const credentials =
       isLocal
         ? {
             accessKeyId: accessKeyId || 'minioadmin',
             secretAccessKey: secretAccessKey || 'minioadmin',
           }
-        : accessKeyId && secretAccessKey
+        : accessKeyId && secretAccessKey && !isDynamoLocalStyleCreds
           ? { accessKeyId, secretAccessKey }
           : undefined;
 
@@ -48,6 +51,13 @@ export class S3Service {
       ...(credentials ? { credentials } : {}),
     });
     this.cloudfrontDomain = (config.get('CLOUDFRONT_DOMAIN') || '').replace(/\/$/, '') || null;
+
+    if (!isLocal && isDynamoLocalStyleCreds) {
+      this.logger.warn(
+        'AWS_ACCESS_KEY_ID/SECRET are the DynamoDB-local placeholder (local/local); ' +
+          'they are not used for S3. Set S3_ENDPOINT (e.g. MinIO) for local uploads, or use real AWS credentials / ~/.aws.',
+      );
+    }
 
     this.logger.log(
       isLocal
