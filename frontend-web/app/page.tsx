@@ -112,12 +112,12 @@ export default function HomePage() {
           <div className="absolute top-20 left-1/4 w-96 h-96 bg-ev-primary/10 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-ev-accent/8 rounded-full blur-3xl" />
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-16 md:pt-16 md:pb-20 relative">
+        <div className="ev-container pt-12 pb-16 md:pt-16 md:pb-20 relative">
           <p className="text-ev-primary font-semibold text-xs uppercase tracking-[0.2em] mb-4 text-center">
             New arrivals · Best deals · Top brands
           </p>
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-[3.25rem] font-extrabold text-ev-text tracking-tight leading-[1.12] mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-extrabold text-ev-text tracking-tight leading-[1.12] mb-4">
               Professional Cameras &amp; Accessories — All in One Place
             </h1>
             <p className="text-ev-muted text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -136,7 +136,7 @@ export default function HomePage() {
       </section>
 
       <section className="border-y border-ev-border bg-ev-surface2/50 py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="ev-container">
           <h2 className="text-ev-text font-bold text-lg mb-4 text-center">Shop by category</h2>
           <div className="flex flex-wrap justify-center gap-2">
             {CATEGORY_LABELS.map((label, i) => (
@@ -152,7 +152,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 px-4 sm:px-6 max-w-7xl mx-auto" id="trending">
+      <section className="ev-container py-12 sm:py-16" id="trending">
         <div className="text-center mb-10">
           <h2 className="text-2xl md:text-3xl font-bold text-ev-text">Trending right now</h2>
           <p className="text-ev-muted text-sm mt-2">Handpicked by our expert stores</p>

@@ -83,9 +83,9 @@ export function PublicNavbar() {
 
   return (
     <header className="sticky top-0 z-50 ev-header border-b border-white/10 pt-[env(safe-area-inset-top)]">
-      <div className="mx-auto flex min-h-14 max-w-7xl items-center gap-3 px-4 py-2 sm:min-h-16 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 shrink-0 min-w-0" aria-label={publicBrandName}>
-          <EvisionLogo variant="full" wordmark={publicBrandName} height={34} tone="onDark" className="shrink-0" />
+      <div className="mx-auto flex min-h-14 max-w-7xl min-w-0 items-center gap-2 px-4 py-2 sm:min-h-16 sm:gap-3 sm:px-6">
+        <Link href="/" className="flex min-w-0 max-w-[min(100%,11rem)] shrink items-center gap-2 sm:max-w-none" aria-label={publicBrandName}>
+          <EvisionLogo variant="full" wordmark={publicBrandName} height={32} tone="onDark" className="h-8 w-auto min-w-0 sm:h-[34px]" />
         </Link>
 
         <nav className="hidden lg:flex items-center gap-6 text-sm text-white/75 ml-4" aria-label="Primary">

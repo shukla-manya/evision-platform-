@@ -146,7 +146,7 @@ function ShopListingInner() {
 
   return (
     <PublicShell>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <main className="ev-container py-6 sm:py-8">
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight">All Cameras &amp; Accessories</h1>
           <p className="text-ev-muted text-sm mt-1">Browse every listing from partner stores in one catalogue.</p>

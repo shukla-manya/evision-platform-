@@ -7,7 +7,6 @@ import {
   Linking,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Switch,
@@ -15,10 +14,12 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { adminApi, catalogApi } from '../services/api';
 import { colors } from '../theme/colors';
+import { screenGutter } from '../theme/layout';
 import { statusColor } from '../theme/status';
 
 type AdminStackParamList = {
@@ -1235,8 +1236,19 @@ export function AdminFlow({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  listPad: { padding: 16, gap: 12 },
+  centerBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: screenGutter,
+    paddingVertical: 24,
+  },
+  listPad: {
+    paddingHorizontal: screenGutter,
+    paddingTop: 16,
+    paddingBottom: 28,
+    gap: 14,
+  },
   pageTitle: { fontSize: 22, fontWeight: '800', color: colors.textPrimary },
   pageSubtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 4 },
   input: {
