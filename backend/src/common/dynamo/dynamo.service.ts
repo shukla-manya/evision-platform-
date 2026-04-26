@@ -21,7 +21,7 @@ export class DynamoService implements OnModuleInit {
 
   constructor(private config: ConfigService) {}
 
-  onModuleInit() {
+  async onModuleInit(): Promise<void> {
     const endpoint =
       this.config.get('DYNAMODB_ENDPOINT') ||
       this.config.get('DYNAMO_ENDPOINT') ||
@@ -44,6 +44,19 @@ export class DynamoService implements OnModuleInit {
       ...(credentials ? { credentials } : {}),
       ...(endpoint ? { endpoint } : {}),
     });
+
+    if (isLocal) {
+      try {
+        await ensureEvisionDynamoTables(raw);
+        this.logger.log('DynamoDB local: tables verified/created (see npm run setup:tables)');
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        this.logger.warn(
+          `DynamoDB local: could not auto-create tables (${msg}). Start dynalite (npm run dynamo:local) then restart the API, or run npm run setup:tables.`,
+        );
+      }
+    }
+
     this.client = DynamoDBDocumentClient.from(raw, {
       marshallOptions: { removeUndefinedValues: true },
     });
@@ -61,10 +74,17 @@ export class DynamoService implements OnModuleInit {
     } catch (e: unknown) {
       const name =
         e && typeof e === 'object' && 'name' in e ? String((e as { name?: string }).name) : '';
+      const msg = e instanceof Error ? e.message : String(e);
       if (name === 'ResourceNotFoundException') {
         this.logger.error(`DynamoDB ${label}: table or index not found`);
         throw new ServiceUnavailableException(
           'DynamoDB tables are missing or out of date. For local development: start dynalite, then from the backend folder run npm run setup:tables.',
+        );
+      }
+      if (/ECONNREFUSED|ECONNRESET|ENOTFOUND|socket hang up|getaddrinfo/i.test(msg)) {
+        this.logger.error(`DynamoDB ${label}: ${msg}`);
+        throw new ServiceUnavailableException(
+          'Cannot reach DynamoDB. Start local Dynalite (from backend: npm run dynamo:local), confirm DYNAMODB_ENDPOINT in .env, then restart the API.',
         );
       }
       throw e;
