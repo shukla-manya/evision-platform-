@@ -440,11 +440,27 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
 
         <p className="text-center text-ev-subtle text-sm mt-6">
           Sign-in is mobile + OTP only — no password. Already approved?{' '}
-          <Link href="/electrician/login" className="text-ev-primary hover:text-ev-primary-light font-medium">
-            Technician sign in
+          <Link href="/login" className="text-ev-primary hover:text-ev-primary-light font-medium">
+            Sign in
           </Link>
         </p>
       </div>
+    </>
+  );
+
+  if (embedded) {
+    return <div className="w-full max-w-lg mx-auto animate-slide-up">{inner}</div>;
+  }
+
+  return (
+    <div className="w-full max-w-lg mx-auto animate-slide-up">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold text-ev-text">Join our technician network</h1>
+        <p className="text-ev-muted text-sm mt-1 max-w-md mx-auto leading-relaxed">
+          Get job requests from verified customers near you. Our team reviews and approves your account within 24 hours.
+        </p>
+      </div>
+      {inner}
     </div>
   );
 }

@@ -12,8 +12,7 @@ import { TechnicianApplicationForm } from '@/components/register/TechnicianAppli
 import { publicBrandName } from '@/lib/public-brand';
 import { OtpCells } from '@/components/auth/OtpCells';
 
-type Segment = 'shopper' | 'technician';
-type ShopperRole = 'customer' | 'dealer';
+type AccountTab = 'customer' | 'dealer' | 'technician';
 type RegisterStep = 'details' | 'otp';
 
 const OTP_ATTEMPTS = 5;
@@ -27,10 +26,11 @@ export default function RegisterPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const roleQuery = searchParams.get('role');
-  const [segment, setSegment] = useState<Segment>(() => (roleQuery === 'electrician' ? 'technician' : 'shopper'));
-  const [shopperRole, setShopperRole] = useState<ShopperRole>(() =>
-    roleQuery === 'dealer' ? 'dealer' : 'customer',
-  );
+  const [accountTab, setAccountTab] = useState<AccountTab>(() => {
+    if (roleQuery === 'dealer') return 'dealer';
+    if (roleQuery === 'electrician' || roleQuery === 'technician') return 'technician';
+    return 'customer';
+  });
   const [loading, setLoading] = useState(false);
   const [otpSending, setOtpSending] = useState(false);
   const [registerStep, setRegisterStep] = useState<RegisterStep>('details');
@@ -67,7 +67,7 @@ export default function RegisterPage() {
       toast.error('Enter a valid 10-digit mobile number');
       return false;
     }
-    if (shopperRole === 'customer') {
+    if (accountTab === 'customer') {
       if (!address.trim()) {
         toast.error('Enter your delivery address');
         return false;
@@ -111,7 +111,7 @@ export default function RegisterPage() {
     address,
     city,
     pincode,
-    shopperRole,
+    accountTab,
     gstNo,
     businessName,
     businessAddress,
@@ -155,7 +155,7 @@ export default function RegisterPage() {
     try {
       const phone = formatPhoneE164(phoneDigits);
       const fullAddress =
-        shopperRole === 'dealer'
+        accountTab === 'dealer'
           ? [businessAddress.trim(), businessCity.trim(), `Pincode: ${businessPincode.replace(/\D/g, '').slice(0, 6)}`]
               .filter(Boolean)
               .join('\n')
@@ -166,13 +166,13 @@ export default function RegisterPage() {
         name,
         phone,
         email: email.trim(),
-        role: shopperRole,
+        role: accountTab,
         otp,
-        gst_no: shopperRole === 'dealer' ? gstNo.trim() : undefined,
-        business_name: shopperRole === 'dealer' ? businessName.trim() : undefined,
-        business_address: shopperRole === 'dealer' ? businessAddress.trim() : undefined,
-        business_city: shopperRole === 'dealer' ? businessCity.trim() : undefined,
-        business_pincode: shopperRole === 'dealer' ? businessPincode.replace(/\D/g, '').slice(0, 6) : undefined,
+        gst_no: accountTab === 'dealer' ? gstNo.trim() : undefined,
+        business_name: accountTab === 'dealer' ? businessName.trim() : undefined,
+        business_address: accountTab === 'dealer' ? businessAddress.trim() : undefined,
+        business_city: accountTab === 'dealer' ? businessCity.trim() : undefined,
+        business_pincode: accountTab === 'dealer' ? businessPincode.replace(/\D/g, '').slice(0, 6) : undefined,
         address: fullAddress || undefined,
       });
       const payload = parseJwt(data.access_token);
@@ -181,7 +181,7 @@ export default function RegisterPage() {
         return;
       }
       saveToken(data.access_token, payload.role);
-      if (shopperRole === 'dealer') {
+      if (accountTab === 'dealer') {
         toast.success(
           "Welcome! Your dealer account is active. Dealer pricing will be unlocked once your GST number is verified (usually within 24 hours). Until then, you can browse at regular prices.",
         );
