@@ -19,7 +19,7 @@ import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
 import { PublicShell } from '@/components/public/PublicShell';
 import { publicBrandName } from '@/lib/public-brand';
-import { getRole } from '@/lib/auth';
+import { getRole, isLoggedIn } from '@/lib/auth';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 
 type Product = {
@@ -74,6 +74,7 @@ export default function HomePage() {
   const [, setWishBump] = useState(0);
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canBuy = role === 'customer' || role === 'dealer';
+  const showPartnerSignup = typeof window !== 'undefined' && !isLoggedIn();
 
   useEffect(() => {
     let cancelled = false;
