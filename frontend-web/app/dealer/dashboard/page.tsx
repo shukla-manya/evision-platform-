@@ -484,6 +484,6 @@ export default function DealerDashboardPage() {
           </>
         )}
       </div>
-    </div>
+    </ResponsiveSidebarShell>
   );
 }

@@ -78,7 +78,9 @@ export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }:
         </div>
       </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col pt-14 lg:ml-64 lg:pt-0">{children}</div>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden pt-14 lg:ml-64 lg:pt-0">
+        {children}
+      </div>
     </div>
   );
 }

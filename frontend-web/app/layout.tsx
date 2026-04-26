@@ -6,6 +6,12 @@ export const metadata: Metadata = {
   title: 'e vision — Camera & Gear Marketplace',
   description: 'e vision — A warm, trustworthy marketplace for cameras and gear.',
   icons: { icon: '/favicon.ico' },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    viewportFit: 'cover',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
