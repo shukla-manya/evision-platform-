@@ -308,13 +308,7 @@ export default function RegisterPage() {
           <p className="text-ev-muted text-sm mt-1 max-w-md mx-auto leading-relaxed">
             Choose your account type to get started
           </p>
-          <p className="text-ev-muted text-xs mt-3 max-w-md mx-auto leading-relaxed">
-            {ACCOUNT_ROLES_SUMMARY}. Register here as customer, dealer, or technician.{' '}
-            <Link href="/admin/register" className="text-ev-primary font-medium underline-offset-2 hover:underline">
-              Admin
-            </Link>{' '}
-            (shop) sign-up is separate; Superadmin access is provisioned separately.
-          </p>
+          
         </div>
 
         <div className="ev-card p-1 flex flex-col sm:flex-row gap-1 mb-6">

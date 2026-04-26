@@ -365,11 +365,25 @@ export class AuthService {
   // ── Superadmin Login ──────────────────────────────────────────────────────
   async superadminLogin(dto: SuperadminLoginDto): Promise<{ access_token: string }> {
     const sa = await this.dynamo.get(this.dynamo.tableName('superadmin'), { id: 'SUPERADMIN' });
-    if (!sa) throw new UnauthorizedException('Superadmin not found');
-
-    const valid = await bcrypt.compare(dto.password, sa.password_hash);
-    if (!valid || sa.email !== dto.email) throw new UnauthorizedException('Invalid credentials');
-    const token = this.signToken('SUPERADMIN', 'superadmin', String(sa.email || ''));
+    if (!sa) {
+      throw new UnauthorizedException(
+        'Superadmin is not configured. Set SUPERADMIN_EMAIL and SUPERADMIN_PASSWORD in backend .env, then run: npm run seed:superadmin',
+      );
+    }
+    const rec = sa as Record<string, unknown>;
+    const storedEmail = String(rec.email || '').trim().toLowerCase();
+    const dtoEmail = String(dto.email || '').trim().toLowerCase();
+    const hash = String(rec.password_hash || '');
+    if (!storedEmail || !hash) {
+      throw new UnauthorizedException(
+        'Superadmin record is incomplete. Re-run: npm run seed:superadmin (after fixing .env)',
+      );
+    }
+    const valid = await bcrypt.compare(dto.password, hash);
+    if (!valid || storedEmail !== dtoEmail) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+    const token = this.signToken('SUPERADMIN', 'superadmin', String(rec.email || '').trim());
     return { access_token: token };
   }
 

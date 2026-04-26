@@ -19,7 +19,8 @@ export default function SuperSignInPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await authApi.superadminLogin(email, password);
+      const normalizedEmail = email.trim().toLowerCase();
+      const { data } = await authApi.superadminLogin(normalizedEmail, password);
       saveToken(data.access_token, 'superadmin');
       toast.success('Signed in');
       router.push('/super/dashboard');

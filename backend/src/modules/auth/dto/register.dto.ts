@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import {
   IsString,
   IsEmail,
@@ -104,12 +104,13 @@ export class AdminLoginDto {
 
 export class SuperadminLoginDto {
   @ApiProperty({ example: 'superadmin@evisionpvtltd.com' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsEmail()
   email: string;
 
   @ApiProperty()
   @IsString()
-  @MinLength(8)
+  @MinLength(6)
   password: string;
 }
 
