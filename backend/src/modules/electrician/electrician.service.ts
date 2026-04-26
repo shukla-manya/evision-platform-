@@ -180,11 +180,15 @@ export class ElectricianService {
 
     const now = new Date().toISOString();
     if (action === 'approve') {
+      const goesLive =
+        String(electrician.status) === 'pending' &&
+        (electrician as Record<string, unknown>).available !== false;
       await this.dynamo.update(this.table(), { id }, {
         status: 'approved',
         approved_at: now,
         updated_at: now,
         reject_reason: null,
+        ...(goesLive ? { discovery_key: 'LIVE' } : {}),
       });
       const name = String(electrician.name || 'there');
       try {
@@ -232,13 +236,26 @@ export class ElectricianService {
     if (Number.isNaN(lat) || Number.isNaN(lng)) {
       throw new BadRequestException('lat and lng must be valid numbers');
     }
-    const approved = await this.dynamo.query({
+    const live = await this.dynamo.queryAllPages({
+      TableName: this.table(),
+      IndexName: 'LiveElectriciansIndex',
+      KeyConditionExpression: 'discovery_key = :dk',
+      ExpressionAttributeValues: { ':dk': 'LIVE' },
+    });
+    const legacy = await this.dynamo.queryAllPages({
       TableName: this.table(),
       IndexName: 'StatusIndex',
       KeyConditionExpression: '#s = :status',
-      ExpressionAttributeNames: { '#s': 'status' },
-      ExpressionAttributeValues: { ':status': 'approved' },
+      ExpressionAttributeNames: { '#s': 'status', '#a': 'available' },
+      ExpressionAttributeValues: { ':status': 'approved', ':true': true },
+      FilterExpression: 'attribute_not_exists(discovery_key) AND #a = :true',
     });
+    const byId = new Map<string, Record<string, unknown>>();
+    for (const e of [...live, ...legacy]) {
+      const eid = String((e as Record<string, unknown>).id || '');
+      if (eid && !byId.has(eid)) byId.set(eid, e as Record<string, unknown>);
+    }
+    const approved = [...byId.values()];
 
     const nearby = approved
       .filter((e) => Boolean(e.available))
