@@ -171,7 +171,7 @@ export default function CheckoutPage() {
         amount: d.amount_paise,
         currency: d.currency || 'INR',
         order_id: d.razorpay_order_id,
-        name: 'LensCart',
+        name: 'e vision',
         description: 'Order payment — UPI, card, netbanking',
         handler: async (response: Record<string, string>) => {
           try {

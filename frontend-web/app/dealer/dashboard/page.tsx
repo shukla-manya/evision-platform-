@@ -301,7 +301,7 @@ export default function DealerDashboardPage() {
               <Camera size={18} className="text-white" />
             </div>
             <div className="min-w-0">
-              <p className="text-white font-bold text-sm truncate">LensCart Pro</p>
+              <p className="text-white font-bold text-sm truncate">e vision Pro</p>
               <p className="ev-sidebar-muted text-xs">Dealer dashboard</p>
             </div>
           </Link>

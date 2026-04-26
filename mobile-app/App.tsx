@@ -189,7 +189,7 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.splashContent}>
-        <Text style={styles.splashBrand}>LensCart</Text>
+        <Text style={styles.splashBrand}>e vision</Text>
         <View style={styles.splashGap} />
         <Pressable style={styles.splashPrimaryBtn} onPress={() => navigation.navigate('OtpSignIn')}>
           <Text style={styles.splashPrimaryBtnText}>Sign in with mobile OTP</Text>

@@ -81,7 +81,7 @@ export default function AdminProductNewPage() {
           <ArrowLeft size={14} /> Products
         </Link>
         <h1 className="text-2xl font-bold text-ev-text mb-2">Add new product</h1>
-        <p className="text-ev-muted text-sm mb-6">List items for your LensCart catalogue.</p>
+        <p className="text-ev-muted text-sm mb-6">List items for your e vision catalogue.</p>
         <form onSubmit={onSubmit} className="ev-card p-6 sm:p-8 space-y-5">
           <div>
             <label className="ev-label">Product name</label>
