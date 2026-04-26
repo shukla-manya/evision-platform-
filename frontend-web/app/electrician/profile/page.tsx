@@ -15,7 +15,6 @@ import {
   Phone,
   Shield,
   Star,
-  Wallet,
   MessageSquare,
   CalendarDays,
 } from 'lucide-react';
