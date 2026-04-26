@@ -60,12 +60,6 @@ export default function ContactPage() {
               {publicCompanyLegalName}
               <br />
               India
-              <br />
-              <span className="text-ev-subtle text-xs mt-2 block">
-                Set <code className="rounded bg-ev-surface2 px-1 py-0.5 text-[11px]">NEXT_PUBLIC_SUPPORT_EMAIL</code> and{' '}
-                <code className="rounded bg-ev-surface2 px-1 py-0.5 text-[11px]">NEXT_PUBLIC_SUPPORT_PHONE</code> in your
-                deployment for production contact details.
-              </span>
             </p>
           </div>
         </div>
