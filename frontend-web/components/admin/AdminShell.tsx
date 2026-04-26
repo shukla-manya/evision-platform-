@@ -92,78 +92,81 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const shopTitle = admin?.shop_name?.trim() || 'e vision';
 
+  const sidebar = (
+    <>
+      <div className="p-5 border-b ev-sidebar-border shrink-0">
+        <Link href="/admin/dashboard" className="flex items-center gap-2.5">
+          <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
+            <Camera size={18} className="text-white" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-white font-bold text-sm truncate">{shopTitle}</p>
+            <p className="ev-sidebar-muted text-xs">Shop Admin</p>
+          </div>
+        </Link>
+        {admin ? (
+          <div className="mt-4 rounded-xl bg-white/5 p-3 border ev-sidebar-border">
+            <p className="text-white text-sm font-semibold truncate">{admin.shop_name}</p>
+            <p className="text-white/60 text-xs truncate">{admin.owner_name}</p>
+            <span
+              className={`inline-block mt-2 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
+                admin.status === 'approved'
+                  ? 'bg-ev-success/10 text-ev-success border-ev-success/25'
+                  : 'bg-ev-warning/10 text-ev-warning border-ev-warning/25'
+              }`}
+            >
+              {admin.status}
+            </span>
+          </div>
+        ) : null}
+      </div>
+      <nav className="flex-1 min-h-0 p-3 space-y-0.5">
+        {navItems.map(({ href, label, icon: Icon, badge }) => {
+          const active =
+            pathname === href || (href !== '/admin/dashboard' && pathname.startsWith(href + '/'));
+          const showBadge =
+            badge === 'ordersAttention' &&
+            ordersAttention != null &&
+            ordersAttention > 0 &&
+            admin?.status === 'approved';
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                active ? 'ev-sidebar-link-active' : 'ev-sidebar-link'
+              }`}
+            >
+              <Icon size={17} />
+              <span className="flex-1 min-w-0 truncate">{label}</span>
+              {showBadge ? (
+                <span className="shrink-0 min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full bg-ev-primary text-white text-[10px] font-bold">
+                  {ordersAttention > 99 ? '99+' : ordersAttention}
+                </span>
+              ) : null}
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="p-3 border-t ev-sidebar-border shrink-0 mt-auto">
+        <button
+          type="button"
+          onClick={() => {
+            clearAuth();
+            router.push('/admin/login');
+          }}
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-white/65 hover:text-red-300 hover:bg-red-500/10 text-sm transition-colors"
+        >
+          <LogOut size={16} />
+          Sign out
+        </button>
+      </div>
+    </>
+  );
+
   return (
-    <div className="min-h-screen bg-ev-bg flex">
-      <aside className="ev-sidebar w-60 sm:w-64 flex flex-col fixed inset-y-0 z-30">
-        <div className="p-5 border-b ev-sidebar-border">
-          <Link href="/admin/dashboard" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
-              <Camera size={18} className="text-white" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-white font-bold text-sm truncate">{shopTitle}</p>
-              <p className="ev-sidebar-muted text-xs">Shop Admin</p>
-            </div>
-          </Link>
-          {admin ? (
-            <div className="mt-4 rounded-xl bg-white/5 p-3 border ev-sidebar-border">
-              <p className="text-white text-sm font-semibold truncate">{admin.shop_name}</p>
-              <p className="text-white/60 text-xs truncate">{admin.owner_name}</p>
-              <span
-                className={`inline-block mt-2 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full border ${
-                  admin.status === 'approved'
-                    ? 'bg-ev-success/10 text-ev-success border-ev-success/25'
-                    : 'bg-ev-warning/10 text-ev-warning border-ev-warning/25'
-                }`}
-              >
-                {admin.status}
-              </span>
-            </div>
-          ) : null}
-        </div>
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {navItems.map(({ href, label, icon: Icon, badge }) => {
-            const active =
-              pathname === href || (href !== '/admin/dashboard' && pathname.startsWith(href + '/'));
-            const showBadge =
-              badge === 'ordersAttention' &&
-              ordersAttention != null &&
-              ordersAttention > 0 &&
-              admin?.status === 'approved';
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  active ? 'ev-sidebar-link-active' : 'ev-sidebar-link'
-                }`}
-              >
-                <Icon size={17} />
-                <span className="flex-1 min-w-0 truncate">{label}</span>
-                {showBadge ? (
-                  <span className="shrink-0 min-w-[1.25rem] h-5 px-1 flex items-center justify-center rounded-full bg-ev-primary text-white text-[10px] font-bold">
-                    {ordersAttention > 99 ? '99+' : ordersAttention}
-                  </span>
-                ) : null}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="p-3 border-t ev-sidebar-border">
-          <button
-            type="button"
-            onClick={() => {
-              clearAuth();
-              router.push('/admin/login');
-            }}
-            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-white/65 hover:text-red-300 hover:bg-red-500/10 text-sm transition-colors"
-          >
-            <LogOut size={16} />
-            Sign out
-          </button>
-        </div>
-      </aside>
-      <div className="flex-1 ml-60 sm:ml-64 min-h-screen">{children}</div>
-    </div>
+    <ResponsiveSidebarShell mobileTopBarTitle={shopTitle} sidebar={sidebar}>
+      {children}
+    </ResponsiveSidebarShell>
   );
 }
