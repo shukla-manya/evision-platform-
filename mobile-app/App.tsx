@@ -500,6 +500,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   const [sendingOtp, setSendingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [shopGeoLoading, setShopGeoLoading] = useState(false);
+  const [deliveryGeoLoading, setDeliveryGeoLoading] = useState(false);
 
   const deliveryPinSuggestSeq = useRef(0);
   useEffect(() => {
@@ -893,6 +894,44 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
               )}
               {(role === 'customer' || role === 'dealer' || role === 'electrician') && (
                 <>
+                  <Pressable
+                    style={[styles.buttonSecondary, deliveryGeoLoading && { opacity: 0.7 }]}
+                    disabled={deliveryGeoLoading}
+                    onPress={async () => {
+                      setDeliveryGeoLoading(true);
+                      try {
+                        const pos = await getExpoGeolocation();
+                        if (!pos) {
+                          Alert.alert(
+                            'Location',
+                            'Allow location access in Settings, or enter city, pincode, and address manually.',
+                          );
+                          return;
+                        }
+                        const parsed = await reverseGeocodeIndia(pos.lat, pos.lng);
+                        if (!parsed) {
+                          Alert.alert('Location', 'Could not resolve an address from GPS. Please enter details manually.');
+                          return;
+                        }
+                        if (parsed.city) setDeliveryCity(parsed.city);
+                        if (parsed.pincode) setDeliveryPincode(parsed.pincode);
+                        if (parsed.address) setAddress(parsed.address);
+                        Alert.alert(
+                          'Address updated',
+                          parsed.pincode
+                            ? 'Street, city, and pincode were filled from your location. Review and edit if needed.'
+                            : 'Street and city were filled. Add or confirm pincode if needed.',
+                        );
+                      } finally {
+                        setDeliveryGeoLoading(false);
+                      }
+                    }}
+                  >
+                    <Text style={styles.buttonSecondaryText}>
+                      {deliveryGeoLoading ? 'Getting location…' : 'Use current location for address'}
+                    </Text>
+                  </Pressable>
+                  <Text style={styles.captionNote}>Or enter city, pincode, and street address manually below.</Text>
                   <TextInput style={styles.input} placeholder="City" value={deliveryCity} onChangeText={setDeliveryCity} />
                   <TextInput
                     style={styles.input}
@@ -903,7 +942,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                     onChangeText={(t) => setDeliveryPincode(t.replace(/\D/g, '').slice(0, 6))}
                   />
                   <Text style={styles.captionNote}>
-                    Pincode fills from city when available (India Post data). Location also uses GPS when allowed.
+                    Pincode fills from city when available (India Post data). Submit still uses GPS when allowed for map accuracy.
                   </Text>
                 </>
               )}

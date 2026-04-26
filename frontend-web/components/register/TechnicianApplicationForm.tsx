@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Loader2, Mail, MapPin, Upload, User } from 'lucide-react';
+import { ArrowRight, Loader2, Mail, MapPin, Navigation, Upload, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi, registerElectricianFormData } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
-import { geocodeIndia, getBrowserGeolocation } from '@/lib/registration-geo';
+import { geocodeIndia, getBrowserGeolocation, reverseGeocodeIndia } from '@/lib/registration-geo';
 import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
 import { OtpCells } from '@/components/auth/OtpCells';
 
@@ -35,6 +35,7 @@ type TechnicianApplicationFormProps = {
 export function TechnicianApplicationForm({ embedded = false }: TechnicianApplicationFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [geoTechLoading, setGeoTechLoading] = useState(false);
   const [otpSending, setOtpSending] = useState(false);
   const [step, setStep] = useState<Step>('details');
   const [otpKey, setOtpKey] = useState(0);
@@ -264,6 +265,21 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
 
             <div>
               <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider mb-3">Location</p>
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <p className="text-ev-muted text-sm m-0">Where you take jobs</p>
+                <button
+                  type="button"
+                  className="ev-btn-secondary text-xs py-2 px-3 inline-flex items-center gap-1.5 shrink-0"
+                  disabled={geoTechLoading}
+                  onClick={() => void fillTechAreaFromGeo()}
+                >
+                  {geoTechLoading ? <Loader2 size={14} className="animate-spin" /> : <Navigation size={14} />}
+                  Use current location
+                </button>
+              </div>
+              <p className="text-ev-subtle text-xs mb-3 -mt-1">
+                GPS fills city and pincode when possible, or type them manually.
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="ev-label">City</label>
