@@ -328,7 +328,17 @@ export class ProductsService {
       });
     }
 
-    const enriched = await this.enrichShop(items);
+    let enriched = await this.enrichShop(items);
+    const approvedOnly = query.approved_shops_only !== false;
+    if (approvedOnly) {
+      enriched = enriched.filter(
+        (p) => String((p as Record<string, unknown>).shop_admin_status || '') === 'approved',
+      );
+    }
+    enriched = enriched.map((p) => {
+      const { shop_admin_status: _s, ...rest } = p as Record<string, unknown>;
+      return rest as Record<string, unknown>;
+    });
     const serialized = serializeProductsForRole(
       enriched as Record<string, unknown>[],
       role,
@@ -385,10 +395,12 @@ export class ProductsService {
     return products.map((p) => {
       const a = map.get(p.admin_id) as Record<string, unknown> | undefined;
       const shop_logo_url = typeof a?.logo_url === 'string' ? a.logo_url : null;
+      const shop_admin_status = a ? String(a.status ?? '') : '';
       return {
         ...p,
         shop_name: a?.shop_name ?? null,
         shop_logo_url,
+        shop_admin_status,
       };
     });
   }
