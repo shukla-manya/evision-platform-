@@ -43,7 +43,7 @@ export class EmailService {
   }
 
   async send(opts: SendEmailOptions): Promise<void> {
-    const from = `"${this.config.get('EMAIL_FROM_NAME', 'E Vision Pvt. Ltd.')}" <${this.config.get('EMAIL_FROM')}>`;
+    const from = `"${this.config.get('EMAIL_FROM_NAME', 'e vision Pvt. Ltd.')}" <${this.config.get('EMAIL_FROM')}>`;
     let status: 'sent' | 'failed' = 'sent';
     let errorMessage: string | null = null;
 
@@ -92,7 +92,7 @@ export class EmailService {
   }
 
   brandDisplay(): string {
-    return this.config.get<string>('PUBLIC_BRAND_NAME')?.trim() || 'E Vision';
+    return this.config.get<string>('PUBLIC_BRAND_NAME')?.trim() || 'e vision';
   }
 
   private supportEmail(): string {

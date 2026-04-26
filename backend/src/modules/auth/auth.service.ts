@@ -60,7 +60,7 @@ export class AuthService {
         this.config.get('TWILIO_AUTH_TOKEN'),
       );
       await twilio.messages.create({
-        body: `Your E Vision OTP is: ${otp}. Valid for 10 minutes.`,
+        body: `Your e vision OTP is: ${otp}. Valid for 10 minutes.`,
         from: this.config.get('TWILIO_PHONE_NUMBER'),
         to: phone,
       });

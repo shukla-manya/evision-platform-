@@ -46,8 +46,8 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('E Vision API')
-    .setDescription('Multi-Shop E-Commerce + Electrician Service Platform — E Vision Pvt. Ltd.')
+    .setTitle('e vision API')
+    .setDescription('Multi-Shop E-Commerce + Electrician Service Platform — e vision Pvt. Ltd.')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -56,7 +56,7 @@ async function bootstrap() {
 
   const port = configService.get('PORT', 4000);
   await app.listen(port);
-  console.log(`\n⚡ E Vision API running on http://localhost:${port}`);
+  console.log(`\n⚡ e vision API running on http://localhost:${port}`);
   console.log(`📖 Swagger docs: http://localhost:${port}/api/docs\n`);
 }
 

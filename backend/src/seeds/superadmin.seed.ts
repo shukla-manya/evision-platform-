@@ -20,7 +20,7 @@ const raw = new DynamoDBClient({
 const client = DynamoDBDocumentClient.from(raw);
 
 async function seedSuperadmin() {
-  console.log('\n⚡ E Vision — Superadmin Seed\n');
+  console.log('\n⚡ e vision — Superadmin Seed\n');
 
   const email = process.env.SUPERADMIN_EMAIL;
   const password = process.env.SUPERADMIN_PASSWORD;
