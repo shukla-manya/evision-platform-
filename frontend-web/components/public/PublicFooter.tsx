@@ -119,7 +119,9 @@ export function PublicFooter() {
           <p className="font-semibold text-white mb-3">Help</p>
           <ul className="space-y-2 text-white/70">
             <li>
-              <span className="text-white/45">FAQs</span>
+              <Link href="/faq" className="hover:text-white transition-colors">
+                FAQs
+              </Link>
             </li>
             <li>
               <span className="text-white/45">Returns</span>
