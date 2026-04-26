@@ -152,7 +152,7 @@ describe('E2E flows (local)', () => {
     return jwt.sign({ sub, role: 'customer', email, phone: '+919000000000' });
   }
 
-  function dealerToken(sub: string, email: string, gstVerified: boolean) {
+  function dealerToken(sub: string, email: string) {
     return jwt.sign({ sub, role: 'dealer', email, phone: '+919000000001' });
   }
 
