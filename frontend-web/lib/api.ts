@@ -19,7 +19,6 @@ function loginPathFor401(): string {
   const p = window.location.pathname;
   if (p.startsWith('/super') || p.startsWith('/superadmin')) return '/super/signin';
   if (p.startsWith('/admin')) return '/admin/login';
-  if (p.startsWith('/electrician')) return '/electrician/login';
   return '/login';
 }
 
@@ -28,7 +27,7 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       const path = typeof window !== 'undefined' ? window.location.pathname : '';
-      if (path === '/super/signin' || path === '/admin/login' || path === '/electrician/login') {
+      if (path === '/super/signin' || path === '/admin/login' || path === '/login') {
         return Promise.reject(err);
       }
       Cookies.remove('ev_token');
