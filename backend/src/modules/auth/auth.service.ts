@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
+import { normalizeClientIp } from '../../common/http/client-ip.util';
 import {
   RegisterDto,
   AdminLoginDto,
@@ -451,7 +452,11 @@ export class AuthService {
     if (role === 'superadmin') {
       const s = await this.dynamo.get(this.dynamo.tableName('superadmin'), { id: user.id });
       if (!s) throw new NotFoundException('Not found');
-      return strip(s as Record<string, unknown>);
+      const out = strip(s as Record<string, unknown>);
+      delete out.active_session_id;
+      delete out.active_session_ip;
+      delete out.active_session_at;
+      return out;
     }
 
     return {
