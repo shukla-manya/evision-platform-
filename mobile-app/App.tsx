@@ -2080,15 +2080,7 @@ function AppShell() {
   );
   const electricianFlow = useMemo(
     () => (props: any) => (
-      <ElectricianFlow
-        token={token || ''}
-        onLogout={logout}
-        onOpenPasswordReset={(phone?: string) =>
-          props.navigation.navigate('PasswordReset', { role: 'electrician', phone })
-        }
-        fcmToken={fcmToken}
-        userRole={user?.role}
-      />
+      <ElectricianFlow token={token || ''} onLogout={logout} fcmToken={fcmToken} userRole={user?.role} />
     ),
     [token, logout, fcmToken, user?.role],
   );
