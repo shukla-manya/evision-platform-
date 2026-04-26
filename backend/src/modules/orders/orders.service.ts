@@ -154,7 +154,32 @@ export class OrdersService {
               ExpressionAttributeValues: { ':oid': String(order.id) },
             });
             const admin = await this.dynamo.get(this.adminsTable(), { id: String(order.admin_id) });
-            return { ...order, shop_name: admin?.shop_name ?? null, items };
+            const invRows = await this.dynamo.query({
+              TableName: this.invoicesTable(),
+              IndexName: 'OrderIndex',
+              KeyConditionExpression: 'order_id = :oid',
+              ExpressionAttributeValues: { ':oid': String(order.id) },
+            });
+            const latestInv =
+              invRows.length > 0
+                ? [...invRows].sort(
+                    (a, b) =>
+                      new Date(String(b.issued_at || b.created_at || 0)).getTime() -
+                      new Date(String(a.issued_at || a.created_at || 0)).getTime(),
+                  )[0]
+                : null;
+            return {
+              ...order,
+              shop_name: admin?.shop_name ?? null,
+              items,
+              ...(latestInv
+                ? {
+                    customer_invoice_url: latestInv.customer_invoice_url ?? null,
+                    dealer_invoice_url: latestInv.dealer_invoice_url ?? null,
+                    gst_invoice_url: latestInv.gst_invoice_url ?? null,
+                  }
+                : {}),
+            };
           }),
         );
 
