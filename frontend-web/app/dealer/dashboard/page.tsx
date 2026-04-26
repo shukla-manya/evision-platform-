@@ -133,6 +133,14 @@ export default function DealerDashboardPage() {
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [downloading, setDownloading] = useState(false);
   const [profileName, setProfileName] = useState<string | undefined>(undefined);
+  /** Set after mount so SSR + first client paint match (cookies are not available on the server). */
+  const [clientJwtEmail, setClientJwtEmail] = useState('');
+
+  useEffect(() => {
+    const token = getToken();
+    const payload = token ? parseJwt(token) : null;
+    setClientJwtEmail(String(payload?.email || ''));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -170,12 +178,9 @@ export default function DealerDashboardPage() {
   }, [router, load]);
 
   const dealerIdentity = useMemo(() => {
-    const token = getToken();
-    const payload = token ? parseJwt(token) : null;
-    const email = String(payload?.email || '');
-    const fromEmail = dealerNameFromEmail(email);
-    return { initials: initials(fromEmail), email };
-  }, []);
+    const fromEmail = dealerNameFromEmail(clientJwtEmail);
+    return { initials: initials(fromEmail), email: clientJwtEmail };
+  }, [clientJwtEmail]);
 
   const greetFirst = useMemo(() => {
     const fromProfile = firstName(profileName);
