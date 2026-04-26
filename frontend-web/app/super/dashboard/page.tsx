@@ -8,39 +8,15 @@ import { superadminApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { SuperadminShell } from '@/components/superadmin/SuperadminShell';
 import { getToken, parseJwt } from '@/lib/auth';
-
-type AnalyticsSnapshot = {
-  admins: { total: number; pending: number; approved: number; rejected: number; suspended: number };
-  users: { total: number; customers: number; dealers: number; electricians?: number };
-  emails: { total: number; sent: number; failed: number };
-  orders?: { platform_revenue: number; orders_today: number; total_count?: number };
-  revenue_by_shop?: { admin_id: string; shop_name: string; amount: number }[];
-  recent_orders?: {
-    id: string;
-    group_id: string;
-    customer: string;
-    shop: string;
-    amount: number;
-    status: string;
-    created_at: string;
-  }[];
-  recent_emails?: { trigger: string; recipient: string; to_role: string; status: string; time: string }[];
-  active_electricians?: number;
-  generated_at?: string;
-};
+import {
+  type SuperadminAnalyticsSnapshot,
+  formatSuperadminCompactINR,
+  formatSuperadminINR,
+  superadminOrderStatusTone,
+} from '@/lib/superadmin-analytics';
 
 type AdminRow = { id: string; shop_name?: string; owner_name?: string; email?: string; created_at?: string };
 type ElectricianRow = { id: string; name?: string; email?: string; created_at?: string };
-
-function formatINR(n: number) {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
-}
-
-function formatCompactINR(n: number) {
-  if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`;
-  if (n >= 1000) return `₹${(n / 1000).toFixed(1)}K`;
-  return formatINR(n);
-}
 
 function greetingLabel() {
   const h = new Date().getHours();
@@ -67,16 +43,8 @@ function initialsFromEmail(email: string) {
   return 'SA';
 }
 
-function orderStatusTone(status: string): 'success' | 'error' | 'pending' | 'muted' {
-  const s = status.toLowerCase();
-  if (s.includes('deliver') || s.includes('complete')) return 'success';
-  if (s.includes('fail') || s.includes('cancel')) return 'error';
-  if (s.includes('transit') || s.includes('ship') || s.includes('process')) return 'pending';
-  return 'muted';
-}
-
 export default function SuperDashboardPage() {
-  const [analytics, setAnalytics] = useState<AnalyticsSnapshot | null>(null);
+  const [analytics, setAnalytics] = useState<SuperadminAnalyticsSnapshot | null>(null);
   const [pendingAdmins, setPendingAdmins] = useState<AdminRow[]>([]);
   const [pendingElectricians, setPendingElectricians] = useState<ElectricianRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +77,7 @@ export default function SuperDashboardPage() {
         superadminApi.getPendingAdmins(),
         superadminApi.getPendingElectricians(),
       ]);
-      setAnalytics(anRes.data as AnalyticsSnapshot);
+      setAnalytics(anRes.data as SuperadminAnalyticsSnapshot);
       setPendingAdmins(Array.isArray(paRes.data) ? (paRes.data as AdminRow[]) : []);
       setPendingElectricians(Array.isArray(peRes.data) ? (peRes.data as ElectricianRow[]) : []);
     } catch {
@@ -225,7 +193,7 @@ export default function SuperDashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-10">
               <div className="ev-card p-5 border-ev-border">
                 <p className="text-ev-muted text-sm font-medium">Total platform revenue</p>
-                <p className="text-2xl font-bold text-ev-text mt-2">{formatCompactINR(platformRevenue)}</p>
+                <p className="text-2xl font-bold text-ev-text mt-2">{formatSuperadminCompactINR(platformRevenue)}</p>
                 <p className="text-ev-subtle text-xs mt-2">From payable orders across shops</p>
               </div>
               <div className="ev-card p-5 border-ev-border">
@@ -373,7 +341,7 @@ export default function SuperDashboardPage() {
                       <div key={s.admin_id}>
                         <div className="flex justify-between text-sm mb-1.5">
                           <span className="font-medium text-ev-text">{s.shop_name}</span>
-                          <span className="text-ev-muted font-semibold">{formatCompactINR(s.amount)}</span>
+                          <span className="text-ev-muted font-semibold">{formatSuperadminCompactINR(s.amount)}</span>
                         </div>
                         <div className="h-2 rounded-full bg-ev-surface2 overflow-hidden">
                           <div
@@ -413,13 +381,13 @@ export default function SuperDashboardPage() {
                           </tr>
                         ) : (
                           recentOrders.map((o) => {
-                            const tone = orderStatusTone(o.status);
+                            const tone = superadminOrderStatusTone(o.status);
                             return (
                               <tr key={o.id} className="border-b border-ev-border last:border-0">
                                 <td className="px-4 py-3 font-mono text-xs text-ev-text">#{o.id.slice(0, 8)}</td>
                                 <td className="px-4 py-3 text-ev-text">{o.customer}</td>
                                 <td className="px-4 py-3 text-ev-muted">{o.shop}</td>
-                                <td className="px-4 py-3 font-medium text-ev-text">{formatINR(o.amount)}</td>
+                                <td className="px-4 py-3 font-medium text-ev-text">{formatSuperadminINR(o.amount)}</td>
                                 <td className="px-4 py-3">
                                   <span
                                     className={
@@ -508,7 +476,7 @@ export default function SuperDashboardPage() {
                 Settlements
               </Link>
               <Link href="/super/analytics" className="ev-btn-secondary text-sm py-2.5 px-4">
-                Raw analytics
+                Full analytics
               </Link>
             </div>
           </>

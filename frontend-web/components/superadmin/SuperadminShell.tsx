@@ -7,6 +7,7 @@ import {
   type LucideIcon,
   Camera,
   LayoutDashboard,
+  BarChart3,
   Inbox,
   Store,
   UserCog,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 import { superadminApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
+import { publicBrandName } from '@/lib/public-brand';
 
 type NavItem = {
   href: string;
@@ -28,6 +30,7 @@ type NavItem = {
 
 const nav: NavItem[] = [
   { href: '/super/dashboard', label: 'Overview', icon: LayoutDashboard },
+  { href: '/super/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/super/shop-registrations', label: 'Shop registrations', icon: Inbox, badgeKey: 'pending_shops' },
   { href: '/super/technicians', label: 'Technicians', icon: UserCog, badgeKey: 'pending_techs' },
   { href: '/super/shops', label: 'All shops', icon: Store },
@@ -76,7 +79,7 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
               <Camera size={18} className="text-white" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm tracking-tight">LensCart</p>
+              <p className="text-white font-bold text-sm tracking-tight truncate max-w-[10rem]">{publicBrandName}</p>
               <p className="ev-sidebar-muted text-xs">Platform admin</p>
             </div>
           </Link>
@@ -84,7 +87,7 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
           {nav.map(({ href, label, icon: Icon, badgeKey }) => {
             const active =
-              href === '/super/dashboard'
+              href === '/super/dashboard' || href === '/super/analytics'
                 ? pathname === href
                 : pathname === href || pathname.startsWith(`${href}/`);
             const count =

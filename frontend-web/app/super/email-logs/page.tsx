@@ -18,6 +18,31 @@ type EmailLog = {
   error_message: string | null;
 };
 
+/** Common `trigger_event` values — must match backend logs; use text field for anything else. */
+const EMAIL_TRIGGER_PRESETS = [
+  'payment_confirmed',
+  'payment_confirmed_admin',
+  'admin_approved',
+  'admin_registered',
+  'admin_rejected',
+  'invoice_generated',
+  'order_cancelled',
+  'order_shipped',
+  'picked_up',
+  'in_transit',
+  'delivered',
+  'service_booking_request',
+  'electrician_approved',
+  'dealer_gst_verified',
+] as const;
+
+function triggerPresetSelectValue(event: string): string {
+  const t = event.trim();
+  if (!t) return '';
+  if ((EMAIL_TRIGGER_PRESETS as readonly string[]).includes(t)) return t;
+  return 'custom';
+}
+
 export default function EmailDeliveryHistoryPage() {
   const [logs, setLogs] = useState<EmailLog[]>([]);
   const [loading, setLoading] = useState(true);
