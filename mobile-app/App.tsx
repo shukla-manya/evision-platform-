@@ -1526,32 +1526,36 @@ function OrderDetailScreen({ route }: { route: RouteProp<RootStackParamList, 'Or
             </Text>
             {!!subOrder.courier_name && <Text style={styles.cardMeta}>Courier: {String(subOrder.courier_name)}</Text>}
             {!!subOrder.awb_number && <Text style={styles.cardMeta}>AWB: {String(subOrder.awb_number)}</Text>}
-            <View style={{ marginTop: 10, gap: 8 }}>
-              {!!subOrder.tracking_url && (
-                <Pressable
-                  style={[styles.buttonSecondary, { marginTop: 0 }]}
-                  onPress={() => void Linking.openURL(String(subOrder.tracking_url))}
-                >
-                  <Text style={styles.buttonSecondaryText}>Track shipment</Text>
-                </Pressable>
-              )}
-              {[subOrder.customer_invoice_url, subOrder.dealer_invoice_url, subOrder.gst_invoice_url]
-                .filter(Boolean)
-                .map((url: string, i: number) => (
-                  <Pressable
-                    key={`inv-${String(subOrder.id)}-${i}`}
-                    style={[styles.buttonSecondary, { marginTop: 0 }]}
-                    onPress={() => void Linking.openURL(String(url))}
-                  >
-                    <Text style={styles.buttonSecondaryText}>Download invoice</Text>
-                  </Pressable>
-                ))}
-            </View>
             {(subOrder.items || []).map((item: any) => (
               <Text key={String(item.id || `${item.product_id}-${item.qty}`)} style={styles.cardMeta}>
                 - {String(item.product_name || 'Item')} x {Number(item.qty || item.quantity || 1)}
               </Text>
             ))}
+            {(() => {
+              const invs = [subOrder.customer_invoice_url, subOrder.dealer_invoice_url, subOrder.gst_invoice_url].filter(Boolean);
+              if (!subOrder.tracking_url && invs.length === 0) return null;
+              return (
+                <View style={{ marginTop: 10, gap: 8 }}>
+                  {!!subOrder.tracking_url && (
+                    <Pressable
+                      style={[styles.buttonSecondary, { marginTop: 0 }]}
+                      onPress={() => void Linking.openURL(String(subOrder.tracking_url))}
+                    >
+                      <Text style={styles.buttonSecondaryText}>Track shipment</Text>
+                    </Pressable>
+                  )}
+                  {invs.map((url: string, i: number) => (
+                    <Pressable
+                      key={`inv-${String(subOrder.id)}-${i}`}
+                      style={[styles.buttonSecondary, { marginTop: 0 }]}
+                      onPress={() => void Linking.openURL(String(url))}
+                    >
+                      <Text style={styles.buttonSecondaryText}>Download invoice</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              );
+            })()}
           </View>
         ))}
       </ScrollView>
