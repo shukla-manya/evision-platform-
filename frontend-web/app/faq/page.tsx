@@ -147,8 +147,8 @@ export default function FaqPage() {
           Quick answers about {publicBrandName}. For account-specific issues, use{' '}
           <Link href="/contact" className="text-ev-primary hover:text-ev-primary-light font-medium">
             Contact us
-          </Link>{' '}
-          on our About page.
+          </Link>
+          .
         </p>
 
         <div className="space-y-10">
