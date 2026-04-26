@@ -155,10 +155,16 @@ function DashboardScreen({ navigation }: any) {
     owner_name?: string;
     status?: string;
   } | null>(null);
-  const [counts, setCounts] = useState<{ products: number | null; orders: number | null; invoices: number | null }>({
+  const [counts, setCounts] = useState<{
+    products: number | null;
+    orders: number | null;
+    invoices: number | null;
+    revenue: number | null;
+  }>({
     products: null,
     orders: null,
     invoices: null,
+    revenue: null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -180,10 +186,16 @@ function DashboardScreen({ navigation }: any) {
           adminApi.getInvoices().catch(() => ({ data: [] })),
         ]);
         if (cancelled) return;
+        const orderRows: any[] = Array.isArray(ord.data) ? ord.data : [];
+        const EXCLUDE = new Set(['order_cancelled', 'payment_failed']);
+        const revenue = orderRows
+          .filter((o) => !EXCLUDE.has(String(o?.status || '').toLowerCase()))
+          .reduce((s, o) => s + Number(o?.total_amount || 0), 0);
         setCounts({
           products: Array.isArray(prod.data) ? prod.data.length : 0,
-          orders: Array.isArray(ord.data) ? ord.data.length : 0,
+          orders: orderRows.length,
           invoices: Array.isArray(inv.data) ? inv.data.length : 0,
+          revenue,
         });
       } catch {
         if (!cancelled) Alert.alert('Error', 'Failed to load dashboard');
@@ -224,10 +236,11 @@ function DashboardScreen({ navigation }: any) {
   }
 
   const tiles = [
+    { label: 'Revenue', value: counts.revenue != null ? formatInr(counts.revenue) : '—', onPress: () => navigation.navigate('Orders') },
     { label: 'Products', value: counts.products ?? '—', onPress: () => navigation.navigate('Products') },
     { label: 'Orders', value: counts.orders ?? '—', onPress: () => navigation.navigate('Orders') },
     { label: 'Invoices', value: counts.invoices ?? '—', onPress: () => navigation.navigate('Invoices') },
-    { label: 'Status', value: admin.status === 'approved' ? 'Live' : '—', onPress: () => navigation.navigate('Settings') },
+    { label: 'Shop', value: admin.status === 'approved' ? 'Live' : '—', onPress: () => navigation.navigate('Settings') },
   ];
 
   return (
@@ -239,12 +252,17 @@ function DashboardScreen({ navigation }: any) {
             {admin.shop_name ?? 'Your shop'} —{' '}
             {new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </Text>
+          <Text style={[styles.smallMuted, { marginTop: 6 }]}>
+            Revenue tile sums your shop order totals (excludes cancelled and failed payment).
+          </Text>
         </View>
 
         <View style={styles.tileGrid}>
           {tiles.map((t) => (
             <Pressable key={t.label} style={styles.tile} onPress={t.onPress}>
-              <Text style={styles.tileValue}>{t.value}</Text>
+              <Text style={styles.tileValue} numberOfLines={1} adjustsFontSizeToFit>
+                {t.value}
+              </Text>
               <Text style={styles.tileLabel}>{t.label}</Text>
             </Pressable>
           ))}
@@ -459,6 +477,21 @@ function ProductFormScreen({ route, navigation }: any) {
     setNewAssets((prev) => [...prev, ...result.assets]);
   };
 
+  const takeProductPhoto = async () => {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (permission.status !== 'granted') {
+      Alert.alert('Permission needed', 'Camera permission is required.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.75,
+      allowsEditing: false,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    setNewAssets((prev) => [...prev, result.assets[0]]);
+  };
+
   const save = async () => {
     if (!isEdit && !categoryId) {
       Alert.alert('Category required', 'Choose a category.');
@@ -609,9 +642,14 @@ function ProductFormScreen({ route, navigation }: any) {
           ) : null}
 
           <Text style={[styles.label, { marginTop: 12 }]}>Images (optional)</Text>
-          <Pressable style={styles.buttonSecondary} onPress={() => void pickImages()}>
-            <Text style={styles.buttonSecondaryText}>Pick images from gallery</Text>
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Pressable style={[styles.buttonSecondary, { flex: 1 }]} onPress={() => void takeProductPhoto()}>
+              <Text style={styles.buttonSecondaryText}>Take photo</Text>
+            </Pressable>
+            <Pressable style={[styles.buttonSecondary, { flex: 1 }]} onPress={() => void pickImages()}>
+              <Text style={styles.buttonSecondaryText}>Gallery</Text>
+            </Pressable>
+          </View>
           {newAssets.length > 0 ? (
             <Text style={[styles.cardMeta, { marginTop: 6 }]}>{newAssets.length} new image(s) selected</Text>
           ) : null}
@@ -1012,6 +1050,16 @@ function InvoicesScreen() {
               <Text style={[styles.cardMeta, { marginTop: 6 }]} numberOfLines={1}>
                 Order: {String(item.order_id ?? '—')}
               </Text>
+              {item.buyer_name || item.buyer_type ? (
+                <Text style={[styles.smallMuted, { marginTop: 4 }]} numberOfLines={1}>
+                  {String(item.buyer_type ?? '—')}: {String(item.buyer_name ?? '—')}
+                </Text>
+              ) : null}
+              {item.download_pdf ? (
+                <Pressable style={{ marginTop: 8 }} onPress={() => void Linking.openURL(String(item.download_pdf))}>
+                  <Text style={styles.link}>Download / view PDF</Text>
+                </Pressable>
+              ) : null}
             </View>
             <View style={{ alignItems: 'flex-end', gap: 6 }}>
               <View style={styles.badgeMuted}>
@@ -1055,15 +1103,8 @@ function SettingsScreen({
       .finally(() => setLoading(false));
   }, []);
 
-  const pickLogo = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permission.status !== 'granted') {
-      Alert.alert('Permission needed', 'Gallery permission is required.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85 });
-    if (result.canceled || !result.assets?.[0]) return;
-    const file = assetToUploadFile(result.assets[0]);
+  const uploadLogoFromAsset = async (asset: ImagePicker.ImagePickerAsset) => {
+    const file = assetToUploadFile(asset);
     try {
       setUploading(true);
       const { data } = await adminApi.uploadLogo(file);
@@ -1074,6 +1115,38 @@ function SettingsScreen({
     } finally {
       setUploading(false);
     }
+  };
+
+  const pickLogo = () => {
+    Alert.alert('Update logo', 'Camera or photo library', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Take photo',
+        onPress: async () => {
+          const permission = await ImagePicker.requestCameraPermissionsAsync();
+          if (permission.status !== 'granted') {
+            Alert.alert('Permission needed', 'Camera access is required.');
+            return;
+          }
+          const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: false });
+          if (result.canceled || !result.assets?.[0]) return;
+          void uploadLogoFromAsset(result.assets[0]);
+        },
+      },
+      {
+        text: 'Photo library',
+        onPress: async () => {
+          const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (permission.status !== 'granted') {
+            Alert.alert('Permission needed', 'Gallery permission is required.');
+            return;
+          }
+          const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85 });
+          if (result.canceled || !result.assets?.[0]) return;
+          void uploadLogoFromAsset(result.assets[0]);
+        },
+      },
+    ]);
   };
 
   return (
@@ -1099,8 +1172,8 @@ function SettingsScreen({
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.label}>Shop logo</Text>
-                <Pressable style={[styles.buttonSecondary, { marginTop: 8 }]} onPress={() => void pickLogo()} disabled={uploading}>
-                  <Text style={styles.buttonSecondaryText}>{uploading ? 'Uploading…' : 'Upload new logo'}</Text>
+                <Pressable style={[styles.buttonSecondary, { marginTop: 8 }]} onPress={pickLogo} disabled={uploading}>
+                  <Text style={styles.buttonSecondaryText}>{uploading ? 'Uploading…' : 'Change logo (camera or gallery)'}</Text>
                 </Pressable>
               </View>
             </View>

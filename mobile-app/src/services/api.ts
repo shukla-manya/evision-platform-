@@ -149,6 +149,8 @@ export type ElectricianProfile = {
 };
 
 export const authApi = {
+  adminLogin: (email: string, password: string) =>
+    api.post<{ access_token: string; admin: unknown }>('/auth/admin/login', { email, password }),
   sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
   verifyOtp: (phone: string, otp: string) =>
     api.post<OtpVerifyResponse>('/auth/verify-otp', { phone, otp }),
@@ -240,6 +242,11 @@ export const electricianRegisterApi = {
 };
 
 export const adminApi = {
+  /** Public: self-service shop registration (multipart, optional logo). */
+  registerShop: (formData: FormData) =>
+    api.post('/admin/register', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
   me: () => api.get('/admin/me'),
   uploadLogo: (file: { uri: string; name: string; type: string }) => {
     const fd = new FormData();

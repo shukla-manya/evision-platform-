@@ -12,9 +12,7 @@ import { wishlistCount } from '@/lib/wishlist';
 const NAV_LINKS = [
   { href: '/shop', label: 'Shop' },
   { href: '/deals', label: 'Deals' },
-  { href: '/brands', label: 'Brands' },
-  { href: '/technician-services', label: 'Technician Services' },
-  { href: '/about', label: 'About Us' },
+  { href: '/technician-services', label: 'Services' },
 ] as const;
 
 export function PublicNavbar() {
@@ -32,6 +30,7 @@ export function PublicNavbar() {
   }, []);
   const canCart = role === 'customer' || role === 'dealer';
   const isShopper = role === 'customer' || role === 'dealer';
+  const isTechnician = role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected';
 
   const syncCounts = useCallback(() => {
     setHearts(wishlistCount());
@@ -176,6 +175,25 @@ export function PublicNavbar() {
                 Sign out
               </button>
             </>
+          ) : isTechnician ? (
+            <>
+              <Link
+                href="/electrician/dashboard"
+                className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
+              >
+                Technician
+              </Link>
+              <button
+                type="button"
+                className="hidden sm:inline-flex text-white/80 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
+                onClick={() => {
+                  clearAuth();
+                  window.location.href = '/';
+                }}
+              >
+                Sign out
+              </button>
+            </>
           ) : (
             <>
               <Link
@@ -236,6 +254,25 @@ export function PublicNavbar() {
               ) : null}
               <Link href="/profile" className="block py-2.5 text-white/85 hover:text-white font-medium">
                 Profile
+              </Link>
+              <button
+                type="button"
+                className="block w-full text-left py-2.5 text-white/85 hover:text-white font-medium"
+                onClick={() => {
+                  clearAuth();
+                  window.location.href = '/';
+                }}
+              >
+                Sign out
+              </button>
+            </>
+          ) : isTechnician ? (
+            <>
+              <Link
+                href="/electrician/dashboard"
+                className="block py-2.5 text-white/85 hover:text-white font-medium"
+              >
+                Technician
               </Link>
               <button
                 type="button"

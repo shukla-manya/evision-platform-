@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Camera, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
@@ -18,10 +18,18 @@ function formatPhoneForApi(digits: string) {
   return `+91${d}`;
 }
 
+/** Display line e.g. +91 98765 43210 (after OTP send — user already shared this number). */
+function formatPhoneForDisplayE16410(d10: string) {
+  const d = d10.replace(/\D/g, '').slice(-10);
+  if (d.length !== 10) return null;
+  return `+91 ${d.slice(0, 5)} ${d.slice(5)}`;
+}
+
 type Mode = 'phone' | 'code';
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>('phone');
   const [loading, setLoading] = useState(false);
   const [phoneDigits, setPhoneDigits] = useState('');
@@ -30,6 +38,15 @@ export default function LoginPage() {
   const [resendSeconds, setResendSeconds] = useState(0);
   const [otpAttemptsLeft, setOtpAttemptsLeft] = useState(OTP_ATTEMPTS);
   const [noAccountForPhone, setNoAccountForPhone] = useState(false);
+  const approvedToast = useRef(false);
+
+  useEffect(() => {
+    if (approvedToast.current) return;
+    if (searchParams.get('approved') === '1') {
+      approvedToast.current = true;
+      toast.success('You can sign in with your mobile number to continue.');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (mode !== 'code' || resendSeconds <= 0) return;
@@ -82,9 +99,16 @@ export default function LoginPage() {
         toast.error('Invalid session');
         return;
       }
-      saveToken(data.access_token, payload.role);
-      toast.success('Signed in');
-      router.push(redirectByRole(payload.role));
+      const role = payload.role;
+      saveToken(data.access_token, role);
+      if (role === 'electrician_pending') {
+        toast.success(
+          "Your account is still under review. You'll be notified once approved.",
+        );
+      } else {
+        toast.success('Signed in');
+      }
+      router.push(redirectByRole(role));
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 401) {
@@ -112,10 +136,8 @@ export default function LoginPage() {
     }
   }
 
-  const phoneMasked =
-    phoneDigits.replace(/\D/g, '').length === 10
-      ? `+91 ${phoneDigits.replace(/\D/g, '').slice(0, 2)}******${phoneDigits.replace(/\D/g, '').slice(-2)}`
-      : '+91 XXXXXXXXXX';
+  const d10 = phoneDigits.replace(/\D/g, '').slice(-10);
+  const sentToLine = d10.length === 10 ? formatPhoneForDisplayE16410(d10) : null;
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
@@ -126,17 +148,20 @@ export default function LoginPage() {
 
       <div className="w-full max-w-md relative z-10 animate-slide-up">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
+          <Link href="/" className="inline-flex items-center gap-2.5 mb-5">
             <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
               <Camera size={22} className="text-white" />
             </div>
             <span className="text-ev-text font-bold text-xl">{publicBrandName}</span>
           </Link>
 
+          <p className="text-3xl leading-none mb-2" aria-hidden>
+            👋
+          </p>
           <h1 className="text-2xl font-bold text-ev-text">Welcome back</h1>
           {mode === 'phone' && (
-            <p className="text-ev-muted text-sm mt-2 leading-relaxed">
-              Sign in with your mobile number — for customers, dealers, and technicians. We&apos;ll send a one-time code.
+            <p className="text-ev-muted text-sm mt-2 leading-relaxed max-w-sm mx-auto">
+              Enter your mobile number to sign in
             </p>
           )}
         </div>
@@ -145,19 +170,20 @@ export default function LoginPage() {
           {mode === 'phone' && (
             <form onSubmit={handleSendOtp} className="space-y-5">
               <div>
-                <label className="ev-label">Mobile number (+91)</label>
+                <label className="ev-label">Mobile number</label>
                 <div className="flex rounded-xl border border-ev-border bg-ev-surface2 overflow-hidden focus-within:ring-2 focus-within:ring-ev-primary/40 focus-within:border-ev-primary transition-all">
                   <span className="flex items-center px-4 text-ev-muted text-sm font-semibold border-r border-ev-border shrink-0 select-none">
                     +91
                   </span>
                   <input
                     type="tel"
-                    className="flex-1 min-w-0 bg-transparent px-4 py-3 text-ev-text placeholder-ev-subtle text-base outline-none"
+                    className="flex-1 min-w-0 bg-transparent px-4 py-3 text-ev-text placeholder-ev-subtle text-base outline-none tracking-wide"
                     placeholder="9876543210"
                     maxLength={10}
                     value={phoneDigits}
                     onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, '').slice(0, 10))}
                     autoComplete="tel-national"
+                    inputMode="numeric"
                     required
                   />
                 </div>
@@ -177,8 +203,11 @@ export default function LoginPage() {
               <p className="text-center text-ev-subtle text-sm">
                 New here?{' '}
                 <Link href="/register" className="text-ev-primary font-medium hover:underline">
-                  Create an account
+                  Create account
                 </Link>
+              </p>
+              <p className="text-center text-ev-muted text-xs leading-relaxed">
+                Works for customers, dealers and technicians
               </p>
             </form>
           )}
@@ -187,8 +216,8 @@ export default function LoginPage() {
             (noAccountForPhone ? (
               <div className="space-y-4">
                 <div className="rounded-xl border border-ev-border bg-ev-surface2 p-4 text-center space-y-3">
-                  <p className="text-ev-text text-sm font-medium">No account found for this number.</p>
-                  <p className="text-ev-muted text-sm">Create a customer or dealer account, or register as a technician.</p>
+                  <p className="text-ev-text text-sm font-medium">No account found. Register first?</p>
+                  <p className="text-ev-muted text-sm">Register, then sign in with the same number.</p>
                   <div className="flex flex-col gap-2">
                     <Link href="/register" className="ev-btn-primary text-sm py-2.5 px-4 text-center">
                       Register
@@ -216,9 +245,14 @@ export default function LoginPage() {
               </div>
             ) : (
               <form onSubmit={handleVerifyOtp} className="space-y-6">
-                <p className="text-ev-muted text-sm text-center leading-relaxed">
-                  Enter the 6-digit code sent to {phoneMasked}
-                </p>
+                <div className="text-center space-y-1">
+                  <h2 className="text-lg font-semibold text-ev-text">Enter OTP</h2>
+                  {sentToLine ? (
+                    <p className="text-ev-muted text-sm">
+                      Sent to <span className="font-mono text-ev-text tabular-nums">{sentToLine}</span>
+                    </p>
+                  ) : null}
+                </div>
                 <OtpCells
                   key={otpFocusKey}
                   autoFocusKey={otpFocusKey}
@@ -240,7 +274,7 @@ export default function LoginPage() {
                 </button>
                 <p className="text-center text-ev-subtle text-sm leading-relaxed">
                   {resendSeconds > 0 ? (
-                    <span>Didn&apos;t get it? Resend OTP in {resendSeconds} seconds</span>
+                    <span>Resend OTP in {resendSeconds}s</span>
                   ) : (
                     <button
                       type="button"
@@ -251,12 +285,6 @@ export default function LoginPage() {
                       Resend OTP
                     </button>
                   )}
-                </p>
-                <p className="text-center text-ev-subtle text-sm">
-                  New here?{' '}
-                  <Link href="/register" className="text-ev-primary hover:text-ev-primary-light font-medium">
-                    Create an account
-                  </Link>
                 </p>
                 <button
                   type="button"
@@ -269,12 +297,26 @@ export default function LoginPage() {
                   }}
                   className="w-full text-center text-ev-subtle text-sm hover:text-ev-muted"
                 >
-                  ← Change number
+                  Use a different number
                 </button>
               </form>
             ))}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[70vh] flex items-center justify-center">
+          <Loader2 className="animate-spin text-ev-primary" size={28} />
+        </div>
+      }
+    >
+      <LoginPageInner />
+    </Suspense>
   );
 }

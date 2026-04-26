@@ -38,7 +38,7 @@ export class AuthController {
   @Post('verify-otp')
   @ApiOperation({
     summary:
-      'Verify OTP → JWT. Covers customers/dealers (users), approved electricians, or temp token for new shopper registration.',
+      'Verify OTP → JWT. No role in the request: resolves by phone—`users` (customer/dealer) first, then `electricians` (approved → role electrician; pending → electrician_pending; rejected → electrician_rejected). Unregistered → temp token.',
   })
   verifyOtp(@Body() dto: VerifyOtpDto) {
     return this.authService.verifyOtp(dto.phone, dto.otp);

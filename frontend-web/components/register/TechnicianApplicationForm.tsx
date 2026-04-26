@@ -186,7 +186,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       toast.success(
         "Application submitted! Our team will review your Aadhar and profile within 24 hours. You'll receive an email and app notification once approved.",
       );
-      router.push('/electrician/login');
+      router.push('/login');
     } catch {
       toast.error('Incorrect code or submission failed. Check the OTP and try again, or request a new code.');
     } finally {

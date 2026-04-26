@@ -226,86 +226,68 @@ export default function RegisterPage() {
       </div>
 
       <div className="w-full max-w-lg relative z-10">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
+        <div className="text-center mb-6">
+          <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
             <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
               <Camera size={22} className="text-white" />
             </div>
             <span className="text-ev-text font-bold text-xl">{publicBrandName}</span>
           </Link>
+          <h1 className="text-2xl font-bold text-ev-text">Create your account</h1>
+          <p className="text-ev-muted text-sm mt-1 max-w-md mx-auto leading-relaxed">
+            Choose your account type to get started
+          </p>
         </div>
 
-        <div className="ev-card p-1 flex gap-1 mb-6">
-          <button
-            type="button"
-            onClick={() => setSegment('shopper')}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
-              segment === 'shopper' ? 'bg-ev-primary text-white shadow-ev-glow' : 'text-ev-muted hover:text-ev-text'
-            }`}
-          >
-            Customer / Dealer
-          </button>
-          <button
-            type="button"
-            onClick={() => setSegment('technician')}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
-              segment === 'technician' ? 'bg-ev-primary text-white shadow-ev-glow' : 'text-ev-muted hover:text-ev-text'
-            }`}
-          >
-            Technician
-          </button>
+        <div className="ev-card p-1 flex flex-col sm:flex-row gap-1 mb-6">
+          {(['customer', 'dealer', 'technician'] as const).map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                setAccountTab(key);
+                setRegisterStep('details');
+                setRegisterOtpCells(['', '', '', '', '', '']);
+                setResendSeconds(0);
+                setOtpAttemptsLeft(OTP_ATTEMPTS);
+              }}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
+                accountTab === key ? 'bg-ev-primary text-white shadow-ev-glow' : 'text-ev-muted hover:text-ev-text'
+              }`}
+            >
+              {key === 'customer' ? 'Customer' : key === 'dealer' ? 'Dealer' : 'Technician'}
+            </button>
+          ))}
         </div>
 
-        {segment === 'shopper' ? (
+        {accountTab === 'technician' ? (
+          <TechnicianApplicationForm embedded />
+        ) : (
           <>
             {registerStep === 'details' ? (
-                  <div className="text-center mb-6">
-                    <h1 className="text-2xl font-bold text-ev-text">
-                      {shopperRole === 'dealer' ? 'Register as a dealer' : 'Create your account'}
-                    </h1>
-                    <p className="text-ev-muted text-sm mt-1 max-w-md mx-auto leading-relaxed">
-                      {shopperRole === 'dealer' ? (
-                        <>
-                          Get wholesale pricing, bulk order support and GST invoices. Your GST number will be verified
-                          within 24 hours.
-                        </>
-                      ) : (
-                        <>Shop cameras, lenses and accessories from top stores</>
-                      )}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-center mb-6 space-y-2">
-                    <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider">Step 2 of 2</p>
-                    <h2 className="text-2xl font-bold text-ev-text">Verify your number</h2>
-                    <p className="text-ev-muted text-sm max-w-md mx-auto leading-relaxed">
-                      We sent a 6-digit code to {phoneMasked}. It expires in 10 minutes.
-                    </p>
-                  </div>
-                )}
+              <div className="text-center mb-6">
+                <p className="text-ev-muted text-sm max-w-md mx-auto leading-relaxed">
+                  {accountTab === 'dealer' ? (
+                    <>
+                      Get wholesale pricing, bulk order support and GST invoices. Your GST number will be verified
+                      within 24 hours.
+                    </>
+                  ) : (
+                    <>Shop cameras, lenses and accessories from top stores</>
+                  )}
+                </p>
+              </div>
+            ) : (
+              <div className="text-center mb-6 space-y-2">
+                <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider">Step 2 of 2</p>
+                <h2 className="text-2xl font-bold text-ev-text">Verify your number</h2>
+                <p className="text-ev-muted text-sm max-w-md mx-auto leading-relaxed">
+                  We sent a 6-digit code to {phoneMasked}. It expires in 10 minutes.
+                </p>
+              </div>
+            )}
 
-                <div className="ev-card p-1 flex gap-1 mb-6">
-                  {(['customer', 'dealer'] as const).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => {
-                        setShopperRole(key);
-                        setRegisterStep('details');
-                        setRegisterOtpCells(['', '', '', '', '', '']);
-                        setResendSeconds(0);
-                        setOtpAttemptsLeft(OTP_ATTEMPTS);
-                      }}
-                      className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium capitalize transition-all ${
-                        shopperRole === key ? 'bg-ev-indigo text-white' : 'text-ev-muted hover:text-ev-text'
-                      }`}
-                    >
-                      {key === 'customer' ? 'Customer' : 'Dealer'}
-                    </button>
-                  ))}
-                </div>
-
-                {registerStep === 'details' ? (
+            {registerStep === 'details' ? (
                   <div className="ev-card p-8">
                     <form
                       onSubmit={(e) => {
@@ -342,7 +324,7 @@ export default function RegisterPage() {
                         </div>
                       </div>
 
-                      {shopperRole === 'dealer' ? (
+                      {accountTab === 'dealer' ? (
                         <div>
                           <label className="ev-label">Business name</label>
                           <input
@@ -389,7 +371,7 @@ export default function RegisterPage() {
                         </div>
                       </div>
 
-                      {shopperRole === 'customer' ? (
+                      {accountTab === 'customer' ? (
                         <>
                           <div>
                             <label className="ev-label">Delivery address</label>
@@ -493,7 +475,7 @@ export default function RegisterPage() {
                             <Loader2 size={16} className="animate-spin" />
                             Sending…
                           </>
-                        ) : shopperRole === 'dealer' ? (
+                        ) : accountTab === 'dealer' ? (
                           <>
                             Send OTP to verify mobile
                             <ArrowRight size={16} />
@@ -512,13 +494,6 @@ export default function RegisterPage() {
                       <Link href="/login" className="text-ev-primary hover:text-ev-primary-light font-medium">
                         Sign in
                       </Link>
-                      <br />
-                      <span className="text-ev-muted">
-                        Are you a dealer?{' '}
-                        <Link href="/register?role=dealer" className="text-ev-primary font-medium hover:underline">
-                          Register here
-                        </Link>
-                      </span>
                     </p>
                   </div>
                 ) : (
@@ -580,8 +555,6 @@ export default function RegisterPage() {
                   </div>
                 )}
           </>
-        ) : (
-          <TechnicianApplicationForm />
         )}
       </div>
     </div>

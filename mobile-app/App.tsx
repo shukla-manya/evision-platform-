@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import {
+  CommonActions,
   DefaultTheme,
   NavigationContainer,
   type Theme,
@@ -27,7 +28,22 @@ import { AxiosError } from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import { Buffer } from 'buffer';
-import { setApiTokenGetter, authApi, electricianApi, productApi, cartApi, checkoutApi, ordersApi, electricianRegisterApi, PasswordResetRole, Product, CartResponse, CheckoutResponse, API_BASE_URL } from './src/services/api';
+import {
+  setApiTokenGetter,
+  authApi,
+  electricianApi,
+  productApi,
+  cartApi,
+  checkoutApi,
+  ordersApi,
+  electricianRegisterApi,
+  adminApi,
+  PasswordResetRole,
+  Product,
+  CartResponse,
+  CheckoutResponse,
+  API_BASE_URL,
+} from './src/services/api';
 import { clearSession, getToken, setElectricianProfile, setToken } from './src/services/storage';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { openRazorpayCheckout } from './src/services/razorpay';
@@ -44,9 +60,14 @@ import { ServiceBookingConfirmScreen } from './src/screens/ServiceBookingConfirm
 import { LeaveReviewScreen } from './src/screens/LeaveReviewScreen';
 import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 
+type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
+
 type RootStackParamList = {
   Auth: undefined;
-  Register: { email?: string; phone?: string };
+  OtpSignIn: undefined;
+  AdminSignIn: undefined;
+  Register: { email?: string; phone?: string; initialRole?: RegisterInitialRole };
+  ShopPending: { shopName: string; email: string };
   PasswordReset: { role?: PasswordResetRole; phone?: string };
   Main: undefined;
   ProductDetail: { product: Product };
@@ -139,6 +160,16 @@ function normalizePhone(phone: string) {
   return `+91${trimmed}`;
 }
 
+/** E.164 for public shop registration (matches web admin/register). */
+function toAdminRegisterPhone(phone: string) {
+  const raw = phone.trim();
+  if (raw.startsWith('+')) return raw.replace(/\s/g, '');
+  const digits = raw.replace(/\D/g, '');
+  const last10 = digits.replace(/^91/, '').slice(-10);
+  if (last10.length !== 10) return raw;
+  return `+91${last10}`;
+}
+
 async function pickImageAsset(label: string) {
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (status !== 'granted') {
@@ -154,7 +185,34 @@ async function pickImageAsset(label: string) {
   return result.assets[0];
 }
 
-function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string, user: AppUser) => void; navigation: any }) {
+function AuthWelcomeScreen({ navigation }: { navigation: any }) {
+  return (
+    <SafeAreaView style={styles.screen}>
+      <View style={styles.splashContent}>
+        <Text style={styles.splashBrand}>LensCart</Text>
+        <View style={styles.splashGap} />
+        <Pressable style={styles.splashPrimaryBtn} onPress={() => navigation.navigate('OtpSignIn')}>
+          <Text style={styles.splashPrimaryBtnText}>Sign in with mobile OTP</Text>
+          <Text style={styles.splashCtaSub}>For customers, dealers and technicians</Text>
+        </Pressable>
+        <View style={styles.splashOrRow}>
+          <View style={styles.splashOrLine} />
+          <Text style={styles.splashOrLabel}>or</Text>
+          <View style={styles.splashOrLine} />
+        </View>
+        <Pressable style={styles.splashSecondaryBtn} onPress={() => navigation.navigate('AdminSignIn')}>
+          <Text style={styles.splashSecondaryBtnText}>Admin? Sign in here</Text>
+          <Text style={styles.splashCtaSubMuted}>For shop owners</Text>
+        </Pressable>
+        <Pressable style={styles.splashRegisterLink} onPress={() => navigation.navigate('Register', {})}>
+          <Text style={styles.splashRegisterLinkText}>New user? Create an account</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+function OtpSignInScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string, user: AppUser) => void; navigation: any }) {
   const [phoneDigits, setPhoneDigits] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
@@ -214,8 +272,7 @@ function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: 
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.centerBox}>
-        <Text style={styles.title}>LensCart</Text>
-        <Text style={styles.subtitle}>Sign in with mobile number + OTP</Text>
+        <Text style={styles.subtitle}>Sign in with your mobile number. We will send a 6-digit OTP.</Text>
         {step === 'phone' ? (
           <TextInput
             style={styles.input}
@@ -250,21 +307,155 @@ function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: 
           </Pressable>
         ) : null}
         <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('Register', {})}>
-          <Text style={styles.buttonSecondaryText}>New user? Register</Text>
+          <Text style={styles.buttonSecondaryText}>New user? Create an account</Text>
         </Pressable>
       </View>
     </SafeAreaView>
   );
 }
 
+function AdminSignInScreen({
+  navigation,
+  onLoggedIn,
+}: {
+  navigation: any;
+  onLoggedIn: (token: string, user: AppUser) => void;
+}) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    const em = email.trim().toLowerCase();
+    if (!em || !password) {
+      Alert.alert('Missing fields', 'Enter email and password.');
+      return;
+    }
+    try {
+      setLoading(true);
+      const { data } = await authApi.adminLogin(em, password);
+      const payload = parseJwt(data.access_token);
+      const userId = String(payload?.sub || '');
+      const role = String(payload?.role || '');
+      if (!userId || !role) {
+        Alert.alert('Error', 'Invalid session.');
+        return;
+      }
+      onLoggedIn(data.access_token, {
+        id: userId,
+        role,
+        email: payload?.email ? String(payload.email) : em,
+        phone: payload?.phone ? String(payload.phone) : undefined,
+      });
+    } catch (err) {
+      Alert.alert('Sign in failed', asApiError(err, 'Invalid credentials.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.screen}>
+      <ScrollView contentContainerStyle={[styles.listPad, styles.adminSignInScroll]}>
+        <View style={styles.centerBoxNoFlex}>
+          <Text style={styles.adminEmoji}>🏪</Text>
+          <Text style={styles.title}>Admin</Text>
+          <Text style={styles.subtitle}>Sign in to manage your shop on the go</Text>
+        </View>
+        <View style={styles.card}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="username"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            autoComplete="password"
+            textContentType="password"
+          />
+          <Pressable style={styles.button} onPress={submit} disabled={loading}>
+            <Text style={styles.buttonText}>{loading ? 'Please wait...' : 'Sign in'}</Text>
+          </Pressable>
+          <Pressable
+            style={styles.buttonLinkWrap}
+            onPress={() => navigation.navigate('PasswordReset', { role: 'admin' })}
+          >
+            <Text style={styles.link}>Forgot password? Reset</Text>
+          </Pressable>
+        </View>
+        <View style={styles.captionBlock}>
+          <Text style={styles.captionNote}>New shop? Register in the app (Create account → Shop owner), then sign in here after approval.</Text>
+          <Pressable onPress={() => navigation.navigate('Register', { initialRole: 'shop_owner' })}>
+            <Text style={styles.link}>Register as shop owner</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function ShopPendingScreen({
+  route,
+  navigation,
+}: {
+  route: RouteProp<RootStackParamList, 'ShopPending'>;
+  navigation: any;
+}) {
+  const { shopName, email } = route.params;
+  return (
+    <SafeAreaView style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.listPad}>
+        <View style={[styles.card, { paddingVertical: 18 }]}>
+          <Text style={styles.cardTitle}>We received your application</Text>
+          <Text style={[styles.subtitle, { marginTop: 10, textAlign: 'left' }]}>
+            <Text style={styles.subtitleEm}>Pending review</Text>
+            {'\n\n'}
+            Shop <Text style={styles.subtitleEm}>{shopName}</Text> is in the queue. We will email{' '}
+            <Text style={styles.subtitleEm}>{email}</Text> when a platform admin approves your store.
+            {'\n\n'}
+            When you get that email, use the link to set your password. Then open this app and choose Admin sign in.
+          </Text>
+        </View>
+        <Pressable
+          style={styles.button}
+          onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Auth' }] }))}
+        >
+          <Text style={styles.buttonText}>Back to sign in</Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const REGISTER_ROLE_TABS: { value: RegisterInitialRole; label: string }[] = [
+  { value: 'customer', label: 'Customer' },
+  { value: 'dealer', label: 'Dealer' },
+  { value: 'electrician', label: 'Technician' },
+  { value: 'shop_owner', label: 'Shop owner' },
+];
+
 function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<RootStackParamList, 'Register'>; navigation: any; onLoggedIn: (token: string, user: AppUser) => void }) {
   const [name, setName] = useState('');
+  const [shopName, setShopName] = useState('');
   const [email, setEmail] = useState(route.params?.email || '');
   const [phone, setPhone] = useState(() => {
     const raw = route.params?.phone || '';
     const d = raw.replace(/\D/g, '');
     return d.length >= 10 ? d.slice(-10) : '';
   });
+  const [city, setCity] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [logoAsset, setLogoAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [otp, setOtp] = useState('');
   const [address, setAddress] = useState('');
   const [gstNo, setGstNo] = useState('');
@@ -273,11 +464,50 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   const [skills, setSkills] = useState('');
   const [aadharAsset, setAadharAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [photoAsset, setPhotoAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
-  const [role, setRole] = useState<'customer' | 'dealer' | 'electrician'>('customer');
+  const [role, setRole] = useState<RegisterInitialRole>(() => {
+    const r = route.params?.initialRole;
+    if (r === 'shop_owner' || r === 'customer' || r === 'dealer' || r === 'electrician') return r;
+    return 'customer';
+  });
   const [sendingOtp, setSendingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const goToSignInHome = () => {
+    navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Auth' }] }));
+  };
+
+  const setLogoFromPickerResult = (result: ImagePicker.ImagePickerResult) => {
+    if (result.canceled || !result.assets?.[0]) return;
+    setLogoAsset(result.assets[0]);
+  };
+
+  const pickShopLogo = () => {
+    Alert.alert('Shop logo', 'Use your camera or photo library', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Take photo',
+        onPress: async () => {
+          const { status } = await ImagePicker.requestCameraPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permission needed', 'Allow camera access to take a photo of your shop or logo.');
+            return;
+          }
+          const r = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: false });
+          setLogoFromPickerResult(r);
+        },
+      },
+      {
+        text: 'Photo library',
+        onPress: async () => {
+          const a = await pickImageAsset('shop logo');
+          if (a) setLogoAsset(a);
+        },
+      },
+    ]);
+  };
+
   const sendOtp = async () => {
+    if (role === 'shop_owner') return;
     try {
       setSendingOtp(true);
       await authApi.sendOtp(normalizePhone(phone));
@@ -290,6 +520,58 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   };
 
   const submit = async () => {
+    if (role === 'shop_owner') {
+      if (!shopName.trim() || !name.trim()) {
+        Alert.alert('Required', 'Enter shop name and owner name.');
+        return;
+      }
+      if (!email.trim() || !phone.trim() || !gstNo.trim() || !address.trim() || !city.trim() || !/^\d{6}$/.test(pincode.trim())) {
+        Alert.alert('Required', 'Fill email, phone, GST, full address, city, and a 6-digit pincode.');
+        return;
+      }
+      const e164 = toAdminRegisterPhone(phone);
+      if (!/^\+[1-9]\d{9,14}$/.test(e164)) {
+        Alert.alert('Invalid phone', 'Enter a valid 10-digit mobile number.');
+        return;
+      }
+      try {
+        setLoading(true);
+        const fd = new FormData();
+        fd.append('shop_name', shopName.trim());
+        fd.append('owner_name', name.trim());
+        fd.append('email', email.trim().toLowerCase());
+        fd.append('phone', e164);
+        fd.append('gst_no', gstNo.trim());
+        fd.append('address', address.trim());
+        fd.append('city', city.trim());
+        fd.append('pincode', pincode.trim());
+        if (logoAsset) {
+          fd.append('logo', {
+            uri: logoAsset.uri,
+            name: logoAsset.fileName || `shop-logo-${Date.now()}.jpg`,
+            type: logoAsset.mimeType || 'image/jpeg',
+          } as never);
+        }
+        await adminApi.registerShop(fd);
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'ShopPending',
+                params: { shopName: shopName.trim(), email: email.trim().toLowerCase() },
+              },
+            ],
+          }),
+        );
+      } catch (err) {
+        Alert.alert('Error', asApiError(err, 'Could not submit shop registration.'));
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (role === 'dealer' && !gstNo.trim()) {
       Alert.alert('GST required', 'GST number is required for dealer accounts.');
       return;
@@ -300,11 +582,11 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     }
     if (role === 'electrician') {
       if (!lat.trim() || !lng.trim()) {
-        Alert.alert('Location required', 'Latitude and longitude are required for electrician registration.');
+        Alert.alert('Location required', 'Latitude and longitude are required for technician registration.');
         return;
       }
       if (!aadharAsset || !photoAsset) {
-        Alert.alert('Documents required', 'Aadhar and profile photo are required for electrician registration.');
+        Alert.alert('Documents required', 'Aadhar and profile photo are required for technician registration.');
         return;
       }
     }
@@ -314,7 +596,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         const aadhar = aadharAsset;
         const photo = photoAsset;
         if (!aadhar || !photo) {
-          Alert.alert('Documents required', 'Aadhar and profile photo are required for electrician registration.');
+          Alert.alert('Documents required', 'Aadhar and profile photo are required for technician registration.');
           return;
         }
         const fd = new FormData();
@@ -338,8 +620,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         await electricianRegisterApi.register(fd);
         Alert.alert(
           'Registration submitted',
-          'Electrician registration is pending approval. Login will work after approval.',
-          [{ text: 'OK', onPress: () => navigation.navigate('Auth') }],
+          'Technician registration is pending approval. You can sign in with OTP after approval.',
+          [{ text: 'OK', onPress: goToSignInHome }],
         );
         return;
       }
@@ -348,7 +630,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         email: email.trim().toLowerCase(),
         phone: normalizePhone(phone),
         otp,
-        role,
+        role: role as 'customer' | 'dealer',
         gst_no: role === 'dealer' ? gstNo.trim() : undefined,
         address: address.trim() || undefined,
         business_name: role === 'dealer' ? name.trim() : undefined,
@@ -376,52 +658,123 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.listPad}>
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Create Account</Text>
-          <Text style={styles.subtitle}>All app roles register in one mobile app.</Text>
-          <TextInput style={styles.input} placeholder="Full name" value={name} onChangeText={setName} />
-          <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" value={email} onChangeText={setEmail} autoCapitalize="none" />
-          <TextInput style={styles.input} placeholder="+91 9876543210" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
+          <Text style={styles.cardTitle}>Create account</Text>
+          <Text style={styles.subtitle}>
+            Customer · Dealer · Technician · Shop owner — same app, your dashboard matches your role after sign-in.
+          </Text>
           <View style={styles.roleRow}>
-            {(['customer', 'dealer', 'electrician'] as const).map((option) => (
+            {REGISTER_ROLE_TABS.map(({ value, label }) => (
               <Pressable
-                key={option}
-                onPress={() => setRole(option)}
-                style={[styles.roleChip, role === option && styles.roleChipActive]}
+                key={value}
+                onPress={() => setRole(value)}
+                style={[styles.roleChip, role === value && styles.roleChipActive]}
               >
-                <Text style={[styles.roleChipText, role === option && styles.roleChipTextActive]}>
-                  {option}
-                </Text>
+                <Text style={[styles.roleChipText, role === value && styles.roleChipTextActive]}>{label}</Text>
               </Pressable>
             ))}
           </View>
-          {role === 'dealer' && (
-            <TextInput
-              style={styles.input}
-              placeholder="GST number"
-              value={gstNo}
-              onChangeText={setGstNo}
-              autoCapitalize="characters"
-            />
-          )}
-          {role === 'electrician' && (
+          {role === 'shop_owner' ? (
             <>
-              <TextInput style={styles.input} placeholder="Latitude" keyboardType="decimal-pad" value={lat} onChangeText={setLat} />
-              <TextInput style={styles.input} placeholder="Longitude" keyboardType="decimal-pad" value={lng} onChangeText={setLng} />
-              <TextInput style={styles.input} placeholder="Skills (comma-separated)" value={skills} onChangeText={setSkills} />
-              <Pressable style={styles.buttonSecondary} onPress={async () => setAadharAsset(await pickImageAsset('Aadhar document'))}>
+              <TextInput style={styles.input} placeholder="Shop name" value={shopName} onChangeText={setShopName} />
+              <TextInput style={styles.input} placeholder="Owner full name" value={name} onChangeText={setName} />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Mobile (10 digits)"
+                keyboardType="phone-pad"
+                value={phone}
+                onChangeText={(t) => setPhone(t.replace(/\D/g, '').slice(0, 10))}
+                maxLength={10}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="GST number"
+                value={gstNo}
+                onChangeText={setGstNo}
+                autoCapitalize="characters"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Shop address (street / area)"
+                value={address}
+                onChangeText={setAddress}
+              />
+              <TextInput style={styles.input} placeholder="City" value={city} onChangeText={setCity} />
+              <TextInput
+                style={styles.input}
+                placeholder="Pincode (6 digits)"
+                keyboardType="number-pad"
+                maxLength={6}
+                value={pincode}
+                onChangeText={(t) => setPincode(t.replace(/\D/g, '').slice(0, 6))}
+              />
+              <Pressable style={styles.buttonSecondary} onPress={pickShopLogo}>
                 <Text style={styles.buttonSecondaryText}>
-                  {aadharAsset ? `Aadhar: ${aadharAsset.fileName || 'selected'}` : 'Upload Aadhar document'}
-                </Text>
-              </Pressable>
-              <Pressable style={styles.buttonSecondary} onPress={async () => setPhotoAsset(await pickImageAsset('profile photo'))}>
-                <Text style={styles.buttonSecondaryText}>
-                  {photoAsset ? `Photo: ${photoAsset.fileName || 'selected'}` : 'Upload profile photo'}
+                  {logoAsset ? `Change logo (${logoAsset.fileName || 'selected'})` : 'Add shop logo (camera or gallery)'}
                 </Text>
               </Pressable>
             </>
+          ) : (
+            <>
+              <TextInput style={styles.input} placeholder="Full name" value={name} onChangeText={setName} />
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Mobile (10 digits)"
+                keyboardType="phone-pad"
+                value={phone}
+                onChangeText={(t) => setPhone(t.replace(/\D/g, '').slice(0, 10))}
+                maxLength={10}
+              />
+              {role === 'dealer' && (
+                <TextInput
+                  style={styles.input}
+                  placeholder="GST number"
+                  value={gstNo}
+                  onChangeText={setGstNo}
+                  autoCapitalize="characters"
+                />
+              )}
+              {role === 'electrician' && (
+                <>
+                  <TextInput style={styles.input} placeholder="Latitude" keyboardType="decimal-pad" value={lat} onChangeText={setLat} />
+                  <TextInput style={styles.input} placeholder="Longitude" keyboardType="decimal-pad" value={lng} onChangeText={setLng} />
+                  <TextInput style={styles.input} placeholder="Skills (comma-separated)" value={skills} onChangeText={setSkills} />
+                  <Pressable style={styles.buttonSecondary} onPress={async () => setAadharAsset(await pickImageAsset('Aadhar document'))}>
+                    <Text style={styles.buttonSecondaryText}>
+                      {aadharAsset ? `Aadhar: ${aadharAsset.fileName || 'selected'}` : 'Upload Aadhar document'}
+                    </Text>
+                  </Pressable>
+                  <Pressable style={styles.buttonSecondary} onPress={async () => setPhotoAsset(await pickImageAsset('profile photo'))}>
+                    <Text style={styles.buttonSecondaryText}>
+                      {photoAsset ? `Photo: ${photoAsset.fileName || 'selected'}` : 'Upload profile photo'}
+                    </Text>
+                  </Pressable>
+                </>
+              )}
+              <TextInput
+                style={styles.input}
+                placeholder={role === 'dealer' ? 'Business / delivery address (required)' : 'Address (optional)'}
+                value={address}
+                onChangeText={setAddress}
+              />
+            </>
           )}
-          <TextInput style={styles.input} placeholder="Address (optional)" value={address} onChangeText={setAddress} />
-          {role !== 'electrician' && (
+          {role !== 'electrician' && role !== 'shop_owner' && (
             <>
               <TextInput
                 style={styles.input}
@@ -438,7 +791,13 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
           )}
           <Pressable style={styles.button} onPress={submit} disabled={loading}>
             <Text style={styles.buttonText}>
-              {loading ? 'Creating account...' : role === 'electrician' ? 'Submit Electrician Registration' : 'Register'}
+              {loading
+                ? 'Please wait...'
+                : role === 'electrician'
+                ? 'Submit technician registration'
+                : role === 'shop_owner'
+                ? 'Submit for approval'
+                : 'Register'}
             </Text>
           </Pressable>
         </View>
@@ -1206,10 +1565,19 @@ function AppShell() {
         {!token ? (
           <>
             <RootStack.Screen name="Auth" options={{ headerShown: false }}>
-              {(props) => <UniversalLoginScreen {...props} onLoggedIn={handleLoggedIn} />}
+              {(props) => <AuthWelcomeScreen {...props} />}
+            </RootStack.Screen>
+            <RootStack.Screen name="OtpSignIn" options={{ title: 'Mobile sign-in' }}>
+              {(props) => <OtpSignInScreen {...props} onLoggedIn={handleLoggedIn} />}
             </RootStack.Screen>
             <RootStack.Screen name="Register" options={{ title: 'Register' }}>
               {(props) => <RegisterScreen {...props} onLoggedIn={handleLoggedIn} />}
+            </RootStack.Screen>
+            <RootStack.Screen name="AdminSignIn" options={{ title: 'Admin' }}>
+              {(props) => <AdminSignInScreen {...props} onLoggedIn={handleLoggedIn} />}
+            </RootStack.Screen>
+            <RootStack.Screen name="ShopPending" options={{ title: 'Shop pending' }}>
+              {(props) => <ShopPendingScreen {...props} />}
             </RootStack.Screen>
           </>
         ) : (
@@ -1266,8 +1634,15 @@ export default function App() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
+  centerBoxNoFlex: { alignItems: 'center', paddingVertical: 8, paddingHorizontal: 8, gap: 8 },
+  adminSignInScroll: { paddingTop: 8, paddingBottom: 32, flexGrow: 1 },
+  adminEmoji: { fontSize: 40, lineHeight: 48, textAlign: 'center' },
+  buttonLinkWrap: { alignItems: 'center', marginTop: 4 },
+  captionBlock: { marginTop: 8, paddingHorizontal: 4, alignItems: 'center', gap: 6 },
+  captionNote: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', lineHeight: 20 },
   title: { fontSize: 24, fontWeight: '700', color: colors.textPrimary },
   subtitle: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
+  subtitleEm: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
   listPad: { padding: 16, gap: 12 },
   input: {
     width: '100%',
@@ -1312,7 +1687,37 @@ const styles = StyleSheet.create({
   bigPrice: { fontSize: 20, fontWeight: '700', color: colors.brandPrimary },
   empty: { textAlign: 'center', color: colors.muted, marginTop: 40 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
-  roleRow: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  roleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  splashContent: { flex: 1, paddingHorizontal: 24, paddingVertical: 32, justifyContent: 'center', maxWidth: 400, width: '100%', alignSelf: 'center' },
+  splashBrand: { fontSize: 32, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', letterSpacing: 0.5 },
+  splashGap: { height: 40 },
+  splashPrimaryBtn: {
+    width: '100%',
+    backgroundColor: colors.brandPrimary,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  splashPrimaryBtnText: { color: colors.surface, fontWeight: '700', fontSize: 17 },
+  splashCtaSub: { color: 'rgba(255,255,255,0.92)', fontSize: 13, marginTop: 8, textAlign: 'center' },
+  splashCtaSubMuted: { color: colors.textSecondary, fontSize: 13, marginTop: 6, textAlign: 'center' },
+  splashOrRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 20, gap: 12 },
+  splashOrLine: { flex: 1, height: 1, backgroundColor: colors.border },
+  splashOrLabel: { fontSize: 13, color: colors.textSecondary, textTransform: 'lowercase' },
+  splashSecondaryBtn: {
+    width: '100%',
+    borderWidth: 2,
+    borderColor: colors.brandPrimary,
+    backgroundColor: colors.surface,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  splashSecondaryBtnText: { color: colors.brandPrimary, fontWeight: '700', fontSize: 17 },
+  splashRegisterLink: { marginTop: 28, alignItems: 'center' },
+  splashRegisterLinkText: { color: colors.brandPrimary, fontWeight: '600', fontSize: 15 },
   roleChip: {
     borderWidth: 1,
     borderColor: colors.border,

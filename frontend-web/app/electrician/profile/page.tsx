@@ -171,7 +171,7 @@ export default function ElectricianProfilePage() {
                   className="ev-btn-secondary text-sm py-2.5 px-4 inline-flex items-center gap-2 text-ev-error border-ev-error/30"
                   onClick={() => {
                     clearAuth();
-                    router.push('/electrician/login');
+                    router.push('/login');
                   }}
                 >
                   <LogOut size={16} />

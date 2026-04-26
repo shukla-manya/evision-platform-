@@ -62,7 +62,7 @@ function ApprovedSignInAgainView() {
   const router = useRouter();
   const onContinue = () => {
     clearAuth();
-    router.push('/electrician/login?approved=1');
+    router.push('/login?approved=1');
   };
   return (
     <div className="min-h-screen bg-ev-bg flex flex-col items-center justify-center px-6 py-16">
@@ -118,7 +118,7 @@ export function ElectricianShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const role = getRole();
     if (!role) {
-      router.replace('/electrician/login');
+      router.replace('/login');
       return;
     }
     const allowed = new Set(['electrician', 'electrician_pending', 'electrician_rejected']);
@@ -205,7 +205,7 @@ export function ElectricianShell({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     clearAuth();
-    router.push('/electrician/login');
+    router.push('/login');
   };
 
   if (gate === 'loading') {

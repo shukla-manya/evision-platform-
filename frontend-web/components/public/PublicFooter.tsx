@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import { Camera } from 'lucide-react';
 import { publicBrandName } from '@/lib/public-brand';
+import { publicAdminRegisterUrl, publicAdminSignInUrl, publicLoginPath, publicRegisterPath } from '@/lib/public-links';
 
 const year = 2026;
 
 export function PublicFooter() {
   return (
     <footer className="mt-auto border-t border-ev-border bg-ev-navbar text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 text-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 text-sm">
         <div>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow">
@@ -15,15 +16,29 @@ export function PublicFooter() {
             </div>
             <span className="font-bold text-lg">{publicBrandName}</span>
           </div>
-          <p className="text-white/65 leading-relaxed mb-4">India&apos;s trusted camera marketplace</p>
-          <p className="text-white/45 text-xs">Social links coming soon</p>
+          <ul className="space-y-2 text-white/70">
+            <li>
+              <Link href="/about" className="hover:text-white transition-colors">
+                About us
+              </Link>
+            </li>
+            <li>
+              <span className="text-white/45">Careers</span>
+            </li>
+            <li>
+              <Link href="/about#contact" className="hover:text-white transition-colors">
+                Contact
+              </Link>
+            </li>
+          </ul>
         </div>
+
         <div>
           <p className="font-semibold text-white mb-3">Shop</p>
           <ul className="space-y-2 text-white/70">
             <li>
               <Link href="/shop" className="hover:text-white transition-colors">
-                All Products
+                All products
               </Link>
             </li>
             <li>
@@ -36,61 +51,88 @@ export function PublicFooter() {
                 Brands
               </Link>
             </li>
-            <li>
-              <Link href="/shop?sort=newest" className="hover:text-white transition-colors">
-                New Arrivals
-              </Link>
-            </li>
           </ul>
         </div>
+
         <div>
           <p className="font-semibold text-white mb-3">Services</p>
           <ul className="space-y-2 text-white/70">
             <li>
-              <Link href="/technician-services" className="hover:text-white transition-colors">
-                Book a Technician
+              <Link href="/service/request" className="hover:text-white transition-colors">
+                Book a technician
               </Link>
             </li>
             <li>
-              <Link href="/technician/register" className="hover:text-white transition-colors">
-                Technician Network
+              <Link href="/register?role=electrician" className="hover:text-white transition-colors">
+                Join as technician
               </Link>
             </li>
             <li>
               <Link href="/technician-services#areas" className="hover:text-white transition-colors">
-                Service Areas
+                Service areas
               </Link>
             </li>
           </ul>
         </div>
+
+        <div>
+          <p className="font-semibold text-white mb-3">Account</p>
+          <ul className="space-y-2 text-white/80">
+            <li>
+              <Link href={publicLoginPath} className="hover:text-white transition-colors font-medium">
+                Sign in
+              </Link>
+            </li>
+            <li>
+              <Link href={publicRegisterPath} className="hover:text-white transition-colors font-medium">
+                Sign up
+              </Link>
+            </li>
+          </ul>
+          <p className="font-semibold text-white mt-5 mb-2 text-sm">Shop admin</p>
+          <p className="text-[11px] text-white/50 leading-snug mb-2">Store owners: email + password on the admin app</p>
+          <ul className="space-y-2 text-white/80">
+            <li>
+              <a
+                href={publicAdminSignInUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors font-medium"
+              >
+                Admin sign in
+              </a>
+            </li>
+            <li>
+              <a
+                href={publicAdminRegisterUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors font-medium"
+              >
+                Register your shop
+              </a>
+            </li>
+          </ul>
+        </div>
+
         <div>
           <p className="font-semibold text-white mb-3">Help</p>
           <ul className="space-y-2 text-white/70">
             <li>
-              <Link href="/about#contact" className="hover:text-white transition-colors">
-                Contact Us
-              </Link>
-            </li>
-            <li>
               <span className="text-white/45">FAQs</span>
             </li>
             <li>
-              <span className="text-white/45">Return Policy</span>
+              <span className="text-white/45">Returns</span>
             </li>
             <li>
-              <span className="text-white/45">Privacy Policy</span>
-            </li>
-            <li>
-              <span className="text-white/45">Terms</span>
+              <span className="text-white/45">Privacy policy</span>
             </li>
           </ul>
         </div>
       </div>
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/50 text-center sm:text-left">
-          <span>
-            © {year} E Vision Pvt. Ltd. All rights reserved · Payments secured by Razorpay
-          </span>
+          <span>© {year} E Vision Pvt. Ltd. Payments secured by Razorpay.</span>
         </div>
       </div>
     </footer>
