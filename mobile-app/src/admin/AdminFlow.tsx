@@ -633,8 +633,11 @@ function ProductFormScreen({ route, navigation }: any) {
                     <Text style={styles.monoTiny} numberOfLines={2}>
                       {u}
                     </Text>
-                    <Pressable onPress={() => setExistingImages((prev) => prev.filter((x) => x !== u))}>
-                      <Text style={styles.linkDanger}>Remove</Text>
+                    <Pressable
+                      style={[styles.dangerOutline, { paddingVertical: 8, marginTop: 4, flexShrink: 0 }]}
+                      onPress={() => setExistingImages((prev) => prev.filter((x) => x !== u))}
+                    >
+                      <Text style={styles.dangerOutlineText}>Remove</Text>
                     </Pressable>
                   </View>
                 ))}
@@ -775,8 +778,11 @@ function OrdersScreen({ navigation }: any) {
                 <Text style={styles.monoSmall}>{String(item.awb_number)}</Text>
                 <Text style={[styles.cardMeta, { marginTop: 4 }]}>{String(item.courier_name || 'Shiprocket')}</Text>
                 {item.tracking_url ? (
-                  <Pressable onPress={() => void Linking.openURL(String(item.tracking_url))}>
-                    <Text style={styles.link}>Track shipment →</Text>
+                  <Pressable
+                    style={[styles.buttonSecondary, { marginTop: 8 }]}
+                    onPress={() => void Linking.openURL(String(item.tracking_url))}
+                  >
+                    <Text style={styles.buttonSecondaryText}>Track shipment</Text>
                   </Pressable>
                 ) : null}
                 <DeliveryTimeline order={item} />
@@ -894,8 +900,8 @@ function OrderDetailScreen({ route, navigation }: any) {
     return (
       <SafeAreaView style={styles.screen}>
         <View style={styles.listPad}>
-          <Pressable onPress={() => navigation.goBack()}>
-            <Text style={styles.link}>← Orders</Text>
+          <Pressable style={styles.outlineButton} onPress={() => navigation.goBack()}>
+            <Text style={styles.outlineButtonText}>← Orders</Text>
           </Pressable>
           <View style={[styles.card, { marginTop: 12 }]}>
             <Text style={styles.cardMeta}>Order not found.</Text>
@@ -910,8 +916,8 @@ function OrderDetailScreen({ route, navigation }: any) {
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.listPad}>
-        <Pressable onPress={() => navigation.goBack()}>
-          <Text style={styles.link}>← Orders</Text>
+        <Pressable style={styles.outlineButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.outlineButtonText}>← Orders</Text>
         </Pressable>
 
         <View style={[styles.card, { marginTop: 12 }]}>
@@ -942,8 +948,11 @@ function OrderDetailScreen({ route, navigation }: any) {
             <View>
               <Text style={styles.kicker}>Tracking</Text>
               {order.tracking_url ? (
-                <Pressable onPress={() => void Linking.openURL(String(order.tracking_url))}>
-                  <Text style={styles.link}>Open tracker</Text>
+                <Pressable
+                  style={[styles.buttonSecondary, { marginTop: 0 }]}
+                  onPress={() => void Linking.openURL(String(order.tracking_url))}
+                >
+                  <Text style={styles.buttonSecondaryText}>Open tracker</Text>
                 </Pressable>
               ) : (
                 <Text style={styles.cardMeta}>—</Text>
@@ -1058,8 +1067,11 @@ function InvoicesScreen() {
                 </Text>
               ) : null}
               {item.download_pdf ? (
-                <Pressable style={{ marginTop: 8 }} onPress={() => void Linking.openURL(String(item.download_pdf))}>
-                  <Text style={styles.link}>Download / view PDF</Text>
+                <Pressable
+                  style={[styles.buttonSecondary, { marginTop: 8 }]}
+                  onPress={() => void Linking.openURL(String(item.download_pdf))}
+                >
+                  <Text style={styles.buttonSecondaryText}>Download / view PDF</Text>
                 </Pressable>
               ) : null}
             </View>
@@ -1312,6 +1324,16 @@ const styles = StyleSheet.create({
   dangerOutlineText: { color: colors.error, fontWeight: '700' },
   link: { color: colors.brandPrimary, fontWeight: '600', fontSize: 13 },
   linkDanger: { color: colors.error, fontWeight: '700', fontSize: 12 },
+  outlineButton: {
+    alignSelf: 'flex-start',
+    borderWidth: 2,
+    borderColor: colors.brandPrimary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: colors.surface,
+  },
+  outlineButtonText: { color: colors.brandPrimary, fontWeight: '700', fontSize: 14 },
   tileGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   tile: {
     width: '48%',
