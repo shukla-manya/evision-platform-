@@ -336,8 +336,9 @@ export class ProductsService {
       );
     }
     enriched = enriched.map((p) => {
-      const { shop_admin_status: _s, ...rest } = p as Record<string, unknown>;
-      return rest as Record<string, unknown>;
+      const row = { ...(p as Record<string, unknown>) };
+      delete row.shop_admin_status;
+      return row as Record<string, unknown>;
     });
     const serialized = serializeProductsForRole(
       enriched as Record<string, unknown>[],
