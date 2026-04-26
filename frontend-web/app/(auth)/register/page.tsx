@@ -85,6 +85,38 @@ export default function RegisterPage() {
     return () => window.clearTimeout(timer);
   }, [businessCity, accountTab]);
 
+  async function fillAddressFromGeo(kind: 'customer' | 'dealer') {
+    setGeoAddrLoading(true);
+    try {
+      const pos = await getBrowserGeolocation();
+      if (!pos) {
+        toast.error('Could not read your location. Allow access or type your address manually.');
+        return;
+      }
+      const parsed = await reverseGeocodeIndia(pos.lat, pos.lng);
+      if (!parsed) {
+        toast.error('Could not resolve address from your location. Please type it manually.');
+        return;
+      }
+      if (kind === 'customer') {
+        if (parsed.address) setAddress(parsed.address);
+        if (parsed.city) setCity(parsed.city);
+        if (parsed.pincode) setPincode(parsed.pincode);
+      } else {
+        if (parsed.address) setBusinessAddress(parsed.address);
+        if (parsed.city) setBusinessCity(parsed.city);
+        if (parsed.pincode) setBusinessPincode(parsed.pincode);
+      }
+      toast.success(
+        parsed.pincode
+          ? 'Address filled from your location. Review and edit if needed.'
+          : 'Street and city filled. Confirm pincode if needed.',
+      );
+    } finally {
+      setGeoAddrLoading(false);
+    }
+  }
+
   const validateDetailsBeforeOtp = useCallback((): boolean => {
     const name = `${firstName.trim()} ${lastName.trim()}`.trim();
     if (name.length < 2) {
@@ -411,8 +443,22 @@ export default function RegisterPage() {
 
                       {accountTab === 'customer' ? (
                         <>
-                          <div>
-                            <label className="ev-label">Delivery address</label>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <label className="ev-label mb-0">Delivery address</label>
+                              <button
+                                type="button"
+                                className="ev-btn-secondary text-xs py-2 px-3 inline-flex items-center gap-1.5 shrink-0"
+                                disabled={geoAddrLoading}
+                                onClick={() => void fillAddressFromGeo('customer')}
+                              >
+                                {geoAddrLoading ? <Loader2 size={14} className="animate-spin" /> : <Navigation size={14} />}
+                                Use current location
+                              </button>
+                            </div>
+                            <p className="text-ev-subtle text-xs -mt-1">
+                              GPS can pre-fill street, city, and pincode, or type everything manually.
+                            </p>
                             <div className="relative">
                               <MapPin size={16} className="absolute left-4 top-3 text-ev-subtle" />
                               <textarea
@@ -465,8 +511,22 @@ export default function RegisterPage() {
                               We&apos;ll verify this within 24 hours; until then you can browse at regular prices.
                             </p>
                           </div>
-                          <div>
-                            <label className="ev-label">Business address</label>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <label className="ev-label mb-0">Business address</label>
+                              <button
+                                type="button"
+                                className="ev-btn-secondary text-xs py-2 px-3 inline-flex items-center gap-1.5 shrink-0"
+                                disabled={geoAddrLoading}
+                                onClick={() => void fillAddressFromGeo('dealer')}
+                              >
+                                {geoAddrLoading ? <Loader2 size={14} className="animate-spin" /> : <Navigation size={14} />}
+                                Use current location
+                              </button>
+                            </div>
+                            <p className="text-ev-subtle text-xs -mt-1">
+                              GPS can pre-fill street, city, and pincode, or type everything manually.
+                            </p>
                             <div className="relative">
                               <MapPin size={16} className="absolute left-4 top-3 text-ev-subtle" />
                               <textarea
