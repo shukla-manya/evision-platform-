@@ -403,7 +403,17 @@ async function setupCli() {
     existingTables = result.TableNames || [];
     console.log(`Found ${existingTables.length} existing table(s)\n`);
   } catch (err: any) {
-    console.error('✗ Cannot connect to DynamoDB. Check AWS credentials in .env\n', err?.message);
+    const msg = String(err?.message || err);
+    if (/ECONNREFUSED|ENOTFOUND|socket hang up/i.test(msg) && endpoint) {
+      console.error(
+        `✗ Cannot reach local DynamoDB at ${endpoint}\n` +
+          `  Start Dynalite in another terminal, then run this again:\n` +
+          `    cd backend && npm run dynamo:local\n`,
+        msg,
+      );
+    } else {
+      console.error('✗ Cannot connect to DynamoDB. Check endpoint/credentials in .env\n', msg);
+    }
     process.exit(1);
   }
 
