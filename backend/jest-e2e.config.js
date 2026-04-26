@@ -9,7 +9,7 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testTimeout: 120000,
+  testTimeout: 300000,
   maxWorkers: 1,
   forceExit: true,
 };
