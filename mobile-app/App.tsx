@@ -286,7 +286,7 @@ function OtpSignInScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: strin
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.centerBox, { flexGrow: 1, paddingBottom: 24 }]}
+          contentContainerStyle={styles.centerBoxScrollable}
         >
           <Text style={styles.subtitle}>Sign in with your mobile number. We will send a 6-digit OTP.</Text>
           {step === 'phone' ? (
@@ -826,7 +826,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
             </Text>
           </Pressable>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -1650,15 +1651,26 @@ function AppShell() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppShell />
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppShell />
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   centerBox: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
+  /** ScrollView content — no flex:1 (avoids layout glitches with RN ScrollView). */
+  centerBoxScrollable: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    gap: 12,
+    paddingBottom: 32,
+  },
   centerBoxNoFlex: { alignItems: 'center', paddingVertical: 8, paddingHorizontal: 8, gap: 8 },
   adminSignInScroll: { paddingTop: 8, paddingBottom: 32, flexGrow: 1 },
   adminEmoji: { fontSize: 40, lineHeight: 48, textAlign: 'center' },
@@ -1713,7 +1725,14 @@ const styles = StyleSheet.create({
   empty: { textAlign: 'center', color: colors.muted, marginTop: 40 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   roleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
-  splashContent: { flex: 1, paddingHorizontal: 24, paddingVertical: 32, justifyContent: 'center', maxWidth: 400, width: '100%', alignSelf: 'center' },
+  splashContent: {
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    justifyContent: 'center',
+    maxWidth: 400,
+    width: '100%',
+    alignSelf: 'center',
+  },
   splashBrand: { fontSize: 32, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', letterSpacing: 0.5 },
   splashGap: { height: 40 },
   splashPrimaryBtn: {
