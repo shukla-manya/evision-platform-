@@ -1,6 +1,8 @@
 /** Shared copy & formatting for electrician technician app */
 
-export const ELECTRICIAN_SUPPORT_EMAIL = 'support@lenscart.com';
+import { publicSupportEmail } from './public-contact';
+
+export const ELECTRICIAN_SUPPORT_EMAIL = publicSupportEmail;
 
 export function formatCountdown(expiresAt?: string | null): string | null {
   if (!expiresAt) return null;

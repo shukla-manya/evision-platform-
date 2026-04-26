@@ -1,4 +1,4 @@
-/** LensCart — camera marketplace palette */
+/** e vision — camera marketplace palette */
 export const colors = {
   brandPrimary: '#E8532A',
   brandSoft: '#FF8C42',
