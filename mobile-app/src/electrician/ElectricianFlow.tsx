@@ -86,8 +86,8 @@ function HomeScreen({ navigation }: any) {
         <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('ActiveJob')}>
           <Text style={styles.secondaryButtonText}>Active Job</Text>
         </Pressable>
-        <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('EarningsHistory')}>
-          <Text style={styles.secondaryButtonText}>Earnings/History</Text>
+        <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('JobHistory')}>
+          <Text style={styles.secondaryButtonText}>Job history</Text>
         </Pressable>
         <Pressable style={styles.secondaryButton} onPress={() => navigation.navigate('Profile')}>
           <Text style={styles.secondaryButtonText}>My Profile</Text>
@@ -379,7 +379,7 @@ function ProfileScreen({ onLogout, fcmToken }: { onLogout: () => void; fcmToken:
   );
 }
 
-function EarningsHistoryScreen() {
+function JobHistoryScreen() {
   const [history, setHistory] = useState<ServiceBooking[]>([]);
 
   useEffect(() => {
@@ -394,15 +394,11 @@ function EarningsHistoryScreen() {
     void load();
   }, []);
 
-  const totalJobs = history.length;
-  const estimatedEarnings = totalJobs * 500;
-
   return (
     <ScrollView style={styles.screen}>
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Earnings / History</Text>
-        <Text style={styles.meta}>Completed Jobs: {totalJobs}</Text>
-        <Text style={styles.meta}>Estimated Earnings: Rs. {estimatedEarnings}</Text>
+        <Text style={styles.cardTitle}>Job history</Text>
+        <Text style={styles.meta}>Completed jobs: {history.length}</Text>
       </View>
       {history.map((item) => (
         <View key={item.id} style={styles.card}>
@@ -516,7 +512,7 @@ export function ElectricianFlow({
       <Stack.Screen name="Profile" options={{ title: 'My Profile' }}>
         {() => <ProfileScreen onLogout={onLogout} fcmToken={fcmToken} />}
       </Stack.Screen>
-      <Stack.Screen name="EarningsHistory" component={EarningsHistoryScreen} options={{ title: 'Earnings & History' }} />
+      <Stack.Screen name="JobHistory" component={JobHistoryScreen} options={{ title: 'Job history' }} />
     </Stack.Navigator>
   );
 }
