@@ -148,7 +148,6 @@ const quickLinks: {
   { href: '/electrician/settings', label: 'Edit profile', icon: Pencil, variant: 'primary' },
   { href: '/electrician/reviews', label: 'Reviews', icon: MessageSquare },
   { href: '/electrician/earnings', label: 'Earnings', icon: Wallet },
-  { href: '/reset-password?role=electrician', label: 'Password & security', icon: Shield },
 ];
 
 export default function ElectricianProfilePage() {
