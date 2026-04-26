@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Camera, User, Mail, MapPin, ArrowRight, Loader2 } from 'lucide-react';
+import { Camera, User, Mail, MapPin, ArrowRight, Loader2, Navigation } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
@@ -11,7 +11,7 @@ import { saveToken, parseJwt } from '@/lib/auth';
 import { TechnicianApplicationForm } from '@/components/register/TechnicianApplicationForm';
 import { publicBrandName } from '@/lib/public-brand';
 import { OtpCells } from '@/components/auth/OtpCells';
-import { resolveRegistrationCoordinates } from '@/lib/registration-geo';
+import { getBrowserGeolocation, resolveRegistrationCoordinates, reverseGeocodeIndia } from '@/lib/registration-geo';
 import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
 
 type AccountTab = 'customer' | 'dealer' | 'technician';
@@ -34,6 +34,7 @@ export default function RegisterPage() {
     return 'customer';
   });
   const [loading, setLoading] = useState(false);
+  const [geoAddrLoading, setGeoAddrLoading] = useState(false);
   const [otpSending, setOtpSending] = useState(false);
   const [registerStep, setRegisterStep] = useState<RegisterStep>('details');
   const [registerOtpKey, setRegisterOtpKey] = useState(0);
