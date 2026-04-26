@@ -198,13 +198,6 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     try {
       const phone = formatPhoneE164(techPhoneDigits);
       const coords = await resolveRegistrationCoordinates(techCity.trim(), techPin.trim());
-      if (!coords || !Number.isFinite(coords.lat) || !Number.isFinite(coords.lng)) {
-        toast.error(
-          'Could not resolve your location from GPS or city and pincode. Check the pincode, allow location if prompted, then try again.',
-        );
-        return;
-      }
-      const { lat, lng } = coords;
       const skillsCsv = Array.from(techSkills).join(',');
       const exp = techExperience.trim();
       const addressLine = [exp ? `Experience: ${exp} yrs` : null, `${techCity.trim()}, ${techPin.trim()}, India`]
@@ -217,8 +210,10 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       fd.append('otp', otp.replace(/\D/g, ''));
       fd.append('email', techEmail.trim().toLowerCase());
       fd.append('address', addressLine);
-      fd.append('lat', String(lat));
-      fd.append('lng', String(lng));
+      if (coords && Number.isFinite(coords.lat) && Number.isFinite(coords.lng)) {
+        fd.append('lat', String(coords.lat));
+        fd.append('lng', String(coords.lng));
+      }
       fd.append('skills', skillsCsv);
       fd.append('aadhar', aadharFile!);
       fd.append('photo', photoFile!);

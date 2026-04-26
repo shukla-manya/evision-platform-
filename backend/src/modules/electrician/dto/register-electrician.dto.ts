@@ -45,13 +45,15 @@ export class RegisterElectricianDto {
   @IsString()
   address?: string;
 
-  @ApiProperty({ example: '28.4089', description: 'Latitude as decimal string' })
+  @ApiPropertyOptional({ example: '28.4089', description: 'Latitude (resolved from GPS or geocoding)' })
+  @IsOptional()
   @IsNumberString()
-  lat: string;
+  lat?: string;
 
-  @ApiProperty({ example: '77.3178', description: 'Longitude as decimal string' })
+  @ApiPropertyOptional({ example: '77.3178', description: 'Longitude (resolved from GPS or geocoding)' })
+  @IsOptional()
   @IsNumberString()
-  lng: string;
+  lng?: string;
 
   @ApiPropertyOptional({
     example: '["wiring","solar","inverter"] or wiring,solar,inverter',

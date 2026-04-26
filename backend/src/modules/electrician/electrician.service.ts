@@ -135,8 +135,8 @@ export class ElectricianService {
       email: emailNorm,
       password_hash: passwordHash,
       address: dto.address || null,
-      lat: Number(dto.lat),
-      lng: Number(dto.lng),
+      lat: dto.lat ? Number(dto.lat) : null,
+      lng: dto.lng ? Number(dto.lng) : null,
       available: true,
       rating_avg: 0,
       rating_count: 0,
@@ -148,8 +148,11 @@ export class ElectricianService {
       created_at: now,
       updated_at: now,
     };
-    if (Number.isNaN(electrician.lat) || Number.isNaN(electrician.lng)) {
-      throw new BadRequestException('Invalid lat/lng values');
+    if (electrician.lat !== null && Number.isNaN(electrician.lat)) {
+      throw new BadRequestException('Invalid latitude value');
+    }
+    if (electrician.lng !== null && Number.isNaN(electrician.lng)) {
+      throw new BadRequestException('Invalid longitude value');
     }
 
     await this.dynamo.put(this.table(), electrician);

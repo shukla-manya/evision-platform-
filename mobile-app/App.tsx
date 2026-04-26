@@ -710,13 +710,6 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
           return;
         }
         const coords = await resolveRegistrationCoordinates(deliveryCity, pin6);
-        if (!coords) {
-          Alert.alert(
-            'Location',
-            'Could not resolve your location. Allow location access when prompted, or check city and pincode.',
-          );
-          return;
-        }
         const otpDigits = otp.replace(/\D/g, '');
         if (otpDigits.length !== 6) {
           Alert.alert('OTP required', 'Enter the 6-digit code sent to your phone, or tap Send OTP first.');
@@ -727,8 +720,10 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         fd.append('phone', normalizePhone(phone));
         fd.append('otp', otpDigits);
         fd.append('email', email.trim().toLowerCase());
-        fd.append('lat', String(coords.lat));
-        fd.append('lng', String(coords.lng));
+        if (coords) {
+          fd.append('lat', String(coords.lat));
+          fd.append('lng', String(coords.lng));
+        }
         const addressLine = [address.trim() || null, `${deliveryCity.trim()}, ${pin6}, India`].filter(Boolean).join(' · ');
         fd.append('address', addressLine);
         if (skills.trim()) fd.append('skills', skills.trim());
