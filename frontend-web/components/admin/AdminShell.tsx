@@ -13,7 +13,6 @@ import {
   LogOut,
   Loader2,
   Boxes,
-  LifeBuoy,
   TrendingUp,
 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
@@ -37,7 +36,6 @@ const navItems: Array<{
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart, badge: 'ordersAttention' },
   { href: '/admin/inventory', label: 'Inventory', icon: Boxes },
   { href: '/admin/invoices', label: 'Invoices', icon: FileText },
-  { href: '/admin/service-requests', label: 'Service requests', icon: LifeBuoy },
   { href: '/admin/revenue', label: 'Revenue', icon: TrendingUp },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];

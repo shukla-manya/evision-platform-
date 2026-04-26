@@ -6,7 +6,6 @@ import {
   ArrowRight,
   BarChart3,
   Clock,
-  LifeBuoy,
   Package,
   Plus,
   ShoppingCart,
@@ -240,7 +239,8 @@ export default function AdminDashboardPage() {
       weekMax,
       lowStockProducts,
       productTotal: products.length,
-      pendingServiceRequests: 0,
+      /** All shop orders (service work is not a separate admin queue — it lives on the order). */
+      placedOrderCount: orders.length,
     };
   }, [orders, products]);
 
@@ -352,12 +352,12 @@ export default function AdminDashboardPage() {
               )}
             </p>
           </div>
-          <Link href="/admin/service-requests" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
-            <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Pending service requests</p>
-            <p className="text-2xl font-bold text-ev-text tabular-nums">{metrics.pendingServiceRequests}</p>
+          <Link href="/admin/orders" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
+            <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Placed orders</p>
+            <p className="text-2xl font-bold text-ev-text tabular-nums">{metrics.placedOrderCount}</p>
             <p className="text-ev-muted text-xs mt-2 inline-flex items-center gap-1">
-              <LifeBuoy size={12} />
-              View queue
+              <ShoppingCart size={12} />
+              Fulfillment &amp; tracking here
             </p>
           </Link>
         </section>
