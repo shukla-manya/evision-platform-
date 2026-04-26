@@ -401,7 +401,11 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
             </div>
 
             <div>
-              <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider mb-3">Documents</p>
+              <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider mb-1">Documents</p>
+              <p className="text-ev-muted text-xs mb-3 leading-relaxed">
+                Required before you verify and submit. You can still request the OTP once contact details and service area
+                above are filled.
+              </p>
               <div className="space-y-5">
                 <div>
                   <span className="ev-label">Aadhar card photo</span>
