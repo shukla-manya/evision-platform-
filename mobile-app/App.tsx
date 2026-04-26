@@ -601,11 +601,18 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
       Alert.alert('Address required', 'Business / delivery address is required for dealer accounts.');
       return;
     }
-    if (role === 'electrician') {
-      if (!lat.trim() || !lng.trim()) {
-        Alert.alert('Location required', 'Latitude and longitude are required for technician registration.');
+    const pin6 = deliveryPincode.replace(/\D/g, '').slice(0, 6);
+    if (role === 'customer' || role === 'dealer' || role === 'electrician') {
+      if (!deliveryCity.trim() || !/^\d{6}$/.test(pin6)) {
+        Alert.alert('Location', 'Enter city and a valid 6-digit pincode (used for map location if GPS is unavailable).');
         return;
       }
+    }
+    if (role === 'customer' && !address.trim()) {
+      Alert.alert('Address required', 'Enter your delivery address.');
+      return;
+    }
+    if (role === 'electrician') {
       if (!aadharAsset || !photoAsset) {
         Alert.alert('Documents required', 'Aadhar and profile photo are required for technician registration.');
         return;
@@ -620,13 +627,22 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
           Alert.alert('Documents required', 'Aadhar and profile photo are required for technician registration.');
           return;
         }
+        const coords = await resolveRegistrationCoordinates(deliveryCity, pin6);
+        if (!coords) {
+          Alert.alert(
+            'Location',
+            'Could not resolve your location. Allow location access when prompted, or check city and pincode.',
+          );
+          return;
+        }
         const fd = new FormData();
         fd.append('name', name.trim());
         fd.append('phone', normalizePhone(phone));
         fd.append('email', email.trim().toLowerCase());
-        fd.append('lat', lat.trim());
-        fd.append('lng', lng.trim());
-        if (address.trim()) fd.append('address', address.trim());
+        fd.append('lat', String(coords.lat));
+        fd.append('lng', String(coords.lng));
+        const addressLine = [address.trim() || null, `${deliveryCity.trim()}, ${pin6}, India`].filter(Boolean).join(' · ');
+        fd.append('address', addressLine);
         if (skills.trim()) fd.append('skills', skills.trim());
         fd.append('aadhar', {
           uri: aadhar.uri,
@@ -646,6 +662,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         );
         return;
       }
+      const fullShopperAddress = [address.trim(), deliveryCity.trim(), `Pincode: ${pin6}`].filter(Boolean).join('\n');
+      const geo = await resolveRegistrationCoordinates(deliveryCity, pin6);
       const { data } = await authApi.register({
         name: name.trim(),
         email: email.trim().toLowerCase(),
@@ -653,9 +671,12 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         otp,
         role: role as 'customer' | 'dealer',
         gst_no: role === 'dealer' ? gstNo.trim() : undefined,
-        address: address.trim() || undefined,
+        address: fullShopperAddress || undefined,
         business_name: role === 'dealer' ? name.trim() : undefined,
         business_address: role === 'dealer' ? address.trim() : undefined,
+        business_city: role === 'dealer' ? deliveryCity.trim() : undefined,
+        business_pincode: role === 'dealer' ? pin6 : undefined,
+        ...(geo ? { lat: geo.lat, lng: geo.lng } : {}),
       });
       const payload = parseJwt(data.access_token);
       if (!payload?.sub || !payload?.role) {
@@ -780,8 +801,6 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
               )}
               {role === 'electrician' && (
                 <>
-                  <TextInput style={styles.input} placeholder="Latitude" keyboardType="decimal-pad" value={lat} onChangeText={setLat} />
-                  <TextInput style={styles.input} placeholder="Longitude" keyboardType="decimal-pad" value={lng} onChangeText={setLng} />
                   <TextInput style={styles.input} placeholder="Skills (comma-separated)" value={skills} onChangeText={setSkills} />
                   <Pressable style={styles.buttonSecondary} onPress={async () => setAadharAsset(await pickImageAsset('Aadhar document'))}>
                     <Text style={styles.buttonSecondaryText}>
@@ -795,9 +814,31 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                   </Pressable>
                 </>
               )}
+              {(role === 'customer' || role === 'dealer' || role === 'electrician') && (
+                <>
+                  <TextInput style={styles.input} placeholder="City" value={deliveryCity} onChangeText={setDeliveryCity} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Pincode (6 digits)"
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    value={deliveryPincode}
+                    onChangeText={(t) => setDeliveryPincode(t.replace(/\D/g, '').slice(0, 6))}
+                  />
+                  <Text style={styles.captionNote}>
+                    Location is captured automatically (GPS when allowed, otherwise city + pincode on the map).
+                  </Text>
+                </>
+              )}
               <TextInput
                 style={styles.input}
-                placeholder={role === 'dealer' ? 'Business / delivery address (required)' : 'Address (optional)'}
+                placeholder={
+                  role === 'dealer'
+                    ? 'Business / delivery address (required)'
+                    : role === 'customer'
+                      ? 'Delivery address (required)'
+                      : 'Address / notes (optional)'
+                }
                 value={address}
                 onChangeText={setAddress}
               />
