@@ -101,7 +101,7 @@ export default function AdminSetupPasswordPage() {
             <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
               <Camera size={22} className="text-white" />
             </div>
-            <span className="text-ev-text font-bold text-xl">e vision</span>
+            <span className="text-ev-text font-bold text-xl">E vision</span>
           </Link>
         </div>
         <Suspense

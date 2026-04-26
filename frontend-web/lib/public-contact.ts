@@ -5,4 +5,4 @@ export const publicSupportEmail =
 export const publicSupportPhone =
   process.env.NEXT_PUBLIC_SUPPORT_PHONE?.trim() || '+91 80 0000 0000';
 
-export const publicCompanyLegalName = 'e vision Pvt. Ltd.';
+export const publicCompanyLegalName = 'E vision Pvt. Ltd.';

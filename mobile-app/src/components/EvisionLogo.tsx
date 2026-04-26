@@ -14,13 +14,13 @@ type Props = {
 };
 
 /**
- * e vision brand — same geometry as web `EvisionLogo` / `public/logo.svg`.
+ * E vision brand — same geometry as web `EvisionLogo` / `public/logo.svg`.
  */
 export function EvisionLogo({
   variant = 'full',
   width = 200,
   height = 44,
-  wordmark = 'e vision',
+  wordmark = 'E vision',
   wordmarkOnLight = true,
 }: Props) {
   const gid = 'ev-mobile-logo-grad';
@@ -28,7 +28,7 @@ export function EvisionLogo({
   if (variant === 'mark') {
     const s = height;
     return (
-      <Svg width={s} height={s} viewBox="0 0 40 40" accessibilityRole="image" accessibilityLabel="e vision">
+      <Svg width={s} height={s} viewBox="0 0 40 40" accessibilityRole="image" accessibilityLabel="E vision">
         <Defs>
           <LinearGradient id={gid} x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
             <Stop offset="0%" stopColor="#1a1a2e" />

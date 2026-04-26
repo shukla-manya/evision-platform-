@@ -90,7 +90,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const shopTitle = admin?.shop_name?.trim() || 'e vision';
+  const shopTitle = admin?.shop_name?.trim() || 'E vision';
 
   const sidebar = (
     <>

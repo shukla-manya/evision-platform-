@@ -299,7 +299,7 @@ export default function DealerDashboardPage() {
         <Link href="/dealer/dashboard" className="flex items-center gap-2.5">
           <EvisionLogo variant="mark" height={36} className="shrink-0 shadow-ev-glow rounded-lg" />
           <div className="min-w-0">
-            <p className="text-white font-bold text-sm truncate">e vision Pro</p>
+            <p className="text-white font-bold text-sm truncate">E vision Pro</p>
             <p className="ev-sidebar-muted text-xs">Dealer dashboard</p>
           </div>
         </Link>

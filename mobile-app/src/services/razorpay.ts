@@ -13,7 +13,7 @@ export async function openRazorpayCheckout(options: RazorpayOptionsInput) {
     key: options.key,
     amount: options.amountPaise,
     currency: 'INR',
-    name: 'e vision',
+    name: 'E vision',
     description: 'Order payment',
     order_id: options.orderId,
     prefill: {

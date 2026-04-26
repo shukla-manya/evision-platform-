@@ -8,6 +8,7 @@ import { authApi, catalogApi, ordersApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
 import { getBrowseProductIds } from '@/lib/browse-history';
+import { publicBrandName } from '@/lib/public-brand';
 
 type User = {
   name?: string;
@@ -130,7 +131,7 @@ export default function CustomerHomePage() {
             Hey {firstName(user?.name)} 👋
           </h1>
           <p className="text-ev-muted text-sm">
-            Your e vision dashboard — orders and service in one place.
+            Your {publicBrandName} dashboard — orders and service in one place.
             {role === 'dealer' ? (
               <span className="block mt-1 text-ev-subtle">
                 Dealer pricing applies in the shop; open Dealer hub for GST invoices and wholesale stats.

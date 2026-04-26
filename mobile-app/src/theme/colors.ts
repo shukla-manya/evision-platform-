@@ -1,4 +1,4 @@
-/** e vision — camera marketplace palette */
+/** E vision — camera marketplace palette */
 export const colors = {
   brandPrimary: '#E8532A',
   brandSoft: '#FF8C42',

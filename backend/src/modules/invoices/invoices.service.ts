@@ -140,7 +140,7 @@ export class InvoicesService {
       customer_name: String(user?.name || 'Customer'),
       customer_phone: String(user?.phone || ''),
       customer_email: String(user?.email || ''),
-      shop_name: String(admin?.shop_name || 'e vision Shop'),
+      shop_name: String(admin?.shop_name || 'E vision Shop'),
       shop_owner: String(admin?.owner_name || ''),
       shop_email: String(admin?.email || ''),
       shop_gstin: String(admin?.gstin || admin?.gst_no || ''),

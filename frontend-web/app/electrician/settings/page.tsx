@@ -24,7 +24,7 @@ const NOTIFICATION_EXAMPLES = [
   },
   {
     title: 'Account approved',
-    body: 'Welcome to e vision! Your account has been approved. Go online to start receiving job requests.',
+    body: 'Welcome to E vision! Your account has been approved. Go online to start receiving job requests.',
   },
 ];
 

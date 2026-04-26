@@ -1,4 +1,4 @@
-/** Main-site paths for e vision (same deployment as the marketing storefront). */
+/** Main-site paths for E vision (same deployment as the marketing storefront). */
 export const publicLoginPath = '/login';
 export const publicRegisterPath = '/register';
 

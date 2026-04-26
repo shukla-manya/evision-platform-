@@ -394,7 +394,7 @@ async function setupCli() {
     ...(endpoint ? { endpoint } : {}),
   });
 
-  console.log('\n⚡ e vision — DynamoDB Table Setup\n');
+  console.log('\n⚡ E vision — DynamoDB Table Setup\n');
   console.log(`Region: ${process.env.AWS_REGION || 'ap-south-1'}\n`);
 
   let existingTables: string[] = [];

@@ -16,12 +16,12 @@ type Props = {
 };
 
 /**
- * e vision brand mark: gradient tile + lens rings + optional wordmark.
+ * E vision brand mark: gradient tile + lens rings + optional wordmark.
  */
 export function EvisionLogo({
   className,
   variant = 'full',
-  wordmark = 'e vision',
+  wordmark = 'E vision',
   height = 36,
   tone = 'onDark',
 }: Props) {

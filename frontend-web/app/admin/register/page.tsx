@@ -169,9 +169,9 @@ export default function AdminRegisterPage() {
             <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
               <Camera size={22} className="text-white" />
             </div>
-            <span className="text-ev-text font-bold text-xl">e vision</span>
+            <span className="text-ev-text font-bold text-xl">E vision</span>
           </Link>
-          <h1 className="text-3xl font-bold text-ev-text mb-2">Register your shop on e vision</h1>
+          <h1 className="text-3xl font-bold text-ev-text mb-2">Register your shop on E vision</h1>
           <p className="text-ev-muted text-sm max-w-lg mx-auto leading-relaxed">
             Fill in your shop details. Our team will review and approve your account within 24 hours.
           </p>

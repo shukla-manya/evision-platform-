@@ -5,7 +5,7 @@ const ROOT_HTML = `<!DOCTYPE html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>e vision API</title>
+  <title>E vision API</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -26,7 +26,7 @@ const ROOT_HTML = `<!DOCTYPE html>
 </head>
 <body>
   <main>
-    <h1>e vision API</h1>
+    <h1>E vision API</h1>
     <p>Made with love by Manya Shukla</p>
     <a href="/api/docs">Open API docs →</a>
   </main>

@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "e vision",
+    "name": "E vision",
     "slug": "evision-customer-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,7 +17,7 @@
       "bundleIdentifier": "com.evision.customer",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "e vision uses your location to set your service area when you register or book nearby technicians."
+        "NSLocationWhenInUseUsageDescription": "E vision uses your location to set your service area when you register or book nearby technicians."
       },
       "config": {
         "googleMapsApiKey": ""
@@ -55,7 +55,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow e vision to use your location to capture your area for registration and nearby technicians."
+          "locationWhenInUsePermission": "Allow E vision to use your location to capture your area for registration and nearby technicians."
         }
       ]
     ]

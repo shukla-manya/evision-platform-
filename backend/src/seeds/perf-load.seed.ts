@@ -35,7 +35,7 @@ const CAT_A = '11111111-1111-4111-8111-111111111101';
 const CAT_B = '11111111-1111-4111-8111-111111111102';
 
 async function main() {
-  console.log('\n⚡ e vision — perf catalogue seed\n');
+  console.log('\n⚡ E vision — perf catalogue seed\n');
   await ensureEvisionDynamoTables(raw);
   const client = DynamoDBDocumentClient.from(raw, {
     marshallOptions: { removeUndefinedValues: true },

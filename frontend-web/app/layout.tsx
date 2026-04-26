@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: 'e vision — Camera & Gear Marketplace',
-  description: 'e vision — A warm, trustworthy marketplace for cameras and gear.',
+  title: 'E vision — Camera & Gear Marketplace',
+  description: 'E vision — A warm, trustworthy marketplace for cameras and gear.',
   /** Favicon: MS mark in `app/icon.svg` (Next.js adds `<link rel="icon">` automatically). */
 };
 
