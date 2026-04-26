@@ -4,14 +4,15 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
-  BadgePercent,
-  Camera,
   Clock,
+  CreditCard,
   Heart,
+  Layers,
   Loader2,
   Plus,
-  ShieldCheck,
+  Receipt,
   Sparkles,
+  Store,
   Truck,
   Wrench,
 } from 'lucide-react';
