@@ -2,14 +2,30 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Camera, Store, User, Mail, Phone, Building2, MapPin, MapPinned, Hash, Loader2, CheckCircle, ImagePlus } from 'lucide-react';
+import {
+  Camera,
+  Store,
+  User,
+  Mail,
+  Phone,
+  Building2,
+  MapPin,
+  MapPinned,
+  Hash,
+  Loader2,
+  CheckCircle,
+  ImagePlus,
+  Navigation,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
+import { getBrowserGeolocation, reverseGeocodeIndia } from '@/lib/registration-geo';
 
 export default function AdminRegisterPage() {
   const [loading, setLoading] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [form, setForm] = useState({
@@ -40,6 +56,35 @@ export default function AdminRegisterPage() {
     }, 450);
     return () => window.clearTimeout(timer);
   }, [form.city]);
+
+  async function fillShopAddressFromLocation() {
+    setGeoLoading(true);
+    try {
+      const pos = await getBrowserGeolocation();
+      if (!pos) {
+        toast.error('Could not read your location. Allow location access or enter the address manually.');
+        return;
+      }
+      const parsed = await reverseGeocodeIndia(pos.lat, pos.lng);
+      if (!parsed) {
+        toast.error('Could not resolve address from your location. Please type it manually.');
+        return;
+      }
+      setForm((f) => ({
+        ...f,
+        address: parsed.address || f.address,
+        city: parsed.city || f.city,
+        pincode: parsed.pincode || f.pincode,
+      }));
+      if (parsed.pincode) {
+        toast.success('Address filled from your location. Check and edit if needed.');
+      } else {
+        toast.success('Street and city filled. Add pincode if missing, or edit fields as needed.');
+      }
+    } finally {
+      setGeoLoading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
