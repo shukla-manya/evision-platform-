@@ -1123,7 +1123,7 @@ const SHOP_CATEGORY_TILES_MOBILE: {
   { label: 'Mirrorless', icon: 'cellphone', iconBg: '#f1f5f9', iconColor: '#334155' },
   { label: 'Lenses', icon: 'blur', iconBg: '#e0f2fe', iconColor: '#075985' },
   { label: 'Action Cameras', icon: 'motion-play-outline', iconBg: '#ffe4e6', iconColor: '#9f1239' },
-  { label: 'Tripods & Mounts', icon: 'tripod', iconBg: '#f5f5f4', iconColor: '#44403c' },
+  { label: 'Tripods & Mounts', icon: 'axis-arrow', iconBg: '#f5f5f4', iconColor: '#44403c' },
   { label: 'Memory Cards', icon: 'sd', iconBg: '#ede9fe', iconColor: '#5b21b6' },
   { label: 'Bags & Cases', icon: 'bag-suitcase-outline', iconBg: '#ecfdf5', iconColor: '#065f46' },
   { label: 'Lighting', icon: 'ceiling-light-outline', iconBg: '#fef9c3', iconColor: '#854d0e' },
