@@ -164,7 +164,7 @@ export default function ElectricianProfilePage() {
                   Earnings
                 </Link>
                 <Link href="/reset-password?role=electrician" className="ev-btn-secondary text-sm py-2.5 px-4">
-                  Change password
+                  Change password (phone OTP)
                 </Link>
                 <button
                   type="button"
