@@ -185,12 +185,6 @@ export default function DealerDashboardPage() {
     return firstName(derived) || derived;
   }, [profileName, dealerIdentity.email]);
 
-  const greetingLine = useMemo(() => {
-    const g = greetingLabelIst();
-    const n = formatGreetName(greetFirst);
-    return n ? `${g}, ${n}.` : `${g}.`;
-  }, [greetFirst]);
-
   const computed = useMemo(() => {
     const successful = orders.filter((o) => String(o.status || '').toLowerCase() !== 'payment_failed');
     const totalSpent = successful.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
@@ -389,7 +383,10 @@ export default function DealerDashboardPage() {
   );
 
   return (
-    <ResponsiveSidebarShell mobileTopBarTitle={dealerIdentity.company} sidebar={dealerSidebar}>
+    <ResponsiveSidebarShell
+      mobileTopBarTitle={greetFirst ? formatGreetName(greetFirst) : 'Dealer'}
+      sidebar={dealerSidebar}
+    >
       <div className="mx-auto min-h-screen min-w-0 w-full max-w-6xl space-y-6 sm:space-y-8">
         {loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-20">
