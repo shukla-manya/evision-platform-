@@ -72,7 +72,7 @@ import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 import { EvisionLogo } from './src/components/EvisionLogo';
 import { screenGutter } from './src/theme/layout';
 import { publicWebUrl } from './src/config/publicWeb';
-import { ACCOUNT_ROLES_SUMMARY, PASSWORD_RESET_ROLE_OPTIONS } from './src/lib/userRoles';
+import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
 
@@ -1128,7 +1128,7 @@ function PasswordResetScreen({
   route: RouteProp<RootStackParamList, 'PasswordReset'>;
   navigation: any;
 }) {
-  const [role, setRole] = useState<PasswordResetRole>(route.params?.role || 'admin');
+  const role: PasswordResetRole = 'admin';
   const [phone, setPhone] = useState(route.params?.phone || '');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
