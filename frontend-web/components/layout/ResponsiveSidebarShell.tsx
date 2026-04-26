@@ -13,8 +13,8 @@ type Props = {
 };
 
 /**
- * Desktop: fixed 16rem sidebar + offset main.
- * Small screens: full-width main, slide-over drawer, sticky top bar with menu.
+ * Tablet/desktop (md+): fixed 16rem sidebar + offset main.
+ * Small phones: full-width main, slide-over drawer, sticky top bar with menu.
  */
 export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }: Props) {
   const pathname = usePathname();
@@ -40,7 +40,7 @@ export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }:
 
   return (
     <div className="min-h-screen bg-ev-bg flex min-w-0">
-      <header className="lg:hidden fixed top-0 inset-x-0 z-20 flex h-14 min-h-14 items-center gap-3 border-b border-white/10 bg-ev-navbar/95 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+      <header className="md:hidden fixed top-0 inset-x-0 z-20 flex h-14 min-h-14 items-center gap-3 border-b border-white/10 bg-ev-navbar/95 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md">
         <button
           type="button"
           className="rounded-lg p-2 text-white/90 -ml-1 hover:bg-white/10 shrink-0"
@@ -57,7 +57,7 @@ export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }:
       {drawerOpen ? (
         <button
           type="button"
-          className="lg:hidden fixed inset-0 z-40 bg-ev-text/50 backdrop-blur-[1px]"
+          className="md:hidden fixed inset-0 z-40 bg-ev-text/50 backdrop-blur-[1px]"
           aria-label="Close navigation menu"
           onClick={() => setDrawerOpen(false)}
         />
