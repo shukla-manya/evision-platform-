@@ -128,6 +128,7 @@ const tabScreenOptions = {
   tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
 };
 const RootStack = createNativeStackNavigator<RootStackParamList>();
+const SuperadminStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 type AppUser = {
@@ -197,6 +198,25 @@ async function pickImageAsset(label: string) {
   });
   if (result.canceled || !result.assets.length) return null;
   return result.assets[0];
+}
+
+function SuperadminHubScreen({ onLogout }: { onLogout: () => void }) {
+  return (
+    <SafeAreaView style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.listPad}>
+        <Text style={styles.title}>Platform administration</Text>
+        <Text style={[styles.subtitle, { textAlign: 'left', marginTop: 6 }]}>
+          Superadmin queues open in your browser. Sign in on the web if you are prompted.
+        </Text>
+        <View style={{ marginTop: 16 }}>
+          <SuperadminWebQueueLinks showHeader={false} />
+        </View>
+        <Pressable style={[styles.buttonSecondary, { marginTop: 28 }]} onPress={() => void onLogout()}>
+          <Text style={styles.buttonSecondaryText}>Sign out</Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 
 function AuthWelcomeScreen({ navigation }: { navigation: any }) {
@@ -1985,6 +2005,22 @@ function AppShell() {
     ),
     [logout],
   );
+  const superadminHubScreen = useMemo(() => () => <SuperadminHubScreen onLogout={logout} />, [logout]);
+  const superadminFlow = useMemo(
+    () =>
+      function SuperadminFlowNavigator() {
+        return (
+          <SuperadminStack.Navigator screenOptions={stackScreenOptions}>
+            <SuperadminStack.Screen
+              name="SuperadminHub"
+              component={superadminHubScreen}
+              options={{ title: 'Platform admin' }}
+            />
+          </SuperadminStack.Navigator>
+        );
+      },
+    [superadminHubScreen],
+  );
 
   if (hydrating) return <Loader text="Preparing app..." />;
 
@@ -2019,11 +2055,13 @@ function AppShell() {
                   ? electricianFlow
                   : user?.role === 'admin'
                   ? adminFlow
+                  : user?.role === 'superadmin'
+                  ? superadminFlow
                   : mainTabs
               }
               options={{ headerShown: false }}
             />
-            {user?.role !== 'electrician' && user?.role !== 'admin' && (
+            {user?.role !== 'electrician' && user?.role !== 'admin' && user?.role !== 'superadmin' && (
               <>
                 <RootStack.Screen name="ProductDetail" component={productDetailScreen} options={{ title: 'Product Detail' }} />
                 <RootStack.Screen name="Checkout" component={CheckoutScreen} />

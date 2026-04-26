@@ -54,11 +54,7 @@ export default function SuperDealerGstPage() {
   return (
     <SuperadminShell>
       <main className="w-full min-w-0 max-w-5xl">
-        <h1 className="text-2xl font-bold text-ev-text mb-1">Dealer GST verification</h1>
-        <p className="text-ev-muted text-sm mb-8">
-          After you verify a dealer&apos;s GSTIN, they get an email and push notification, the amber banner on the shop
-          disappears, and catalogue / cart / checkout use wholesale dealer pricing.
-        </p>
+        <h1 className="text-2xl font-bold text-ev-text mb-8">Dealer GST verification</h1>
 
         {loading ? (
           <div className="flex justify-center py-20">

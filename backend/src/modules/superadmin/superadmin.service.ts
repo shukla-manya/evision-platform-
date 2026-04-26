@@ -124,12 +124,13 @@ export class SuperadminService {
   }
 
   async getAnalytics() {
+    // Use scanAllPages: plain scan() only returns the first DynamoDB page (~1MB), so user/order counts could miss new rows.
     const [admins, users, emailLogs, orders, electricians] = await Promise.all([
-      this.dynamo.scan({ TableName: this.dynamo.tableName('admins') }),
-      this.dynamo.scan({ TableName: this.dynamo.tableName('users') }),
-      this.dynamo.scan({ TableName: this.dynamo.tableName('email_logs') }),
-      this.dynamo.scan({ TableName: this.dynamo.tableName('orders') }),
-      this.dynamo.scan({ TableName: this.dynamo.tableName('electricians') }),
+      this.dynamo.scanAllPages({ TableName: this.dynamo.tableName('admins') }),
+      this.dynamo.scanAllPages({ TableName: this.dynamo.tableName('users') }),
+      this.dynamo.scanAllPages({ TableName: this.dynamo.tableName('email_logs') }),
+      this.dynamo.scanAllPages({ TableName: this.dynamo.tableName('orders') }),
+      this.dynamo.scanAllPages({ TableName: this.dynamo.tableName('electricians') }),
     ]);
 
     const adminStats = {
@@ -142,9 +143,9 @@ export class SuperadminService {
 
     const userStats = {
       total: users.length,
-      customers: users.filter((u) => u.role === 'customer').length,
-      dealers: users.filter((u) => u.role === 'dealer').length,
-      electricians: users.filter((u) => u.role === 'electrician').length,
+      customers: users.filter((u) => String(u.role || '') === 'customer').length,
+      dealers: users.filter((u) => String(u.role || '') === 'dealer').length,
+      electricians: users.filter((u) => String(u.role || '') === 'electrician').length,
     };
 
     const emailStats = {
