@@ -121,9 +121,10 @@ export default function DealerInvoicesPage() {
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/dealer/dashboard"
-            className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text"
+            className="ev-btn-secondary text-sm py-2.5 px-4 inline-flex items-center gap-2"
           >
-            <ArrowLeft size={14} /> Dashboard
+            <ArrowLeft size={16} aria-hidden />
+            Back to dashboard
           </Link>
         </div>
 
