@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { PasswordInputWithToggle } from '@/components/auth/PasswordInputWithToggle';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { saveToken } from '@/lib/auth';
@@ -62,18 +63,13 @@ export default function AdminLoginPage() {
             </div>
             <div>
               <label className="ev-label">Password</label>
-              <div className="relative">
-                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                <input
-                  type="password"
-                  className="ev-input pl-10"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="current-password"
-                />
-              </div>
+              <PasswordInputWithToggle
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
             </div>
             <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
               {loading ? <Loader2 size={18} className="animate-spin" /> : 'Sign in to dashboard'}

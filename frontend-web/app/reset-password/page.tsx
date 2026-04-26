@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { PasswordInputWithToggle } from '@/components/auth/PasswordInputWithToggle';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 
@@ -117,13 +118,13 @@ export default function ResetPasswordPage() {
               </div>
               <div>
                 <label className="ev-label">New password</label>
-                <input
-                  type="password"
-                  className="ev-input"
+                <PasswordInputWithToggle
+                  withLeadingLock={false}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   minLength={6}
                   required
+                  autoComplete="new-password"
                 />
               </div>
               <button type="submit" className="ev-btn-primary w-full inline-flex items-center justify-center gap-2" disabled={loading}>

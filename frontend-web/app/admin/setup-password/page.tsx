@@ -3,8 +3,9 @@
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Camera, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { Camera, Loader2, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { PasswordInputWithToggle } from '@/components/auth/PasswordInputWithToggle';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 
@@ -61,33 +62,23 @@ function SetupPasswordForm() {
       </p>
       <div>
         <label className="ev-label">New password</label>
-        <div className="relative">
-          <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-          <input
-            type="password"
-            className="ev-input pl-10"
-            autoComplete="new-password"
-            minLength={8}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
+        <PasswordInputWithToggle
+          autoComplete="new-password"
+          minLength={8}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
       </div>
       <div>
         <label className="ev-label">Confirm password</label>
-        <div className="relative">
-          <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-          <input
-            type="password"
-            className="ev-input pl-10"
-            autoComplete="new-password"
-            minLength={8}
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            required
-          />
-        </div>
+        <PasswordInputWithToggle
+          autoComplete="new-password"
+          minLength={8}
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          required
+        />
       </div>
       <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
         {loading ? <Loader2 size={18} className="animate-spin" /> : <>Save password <ArrowRight size={16} /></>}
