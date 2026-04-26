@@ -69,6 +69,7 @@ function ShopListingInner() {
   const [categoryId, setCategoryId] = useState('');
   const [brand, setBrand] = useState('');
   const [shopFilter, setShopFilter] = useState('');
+  const [approvedShopsOnly, setApprovedShopsOnly] = useState(true);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -106,6 +107,7 @@ function ShopListingInner() {
           brand: brand.trim() || undefined,
           min_price: minPrice ? Number(minPrice) : undefined,
           max_price: maxPrice ? Number(maxPrice) : undefined,
+          approved_shops_only: approvedShopsOnly,
         }),
       ]);
       setCategories(Array.isArray(catRes.data) ? catRes.data : []);
@@ -118,7 +120,7 @@ function ShopListingInner() {
     } finally {
       setLoading(false);
     }
-  }, [search, categoryId, brand, minPrice, maxPrice]);
+  }, [search, categoryId, brand, minPrice, maxPrice, approvedShopsOnly]);
 
   useEffect(() => {
     const t = setTimeout(() => load(), 300);
@@ -206,13 +208,28 @@ function ShopListingInner() {
                 />
               </div>
               <div>
-                <label className="ev-label text-xs">Shop</label>
+                <label className="ev-label text-xs">Shop / store name</label>
                 <input
                   className="ev-input py-2 text-sm mt-1"
                   value={shopFilter}
                   onChange={(e) => setShopFilter(e.target.value)}
-                  placeholder="Store name"
+                  placeholder="Filter list by name…"
                 />
+                <label className="flex items-start gap-2.5 text-sm text-ev-text cursor-pointer mt-3">
+                  <input
+                    type="checkbox"
+                    checked={approvedShopsOnly}
+                    onChange={(e) => setApprovedShopsOnly(e.target.checked)}
+                    className="rounded border-ev-border mt-0.5 shrink-0"
+                  />
+                  <span>
+                    <span className="font-medium text-ev-text leading-snug block">Approved shops only</span>
+                    <span className="text-ev-muted text-xs leading-relaxed block mt-0.5">
+                      On: only verified partner stores and the products they listed. Off: include shops still in review
+                      or suspended.
+                    </span>
+                  </span>
+                </label>
               </div>
               <div>
                 <label className="ev-label text-xs">Minimum rating</label>

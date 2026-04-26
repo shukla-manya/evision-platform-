@@ -97,7 +97,7 @@ export const adminApi = {
 
 export const catalogApi = {
   getCategories: () => api.get('/categories'),
-  getProducts: (params?: Record<string, string | number | undefined>) =>
+  getProducts: (params?: Record<string, string | number | boolean | undefined>) =>
     api.get('/products', { params }),
   getProduct: (id: string) => api.get(`/products/${id}`),
 };

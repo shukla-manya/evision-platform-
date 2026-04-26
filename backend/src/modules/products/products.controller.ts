@@ -15,7 +15,7 @@ export class ProductsController {
   @Get()
   @ApiOperation({
     summary:
-      'List active products from all shops (prices: customer → price_customer; dealer → price_dealer when GST verified; admin/superadmin → both)',
+      'List active products (prices: customer → price_customer; dealer → price_dealer when GST verified; admin/superadmin → both). Use approved_shops_only=false to include non-approved shops.',
   })
   @ApiBearerAuth()
   async list(@Query() query: ListProductsQueryDto, @Req() req: Request) {
