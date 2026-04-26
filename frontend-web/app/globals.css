@@ -186,7 +186,7 @@
    * Keeps touch-friendly gutters on phones and safe-area padding at the bottom.
    */
   .ev-shell-body {
-    @apply w-full min-w-0 flex-1 min-h-0 px-4 py-4 sm:px-5 sm:py-5 md:px-6 md:py-6 lg:px-8 lg:py-8;
+    @apply w-full min-w-0 px-4 py-4 sm:px-5 sm:py-5 md:px-6 md:py-6 lg:px-8 lg:py-8;
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
   }
 

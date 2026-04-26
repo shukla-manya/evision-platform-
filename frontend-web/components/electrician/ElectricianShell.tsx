@@ -321,7 +321,7 @@ export function ElectricianShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="min-h-screen min-w-0 flex-1 overflow-x-hidden p-4 sm:p-6 lg:ml-64 lg:p-10">
+      <main className="ev-shell-body min-h-screen min-w-0 flex-1 overflow-x-hidden lg:ml-64">
         {children}
       </main>
 

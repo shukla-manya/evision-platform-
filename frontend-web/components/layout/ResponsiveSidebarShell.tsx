@@ -79,7 +79,7 @@ export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }:
       </aside>
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden pt-14 lg:ml-64 lg:pt-0">
-        <div className="ev-shell-body flex flex-col">{children}</div>
+        <div className="ev-shell-body flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>
       </div>
     </div>
   );
