@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { authApi, registerElectricianFormData } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { geocodeIndia, getBrowserGeolocation } from '@/lib/registration-geo';
+import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
 import { OtpCells } from '@/components/auth/OtpCells';
 
 const SKILL_OPTIONS = [
@@ -45,6 +46,19 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
   const [techPhoneDigits, setTechPhoneDigits] = useState('');
   const [techCity, setTechCity] = useState('');
   const [techPin, setTechPin] = useState('');
+  const techPinSuggestSeq = useRef(0);
+  useEffect(() => {
+    const c = techCity.trim();
+    if (c.length < 3) return;
+    const timer = window.setTimeout(() => {
+      const seq = ++techPinSuggestSeq.current;
+      void suggestPincodeForIndianCity(c).then((pin) => {
+        if (seq !== techPinSuggestSeq.current || !pin) return;
+        setTechPin(pin);
+      });
+    }, 450);
+    return () => window.clearTimeout(timer);
+  }, [techCity]);
   const [techSkills, setTechSkills] = useState<Set<string>>(new Set());
   const [techEmail, setTechEmail] = useState('');
   const [aadharFile, setAadharFile] = useState<File | null>(null);
@@ -273,6 +287,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
                     onChange={(e) => setTechPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     required
                   />
+                  <p className="text-ev-subtle text-xs mt-1.5">Filled from city when available — change if needed.</p>
                 </div>
               </div>
             </div>

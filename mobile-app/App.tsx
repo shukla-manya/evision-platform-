@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -30,6 +30,7 @@ import { AxiosError } from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import { resolveRegistrationCoordinates } from './src/geo-registration';
+import { suggestPincodeForIndianCity } from './src/india-postal-lookup';
 import { Buffer } from 'buffer';
 import {
   setApiTokenGetter,
@@ -493,6 +494,36 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   const [sendingOtp, setSendingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const deliveryPinSuggestSeq = useRef(0);
+  useEffect(() => {
+    if (role !== 'customer' && role !== 'dealer' && role !== 'electrician') return;
+    const c = deliveryCity.trim();
+    if (c.length < 3) return;
+    const timer = setTimeout(() => {
+      const seq = ++deliveryPinSuggestSeq.current;
+      void suggestPincodeForIndianCity(c).then((pin) => {
+        if (seq !== deliveryPinSuggestSeq.current || !pin) return;
+        setDeliveryPincode(pin);
+      });
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [deliveryCity, role]);
+
+  const shopPinSuggestSeq = useRef(0);
+  useEffect(() => {
+    if (role !== 'shop_owner') return;
+    const c = city.trim();
+    if (c.length < 3) return;
+    const timer = setTimeout(() => {
+      const seq = ++shopPinSuggestSeq.current;
+      void suggestPincodeForIndianCity(c).then((pin) => {
+        if (seq !== shopPinSuggestSeq.current || !pin) return;
+        setPincode(pin);
+      });
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [city, role]);
+
   const goToSignInHome = () => {
     navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Auth' }] }));
   };
@@ -765,6 +796,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 value={pincode}
                 onChangeText={(t) => setPincode(t.replace(/\D/g, '').slice(0, 6))}
               />
+              <Text style={styles.captionNote}>Pincode fills from city when available — change if needed.</Text>
               <Pressable style={styles.buttonSecondary} onPress={pickShopLogo}>
                 <Text style={styles.buttonSecondaryText}>
                   {logoAsset ? `Change logo (${logoAsset.fileName || 'selected'})` : 'Add shop logo (camera or gallery)'}
@@ -826,7 +858,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                     onChangeText={(t) => setDeliveryPincode(t.replace(/\D/g, '').slice(0, 6))}
                   />
                   <Text style={styles.captionNote}>
-                    Location is captured automatically (GPS when allowed, otherwise city + pincode on the map).
+                    Pincode fills from city when available (India Post data). Location also uses GPS when allowed.
                   </Text>
                 </>
               )}
