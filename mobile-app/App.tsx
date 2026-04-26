@@ -191,7 +191,11 @@ async function pickImageAsset(label: string) {
 function AuthWelcomeScreen({ navigation }: { navigation: any }) {
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.splashContent}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.splashContent, { flexGrow: 1 }]}
+      >
         <Text style={styles.splashBrand}>e vision</Text>
         <View style={styles.splashGap} />
         <Pressable style={styles.splashPrimaryBtn} onPress={() => navigation.navigate('OtpSignIn')}>
@@ -210,7 +214,7 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
         <Pressable style={styles.splashRegisterLink} onPress={() => navigation.navigate('Register', {})}>
           <Text style={styles.splashRegisterLinkText}>New user? Create an account</Text>
         </Pressable>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
