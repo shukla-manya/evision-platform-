@@ -496,7 +496,12 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
         String(row.status || '') === 'accepted' &&
         String(row.job_status || '') === 'completed',
     );
-    const enriched = await Promise.all(
+    mine.sort(
+      (a, b) =>
+        new Date(String(b.updated_at || b.created_at || 0)).getTime() -
+        new Date(String(a.updated_at || a.created_at || 0)).getTime(),
+    );
+    return Promise.all(
       mine.map(async (b) => {
         const request = await this.dynamo.get(this.requestsTable(), { id: String(b.request_id || '') });
         const electrician = await this.dynamo.get(this.electriciansTable(), {
@@ -516,12 +521,6 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
         };
       }),
     );
-    enriched.sort(
-      (a, b) =>
-        new Date(String(b.updated_at || b.created_at || 0)).getTime() -
-        new Date(String(a.updated_at || a.created_at || 0)).getTime(),
-    );
-    return enriched;
   }
 
   async getCustomerBookingDetail(
