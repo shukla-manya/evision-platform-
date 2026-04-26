@@ -485,7 +485,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
         )}
 
         <p className="text-center text-ev-subtle text-sm mt-6">
-          Sign-in is mobile + OTP only — no password. Already approved?{' '}
+          Already approved?{' '}
           <Link href="/login" className="text-ev-primary hover:text-ev-primary-light font-medium">
             Sign in
           </Link>
