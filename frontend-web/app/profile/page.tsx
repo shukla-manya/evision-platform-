@@ -182,16 +182,6 @@ export default function ProfilePage() {
             </section>
 
             <section className="ev-card p-6 space-y-4">
-              <h2 className="text-sm font-semibold text-ev-text">Sign in</h2>
-              <p className="text-ev-muted text-sm">
-                Your account uses your mobile number and a one-time code only. There is no password to change.
-              </p>
-              <Link href="/login" className="ev-btn-secondary text-sm py-2 px-4 inline-flex">
-                Go to sign in
-              </Link>
-            </section>
-
-            <section className="ev-card p-6 space-y-4">
               <h2 className="text-sm font-semibold text-ev-text flex items-center gap-2">
                 <Bell size={16} className="text-ev-primary" />
                 Notifications
