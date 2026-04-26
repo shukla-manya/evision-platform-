@@ -47,8 +47,12 @@ export class ProductsService {
     return rows.map((r) => String((r as { id?: unknown }).id || '')).filter(Boolean);
   }
 
-  private async mapChunkedParallel<T, R>(items: T[], chunkSize: number, fn: (t: T) => Promise<R>): Promise<R[]> {
-    const out: R[] = [];
+  private async mapChunkedParallel<T>(
+    items: T[],
+    chunkSize: number,
+    fn: (t: T) => Promise<Record<string, unknown>[]>,
+  ): Promise<Record<string, unknown>[][]> {
+    const out: Record<string, unknown>[][] = [];
     for (let i = 0; i < items.length; i += chunkSize) {
       const chunk = items.slice(i, i + chunkSize);
       out.push(...(await Promise.all(chunk.map(fn))));
