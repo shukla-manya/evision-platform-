@@ -39,8 +39,9 @@ const SECTIONS: { title: string; items: FaqItem[] }[] = [
             <Link href={publicRegisterPath} className="text-ev-primary hover:text-ev-primary-light font-medium">
               Sign up
             </Link>{' '}
-            and choose Customer, Dealer, Technician, or Shop owner. Each path asks for the details we need for that
-            role.
+            and choose Customer, Dealer, or Technician. Account types on the platform are{' '}
+            {ACCOUNT_ROLES_SUMMARY}. Admin (shop) sign-up is separate; Superadmin is provisioned by the platform team.
+            Each path asks for the details we need for that role.
           </>
         ),
       },

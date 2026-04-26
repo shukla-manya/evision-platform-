@@ -49,7 +49,7 @@ export default function SuperDashboardPage() {
   const [pendingElectricians, setPendingElectricians] = useState<ElectricianRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
-  const [rejecting, setRejecting] = useState<{ id: string; type: 'Admin' | 'Electrician' } | null>(null);
+  const [rejecting, setRejecting] = useState<{ id: string; type: 'Admin' | 'Technician' } | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
   const token = typeof window !== 'undefined' ? getToken() : undefined;
@@ -94,7 +94,7 @@ export default function SuperDashboardPage() {
   const pendingTotal = pendingAdmins.length + pendingElectricians.length;
 
   const approvalPreview = useMemo(() => {
-    const rows: { id: string; name: string; type: 'Admin' | 'Electrician'; submitted: string }[] = [];
+    const rows: { id: string; name: string; type: 'Admin' | 'Technician'; submitted: string }[] = [];
     pendingAdmins.forEach((a) =>
       rows.push({
         id: a.id,
@@ -107,14 +107,14 @@ export default function SuperDashboardPage() {
       rows.push({
         id: e.id,
         name: String(e.name || e.email || 'Technician'),
-        type: 'Electrician',
+        type: 'Technician',
         submitted: e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '—',
       }),
     );
     return rows.slice(0, 8);
   }, [pendingAdmins, pendingElectricians]);
 
-  async function approveRow(row: { id: string; type: 'Admin' | 'Electrician' }) {
+  async function approveRow(row: { id: string; type: 'Admin' | 'Technician' }) {
     setActionId(row.id);
     try {
       if (row.type === 'Admin') {
@@ -214,7 +214,7 @@ export default function SuperDashboardPage() {
                 </p>
               </div>
               <div className="ev-card p-5 border-ev-border">
-                <p className="text-ev-muted text-sm font-medium">Active electricians</p>
+                <p className="text-ev-muted text-sm font-medium">Active technicians</p>
                 <p className="text-2xl font-bold text-ev-text mt-2">{activeElectricians}</p>
                 <p className="text-ev-subtle text-xs mt-2">Approved technician accounts</p>
               </div>

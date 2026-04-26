@@ -362,7 +362,7 @@ export default function HomePage() {
           </div>
           <div className="ev-card p-8 md:p-10 border-ev-border">
             <Clock className="text-ev-primary mb-3" size={22} />
-            <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you an electrician or technician?</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you a technician?</h2>
             <p className="text-ev-muted text-sm md:text-base mb-6">
               Join our technician network. Get job requests from verified customers in your area. Flexible hours, real earnings.
             </p>
