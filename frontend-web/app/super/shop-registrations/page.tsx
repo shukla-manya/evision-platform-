@@ -97,7 +97,7 @@ export default function ShopRegistrationsPage() {
 
   return (
     <SuperadminShell>
-      <main className="p-6 sm:p-10 max-w-4xl">
+      <main className="w-full min-w-0 max-w-4xl">
         <h1 className="text-2xl font-bold text-ev-text mb-1">Shop admin registrations</h1>
         <p className="text-ev-muted text-sm mb-8">Review shop owners before they can access the admin console.</p>
 

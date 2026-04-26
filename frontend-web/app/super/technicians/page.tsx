@@ -90,7 +90,7 @@ export default function TechnicianRegistrationsPage() {
 
   return (
     <SuperadminShell>
-      <main className="p-6 sm:p-10">
+      <main className="w-full min-w-0">
         <h1 className="text-2xl font-bold text-ev-text mb-1">Technician registrations</h1>
         <p className="text-ev-muted text-sm mb-8">Pending applications only. Approve or reject with a clear reason.</p>
 

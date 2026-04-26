@@ -107,7 +107,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <AdminShell>
-      <main className="p-6 sm:p-10 max-w-3xl">
+      <main className="w-full min-w-0 max-w-3xl">
         <Link href="/admin/orders" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-4">
           <ArrowLeft size={14} /> All orders
         </Link>

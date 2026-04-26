@@ -5,8 +5,8 @@ import { LifeBuoy } from 'lucide-react';
 
 export default function DealerServicePage() {
   return (
-    <div className="min-h-screen bg-ev-bg p-6 sm:p-10">
-      <div className="max-w-3xl ev-card p-8">
+    <div className="min-h-screen bg-ev-bg ev-shell-body">
+      <div className="max-w-3xl mx-auto w-full min-w-0 ev-card p-6 sm:p-8">
         <h1 className="text-2xl font-bold text-ev-text flex items-center gap-2">
           <LifeBuoy size={24} className="text-ev-primary" />
           Service

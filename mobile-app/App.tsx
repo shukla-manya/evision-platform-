@@ -7,14 +7,13 @@ import {
   Linking,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   CommonActions,
   DefaultTheme,
@@ -63,6 +62,7 @@ import { ServiceBookingConfirmScreen } from './src/screens/ServiceBookingConfirm
 import { LeaveReviewScreen } from './src/screens/LeaveReviewScreen';
 import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 import { EvisionLogo } from './src/components/EvisionLogo';
+import { screenGutter } from './src/theme/layout';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
 

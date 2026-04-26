@@ -13,9 +13,16 @@ async function bootstrap() {
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     const start = Date.now();
+    const origEnd = res.end.bind(res);
+    res.end = function (...args: Parameters<typeof res.end>) {
+      if (!res.headersSent) {
+        res.setHeader('X-Response-Time', `${Date.now() - start}ms`);
+      }
+      return origEnd(...args);
+    } as typeof res.end;
+
     res.on('finish', () => {
       const ms = Date.now() - start;
-      res.setHeader('X-Response-Time', `${ms}ms`);
       const path = req.originalUrl ?? (req as Request & { url?: string }).url ?? '';
       if (ms >= 800) {
         httpLogger.warn(`${req.method} ${path} ${res.statusCode} ${ms}ms`);

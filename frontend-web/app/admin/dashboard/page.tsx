@@ -247,7 +247,7 @@ export default function AdminDashboardPage() {
   if (loading || !admin) {
     return (
       <AdminShell>
-        <main className="p-10 text-ev-muted text-sm">Loading dashboard…</main>
+        <main className="w-full min-w-0 text-ev-muted text-sm">Loading dashboard…</main>
       </AdminShell>
     );
   }
@@ -255,7 +255,7 @@ export default function AdminDashboardPage() {
   if (admin.status === 'pending') {
     return (
       <AdminShell>
-        <main className="p-6 sm:p-10 flex items-center justify-center min-h-[60vh]">
+        <main className="w-full min-w-0 flex items-center justify-center min-h-[60vh]">
           <div className="max-w-md w-full ev-card p-10 text-center">
             <div className="w-16 h-16 bg-ev-warning/10 border-2 border-ev-warning rounded-full flex items-center justify-center mx-auto mb-6">
               <Clock size={32} className="text-ev-warning" />
@@ -276,7 +276,7 @@ export default function AdminDashboardPage() {
 
   return (
     <AdminShell>
-      <main className="p-6 sm:p-10 max-w-6xl mx-auto space-y-8">
+      <main className="w-full min-w-0 max-w-6xl mx-auto space-y-8">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-ev-muted text-sm mb-1">Welcome,</p>

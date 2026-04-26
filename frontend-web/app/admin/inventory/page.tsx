@@ -31,7 +31,7 @@ export default function AdminInventoryPage() {
 
   return (
     <AdminShell>
-      <main className="p-6 sm:p-10">
+      <main className="w-full min-w-0">
         <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-ev-text flex items-center gap-2">

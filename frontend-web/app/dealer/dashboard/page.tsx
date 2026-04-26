@@ -344,7 +344,7 @@ export default function DealerDashboardPage() {
 
   return (
     <ResponsiveSidebarShell mobileTopBarTitle={dealerIdentity.company} sidebar={dealerSidebar}>
-      <div className="mx-auto min-h-screen min-w-0 w-full max-w-6xl space-y-6 p-4 sm:space-y-8 sm:p-6 lg:p-10">
+      <div className="mx-auto min-h-screen min-w-0 w-full max-w-6xl space-y-6 sm:space-y-8">
         {loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-20">
             <Loader2 className="animate-spin text-ev-primary" size={22} />

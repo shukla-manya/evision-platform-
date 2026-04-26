@@ -50,7 +50,7 @@ export default function AdminSettingsPage() {
 
   return (
     <AdminShell>
-      <main className="p-6 sm:p-10 max-w-2xl">
+      <main className="w-full min-w-0 max-w-2xl">
         <h1 className="text-2xl font-bold text-ev-text mb-1">Shop settings</h1>
         <p className="text-ev-muted text-sm mb-8">Profile and branding</p>
 

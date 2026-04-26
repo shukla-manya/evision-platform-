@@ -166,7 +166,7 @@ export default function SuperDashboardPage() {
 
   return (
     <SuperadminShell>
-      <main className="p-6 sm:p-10 max-w-6xl">
+      <main className="w-full min-w-0 max-w-6xl">
         {loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-24">
             <Loader2 className="animate-spin text-ev-primary" size={24} />

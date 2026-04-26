@@ -50,7 +50,7 @@ export default function AdminInvoicesPage() {
 
   return (
     <AdminShell>
-      <main className="p-6 sm:p-10 max-w-6xl">
+      <main className="w-full min-w-0 max-w-6xl">
         <h1 className="text-2xl font-bold text-ev-text mb-1">Invoices</h1>
         <p className="text-ev-muted text-sm mb-8">PDFs generated for your shop orders</p>
 

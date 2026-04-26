@@ -116,8 +116,8 @@ export default function DealerInvoicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ev-bg p-6 sm:p-10">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen bg-ev-bg ev-shell-body">
+      <div className="max-w-3xl mx-auto w-full min-w-0 space-y-6">
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/dealer/dashboard"
