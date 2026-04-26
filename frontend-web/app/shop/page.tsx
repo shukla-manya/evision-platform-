@@ -64,6 +64,7 @@ function ShopListingInner() {
   const [rawProducts, setRawProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [brand, setBrand] = useState('');

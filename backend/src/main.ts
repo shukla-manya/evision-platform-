@@ -1,13 +1,29 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import type { NextFunction, Request, Response } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
   const configService = app.get(ConfigService);
+  const httpLogger = new Logger('HTTP');
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      const ms = Date.now() - start;
+      res.setHeader('X-Response-Time', `${ms}ms`);
+      if (ms >= 400) {
+        httpLogger.log(
+          `${req.method} ${req.originalUrl ?? (req as Request & { url?: string }).url ?? ''} ${res.statusCode} ${ms}ms`,
+        );
+      }
+    });
+    next();
+  });
 
   app.useWebSocketAdapter(new IoAdapter(app));
 

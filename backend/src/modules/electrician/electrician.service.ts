@@ -180,9 +180,7 @@ export class ElectricianService {
 
     const now = new Date().toISOString();
     if (action === 'approve') {
-      const goesLive =
-        String(electrician.status) === 'pending' &&
-        (electrician as Record<string, unknown>).available !== false;
+      const goesLive = (electrician as Record<string, unknown>).available !== false;
       await this.dynamo.update(this.table(), { id }, {
         status: 'approved',
         approved_at: now,
