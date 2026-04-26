@@ -108,7 +108,7 @@ export default function SuperadminAnalyticsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
               {[
                 { label: 'Shop records', value: analytics.admins.total, icon: Store, color: 'text-ev-primary', bg: 'bg-ev-primary/10' },
                 { label: 'Pending shops', value: analytics.admins.pending, icon: Store, color: 'text-ev-warning', bg: 'bg-ev-warning/10' },

@@ -146,9 +146,7 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ResponsiveSidebarShell mobileTopBarTitle={publicBrandName} sidebar={sidebar}>
-      <div className="min-h-screen min-w-0 overflow-y-auto overflow-x-hidden [overflow-x:clip] supports-[overflow:clip]:overflow-x-clip">
-        {children}
-      </div>
+      <div className="min-h-screen min-w-0 overflow-x-hidden overflow-y-auto">{children}</div>
     </ResponsiveSidebarShell>
   );
 }
