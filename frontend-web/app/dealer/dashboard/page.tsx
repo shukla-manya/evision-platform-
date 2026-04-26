@@ -16,7 +16,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { catalogApi, ordersApi } from '@/lib/api';
+import { authApi, catalogApi, ordersApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { clearAuth, getRole, getToken, parseJwt } from '@/lib/auth';
 import { ResponsiveSidebarShell } from '@/components/layout/ResponsiveSidebarShell';
@@ -80,6 +80,35 @@ function dealerNameFromEmail(email?: string) {
     .split(/\s+/)
     .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
     .join(' ');
+}
+
+/** First word of a full name (same as customer home). */
+function firstName(name?: string) {
+  if (!name?.trim()) return '';
+  return name.trim().split(/\s+/)[0] || '';
+}
+
+/** Greeting bucket from clock in Asia/Kolkata (IST). */
+function greetingLabelIst(): string {
+  const hourStr =
+    new Intl.DateTimeFormat('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: 'numeric',
+      hour12: false,
+    })
+      .formatToParts(new Date())
+      .find((p) => p.type === 'hour')?.value ?? '0';
+  const h = parseInt(hourStr, 10);
+  if (h >= 4 && h < 12) return 'Good morning';
+  if (h >= 12 && h < 17) return 'Good afternoon';
+  if (h >= 17 && h < 21) return 'Good evening';
+  return 'Good night';
+}
+
+function formatGreetName(raw: string) {
+  if (!raw) return '';
+  const lower = raw.toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
 
 function orderLabel(id: string) {
