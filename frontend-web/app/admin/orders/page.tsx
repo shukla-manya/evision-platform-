@@ -136,6 +136,7 @@ export default function AdminOrdersPage() {
   const [rows, setRows] = useState<Order[]>([]);
   const [tab, setTab] = useState<OrderTab>('to_ship');
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [shipTarget, setShipTarget] = useState<Order | null>(null);
   const [form, setForm] = useState<ShipForm>(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
@@ -143,10 +144,15 @@ export default function AdminOrdersPage() {
 
   const load = useCallback(() => {
     setLoading(true);
+    setLoadFailed(false);
     adminApi
       .getOrders()
       .then((r) => setRows(Array.isArray(r.data) ? (r.data as Order[]) : []))
-      .catch(() => toast.error('Failed to load orders'))
+      .catch(() => {
+        setLoadFailed(true);
+        setRows([]);
+        toast.error('Failed to load orders');
+      })
       .finally(() => setLoading(false));
   }, []);
 

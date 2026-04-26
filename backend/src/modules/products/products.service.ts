@@ -264,11 +264,11 @@ export class ProductsService {
 
     if (query.brand?.trim()) {
       const b = query.brand.trim().toLowerCase();
-      items = items.filter((p) => (p.brand || '').toLowerCase().includes(b));
+      items = items.filter((p) => String(p.brand ?? '').toLowerCase().includes(b));
     }
     if (query.search?.trim()) {
       const q = query.search.trim().toLowerCase();
-      items = items.filter((p) => (p.name || '').toLowerCase().includes(q));
+      items = items.filter((p) => String(p.name ?? '').toLowerCase().includes(q));
     }
 
     const min = query.min_price;
