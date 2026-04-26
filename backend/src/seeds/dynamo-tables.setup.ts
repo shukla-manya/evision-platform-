@@ -7,20 +7,6 @@ import {
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-dotenv.config({ path: path.join(__dirname, '../../.env') });
-
-const endpoint =
-  process.env.DYNAMODB_ENDPOINT || process.env.DYNAMO_ENDPOINT || undefined;
-const isLocal = Boolean(endpoint);
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'ap-south-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || (isLocal ? 'local' : ''),
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || (isLocal ? 'local' : ''),
-  },
-  ...(endpoint ? { endpoint } : {}),
-});
-
 /** Exported for local E2E (dynalite) and tooling. */
 export const EVISION_DYNAMO_TABLES = [
   {
@@ -347,6 +333,20 @@ export async function ensureEvisionDynamoTables(ddbClient: DynamoDBClient): Prom
 }
 
 async function setupCli() {
+  dotenv.config({ path: path.join(__dirname, '../../.env') });
+
+  const endpoint =
+    process.env.DYNAMODB_ENDPOINT || process.env.DYNAMO_ENDPOINT || undefined;
+  const isLocal = Boolean(endpoint);
+  const client = new DynamoDBClient({
+    region: process.env.AWS_REGION || 'ap-south-1',
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || (isLocal ? 'local' : ''),
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || (isLocal ? 'local' : ''),
+    },
+    ...(endpoint ? { endpoint } : {}),
+  });
+
   console.log('\n⚡ E Vision — DynamoDB Table Setup\n');
   console.log(`Region: ${process.env.AWS_REGION || 'ap-south-1'}\n`);
 
