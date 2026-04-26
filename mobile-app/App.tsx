@@ -1526,21 +1526,32 @@ function OrderDetailScreen({ route }: { route: RouteProp<RootStackParamList, 'Or
             </Text>
             {!!subOrder.courier_name && <Text style={styles.cardMeta}>Courier: {String(subOrder.courier_name)}</Text>}
             {!!subOrder.awb_number && <Text style={styles.cardMeta}>AWB: {String(subOrder.awb_number)}</Text>}
-            {!!subOrder.tracking_url && (
-              <Pressable onPress={() => void Linking.openURL(String(subOrder.tracking_url))}>
-                <Text style={styles.link}>Open Tracking</Text>
-              </Pressable>
-            )}
+            <View style={{ marginTop: 10, gap: 8 }}>
+              {!!subOrder.tracking_url && (
+                <Pressable
+                  style={[styles.buttonSecondary, { marginTop: 0 }]}
+                  onPress={() => void Linking.openURL(String(subOrder.tracking_url))}
+                >
+                  <Text style={styles.buttonSecondaryText}>Track shipment</Text>
+                </Pressable>
+              )}
+              {[subOrder.customer_invoice_url, subOrder.dealer_invoice_url, subOrder.gst_invoice_url]
+                .filter(Boolean)
+                .map((url: string, i: number) => (
+                  <Pressable
+                    key={`inv-${String(subOrder.id)}-${i}`}
+                    style={[styles.buttonSecondary, { marginTop: 0 }]}
+                    onPress={() => void Linking.openURL(String(url))}
+                  >
+                    <Text style={styles.buttonSecondaryText}>Download invoice</Text>
+                  </Pressable>
+                ))}
+            </View>
             {(subOrder.items || []).map((item: any) => (
               <Text key={String(item.id || `${item.product_id}-${item.qty}`)} style={styles.cardMeta}>
                 - {String(item.product_name || 'Item')} x {Number(item.qty || item.quantity || 1)}
               </Text>
             ))}
-            {!!subOrder.customer_invoice_url && (
-              <Pressable onPress={() => void Linking.openURL(String(subOrder.customer_invoice_url))}>
-                <Text style={styles.link}>Download Invoice</Text>
-              </Pressable>
-            )}
           </View>
         ))}
       </ScrollView>
