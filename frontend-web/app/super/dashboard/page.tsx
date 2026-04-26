@@ -170,7 +170,7 @@ export default function SuperDashboardPage() {
 
   return (
     <SuperadminShell>
-      <main className="w-full min-w-0 max-w-none">
+      <main className="w-full min-w-0">
         {loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-24">
             <Loader2 className="animate-spin text-ev-primary" size={24} />
