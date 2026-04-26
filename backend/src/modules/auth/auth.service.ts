@@ -346,7 +346,7 @@ export class AuthService {
     const existing = String(admin.password_hash || '');
     if (existing.length > 0) {
       throw new BadRequestException(
-        'A password is already set for this account. Sign in with your email and password, or use forgot password.',
+        'A password is already set for this account. Sign in with your email and password, or reset it with the phone OTP flow.',
       );
     }
 

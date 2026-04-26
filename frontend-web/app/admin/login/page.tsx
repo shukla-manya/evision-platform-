@@ -76,7 +76,7 @@ export default function AdminLoginPage() {
             </button>
             <p className="text-center text-sm text-ev-muted">
               <Link href="/reset-password?role=admin" className="text-ev-primary hover:text-ev-primary-light font-medium">
-                Forgot password? Reset via email
+                Forgot password? Reset with phone OTP
               </Link>
             </p>
             <p className="text-center text-sm text-ev-muted">

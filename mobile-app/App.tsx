@@ -416,7 +416,7 @@ function AdminSignInScreen({
             style={styles.buttonLinkWrap}
             onPress={() => navigation.navigate('PasswordReset', { role: 'admin' })}
           >
-            <Text style={styles.link}>Forgot password? Reset</Text>
+            <Text style={styles.link}>Forgot password? Phone OTP</Text>
           </Pressable>
         </View>
         <View style={styles.captionBlock}>
@@ -964,7 +964,9 @@ function PasswordResetScreen({
       <ScrollView contentContainerStyle={styles.listPad}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Reset Password</Text>
-          <Text style={styles.subtitle}>Shop admin or technician only. Shoppers use mobile OTP — no password.</Text>
+          <Text style={styles.subtitle}>
+            Shop admin or technician only. Enter the mobile number on your account; we text a 6-digit OTP — no email reset.
+          </Text>
           <View style={styles.roleRow}>
             {roleOptions.map((option) => (
               <Pressable

@@ -69,7 +69,7 @@ export default function ResetPasswordPage() {
         <div className="ev-card p-8">
           <h1 className="text-2xl font-bold text-ev-text mb-1">Reset password</h1>
           <p className="text-ev-muted text-sm mb-6">
-            For shop admins and technicians only. Customers and dealers sign in with mobile OTP — no password to reset.
+            Shop admins and technicians only. We send a 6-digit code by SMS to the <strong className="text-ev-text">mobile number on your account</strong> — not email. Customers and dealers sign in with OTP only and have no password here.
           </p>
 
           {step === 'start' ? (
