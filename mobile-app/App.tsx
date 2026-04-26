@@ -1204,10 +1204,6 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
 
   useFocusEffect(useCallback(() => { void load(); }, [load]));
 
-  useEffect(() => {
-    void load();
-  }, [approvedShopsOnly, browseCategoryId, browseSearch]);
-
   const visibleProducts = useMemo(() => {
     if (!shopFilter.trim()) return products;
     const t = shopFilter.trim().toLowerCase();
