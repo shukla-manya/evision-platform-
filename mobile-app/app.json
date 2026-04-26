@@ -16,6 +16,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.evision.customer",
       "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "e vision uses your location to set your service area when you register or book nearby technicians."
+      },
       "config": {
         "googleMapsApiKey": ""
       }
@@ -48,7 +51,13 @@
     "plugins": [
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow e vision to use your location to capture your area for registration and nearby technicians."
+        }
+      ]
     ]
   }
 }

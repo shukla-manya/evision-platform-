@@ -7,6 +7,7 @@ import { ArrowRight, Loader2, Mail, MapPin, Upload, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi, registerElectricianFormData } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
+import { geocodeIndia, getBrowserGeolocation } from '@/lib/registration-geo';
 import { OtpCells } from '@/components/auth/OtpCells';
 
 const SKILL_OPTIONS = [
@@ -23,19 +24,6 @@ type Step = 'details' | 'otp';
 function formatPhoneE164(digits: string) {
   const d = digits.replace(/\D/g, '').slice(-10);
   return `+91${d}`;
-}
-
-async function geocodeIndia(city: string, pincode: string): Promise<{ lat: number; lng: number }> {
-  const q = `${pincode.trim()} ${city.trim()} India`;
-  const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`,
-    { headers: { Accept: 'application/json', 'Accept-Language': 'en' } },
-  );
-  if (!res.ok) throw new Error('Location lookup failed');
-  const data = (await res.json()) as { lat?: string; lon?: string }[];
-  const hit = data?.[0];
-  if (!hit?.lat || !hit?.lon) throw new Error('Could not find that city and pincode on the map');
-  return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
 }
 
 type TechnicianApplicationFormProps = {
@@ -164,7 +152,8 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     try {
       const phone = formatPhoneE164(techPhoneDigits);
       await authApi.verifyOtp(phone, otp);
-      const { lat, lng } = await geocodeIndia(techCity, techPin);
+      const gps = await getBrowserGeolocation();
+      const { lat, lng } = gps ?? (await geocodeIndia(techCity, techPin));
       const skillsCsv = Array.from(techSkills).join(',');
       const exp = techExperience.trim();
       const addressLine = [exp ? `Experience: ${exp} yrs` : null, `${techCity.trim()}, ${techPin.trim()}, India`]

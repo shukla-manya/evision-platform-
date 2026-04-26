@@ -41,6 +41,10 @@ export type RegisterRequest = {
   address?: string;
   business_name?: string;
   business_address?: string;
+  business_city?: string;
+  business_pincode?: string;
+  lat?: number;
+  lng?: number;
 };
 
 export type Product = {
@@ -161,6 +165,7 @@ export const authApi = {
     api.post('/auth/password/reset/complete', { role, phone, otp, new_password: newPassword }),
   me: () => api.get('/auth/me'),
   saveDeviceToken: (fcmToken: string) => api.post('/auth/me/device-token', { fcm_token: fcmToken }),
+  updateGeo: (lat: number, lng: number) => api.patch<{ lat: number; lng: number; geo_captured_at: string }>('/auth/me/geo', { lat, lng }),
 };
 
 export const productApi = {

@@ -11,6 +11,7 @@ import { saveToken, parseJwt } from '@/lib/auth';
 import { TechnicianApplicationForm } from '@/components/register/TechnicianApplicationForm';
 import { publicBrandName } from '@/lib/public-brand';
 import { OtpCells } from '@/components/auth/OtpCells';
+import { resolveRegistrationCoordinates } from '@/lib/registration-geo';
 
 type AccountTab = 'customer' | 'dealer' | 'technician';
 type RegisterStep = 'details' | 'otp';
@@ -162,6 +163,10 @@ export default function RegisterPage() {
           : [address.trim(), city.trim(), `Pincode: ${pincode.replace(/\D/g, '').slice(0, 6)}`]
               .filter(Boolean)
               .join('\n');
+      const geoCity = accountTab === 'dealer' ? businessCity : city;
+      const geoPin =
+        accountTab === 'dealer' ? businessPincode.replace(/\D/g, '').slice(0, 6) : pincode.replace(/\D/g, '').slice(0, 6);
+      const geo = await resolveRegistrationCoordinates(geoCity, geoPin);
       const { data } = await authApi.register({
         name,
         phone,
@@ -174,6 +179,7 @@ export default function RegisterPage() {
         business_city: accountTab === 'dealer' ? businessCity.trim() : undefined,
         business_pincode: accountTab === 'dealer' ? businessPincode.replace(/\D/g, '').slice(0, 6) : undefined,
         address: fullAddress || undefined,
+        ...(geo ? { lat: geo.lat, lng: geo.lng } : {}),
       });
       const payload = parseJwt(data.access_token);
       if (!payload || typeof payload.role !== 'string') {

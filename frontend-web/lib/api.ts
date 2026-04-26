@@ -56,6 +56,7 @@ export const authApi = {
   me: () => api.get('/auth/me'),
   replaceAddressBook: (addresses: Record<string, unknown>[]) =>
     api.put('/auth/me/address-book', { addresses }),
+  updateGeo: (lat: number, lng: number) => api.patch('/auth/me/geo', { lat, lng }),
 };
 
 /** Public multipart electrician self-registration */
