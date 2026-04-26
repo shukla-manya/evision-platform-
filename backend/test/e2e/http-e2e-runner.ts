@@ -1,7 +1,10 @@
 /**
  * Local HTTP E2E (Dynalite + Nest TestingModule + supertest).
- * Run with: npx ts-node -r tsconfig-paths/register test/e2e/http-e2e-runner.ts
- * Avoids Jest VM + @aws-sdk incompatibility that hangs Nest compile().
+ * Run: `npm run test:e2e:http` (uses ts-node --transpile-only) or:
+ * `npx ts-node --transpile-only -r tsconfig-paths/register test/e2e/http-e2e-runner.ts`
+ *
+ * AppModule is dynamic-import() after Dynalite/env are ready (avoids eager AWS graph load).
+ * Jest suite: `npm run test:e2e` — see docs/qa/E2E-BUGS.md.
  */
 import { strict as assert } from 'node:assert';
 import { createHmac } from 'crypto';
