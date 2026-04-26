@@ -458,6 +458,7 @@ function ShopPendingScreen({
         >
           <Text style={styles.buttonText}>Back to sign in</Text>
         </Pressable>
+        <PublicWebsiteLinks audience="signed_out" />
       </ScrollView>
     </SafeAreaView>
   );
@@ -907,6 +908,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
             </Text>
           </Pressable>
         </View>
+        <PublicWebsiteLinks audience="signed_out" />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -1017,6 +1019,7 @@ function PasswordResetScreen({
             </Pressable>
           )}
         </View>
+        <PublicWebsiteLinks audience="signed_out" />
       </ScrollView>
     </SafeAreaView>
   );
