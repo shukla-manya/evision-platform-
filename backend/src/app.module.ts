@@ -18,8 +18,10 @@ import { ElectricianModule } from './modules/electrician/electrician.module';
 import { ServiceModule } from './modules/service/service.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { LocationModule } from './modules/location/location.module';
+import { AppController } from './app.controller';
 
 @Module({
+  controllers: [AppController],
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
