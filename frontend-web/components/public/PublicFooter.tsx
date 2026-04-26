@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
 import { EvisionLogo } from '@/components/brand/EvisionLogo';
-import { publicAdminRegisterUrl, publicAdminSignInUrl, publicLoginPath, publicRegisterPath } from '@/lib/public-links';
+import { publicAdminRegisterUrl, publicAdminSignInUrl } from '@/lib/public-links';
 
 const year = 2026;
 
@@ -92,79 +92,68 @@ export function PublicFooter() {
 
         <div>
           <p className="font-semibold text-white mb-3">Account</p>
-          {!loggedIn ? (
-            <ul className="space-y-2 text-white/80">
-              <li>
-                <Link href={publicLoginPath} className="hover:text-white transition-colors font-medium">
-                  Sign in
-                </Link>
-              </li>
-              <li>
-                <Link href={publicRegisterPath} className="hover:text-white transition-colors font-medium">
-                  Sign up
-                </Link>
-              </li>
-            </ul>
-          ) : shopper ? (
-            <ul className="space-y-2 text-white/80">
-              <li>
-                <Link href="/home" className="hover:text-white transition-colors font-medium">
-                  My home
-                </Link>
-              </li>
-              <li>
-                <Link href="/orders" className="hover:text-white transition-colors font-medium">
-                  My orders
-                </Link>
-              </li>
-              <li>
-                <Link href="/profile" className="hover:text-white transition-colors font-medium">
-                  Profile
-                </Link>
-              </li>
-            </ul>
-          ) : technician ? (
-            <ul className="space-y-2 text-white/80">
-              <li>
-                <Link href="/electrician/dashboard" className="hover:text-white transition-colors font-medium">
-                  Technician home
-                </Link>
-              </li>
-              <li>
-                <Link href="/profile" className="hover:text-white transition-colors font-medium">
-                  Profile
-                </Link>
-              </li>
-            </ul>
-          ) : role === 'admin' ? (
-            <ul className="space-y-2 text-white/80">
-              <li>
-                <Link href="/admin/dashboard" className="hover:text-white transition-colors font-medium">
-                  Shop dashboard
-                </Link>
-              </li>
-            </ul>
-          ) : role === 'superadmin' ? (
-            <ul className="space-y-2 text-white/80">
-              <li>
-                <Link href="/super/dashboard" className="hover:text-white transition-colors font-medium">
-                  Superadmin
-                </Link>
-              </li>
-            </ul>
-          ) : (
-            <ul className="space-y-2 text-white/80">
-              <li>
-                <Link href="/profile" className="hover:text-white transition-colors font-medium">
-                  Profile
-                </Link>
-              </li>
-            </ul>
-          )}
+          {loggedIn ? (
+            shopper ? (
+              <ul className="space-y-2 text-white/80">
+                <li>
+                  <Link href="/home" className="hover:text-white transition-colors font-medium">
+                    My home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/orders" className="hover:text-white transition-colors font-medium">
+                    My orders
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/profile" className="hover:text-white transition-colors font-medium">
+                    Profile
+                  </Link>
+                </li>
+              </ul>
+            ) : technician ? (
+              <ul className="space-y-2 text-white/80">
+                <li>
+                  <Link href="/electrician/dashboard" className="hover:text-white transition-colors font-medium">
+                    Technician home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/profile" className="hover:text-white transition-colors font-medium">
+                    Profile
+                  </Link>
+                </li>
+              </ul>
+            ) : role === 'admin' ? (
+              <ul className="space-y-2 text-white/80">
+                <li>
+                  <Link href="/admin/dashboard" className="hover:text-white transition-colors font-medium">
+                    Shop dashboard
+                  </Link>
+                </li>
+              </ul>
+            ) : role === 'superadmin' ? (
+              <ul className="space-y-2 text-white/80">
+                <li>
+                  <Link href="/super/dashboard" className="hover:text-white transition-colors font-medium">
+                    Superadmin
+                  </Link>
+                </li>
+              </ul>
+            ) : (
+              <ul className="space-y-2 text-white/80">
+                <li>
+                  <Link href="/profile" className="hover:text-white transition-colors font-medium">
+                    Profile
+                  </Link>
+                </li>
+              </ul>
+            )
+          ) : null}
 
           {!loggedIn ? (
             <>
-              <p className="font-semibold text-white mt-5 mb-2 text-sm">Shop admin</p>
+              <p className="font-semibold text-white mb-2 text-sm">Shop admin</p>
               <p className="text-[11px] text-white/50 leading-snug mb-2">
                 Store owners: email + password on the admin app
               </p>
