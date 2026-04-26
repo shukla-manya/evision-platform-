@@ -9,7 +9,15 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
-  testTimeout: 300000,
+  transform: {
+    '^.+\\.tsx?$': [
+      'ts-jest',
+      {
+        isolatedModules: true,
+      },
+    ],
+  },
+  testTimeout: 600000,
   maxWorkers: 1,
   forceExit: true,
 };

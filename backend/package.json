@@ -13,7 +13,8 @@
     "setup:tables": "ts-node -r tsconfig-paths/register src/seeds/dynamo-tables.setup.ts",
     "seed:superadmin": "ts-node -r tsconfig-paths/register src/seeds/superadmin.seed.ts",
     "test": "jest",
-    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 jest --config jest-e2e.config.js --runInBand --forceExit"
+    "test:e2e": "NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 jest --config jest-e2e.config.js --runInBand --forceExit",
+    "test:e2e:http": "NODE_NO_WARNINGS=1 npx ts-node --transpile-only -r tsconfig-paths/register test/e2e/http-e2e-runner.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.540.0",
