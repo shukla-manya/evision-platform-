@@ -3,10 +3,11 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { EmailService } from '../emails/email.service';
@@ -22,6 +23,7 @@ export class AdminService {
     private email: EmailService,
     private config: ConfigService,
     private s3: S3Service,
+    private jwt: JwtService,
   ) {}
 
   async register(dto: RegisterAdminDto, logoFile?: Express.Multer.File): Promise<{ message: string }> {
@@ -30,7 +32,6 @@ export class AdminService {
     if (existing) throw new ConflictException('Email already registered');
 
     const id = uuidv4();
-    const password_hash = await bcrypt.hash(dto.password, 12);
 
     let logo_url = dto.logo_url || null;
     if (logoFile?.buffer?.length) {
@@ -48,7 +49,7 @@ export class AdminService {
       city: dto.city,
       pincode: dto.pincode,
       logo_url,
-      password_hash,
+      password_hash: null,
       status: 'pending',
       reject_reason: null,
       created_at: new Date().toISOString(),
@@ -80,7 +81,10 @@ export class AdminService {
   }
 
   async updateLogoUrl(adminId: string, logoUrl: string): Promise<{ logo_url: string }> {
-    await this.getById(adminId);
+    const admin = await this.getById(adminId);
+    if (String(admin.status || '') !== 'approved') {
+      throw new ForbiddenException('Your shop must be approved before you can update branding.');
+    }
     await this.dynamo.update(this.dynamo.tableName('admins'), { id: adminId }, { logo_url: logoUrl });
     return { logo_url: logoUrl };
   }
@@ -124,11 +128,18 @@ export class AdminService {
       approved_at: new Date().toISOString(),
     });
 
-    const loginUrl = `${this.config.get('FRONTEND_URL')}/admin/login`;
+    const frontend = String(this.config.get('FRONTEND_URL') || '').replace(/\/$/, '');
+    const setupToken = this.jwt.sign(
+      { sub: id, purpose: 'admin_password_setup' },
+      { expiresIn: '7d' },
+    );
+    const setupPasswordUrl = `${frontend}/admin/setup-password?token=${encodeURIComponent(setupToken)}`;
+    const loginUrl = `${frontend}/admin/login`;
     await this.email.sendAdminApproved(admin.email, {
       ownerName: admin.owner_name,
       shopName: admin.shop_name,
       loginUrl,
+      setupPasswordUrl,
     });
 
     this.logger.log(`Admin approved: ${admin.shop_name}`);

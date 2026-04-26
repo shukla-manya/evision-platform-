@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { EmailService } from '../emails/email.service';
 import { RegisterElectricianDto } from './dto/register-electrician.dto';
+import { PushService } from '../push/push.service';
 
 @Injectable()
 export class ElectricianService {
@@ -20,6 +21,7 @@ export class ElectricianService {
     private dynamo: DynamoService,
     private email: EmailService,
     private config: ConfigService,
+    private push: PushService,
   ) {}
 
   private table() {
@@ -68,6 +70,17 @@ export class ElectricianService {
     return items[0] || null;
   }
 
+  async findByPhone(phone: string): Promise<Record<string, unknown> | null> {
+    const items = await this.dynamo.query({
+      TableName: this.table(),
+      IndexName: 'PhoneIndex',
+      KeyConditionExpression: 'phone = :phone',
+      ExpressionAttributeValues: { ':phone': phone },
+      Limit: 1,
+    });
+    return items[0] || null;
+  }
+
   async register(
     dto: RegisterElectricianDto,
     docs: { aadhar_url: string; photo_url: string },
@@ -75,8 +88,25 @@ export class ElectricianService {
     const existing = await this.findByEmail(dto.email);
     if (existing) throw new ConflictException('Email already registered');
 
+    const existingPhone = await this.findByPhone(dto.phone);
+    if (existingPhone) throw new ConflictException('Phone number already registered');
+
+    const userAtPhone = await this.dynamo.query({
+      TableName: this.dynamo.tableName('users'),
+      IndexName: 'PhoneIndex',
+      KeyConditionExpression: 'phone = :phone',
+      ExpressionAttributeValues: { ':phone': dto.phone },
+      Limit: 1,
+    });
+    if (userAtPhone[0]) {
+      throw new ConflictException('This phone is already registered for a shopper account');
+    }
+
     const id = uuidv4();
-    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const rawPwd = dto.password?.trim();
+    const secret =
+      rawPwd && rawPwd.length >= 8 ? rawPwd : `no_login_pwd_${uuidv4()}_${Date.now()}`;
+    const passwordHash = await bcrypt.hash(secret, 12);
     const now = new Date().toISOString();
     const electrician = {
       id,
@@ -149,21 +179,40 @@ export class ElectricianService {
         updated_at: now,
         reject_reason: null,
       });
-      await this.email.sendElectricianApproved(String(electrician.email), {
-        name: String(electrician.name || 'Electrician'),
+      const name = String(electrician.name || 'there');
+      try {
+        await this.email.sendElectricianApproved(String(electrician.email), { name });
+      } catch (e) {
+        this.logger.warn(`Electrician approved email failed: ${(e as Error).message}`);
+      }
+      await this.push.sendToToken(String((electrician as Record<string, unknown>).fcm_token || '').trim() || null, {
+        title: "You're approved!",
+        body: 'Go online in the app to start receiving job requests from customers near you.',
+        data: { type: 'electrician_approved' },
       });
       return { message: 'Electrician approved', electrician_id: id, status: 'approved' };
     }
 
+    const rejectReason = reason || 'Application did not meet verification requirements';
     await this.dynamo.update(this.table(), { id }, {
       status: 'rejected',
       rejected_at: now,
       updated_at: now,
-      reject_reason: reason || 'Application did not meet verification requirements',
+      reject_reason: rejectReason,
     });
-    await this.email.sendElectricianRejected(String(electrician.email), {
-      name: String(electrician.name || 'Electrician'),
-      reason: reason || 'Application did not meet verification requirements',
+    const name = String(electrician.name || 'there');
+    try {
+      await this.email.sendElectricianRejected(String(electrician.email), {
+        name,
+        reason: rejectReason,
+      });
+    } catch (e) {
+      this.logger.warn(`Electrician rejected email failed: ${(e as Error).message}`);
+    }
+    await this.push.sendToToken(String((electrician as Record<string, unknown>).fcm_token || '').trim() || null, {
+      title: 'Your application needs an update',
+      body: 'Please check your email for details.',
+      data: { type: 'electrician_rejected' },
     });
     return { message: 'Electrician rejected', electrician_id: id, status: 'rejected' };
   }

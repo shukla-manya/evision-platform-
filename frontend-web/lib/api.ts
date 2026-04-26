@@ -45,21 +45,18 @@ api.interceptors.response.use(
 export const authApi = {
   sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
   verifyOtp: (phone: string, otp: string) => api.post('/auth/verify-otp', { phone, otp }),
-  mobileLogin: (email: string, password: string) => api.post('/auth/mobile/login', { email, password }),
-  mobileLoginVerify: (login_token: string, otp: string) =>
-    api.post('/auth/mobile/login/verify', { login_token, otp }),
   passwordResetStart: (role: string, phone: string) =>
     api.post('/auth/password/reset/start', { role, phone }),
   passwordResetComplete: (role: string, phone: string, otp: string, new_password: string) =>
     api.post('/auth/password/reset/complete', { role, phone, otp, new_password }),
   register: (data: Record<string, unknown>) => api.post('/auth/register', data),
   adminLogin: (email: string, password: string) => api.post('/auth/admin/login', { email, password }),
-  adminLoginVerify: (login_token: string, otp: string) =>
-    api.post('/auth/admin/login/verify', { login_token, otp }),
+  adminSetupPassword: (token: string, new_password: string) =>
+    api.post('/auth/admin/setup-password', { token, new_password }),
   superadminLogin: (email: string, password: string) => api.post('/auth/superadmin/login', { email, password }),
-  superadminLoginVerify: (login_token: string, otp: string) =>
-    api.post('/auth/superadmin/login/verify', { login_token, otp }),
   me: () => api.get('/auth/me'),
+  replaceAddressBook: (addresses: Record<string, unknown>[]) =>
+    api.put('/auth/me/address-book', { addresses }),
 };
 
 /** Public multipart electrician self-registration */
@@ -109,20 +106,48 @@ export const catalogApi = {
 export const cartApi = {
   getCart: () => api.get('/cart'),
   addItem: (product_id: string, quantity = 1) => api.post('/cart/add', { product_id, quantity }),
+  updateItemQuantity: (itemId: string, quantity: number) =>
+    api.patch(`/cart/${itemId}`, { quantity }),
   removeItem: (itemId: string) => api.delete(`/cart/${itemId}`),
 };
 
 export const checkoutApi = {
   createOrder: () => api.post('/checkout'),
+  confirm: (body: Record<string, unknown>) => api.post('/checkout/confirm', body),
+};
+
+/** Customer/dealer service & technician discovery */
+export const serviceApi = {
+  createRequest: (formData: FormData) => api.post('/service/request', formData),
+  bookElectrician: (electricianId: string, service_request_id: string) =>
+    api.post(`/service/book/${electricianId}`, { service_request_id }),
+  getBooking: (bookingId: string) => api.get(`/service/booking/${bookingId}`),
+  myActiveBookings: () => api.get('/service/my/bookings/active'),
+  myBookingHistory: () => api.get('/service/my/bookings/history'),
+};
+
+/** Public — no auth required */
+export const technicianDirectoryApi = {
+  nearby: (lat: number, lng: number) =>
+    api.get('/electrician/nearby', { params: { lat, lng } }),
+};
+
+export const reviewsApi = {
+  createElectricianReview: (electricianId: string, formData: FormData) =>
+    api.post(`/reviews/electrician/${electricianId}`, formData),
 };
 
 export const ordersApi = {
   myOrders: () => api.get('/orders/my'),
   cancelOrderGroup: (groupId: string) => api.post(`/orders/${groupId}/cancel`),
+  /** GST tax invoice PDFs only — returns application/zip blob */
+  downloadGstInvoicesZip: () =>
+    api.get('/orders/my/gst-invoices-zip', { responseType: 'arraybuffer' }),
 };
 
 // ── Superadmin (API path unchanged; UI lives at /super/* only) ─────────────
 export const superadminApi = {
+  verifyDealerGst: (userId: string) => api.put(`/superadmin/users/${userId}/verify-dealer-gst`),
   getPendingAdmins: () => api.get('/superadmin/pending-admins'),
   getAllAdmins: () => api.get('/superadmin/all-admins'),
   approveAdmin: (id: string) => api.put(`/superadmin/admin/${id}/approve`),

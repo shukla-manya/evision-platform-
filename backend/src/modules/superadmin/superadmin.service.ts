@@ -1,8 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { AdminService } from '../admin/admin.service';
 import { ElectricianService } from '../electrician/electrician.service';
 import { ReviewsService } from '../reviews/reviews.service';
+import { EmailService } from '../emails/email.service';
+import { PushService } from '../push/push.service';
 
 const ORDER_OK = new Set([
   'order_received',
@@ -31,6 +33,8 @@ export class SuperadminService {
     private adminService: AdminService,
     private electricianService: ElectricianService,
     private reviewsService: ReviewsService,
+    private emailService: EmailService,
+    private pushService: PushService,
   ) {}
 
   async getPendingAdmins() {
@@ -306,5 +310,37 @@ export class SuperadminService {
       },
       shops: shopRows,
     };
+  }
+
+  async verifyDealerGst(userId: string): Promise<{ message: string; user_id: string }> {
+    const u = await this.dynamo.get(this.dynamo.tableName('users'), { id: userId });
+    if (!u) throw new NotFoundException('User not found');
+    if (String((u as Record<string, unknown>).role) !== 'dealer') {
+      throw new BadRequestException('Not a dealer account');
+    }
+    const now = new Date().toISOString();
+    await this.dynamo.update(this.dynamo.tableName('users'), { id: userId }, {
+      gst_verified: true,
+      gst_verified_at: now,
+      updated_at: now,
+    });
+
+    const rec = u as Record<string, unknown>;
+    const dealerName = String(rec.name || 'there').trim() || 'there';
+    const dealerEmail = String(rec.email || '').trim();
+    if (dealerEmail) {
+      try {
+        await this.emailService.sendDealerGstVerified(dealerEmail, { name: dealerName });
+      } catch (e) {
+        this.logger.warn(`Dealer GST verified email failed: ${(e as Error).message}`);
+      }
+    }
+    await this.pushService.sendToToken(String(rec.fcm_token || '').trim() || null, {
+      title: 'Dealer pricing is active',
+      body: 'Your GST is verified. Enjoy exclusive wholesale rates on all products.',
+      data: { type: 'dealer_gst_verified' },
+    });
+
+    return { message: 'Dealer GST verified; dealer pricing is now active.', user_id: userId };
   }
 }

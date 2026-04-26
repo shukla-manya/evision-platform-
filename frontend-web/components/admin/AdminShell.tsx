@@ -82,12 +82,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     };
   }, [admin?.status]);
 
-  useEffect(() => {
-    if (admin?.status === 'pending' && pathname !== '/admin/dashboard') {
-      router.replace('/admin/dashboard');
-    }
-  }, [admin, pathname, router]);
-
   if (loading) {
     return (
       <div className="min-h-screen bg-ev-bg flex items-center justify-center text-ev-muted gap-2">

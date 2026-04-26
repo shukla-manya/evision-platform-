@@ -23,6 +23,8 @@ type Product = {
   active?: boolean;
   images?: string[];
   low_stock_threshold?: number;
+  mrp?: number | null;
+  min_order_quantity?: number;
 };
 
 export default function AdminProductEditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -42,6 +44,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
     brand: '',
     active: true,
     low_stock_threshold: '10',
+    mrp: '',
+    min_order_quantity: '1',
     images: [] as string[],
   });
 
@@ -67,6 +71,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
           brand: (p.brand as string) || '',
           active: p.active !== false,
           low_stock_threshold: String(p.low_stock_threshold ?? 10),
+          mrp: p.mrp != null && !Number.isNaN(Number(p.mrp)) ? String(p.mrp) : '',
+          min_order_quantity: String(Math.max(1, Number(p.min_order_quantity ?? 1))),
           images: Array.isArray(p.images) ? p.images : [],
         });
       })
@@ -97,6 +103,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         brand: form.brand.trim() || null,
         active: form.active,
         low_stock_threshold: Number(form.low_stock_threshold) || 10,
+        min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
+        mrp: form.mrp.trim() === '' ? null : Number(form.mrp),
         images: nextImages,
       });
       toast.success('Product updated');
@@ -136,10 +144,11 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         <Link href="/admin/products" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-4">
           <ArrowLeft size={14} /> Products
         </Link>
-        <h1 className="text-2xl font-bold text-ev-text mb-6">Edit product</h1>
+        <h1 className="text-2xl font-bold text-ev-text mb-2">Edit product</h1>
+        <p className="text-ev-muted text-sm mb-6">Update catalogue details and pricing.</p>
         <form onSubmit={onSubmit} className="ev-card p-6 sm:p-8 space-y-5">
           <div>
-            <label className="ev-label">Name</label>
+            <label className="ev-label">Product name</label>
             <input
               className="ev-input"
               value={form.name}
@@ -155,53 +164,6 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               required
             />
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className="ev-label">Customer price (₹)</label>
-              <input
-                type="number"
-                min={0}
-                className="ev-input"
-                value={form.price_customer}
-                onChange={(e) => setForm((f) => ({ ...f, price_customer: e.target.value }))}
-                required
-              />
-            </div>
-            <div>
-              <label className="ev-label">Dealer price (₹)</label>
-              <input
-                type="number"
-                min={0}
-                className="ev-input"
-                value={form.price_dealer}
-                onChange={(e) => setForm((f) => ({ ...f, price_dealer: e.target.value }))}
-                required
-              />
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className="ev-label">Stock</label>
-              <input
-                type="number"
-                min={0}
-                className="ev-input"
-                value={form.stock}
-                onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
-                required
-              />
-            </div>
-            <div>
-              <label className="ev-label">Low stock alert at</label>
-              <input
-                type="number"
-                min={0}
-                className="ev-input"
-                value={form.low_stock_threshold}
-                onChange={(e) => setForm((f) => ({ ...f, low_stock_threshold: e.target.value }))}
-              />
-            </div>
           </div>
           <div>
             <label className="ev-label">Category</label>
@@ -219,23 +181,19 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
               ))}
             </select>
           </div>
-          <div>
-            <label className="ev-label">Brand (optional)</label>
-            <input className="ev-input" value={form.brand} onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} />
-          </div>
           {form.images.length > 0 ? (
             <div>
-              <p className="ev-label">Current image URLs</p>
+              <p className="ev-label">Current images</p>
               <ul className="text-xs text-ev-muted font-mono space-y-1 break-all max-h-32 overflow-y-auto border border-ev-border rounded-xl p-3 bg-ev-surface2">
                 {form.images.map((u) => (
                   <li key={u}>{u}</li>
                 ))}
               </ul>
-              <p className="text-ev-subtle text-xs mt-1">Append more files below; full list is sent on save.</p>
+              <p className="text-ev-subtle text-xs mt-1">Upload more below; all images are saved together.</p>
             </div>
           ) : null}
           <div>
-            <label className="ev-label">Add images (optional)</label>
+            <label className="ev-label">Upload images (multiple)</label>
             <input
               type="file"
               accept="image/*"
@@ -244,13 +202,95 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
               onChange={(e) => setFiles(Array.from(e.target.files || []))}
             />
           </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="ev-label">Customer price (₹)</label>
+              <input
+                type="number"
+                min={0}
+                step="1"
+                className="ev-input"
+                value={form.price_customer}
+                onChange={(e) => setForm((f) => ({ ...f, price_customer: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <label className="ev-label">Dealer price (₹)</label>
+              <input
+                type="number"
+                min={0}
+                step="1"
+                className="ev-input"
+                value={form.price_dealer}
+                onChange={(e) => setForm((f) => ({ ...f, price_dealer: e.target.value }))}
+                required
+              />
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="ev-label">MRP / retail reference (₹, optional)</label>
+              <input
+                type="number"
+                min={0}
+                step="1"
+                className="ev-input"
+                value={form.mrp}
+                onChange={(e) => setForm((f) => ({ ...f, mrp: e.target.value }))}
+                placeholder="Leave empty to clear"
+              />
+            </div>
+            <div>
+              <label className="ev-label">Minimum order for dealers (units)</label>
+              <input
+                type="number"
+                min={1}
+                step="1"
+                className="ev-input"
+                value={form.min_order_quantity}
+                onChange={(e) => setForm((f) => ({ ...f, min_order_quantity: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="rounded-xl border border-ev-border bg-ev-surface2/60 p-4 text-sm text-ev-muted leading-relaxed">
+            <span className="font-semibold text-ev-text">Price note:</span> Customer price and dealer price are separate fields.
+            Dealers see dealer price only; MRP drives “vs retail” when set.
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="ev-label">Stock quantity</label>
+              <input
+                type="number"
+                min={0}
+                className="ev-input"
+                value={form.stock}
+                onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))}
+                required
+              />
+            </div>
+            <div>
+              <label className="ev-label">Low stock alert at (units)</label>
+              <input
+                type="number"
+                min={0}
+                className="ev-input"
+                value={form.low_stock_threshold}
+                onChange={(e) => setForm((f) => ({ ...f, low_stock_threshold: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="ev-label">Brand (optional)</label>
+            <input className="ev-input" value={form.brand} onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} />
+          </div>
           <label className="flex items-center gap-2 text-sm text-ev-text cursor-pointer">
             <input
               type="checkbox"
               checked={form.active}
               onChange={(e) => setForm((f) => ({ ...f, active: e.target.checked }))}
             />
-            Active
+            Active (visible in catalogue)
           </label>
           <div className="flex flex-wrap gap-3 pt-2">
             <button type="submit" className="ev-btn-primary flex items-center gap-2 px-6 py-2.5" disabled={saving}>

@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class ConfirmPaymentDto {
   @ApiProperty({ enum: ['success', 'failure'] })
@@ -24,4 +25,13 @@ export class ConfirmPaymentDto {
   @IsOptional()
   @IsString()
   failure_reason?: string;
+
+  @ApiPropertyOptional({
+    description: 'Index in user.address_book to store on the order group (checkout step 1)',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  delivery_address_index?: number;
 }

@@ -92,6 +92,12 @@ export class SuperadminController {
     return this.superadminService.getPendingElectricians();
   }
 
+  @Put('users/:userId/verify-dealer-gst')
+  @ApiOperation({ summary: 'Mark a dealer user as GST-verified (enables wholesale pricing)' })
+  verifyDealerGst(@Param('userId') userId: string) {
+    return this.superadminService.verifyDealerGst(userId);
+  }
+
   @Put('electrician/:id/approve')
   @ApiOperation({ summary: 'Approve or reject electrician registration' })
   approveElectrician(

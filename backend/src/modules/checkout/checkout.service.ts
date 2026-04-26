@@ -137,18 +137,21 @@ export class CheckoutService {
         );
       }
       this.verifyClientPaymentSignature(razorpayOrderId, paymentId, signature);
-      return this.handlePaymentCaptured({
-        event: 'payment.captured',
-        payload: {
-          payment: {
-            entity: {
-              id: paymentId,
-              order_id: razorpayOrderId,
-              notes: { user_id: userId },
+      return this.handlePaymentCaptured(
+        {
+          event: 'payment.captured',
+          payload: {
+            payment: {
+              entity: {
+                id: paymentId,
+                order_id: razorpayOrderId,
+                notes: { user_id: userId },
+              },
             },
           },
         },
-      });
+        { deliveryAddressIndex: dto.delivery_address_index },
+      );
     }
 
     return this.handlePaymentFailed({
@@ -202,6 +205,20 @@ export class CheckoutService {
     return groups[0] || null;
   }
 
+  private deliveryPointFromSnapshotOrUser(
+    snapshot: Record<string, unknown> | null | undefined,
+    user: Record<string, unknown> | null,
+  ): { lat: number; lng: number } | null {
+    if (snapshot && typeof snapshot === 'object') {
+      const lat = Number(snapshot.lat);
+      const lng = Number(snapshot.lng);
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        return { lat, lng };
+      }
+    }
+    return this.extractLatLngFromUser(user);
+  }
+
   private extractLatLngFromUser(user: Record<string, unknown> | null): { lat: number; lng: number } | null {
     if (!user) return null;
     const fromRootLat = Number(user.lat);
@@ -236,7 +253,7 @@ export class CheckoutService {
   }
 
   private async notifyNearbyElectriciansAboutOrder(
-    params: { lat: number; lng: number; productName: string },
+    params: { lat: number; lng: number; productName: string; areaLabel?: string },
   ): Promise<void> {
     const nearby = await this.electricians.findNearbyApprovedAvailable(
       params.lat,
@@ -248,10 +265,11 @@ export class CheckoutService {
       nearby.map(async (electrician) => {
         const electricianName = String(electrician.name || 'Electrician');
         const distanceKm = Number(electrician.distance_km || 0);
+        const area = String(params.areaLabel || 'your area').trim() || 'your area';
         await Promise.all([
           this.push.sendToToken(String(electrician.fcm_token || ''), {
-            title: `New ${params.productName} ordered near you`,
-            body: `A new order was placed within ${distanceKm.toFixed(2)} km of your location.`,
+            title: 'Order nearby',
+            body: `${params.productName} was just ordered in ${area}, ${distanceKm.toFixed(1)} km from you. This customer may need service soon.`,
             data: {
               type: 'nearby_order_awareness',
               product_name: params.productName,
@@ -270,7 +288,10 @@ export class CheckoutService {
     );
   }
 
-  private async handlePaymentCaptured(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  private async handlePaymentCaptured(
+    payload: Record<string, unknown>,
+    meta?: { deliveryAddressIndex?: number },
+  ): Promise<Record<string, unknown>> {
     const payment = (((payload.payload as Record<string, unknown>)?.payment as Record<string, unknown>)?.entity ||
       {}) as Record<string, unknown>;
     const razorpayOrderId = String(payment.order_id || '');
@@ -288,6 +309,23 @@ export class CheckoutService {
     const cartItems = await this.cart.listUserItems(userId);
     if (!cartItems.length) {
       throw new BadRequestException('Cart is empty for this user; cannot materialize order');
+    }
+
+    const user = await this.dynamo.get(this.usersTable(), { id: userId });
+    let delivery_snapshot: Record<string, unknown> | null = null;
+    if (
+      user &&
+      meta?.deliveryAddressIndex !== undefined &&
+      meta.deliveryAddressIndex !== null &&
+      !Number.isNaN(Number(meta.deliveryAddressIndex))
+    ) {
+      const book = Array.isArray((user as Record<string, unknown>).address_book)
+        ? ((user as Record<string, unknown>).address_book as Record<string, unknown>[])
+        : [];
+      const sel = book[Number(meta.deliveryAddressIndex)];
+      if (sel && typeof sel === 'object') {
+        delivery_snapshot = { ...sel };
+      }
     }
 
     const now = new Date().toISOString();
@@ -319,6 +357,7 @@ export class CheckoutService {
       status: 'payment_confirmed',
       razorpay_order_id: razorpayOrderId,
       razorpay_payment_id: razorpayPaymentId,
+      ...(delivery_snapshot ? { delivery_snapshot } : {}),
       created_at: now,
       updated_at: now,
     });
@@ -362,7 +401,6 @@ export class CheckoutService {
       }
     }
 
-    const user = await this.dynamo.get(this.usersTable(), { id: userId });
     if (user?.email) {
       await this.email.sendPaymentConfirmedCustomer(String(user.email), {
         customerName: String(user.name || 'Customer'),
@@ -385,17 +423,23 @@ export class CheckoutService {
       ),
     );
 
-    const deliveryPoint = this.extractLatLngFromUser(
+    const deliveryPoint = this.deliveryPointFromSnapshotOrUser(
+      delivery_snapshot,
       (user as Record<string, unknown> | null) || null,
     );
     if (deliveryPoint) {
       const productName = this.summarizeProductForAlert(
         cartItems as Record<string, unknown>[],
       );
+      const snap = delivery_snapshot as Record<string, unknown> | null;
+      const areaLabel = snap
+        ? String(snap.city || snap.line1 || snap.label || snap.area || '').trim()
+        : '';
       void this.notifyNearbyElectriciansAboutOrder({
         lat: deliveryPoint.lat,
         lng: deliveryPoint.lng,
         productName,
+        ...(areaLabel ? { areaLabel } : {}),
       }).catch((err) => {
         this.logger.warn(`Nearby electrician awareness failed: ${err?.message || err}`);
       });

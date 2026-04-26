@@ -2,10 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Loader2, PackageCheck, ChevronDown, ChevronUp, Ban, Download } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  Download,
+  Loader2,
+  Package,
+  Ban,
+  Truck,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ordersApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
+import { PublicShell } from '@/components/public/PublicShell';
 
 type OrderItem = {
   id: string;
@@ -22,6 +31,9 @@ type SubOrder = {
   status?: string;
   total_amount?: number;
   items: OrderItem[];
+  awb_number?: string | null;
+  courier_name?: string | null;
+  tracking_url?: string | null;
   customer_invoice_url?: string | null;
   dealer_invoice_url?: string | null;
   gst_invoice_url?: string | null;
@@ -32,6 +44,9 @@ type OrderGroup = {
   status?: string;
   total_amount?: number;
   created_at?: string;
+  group_display_id?: string;
+  shipment_count?: number;
+  line_item_units?: number;
   sub_orders: SubOrder[];
 };
 
@@ -43,7 +58,59 @@ function formatInr(n: number) {
   }).format(n);
 }
 
+function groupLabel(g: OrderGroup) {
+  if (g.group_display_id) return g.group_display_id;
+  const tail = g.id.replace(/-/g, '').slice(-4).toUpperCase();
+  return `G${tail}`;
+}
+
 const cancelableStatuses = new Set(['payment_confirmed', 'order_received']);
+
+const TRACK_STEPS = ['Confirmed', 'Packed', 'Shipped', 'Out for delivery', 'Delivered'] as const;
+
+function trackingStepIndex(status?: string): number {
+  const s = String(status || '').toLowerCase();
+  if (s === 'delivered') return 4;
+  if (s === 'out_for_delivery') return 3;
+  if (s === 'in_transit' || s === 'picked_up') return 2;
+  if (s === 'shipment_created') return 2;
+  if (s === 'order_received') return 1;
+  if (s === 'payment_confirmed') return 0;
+  return 0;
+}
+
+function TrackingBar({ status }: { status?: string }) {
+  const idx = trackingStepIndex(status);
+  return (
+    <div className="mt-3">
+      <div className="flex justify-between text-[10px] uppercase tracking-wide text-ev-subtle mb-1.5">
+        {TRACK_STEPS.map((label) => (
+          <span key={label} className="flex-1 text-center px-0.5">
+            {label}
+          </span>
+        ))}
+      </div>
+      <div className="flex gap-1">
+        {TRACK_STEPS.map((_, i) => (
+          <div
+            key={i}
+            className={`h-1.5 flex-1 rounded-full ${i <= idx ? 'bg-ev-primary' : 'bg-ev-border'}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function statusBadge(status?: string) {
+  const s = String(status || '').toLowerCase();
+  if (s === 'delivered') return 'bg-ev-success/15 text-ev-success border-ev-success/25';
+  if (s === 'order_cancelled' || s === 'payment_failed') return 'bg-ev-error/10 text-ev-error border-ev-error/20';
+  if (s === 'out_for_delivery' || s === 'in_transit' || s === 'shipment_created') {
+    return 'bg-ev-primary/10 text-ev-primary border-ev-primary/25';
+  }
+  return 'bg-ev-surface2 text-ev-muted border-ev-border';
+}
 
 export default function MyOrdersPage() {
   const role = typeof window !== 'undefined' ? getRole() : undefined;
@@ -67,10 +134,7 @@ export default function MyOrdersPage() {
 
   useEffect(() => {
     if (!canUseOrders) return;
-    const timer = setTimeout(() => {
-      void load();
-    }, 0);
-    return () => clearTimeout(timer);
+    void load();
   }, [canUseOrders, load]);
 
   async function cancel(groupId: string) {
@@ -89,86 +153,125 @@ export default function MyOrdersPage() {
 
   if (!canUseOrders) {
     return (
-      <div className="min-h-screen bg-ev-bg flex items-center justify-center text-ev-muted">
-        Sign in as customer or dealer to view orders.
-      </div>
+      <PublicShell>
+        <main className="max-w-lg mx-auto px-4 py-20 text-center text-ev-muted">
+          Sign in as a customer or dealer to view orders.
+        </main>
+      </PublicShell>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-ev-bg">
-      <header className="ev-header">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div>
-            <h1 className="text-white font-bold text-base sm:text-lg">My orders</h1>
-            <p className="text-white/50 text-xs">Order groups with per-shop tracking</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href={`/reset-password?role=${role === 'dealer' ? 'dealer' : 'customer'}`} className="ev-btn-secondary py-2 px-3 text-sm">
-              Change Password
-            </Link>
-            <Link href="/shop" className="ev-btn-secondary py-2 px-3 text-sm">Browse</Link>
-          </div>
+  const inner = (
+    <>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-ev-text">My orders</h1>
+          <p className="text-ev-muted text-sm mt-1">
+            Grouped by checkout: each order group can include several shops. Expand a group for shipments, tracking, and
+            invoices (GST tax invoices for dealers when available).
+          </p>
         </div>
-      </header>
+        <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 self-start">
+          Start shopping
+        </Link>
+      </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        {loading ? (
-          <div className="flex items-center gap-2 text-ev-muted justify-center py-24">
-            <Loader2 className="animate-spin text-ev-primary" size={22} />
-            Loading orders...
-          </div>
-        ) : rows.length === 0 ? (
-          <div className="ev-card p-16 text-center text-ev-muted">
-            <PackageCheck className="mx-auto mb-3 opacity-30" size={40} />
-            <p className="text-ev-text font-medium mb-1">No orders yet</p>
-            <p className="text-sm">Place your first order from the shop.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {rows.map((group) => (
+      {loading ? (
+        <div className="flex items-center gap-2 text-ev-muted justify-center py-24">
+          <Loader2 className="animate-spin text-ev-primary" size={22} />
+          Loading orders…
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="ev-card p-16 text-center text-ev-muted">
+          <Package className="mx-auto mb-3 opacity-30" size={40} />
+          <p className="text-ev-text font-medium mb-2">You haven&apos;t placed any orders yet.</p>
+          <Link href="/shop" className="ev-btn-primary inline-flex mt-4">
+            Start shopping
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {rows.map((group) => {
+            const shops = group.sub_orders?.length || 0;
+            const units =
+              group.line_item_units ??
+              group.sub_orders?.reduce(
+                (a, s) => a + (s.items || []).reduce((b, it) => b + Number(it.quantity || 1), 0),
+                0,
+              ) ??
+              0;
+            return (
               <article key={group.id} className="ev-card overflow-hidden">
                 <button
                   type="button"
-                  className="w-full p-5 flex items-center justify-between text-left hover:bg-ev-surface2/60"
+                  className="w-full p-5 flex items-center justify-between text-left hover:bg-ev-surface2/60 gap-3"
                   onClick={() => setExpanded(expanded === group.id ? null : group.id)}
                 >
-                  <div>
-                    <p className="text-ev-text font-semibold text-sm">Order Group {group.id}</p>
-                    <p className="text-ev-muted text-xs">
-                      {group.created_at ? new Date(group.created_at).toLocaleString() : '—'}
+                  <div className="min-w-0">
+                    <p className="text-ev-text font-semibold">Order group #{groupLabel(group)}</p>
+                    <p className="text-ev-muted text-xs mt-0.5">
+                      {group.created_at ? new Date(group.created_at).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      }) : '—'}
+                      {units > 0 && shops > 0 ? (
+                        <>
+                          {' · '}
+                          <span className="text-ev-text">
+                            {units} {units === 1 ? 'item' : 'items'} from {shops} {shops === 1 ? 'shop' : 'shops'}
+                          </span>
+                        </>
+                      ) : null}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 shrink-0">
                     <span className="text-ev-primary font-semibold text-sm">{formatInr(Number(group.total_amount || 0))}</span>
-                    <span className="ev-badge">{group.status || '—'}</span>
-                    {expanded === group.id ? <ChevronUp size={16} className="text-ev-muted" /> : <ChevronDown size={16} className="text-ev-muted" />}
+                    {expanded === group.id ? <ChevronUp size={18} className="text-ev-muted" /> : <ChevronDown size={18} className="text-ev-muted" />}
                   </div>
                 </button>
                 {expanded === group.id ? (
-                  <div className="border-t border-ev-border p-5 bg-ev-surface2 space-y-3">
-                    {group.sub_orders?.map((sub) => (
-                      <div key={sub.id} className="rounded-xl border border-ev-border p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-ev-text font-medium">{sub.shop_name || sub.admin_id}</p>
-                          <div className="text-right">
-                            <p className="text-ev-text font-semibold">{formatInr(Number(sub.total_amount || 0))}</p>
-                            <p className="text-ev-subtle text-xs">{sub.status || '—'}</p>
-                          </div>
-                        </div>
-                        <div className="space-y-1.5">
-                          {sub.items?.map((it) => (
-                            <div key={it.id} className="flex items-center justify-between text-sm">
-                              <span className="text-ev-muted truncate">
-                                {it.product_name || 'Product'} x {it.quantity || 1}
-                              </span>
-                              <span className="text-ev-text">{formatInr(Number(it.line_total || 0))}</span>
+                  <div className="border-t border-ev-border p-5 bg-ev-surface2 space-y-4">
+                    {group.sub_orders?.map((sub) => {
+                      const delivered = String(sub.status || '').toLowerCase() === 'delivered';
+                      const itemsSummary =
+                        sub.items?.map((it) => `${it.product_name || 'Item'} ×${it.quantity || 1}`).join(', ') || '—';
+                      const invoices = [
+                        sub.customer_invoice_url,
+                        sub.dealer_invoice_url,
+                        sub.gst_invoice_url,
+                      ].filter((u): u is string => !!u);
+                      return (
+                        <div key={sub.id} className="rounded-xl border border-ev-border p-4 bg-ev-surface">
+                          <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+                            <div>
+                              <p className="text-ev-text font-semibold">{sub.shop_name || 'Shop'}</p>
+                              <p className="text-ev-muted text-xs mt-1">{itemsSummary}</p>
                             </div>
-                          ))}
-                        </div>
-                        {(role === 'dealer' || role === 'customer') && (() => {
-                          const invoices = [sub.dealer_invoice_url, sub.gst_invoice_url, sub.customer_invoice_url].filter((u): u is string => !!u);
-                          return invoices.length > 0 ? (
+                            <span className={`text-xs font-medium px-2.5 py-1 rounded-lg border capitalize ${statusBadge(sub.status)}`}>
+                              {(sub.status || '—').replace(/_/g, ' ')}
+                            </span>
+                          </div>
+                          <TrackingBar status={sub.status} />
+                          {sub.awb_number ? (
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                              <Truck size={14} className="text-ev-muted shrink-0" />
+                              <span className="text-ev-muted">Tracking:</span>
+                              <span className="font-mono text-ev-text">{sub.awb_number}</span>
+                              {sub.courier_name ? <span className="text-ev-muted">· {sub.courier_name}</span> : null}
+                              {sub.tracking_url ? (
+                                <a
+                                  href={sub.tracking_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-ev-primary text-sm font-medium hover:underline"
+                                >
+                                  Track shipment
+                                </a>
+                              ) : null}
+                            </div>
+                          ) : null}
+                          {invoices.length > 0 ? (
                             <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-ev-border">
                               {invoices.map((url, i) => (
                                 <a
@@ -176,17 +279,29 @@ export default function MyOrdersPage() {
                                   href={url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 text-xs text-ev-primary border border-ev-primary/20 rounded-lg px-3 py-1.5 hover:bg-ev-primary/5 transition-colors"
+                                  className="inline-flex items-center gap-1.5 text-xs text-ev-primary border border-ev-primary/20 rounded-lg px-3 py-1.5 hover:bg-ev-primary/5"
                                 >
                                   <Download size={11} />
-                                  Invoice {i + 1}
+                                  Download invoice
                                 </a>
                               ))}
                             </div>
-                          ) : null;
-                        })()}
-                      </div>
-                    ))}
+                          ) : null}
+                          {delivered ? (
+                            <div className="mt-4">
+                              <Link
+                                href={`/service/request?sub_order_id=${encodeURIComponent(sub.id)}&product=${encodeURIComponent(
+                                  sub.items?.[0]?.product_name || 'Your product',
+                                )}`}
+                                className="ev-btn-secondary text-sm py-2 px-4 inline-flex"
+                              >
+                                Request service
+                              </Link>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
                     {cancelableStatuses.has(String(group.status || '')) ? (
                       <button
                         type="button"
@@ -201,10 +316,16 @@ export default function MyOrdersPage() {
                   </div>
                 ) : null}
               </article>
-            ))}
-          </div>
-        )}
-      </main>
-    </div>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <PublicShell>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">{inner}</main>
+    </PublicShell>
   );
 }

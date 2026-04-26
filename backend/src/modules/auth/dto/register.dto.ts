@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsEnum, IsOptional, Matches, MinLength, Length } from 'class-validator';
+import { IsString, IsEmail, IsEnum, IsOptional, Matches, MinLength, Length, ValidateIf } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -16,15 +16,9 @@ export class RegisterDto {
   @IsEmail()
   email: string;
 
-  @ApiPropertyOptional({ example: 'SecurePass@123', description: 'Required for password-based app login' })
-  @IsOptional()
-  @IsString()
-  @MinLength(6)
-  password?: string;
-
-  @ApiProperty({ enum: ['customer', 'dealer', 'electrician'] })
-  @IsEnum(['customer', 'dealer', 'electrician'])
-  role: 'customer' | 'dealer' | 'electrician';
+  @ApiProperty({ enum: ['customer', 'dealer'], description: 'Technicians register via POST /electrician/register' })
+  @IsEnum(['customer', 'dealer'])
+  role: 'customer' | 'dealer';
 
   @ApiProperty({ example: '482931', description: 'OTP sent to the same phone via /auth/send-otp' })
   @IsString()
@@ -41,6 +35,31 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   address?: string;
+
+  @ApiPropertyOptional({ example: 'Manya Optics Pvt Ltd', description: 'Required for dealer registration' })
+  @IsOptional()
+  @IsString()
+  business_name?: string;
+
+  @ApiPropertyOptional({
+    example: 'Plot 12, Sector 18, Noida, UP',
+    description: 'Registered business address for dealers',
+  })
+  @IsOptional()
+  @IsString()
+  business_address?: string;
+
+  @ApiPropertyOptional({ example: 'Noida', description: 'Required when role is dealer' })
+  @ValidateIf((o) => o.role === 'dealer')
+  @IsString()
+  @MinLength(1, { message: 'Business city is required for dealers' })
+  business_city?: string;
+
+  @ApiPropertyOptional({ example: '201301', description: '6 digits when role is dealer' })
+  @ValidateIf((o) => o.role === 'dealer')
+  @IsString()
+  @Matches(/^\d{6}$/, { message: 'Business pincode must be 6 digits' })
+  business_pincode?: string;
 }
 
 export class AdminLoginDto {
@@ -65,44 +84,10 @@ export class SuperadminLoginDto {
   password: string;
 }
 
-export class ElectricianLoginDto {
-  @ApiProperty({ example: 'ravi@example.com' })
-  @IsEmail()
-  email: string;
-
-  @ApiProperty({ example: 'SecurePass@123' })
-  @IsString()
-  @MinLength(8)
-  password: string;
-}
-
-export class LoginOtpVerifyDto {
-  @ApiProperty({ description: 'Temporary token returned from admin/superadmin login step 1' })
-  @IsString()
-  login_token: string;
-
-  @ApiProperty({ example: '482931' })
-  @IsString()
-  @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
-  @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
-  otp: string;
-}
-
-export class MobileLoginDto {
-  @ApiProperty({ example: 'rahul@example.com' })
-  @IsEmail()
-  email: string;
-
-  @ApiProperty({ example: 'SecurePass@123' })
-  @IsString()
-  @MinLength(6)
-  password: string;
-}
-
 export class PasswordResetStartDto {
-  @ApiProperty({ enum: ['customer', 'dealer', 'electrician', 'admin', 'superadmin'] })
-  @IsEnum(['customer', 'dealer', 'electrician', 'admin', 'superadmin'])
-  role: 'customer' | 'dealer' | 'electrician' | 'admin' | 'superadmin';
+  @ApiProperty({ enum: ['electrician', 'admin'], description: 'Customers and dealers sign in with OTP only.' })
+  @IsEnum(['electrician', 'admin'])
+  role: 'electrician' | 'admin';
 
   @ApiProperty({ example: '+919876543210' })
   @IsString()
@@ -111,9 +96,9 @@ export class PasswordResetStartDto {
 }
 
 export class PasswordResetCompleteDto {
-  @ApiProperty({ enum: ['customer', 'dealer', 'electrician', 'admin', 'superadmin'] })
-  @IsEnum(['customer', 'dealer', 'electrician', 'admin', 'superadmin'])
-  role: 'customer' | 'dealer' | 'electrician' | 'admin' | 'superadmin';
+  @ApiProperty({ enum: ['electrician', 'admin'] })
+  @IsEnum(['electrician', 'admin'])
+  role: 'electrician' | 'admin';
 
   @ApiProperty({ example: '+919876543210' })
   @IsString()

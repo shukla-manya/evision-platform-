@@ -69,13 +69,65 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
     return byUserIndex[0] || null;
   }
 
+  private haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return 6371 * c;
+  }
+
+  private async enrichElectricianBookings(
+    rows: Record<string, unknown>[],
+    electricianUserId: string,
+  ): Promise<Record<string, unknown>[]> {
+    if (!rows.length) return [];
+    const electrician = await this.dynamo.get(this.electriciansTable(), { id: electricianUserId });
+    const eLat = Number(electrician?.lat);
+    const eLng = Number(electrician?.lng);
+
+    return Promise.all(
+      rows.map(async (row) => {
+        const [customer, request] = await Promise.all([
+          this.dynamo.get(this.usersTable(), { id: String(row.customer_id || '') }),
+          this.dynamo.get(this.requestsTable(), { id: String(row.request_id || '') }),
+        ]);
+        const req = request as Record<string, unknown> | null;
+        let distance_km: number | undefined;
+        if (req && !Number.isNaN(eLat) && !Number.isNaN(eLng)) {
+          const rl = Number(req.lat);
+          const rlg = Number(req.lng);
+          if (!Number.isNaN(rl) && !Number.isNaN(rlg)) {
+            distance_km = Number(this.haversineKm(eLat, eLng, rl, rlg).toFixed(2));
+          }
+        }
+        return {
+          ...row,
+          customer_name: customer?.name != null ? String(customer.name) : null,
+          customer_phone: customer?.phone != null ? String(customer.phone) : null,
+          issue: req ? String(req.issue || '') : null,
+          product_name: req?.product_label != null ? String(req.product_label) : null,
+          service_address: req?.service_address != null ? String(req.service_address) : null,
+          preferred_date: req?.preferred_date ?? null,
+          time_from: req?.time_from ?? null,
+          time_to: req?.time_to ?? null,
+          ...(distance_km !== undefined ? { distance_km } : {}),
+        };
+      }),
+    );
+  }
+
   async createRequest(
     userId: string,
     dto: CreateServiceRequestDto,
     photo: Express.Multer.File,
   ): Promise<Record<string, unknown>> {
-    if (!photo) throw new BadRequestException('photo is required');
-    const photoUrl = await this.s3.upload(photo.buffer, photo.mimetype, 'service-requests');
+    const photoUrl = photo
+      ? await this.s3.upload(photo.buffer, photo.mimetype, 'service-requests')
+      : null;
     const now = new Date().toISOString();
     const request = {
       id: uuidv4(),
@@ -87,6 +139,9 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
       time_to: dto.time_to,
       lat: Number(dto.lat),
       lng: Number(dto.lng),
+      order_sub_order_id: dto.order_sub_order_id || null,
+      product_label: dto.product_label || null,
+      service_address: dto.service_address || null,
       status: 'open',
       created_at: now,
       updated_at: now,
@@ -141,10 +196,12 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
     );
 
     const issue = String(request.issue || 'service request');
+    const customerName = String(customer?.name || 'Customer');
+    const issueSummary = issue.length > 80 ? `${issue.slice(0, 77)}…` : issue;
     await Promise.all([
       this.push.sendToToken(String(electrician.fcm_token || ''), {
-        title: 'New Service Booking Request',
-        body: `You have a new request for "${issue}". Respond within 2 hours.`,
+        title: 'New booking',
+        body: `New booking request from ${customerName} — ${issueSummary}. Respond within 2 hours.`,
         data: { type: 'service_booking_request', booking_id: String(booking.id) },
       }),
       electrician.email
@@ -382,7 +439,7 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
         new Date(String(b.updated_at || b.created_at || 0)).getTime() -
         new Date(String(a.updated_at || a.created_at || 0)).getTime(),
     );
-    return filtered;
+    return this.enrichElectricianBookings(filtered, electricianUserId);
   }
 
   async listCustomerActiveBookings(customerId: string): Promise<Record<string, unknown>[]> {
@@ -472,6 +529,9 @@ export class ServiceService implements OnModuleInit, OnModuleDestroy {
   ): Promise<{ online: boolean }> {
     const electrician = await this.getElectricianByUserId(electricianUserId);
     if (!electrician) throw new NotFoundException('Electrician profile not found');
+    if (String(electrician.status || '') !== 'approved') {
+      throw new BadRequestException('Availability can be updated only after your account is approved');
+    }
     await this.dynamo.update(
       this.electriciansTable(),
       { id: String(electrician.id) },

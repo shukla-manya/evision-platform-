@@ -26,6 +26,8 @@ export default function AdminProductNewPage() {
     brand: '',
     active: true,
     low_stock_threshold: '10',
+    mrp: '',
+    min_order_quantity: '1',
   });
 
   useEffect(() => {
@@ -58,6 +60,8 @@ export default function AdminProductNewPage() {
         brand: form.brand.trim() || undefined,
         active: form.active,
         low_stock_threshold: Number(form.low_stock_threshold) || 10,
+        min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
+        ...(form.mrp.trim() !== '' ? { mrp: Number(form.mrp) } : {}),
         ...(imageUrls.length ? { images: imageUrls } : {}),
       };
       await adminApi.createProduct(body);
@@ -150,9 +154,35 @@ export default function AdminProductNewPage() {
               />
             </div>
           </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="ev-label">MRP / retail reference (₹, optional)</label>
+              <input
+                type="number"
+                min={0}
+                step="1"
+                className="ev-input"
+                value={form.mrp}
+                onChange={(e) => setForm((f) => ({ ...f, mrp: e.target.value }))}
+                placeholder="For dealer “vs retail” savings"
+              />
+            </div>
+            <div>
+              <label className="ev-label">Minimum order for dealers (units)</label>
+              <input
+                type="number"
+                min={1}
+                step="1"
+                className="ev-input"
+                value={form.min_order_quantity}
+                onChange={(e) => setForm((f) => ({ ...f, min_order_quantity: e.target.value }))}
+              />
+            </div>
+          </div>
           <div className="rounded-xl border border-ev-border bg-ev-surface2/60 p-4 text-sm text-ev-muted leading-relaxed">
             <span className="font-semibold text-ev-text">Price note:</span> Customer price and dealer price are separate fields.
-            Customers only see the customer price. Dealers only see the dealer price in their catalogue.
+            Customers only see the customer price. Dealers only see the dealer price. MRP is optional and used for “You
+            save vs retail” on dealer listings when set; otherwise customer price is used as the retail reference.
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>

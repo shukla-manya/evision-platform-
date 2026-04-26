@@ -16,6 +16,8 @@ type Product = {
   description?: string;
   price_customer?: number;
   price_dealer?: number;
+  mrp?: number;
+  min_order_quantity?: number;
   images?: string[];
   stock?: number;
   shop_name?: string | null;
@@ -41,6 +43,10 @@ function displayPrice(p: Product, role?: string | null) {
   const v = p.price_customer;
   if (v == null || Number.isNaN(Number(v))) return '—';
   return formatInr(Number(v));
+}
+
+function dealerMinQty(p: Product) {
+  return Math.max(1, Number(p.min_order_quantity || 1));
 }
 
 function Stars({ value }: { value: number }) {
@@ -304,7 +310,30 @@ function ShopListingInner() {
                             <span className="text-ev-subtle text-xs">New</span>
                           )}
                         </div>
-                        <p className="text-2xl font-bold text-ev-text mt-3">{displayPrice(p, role)}</p>
+                        <div className="mt-3 space-y-1">
+                          {role === 'dealer' ? (
+                            <>
+                              <span className="inline-flex items-center rounded-md bg-ev-indigo/15 text-ev-indigo text-[10px] font-bold uppercase tracking-wide px-2 py-0.5">
+                                Dealer price
+                              </span>
+                              <p className="text-2xl font-bold text-ev-text">{displayPrice(p, role)}</p>
+                              {Number(p.mrp) > 0 && Number(p.price_dealer) > 0 ? (
+                                <p className="text-xs text-ev-muted">
+                                  <span className="text-ev-success font-semibold">
+                                    You save {formatInr(Math.max(0, Number(p.mrp) - Number(p.price_dealer)))} vs retail
+                                  </span>
+                                  <span className="mx-1">·</span>
+                                  <span className="line-through text-ev-subtle">MRP {formatInr(Number(p.mrp))}</span>
+                                </p>
+                              ) : null}
+                              {dealerMinQty(p) > 1 ? (
+                                <p className="text-[11px] text-ev-warning font-medium">Minimum order: {dealerMinQty(p)} units</p>
+                              ) : null}
+                            </>
+                          ) : (
+                            <p className="text-2xl font-bold text-ev-text">{displayPrice(p, role)}</p>
+                          )}
+                        </div>
                         <div className="mt-auto pt-4">
                           {canAddToCart ? (
                             <button
@@ -312,10 +341,14 @@ function ShopListingInner() {
                               className="ev-btn-primary w-full text-sm py-2.5 inline-flex items-center justify-center gap-1.5"
                               onClick={async () => {
                                 try {
-                                  await cartApi.addItem(p.id, 1);
-                                  toast.success('Added to cart');
-                                } catch {
-                                  toast.error('Could not add to cart');
+                                  const n = role === 'dealer' ? dealerMinQty(p) : 1;
+                                  await cartApi.addItem(p.id, n);
+                                  toast.success(role === 'dealer' ? `Added ${n} to cart (minimum order)` : 'Added to cart');
+                                } catch (err: unknown) {
+                                  const msg = err && typeof err === 'object' && 'response' in err
+                                    ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message || '')
+                                    : '';
+                                  toast.error(msg || 'Could not add to cart');
                                 }
                               }}
                             >

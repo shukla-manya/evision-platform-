@@ -1,4 +1,5 @@
-import { Controller, Get, Param, ParseUUIDPipe, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Post, Res, UseGuards } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -13,6 +14,14 @@ import { OrdersService } from './orders.service';
 @Controller('orders')
 export class OrdersController {
   constructor(private orders: OrdersService) {}
+
+  @Get('my/gst-invoices-zip')
+  @ApiOperation({
+    summary: 'Download all GST tax invoice PDFs for my orders as one ZIP file',
+  })
+  async gstInvoicesZip(@CurrentUser() user: { id: string }, @Res() res: Response) {
+    await this.orders.streamGstInvoicesZip(user.id, res);
+  }
 
   @Get('my')
   @ApiOperation({ summary: 'List my order groups with per-shop sub-orders and items' })

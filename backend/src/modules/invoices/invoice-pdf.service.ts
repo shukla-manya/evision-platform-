@@ -69,7 +69,7 @@ export class InvoicePdfService {
 
   async generateGstInvoice(data: InvoiceRenderData): Promise<Buffer> {
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
-    this.header(doc, data, 'TAX INVOICE');
+    this.header(doc, data, 'GST TAX INVOICE');
     this.gstParticulars(doc, data);
     this.billingBlock(doc, data, doc.y + 10);
     this.gstItemsTable(doc, data.items, data.total_amount);
@@ -173,50 +173,62 @@ export class InvoicePdfService {
   }
 
   private gstItemsTable(doc: PDFKit.PDFDocument, items: InvoiceLineItem[], total: number) {
-    // Assumes 18% inclusive GST (CGST 9% + SGST 9%)
-    const cols = { desc: 50, hsn: 210, qty: 260, taxable: 310, cgst: 380, sgst: 440, line: 500 };
+    // Assumes 18% inclusive GST (intra-state: CGST 9% + SGST 9%; IGST column shown as ₹0 for same-state supply)
+    const cols = { desc: 48, hsn: 168, qty: 218, taxable: 258, igst: 318, cgst: 368, sgst: 418, line: 478 };
     const tableTop = doc.y;
 
-    doc.rect(50, tableTop, doc.page.width - 100, 20).fill(LIGHT);
-    doc.fillColor(MUTED).fontSize(7).font('Helvetica-Bold');
-    doc.text('Description', cols.desc + 2, tableTop + 7, { width: 155 });
-    doc.text('HSN', cols.hsn + 2, tableTop + 7, { width: 45 });
-    doc.text('Qty', cols.qty + 2, tableTop + 7, { width: 45, align: 'right' });
-    doc.text('Taxable', cols.taxable + 2, tableTop + 7, { width: 65, align: 'right' });
-    doc.text('CGST 9%', cols.cgst + 2, tableTop + 7, { width: 55, align: 'right' });
-    doc.text('SGST 9%', cols.sgst + 2, tableTop + 7, { width: 55, align: 'right' });
-    doc.text('Total', cols.line + 2, tableTop + 7, { width: 40, align: 'right' });
+    doc.rect(50, tableTop, doc.page.width - 100, 22).fill(LIGHT);
+    doc.fillColor(MUTED).fontSize(6).font('Helvetica-Bold');
+    doc.text('Description', cols.desc + 2, tableTop + 8, { width: 115 });
+    doc.text('HSN', cols.hsn + 2, tableTop + 8, { width: 42 });
+    doc.text('Qty', cols.qty + 2, tableTop + 8, { width: 36, align: 'right' });
+    doc.text('Taxable', cols.taxable + 2, tableTop + 8, { width: 52, align: 'right' });
+    doc.text('IGST', cols.igst + 2, tableTop + 8, { width: 44, align: 'right' });
+    doc.text('CGST 9%', cols.cgst + 2, tableTop + 8, { width: 44, align: 'right' });
+    doc.text('SGST 9%', cols.sgst + 2, tableTop + 8, { width: 44, align: 'right' });
+    doc.text('Total', cols.line + 2, tableTop + 8, { width: 40, align: 'right' });
 
-    let y = tableTop + 24;
-    doc.font('Helvetica').fillColor(DARK).fontSize(8);
-    let sumTaxable = 0, sumCgst = 0, sumSgst = 0;
+    let y = tableTop + 26;
+    doc.font('Helvetica').fillColor(DARK).fontSize(7);
+    let sumTaxable = 0, sumIgst = 0, sumCgst = 0, sumSgst = 0;
 
     for (const item of items) {
       const taxable = Number(item.line_total) / 1.18;
       const cgst = taxable * 0.09;
       const sgst = taxable * 0.09;
-      sumTaxable += taxable; sumCgst += cgst; sumSgst += sgst;
+      const igst = 0;
+      sumTaxable += taxable; sumIgst += igst; sumCgst += cgst; sumSgst += sgst;
 
-      doc.text(item.product_name.slice(0, 26), cols.desc + 2, y, { width: 155 });
-      doc.text('85044090', cols.hsn + 2, y, { width: 45 });
-      doc.text(String(item.quantity), cols.qty + 2, y, { width: 45, align: 'right' });
-      doc.text(this.inr(taxable, true), cols.taxable + 2, y, { width: 65, align: 'right' });
-      doc.text(this.inr(cgst, true), cols.cgst + 2, y, { width: 55, align: 'right' });
-      doc.text(this.inr(sgst, true), cols.sgst + 2, y, { width: 55, align: 'right' });
+      doc.text(item.product_name.slice(0, 22), cols.desc + 2, y, { width: 115 });
+      doc.text('85044090', cols.hsn + 2, y, { width: 42 });
+      doc.text(String(item.quantity), cols.qty + 2, y, { width: 36, align: 'right' });
+      doc.text(this.inr(taxable, true), cols.taxable + 2, y, { width: 52, align: 'right' });
+      doc.text(this.inr(igst, true), cols.igst + 2, y, { width: 44, align: 'right' });
+      doc.text(this.inr(cgst, true), cols.cgst + 2, y, { width: 44, align: 'right' });
+      doc.text(this.inr(sgst, true), cols.sgst + 2, y, { width: 44, align: 'right' });
       doc.text(this.inr(item.line_total), cols.line + 2, y, { width: 40, align: 'right' });
-      y += 16;
+      y += 15;
     }
 
     this.hLine(doc, y);
     y += 5;
-    doc.font('Helvetica-Bold').fontSize(9).fillColor(DARK);
+    doc.font('Helvetica-Bold').fontSize(8).fillColor(DARK);
     doc.text('TOTAL', cols.desc + 2, y);
-    doc.text(this.inr(sumTaxable, true), cols.taxable + 2, y, { width: 65, align: 'right' });
-    doc.text(this.inr(sumCgst, true), cols.cgst + 2, y, { width: 55, align: 'right' });
-    doc.text(this.inr(sumSgst, true), cols.sgst + 2, y, { width: 55, align: 'right' });
+    doc.text(this.inr(sumTaxable, true), cols.taxable + 2, y, { width: 52, align: 'right' });
+    doc.text(this.inr(sumIgst, true), cols.igst + 2, y, { width: 44, align: 'right' });
+    doc.text(this.inr(sumCgst, true), cols.cgst + 2, y, { width: 44, align: 'right' });
+    doc.text(this.inr(sumSgst, true), cols.sgst + 2, y, { width: 44, align: 'right' });
     doc.text(this.inr(total), cols.line + 2, y, { width: 40, align: 'right' });
-    doc.y = y + 24;
+    doc.y = y + 22;
 
+    doc.fontSize(7).fillColor(MUTED).font('Helvetica')
+      .text(
+        'Total taxable value, total tax (IGST / CGST / SGST), and grand total as above. Intra-state: IGST ₹0.',
+        50,
+        doc.y,
+        { width: doc.page.width - 100 },
+      );
+    doc.y += 16;
     doc.fontSize(8).fillColor(MUTED).font('Helvetica')
       .text(`Amount in words: ${this.toWords(Math.round(total))} Rupees Only`, 50, doc.y, { align: 'left' });
     doc.y += 14;

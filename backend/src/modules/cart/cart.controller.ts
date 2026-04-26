@@ -5,16 +5,19 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { UserRole } from '../../common/decorators/roles.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CartService } from './cart.service';
 import { AddToCartDto } from './dto/add-to-cart.dto';
+import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 
 @ApiTags('Cart')
 @ApiBearerAuth()
@@ -34,6 +37,16 @@ export class CartController {
   @ApiOperation({ summary: 'Add product to cart with price_at_time and product shop info' })
   add(@CurrentUser() user: { id: string; role: 'customer' | 'dealer' }, @Body() dto: AddToCartDto) {
     return this.cart.add(user.id, user.role, dto);
+  }
+
+  @Patch(':itemId')
+  @ApiOperation({ summary: 'Update cart line quantity' })
+  patchQty(
+    @CurrentUser() user: { id: string; role: UserRole },
+    @Param('itemId', ParseUUIDPipe) itemId: string,
+    @Body() dto: UpdateCartItemDto,
+  ) {
+    return this.cart.setQuantity(user.id, itemId, dto.quantity, user.role);
   }
 
   @Delete(':itemId')

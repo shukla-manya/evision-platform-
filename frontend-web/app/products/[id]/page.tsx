@@ -6,9 +6,11 @@ import Link from 'next/link';
 import { Heart, Loader2, Minus, Package, Plus, ShoppingCart, Truck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-errors';
 import { getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
+import { recordProductBrowse } from '@/lib/browse-history';
 
 type Product = {
   id: string;
@@ -16,6 +18,8 @@ type Product = {
   description?: string;
   price_customer?: number;
   price_dealer?: number;
+  mrp?: number;
+  min_order_quantity?: number;
   images?: string[];
   stock?: number;
   shop_name?: string | null;
@@ -88,16 +92,24 @@ export default function ProductDetailPage() {
     return () => clearTimeout(timer);
   }, [loadProduct]);
 
+  useEffect(() => {
+    if (product?.id) recordProductBrowse(product.id);
+  }, [product?.id]);
+
+  useEffect(() => {
+    if (!product) return;
+    const m = role === 'dealer' ? Math.max(1, Number(product.min_order_quantity || 1)) : 1;
+    setQty((q) => (role === 'dealer' ? Math.max(m, q) : Math.max(1, q)));
+  }, [product?.id, product?.min_order_quantity, role]);
+
   async function addToCart() {
     if (!product) return;
     setAdding(true);
     try {
-      for (let i = 0; i < qty; i += 1) {
-        await cartApi.addItem(product.id, 1);
-      }
+      await cartApi.addItem(product.id, qty);
       toast.success('Added to cart');
-    } catch {
-      toast.error('Could not add to cart');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Could not add to cart'));
     } finally {
       setAdding(false);
     }
@@ -141,7 +153,10 @@ export default function ProductDetailPage() {
   const images = Array.isArray(product.images) && product.images.length > 0 ? product.images : [];
   const price = displayPrice(product, role);
   const inStock = product.stock == null || Number(product.stock) > 0;
+  const dealerMin = role === 'dealer' ? Math.max(1, Number(product.min_order_quantity || 1)) : 1;
   const maxQty = product.stock != null ? Math.max(1, Number(product.stock)) : 99;
+  const mrp = role === 'dealer' ? Number(product.mrp || 0) : 0;
+  const dealerUnit = role === 'dealer' ? Number(product.price_dealer || 0) : 0;
 
   return (
     <PublicShell>
@@ -194,8 +209,31 @@ export default function ProductDetailPage() {
             ) : null}
 
             <div>
-              <p className="text-ev-primary font-bold text-3xl">{price.label}</p>
-              {price.secondary ? <p className="text-ev-muted text-sm mt-0.5">{price.secondary}</p> : null}
+              {role === 'dealer' ? (
+                <>
+                  <span className="inline-flex items-center rounded-md bg-ev-indigo/15 text-ev-indigo text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 mb-2">
+                    Dealer price
+                  </span>
+                  <p className="text-ev-primary font-bold text-3xl">{price.label}</p>
+                  {mrp > 0 && dealerUnit > 0 ? (
+                    <p className="text-sm text-ev-muted mt-2">
+                      <span className="text-ev-success font-semibold">
+                        You save {formatInr(Math.max(0, mrp - dealerUnit))} vs retail
+                      </span>
+                      <span className="mx-1">·</span>
+                      <span className="line-through text-ev-subtle">MRP {formatInr(mrp)}</span>
+                    </p>
+                  ) : null}
+                  {dealerMin > 1 ? (
+                    <p className="text-xs text-ev-warning font-medium mt-2">Minimum order: {dealerMin} units (set by shop)</p>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <p className="text-ev-primary font-bold text-3xl">{price.label}</p>
+                  {price.secondary ? <p className="text-ev-muted text-sm mt-0.5">{price.secondary}</p> : null}
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -215,8 +253,10 @@ export default function ProductDetailPage() {
                 <button
                   type="button"
                   className="px-3 py-2 text-ev-text hover:bg-ev-border/40 disabled:opacity-40"
-                  disabled={qty <= 1}
-                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  disabled={qty <= (role === 'dealer' ? dealerMin : 1)}
+                  onClick={() =>
+                    setQty((q) => Math.max(role === 'dealer' ? dealerMin : 1, q - 1))
+                  }
                 >
                   <Minus size={16} />
                 </button>

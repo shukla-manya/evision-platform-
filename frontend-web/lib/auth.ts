@@ -25,13 +25,16 @@ export function isLoggedIn(): boolean {
   return !!Cookies.get(TOKEN_KEY);
 }
 
+/** Post-login landing: shoppers share `/home` + public shop shell; dealers also use `/dealer/*` for B2B-only UI. */
 export function redirectByRole(role: string): string {
   const routes: Record<string, string> = {
     superadmin: '/super/dashboard',
     admin: '/admin/dashboard',
-    customer: '/shop',
+    customer: '/home',
     dealer: '/dealer/dashboard',
     electrician: '/electrician/dashboard',
+    electrician_pending: '/electrician/dashboard',
+    electrician_rejected: '/electrician/dashboard',
   };
   return routes[role] || '/';
 }

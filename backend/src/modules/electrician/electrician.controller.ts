@@ -48,9 +48,9 @@ export class ElectricianController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('electrician')
+  @Roles('electrician', 'electrician_pending', 'electrician_rejected')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current electrician profile' })
+  @ApiOperation({ summary: 'Get current electrician profile (pending/rejected: read-only gate)' })
   getMe(@CurrentUser() user: { id: string }) {
     return this.electrician.getMe(user.id);
   }
@@ -88,21 +88,12 @@ export class ElectricianController {
   @ApiBody({
     schema: {
       type: 'object',
-      required: [
-        'name',
-        'phone',
-        'email',
-        'password',
-        'lat',
-        'lng',
-        'aadhar',
-        'photo',
-      ],
+      required: ['name', 'phone', 'email', 'lat', 'lng', 'aadhar', 'photo'],
       properties: {
         name: { type: 'string', example: 'Ravi Kumar' },
         phone: { type: 'string', example: '+919876543210' },
         email: { type: 'string', example: 'ravi@example.com' },
-        password: { type: 'string', example: 'SecurePass@123' },
+        password: { type: 'string', example: 'SecurePass@123', description: 'Optional' },
         address: { type: 'string', example: 'Sector 15, Faridabad' },
         lat: { type: 'string', example: '28.4089' },
         lng: { type: 'string', example: '77.3178' },

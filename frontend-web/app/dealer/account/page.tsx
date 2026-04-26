@@ -12,11 +12,12 @@ export default function DealerAccountPage() {
           Account
         </h1>
         <p className="text-ev-muted text-sm mt-2">
-          Manage dealer account and security settings.
+          Dealer accounts sign in with your mobile number and OTP. Wholesale pricing applies after GST verification by
+          the platform team.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/reset-password?role=dealer" className="ev-btn-primary text-sm py-2 px-4 inline-flex">
-            Change password
+          <Link href="/login" className="ev-btn-primary text-sm py-2 px-4 inline-flex">
+            Sign in
           </Link>
           <Link href="/dealer/dashboard" className="ev-btn-secondary text-sm py-2 px-4 inline-flex">
             Back to dashboard

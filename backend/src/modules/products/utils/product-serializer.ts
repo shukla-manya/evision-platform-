@@ -32,6 +32,12 @@ export function serializeProductForRole(
   if (role === 'dealer') {
     out.price_dealer = Number(product.price_dealer);
     delete out.price_customer;
+    const retailRef = Number(product.mrp ?? product.price_customer ?? 0);
+    if (!Number.isNaN(retailRef) && retailRef > 0) {
+      out.mrp = retailRef;
+    }
+    const minQ = Math.max(1, Number(product.min_order_quantity || 1));
+    out.min_order_quantity = minQ;
     return out;
   }
 

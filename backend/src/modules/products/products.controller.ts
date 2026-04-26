@@ -5,13 +5,6 @@ import { Public } from '../../common/decorators/public.decorator';
 import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 import { ProductsService } from './products.service';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
-import type { PriceViewerRole } from './utils/product-serializer';
-
-function priceRoleFromRequest(user?: { role?: string }): PriceViewerRole {
-  if (!user?.role) return 'guest';
-  return user.role as PriceViewerRole;
-}
-
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
@@ -22,11 +15,12 @@ export class ProductsController {
   @Get()
   @ApiOperation({
     summary:
-      'List active products from all shops (prices: customer → price_customer; dealer → price_dealer; admin/superadmin → both)',
+      'List active products from all shops (prices: customer → price_customer; dealer → price_dealer when GST verified; admin/superadmin → both)',
   })
   @ApiBearerAuth()
-  list(@Query() query: ListProductsQueryDto, @Req() req: Request) {
-    return this.products.listForRole(priceRoleFromRequest(req.user), query);
+  async list(@Query() query: ListProductsQueryDto, @Req() req: Request) {
+    const role = await this.products.effectivePriceRoleFromJwtUser(req.user as { id?: string; role?: string });
+    return this.products.listForRole(role, query);
   }
 
   @Public()
@@ -34,7 +28,8 @@ export class ProductsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get one product by id' })
   @ApiBearerAuth()
-  getOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
-    return this.products.findByIdForRole(id, priceRoleFromRequest(req.user));
+  async getOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
+    const role = await this.products.effectivePriceRoleFromJwtUser(req.user as { id?: string; role?: string });
+    return this.products.findByIdForRole(id, role);
   }
 }

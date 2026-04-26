@@ -15,10 +15,10 @@ import {
   Loader2,
   LogOut,
   ArrowRight,
-  TrendingUp,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { catalogApi, ordersApi } from '@/lib/api';
+import { getApiErrorMessage } from '@/lib/api-errors';
 import { clearAuth, getRole, getToken, parseJwt } from '@/lib/auth';
 
 type OrderItem = {
@@ -51,6 +51,8 @@ type CatalogProduct = {
   name?: string;
   price_customer?: number;
   price_dealer?: number;
+  mrp?: number;
+  min_order_quantity?: number;
 };
 
 function formatInr(n: number) {
@@ -181,23 +183,13 @@ export default function DealerDashboardPage() {
       ),
     );
 
-    const invoiceUrls = Array.from(
-      new Set(
-        allSubOrders.flatMap((s) =>
-          [s.gst_invoice_url, s.dealer_invoice_url, s.customer_invoice_url].filter(
-            (u): u is string => !!u,
-          ),
-        ),
-      ),
-    );
-
     const priceMap = new Map(
       products
         .filter((p) => p.name)
         .map((p) => [
           String(p.name).toLowerCase().trim(),
           {
-            retail: Number(p.price_customer || 0),
+            retail: Number(p.mrp || p.price_customer || 0),
             dealer: Number(p.price_dealer || 0),
           },
         ]),
@@ -221,7 +213,7 @@ export default function DealerDashboardPage() {
       const sub = (o.sub_orders || [])[0];
       const firstItem = (sub?.items || [])[0];
       const qty = (sub?.items || []).reduce((sum, i) => sum + Number(i.quantity || 0), 0);
-      const invoice = sub?.gst_invoice_url || sub?.dealer_invoice_url || null;
+      const invoice = sub?.gst_invoice_url || null;
       return {
         id: o.id,
         product: firstItem?.product_name || 'Mixed products',
@@ -233,9 +225,13 @@ export default function DealerDashboardPage() {
     });
 
     const topProducts = products
-      .filter((p) => Number(p.price_customer || 0) > 0 && Number(p.price_dealer || 0) > 0)
+      .filter((p) => {
+        const retail = Number(p.mrp || p.price_customer || 0);
+        const dealer = Number(p.price_dealer || 0);
+        return retail > 0 && dealer > 0 && retail >= dealer;
+      })
       .map((p) => {
-        const retail = Number(p.price_customer || 0);
+        const retail = Number(p.mrp || p.price_customer || 0);
         const dealer = Number(p.price_dealer || 0);
         return {
           id: p.id,
@@ -256,31 +252,42 @@ export default function DealerDashboardPage() {
       inTransit,
       estimatedSavings,
       gstInvoicesCount: gstInvoices.length,
-      gstInvoices,
-      invoiceUrls,
       recentRows,
       topProducts,
     };
   }, [orders, products]);
 
-  function bulkDownloadInvoices() {
-    if (!computed.invoiceUrls.length) {
-      toast.error('No invoices available yet');
+  async function downloadAllGstInvoicesZip() {
+    if (!computed.gstInvoicesCount) {
+      toast.error('No GST tax invoices available yet');
       return;
     }
     setDownloading(true);
-    for (const url of computed.invoiceUrls) {
-      window.open(url, '_blank', 'noopener,noreferrer');
+    try {
+      const res = await ordersApi.downloadGstInvoicesZip();
+      const blob = new Blob([res.data as BlobPart], { type: 'application/zip' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'gst-tax-invoices.zip';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success('GST invoices ZIP downloaded');
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Could not download GST invoices'));
+    } finally {
+      setDownloading(false);
     }
-    toast.success(`Opened ${computed.invoiceUrls.length} invoice link${computed.invoiceUrls.length > 1 ? 's' : ''}`);
-    setDownloading(false);
   }
 
   const nav = [
     { href: '/dealer/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/shop', label: 'Browse', icon: Store },
     { href: '/orders', label: 'My orders', icon: ShoppingBag, badge: computed.activeOrders },
-    { href: '/orders', label: 'Invoices', icon: FileText },
+    { href: '/dealer/invoices', label: 'Invoices', icon: FileText },
     { href: '/dealer/service', label: 'Service', icon: LifeBuoy },
     { href: '/dealer/account', label: 'Account', icon: UserRound },
   ];
@@ -304,7 +311,7 @@ export default function DealerDashboardPage() {
             const active = pathname === href;
             return (
               <Link
-                key={`${href}:${label}`}
+                key={label}
                 href={href}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   active ? 'ev-sidebar-link-active' : 'ev-sidebar-link'
@@ -374,23 +381,18 @@ export default function DealerDashboardPage() {
                 <p className="text-ev-muted text-xs mt-2">{computed.inTransit} in transit</p>
               </Link>
               <div className="ev-card p-5">
-                <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Saved vs MRP</p>
+                <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Total saved vs MRP</p>
                 <p className="text-2xl font-bold text-ev-text tabular-nums">{formatInr(computed.estimatedSavings)}</p>
-                <p className="text-ev-muted text-xs mt-2">Dealer discount</p>
+                <p className="text-ev-muted text-xs mt-2">Estimated from catalogue MRP / retail</p>
               </div>
-              <button
-                type="button"
-                onClick={bulkDownloadInvoices}
-                disabled={downloading || !computed.invoiceUrls.length}
-                className="ev-card p-5 text-left hover:border-ev-primary/25 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">GST invoices</p>
+              <Link href="/dealer/invoices" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
+                <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">GST tax invoices</p>
                 <p className="text-2xl font-bold text-ev-text tabular-nums">{computed.gstInvoicesCount}</p>
                 <p className="text-ev-muted text-xs mt-2 inline-flex items-center gap-1">
-                  <Download size={12} />
-                  Download all
+                  <FileText size={12} />
+                  View & download
                 </p>
-              </button>
+              </Link>
             </section>
 
             <section className="ev-card overflow-hidden">
@@ -398,11 +400,11 @@ export default function DealerDashboardPage() {
                 <h2 className="text-ev-text font-semibold">Recent bulk orders</h2>
                 <button
                   type="button"
-                  onClick={bulkDownloadInvoices}
+                  onClick={() => void downloadAllGstInvoicesZip()}
                   className="text-sm text-ev-primary font-medium inline-flex items-center gap-1 hover:underline disabled:opacity-50"
-                  disabled={downloading || !computed.invoiceUrls.length}
+                  disabled={downloading || !computed.gstInvoicesCount}
                 >
-                  Download all invoices
+                  {downloading ? 'Preparing ZIP…' : 'Download all GST invoices (ZIP)'}
                   <ArrowRight size={14} />
                 </button>
               </div>

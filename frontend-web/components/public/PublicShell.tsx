@@ -1,3 +1,4 @@
+import { DealerGstPendingBanner } from '@/components/dealer/DealerGstPendingBanner';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicNavbar } from '@/components/public/PublicNavbar';
 import { Suspense } from 'react';
@@ -8,6 +9,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
       <Suspense fallback={<div className="h-16 ev-header" />}>
         <PublicNavbar />
       </Suspense>
+      <DealerGstPendingBanner />
       <div className="flex-1">{children}</div>
       <PublicFooter />
     </div>

@@ -13,24 +13,16 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
-  const [loginToken, setLoginToken] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!loginToken) {
-        const { data } = await authApi.adminLogin(email, password);
-        setLoginToken(data.login_token);
-        toast.success('OTP sent to your registered phone');
-      } else {
-        const { data } = await authApi.adminLoginVerify(loginToken, otp);
-        saveToken(data.access_token, 'admin');
-        toast.success('Welcome back');
-        router.push('/admin/dashboard');
-      }
+      const { data } = await authApi.adminLogin(email, password);
+      saveToken(data.access_token, 'admin');
+      toast.success('Welcome back');
+      router.push('/admin/dashboard');
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Invalid credentials'));
     } finally {
@@ -52,86 +44,56 @@ export default function AdminLoginPage() {
             <span className="text-ev-text font-bold text-xl">LensCart</span>
           </Link>
           <h1 className="text-2xl font-bold text-ev-text">Admin — sign in to your shop</h1>
-          <p className="text-ev-muted text-sm mt-2">Registered email and password for your shop admin account.</p>
+          <p className="text-ev-muted text-sm mt-2">
+            Use the email and password for your shop. First time after approval? Use the link in your approval email to
+            create your password, then sign in here.
+          </p>
         </div>
         <div className="ev-card p-8">
           <form onSubmit={onSubmit} className="space-y-5">
-            {!loginToken ? (
-              <>
-                <div>
-                  <label className="ev-label">Registered email</label>
-                  <div className="relative">
-                    <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                    <input
-                      type="email"
-                      className="ev-input pl-10"
-                      placeholder="you@shop.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      autoComplete="email"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="ev-label">Password</label>
-                  <div className="relative">
-                    <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                    <input
-                      type="password"
-                      className="ev-input pl-10"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      autoComplete="current-password"
-                    />
-                  </div>
-                </div>
-                <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : 'Sign in'}
-                </button>
-                <p className="text-center text-sm text-ev-muted leading-relaxed">
-                  Don&apos;t have an account?{' '}
-                  <Link href="/admin/register" className="text-ev-primary hover:text-ev-primary-light font-medium">
-                    Register your shop
-                  </Link>
-                  {' · '}
-                  <Link href="/reset-password?role=admin" className="text-ev-primary hover:text-ev-primary-light font-medium">
-                    Forgot password?
-                  </Link>
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-ev-muted text-center">Enter the OTP sent to your registered phone.</p>
-                <div>
-                  <label className="ev-label">One-time code</label>
-                  <input
-                    type="text"
-                    className="ev-input text-center text-lg tracking-[0.35em] font-mono"
-                    placeholder="• • • • • •"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    maxLength={6}
-                    required
-                  />
-                </div>
-                <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                  {loading ? <Loader2 size={18} className="animate-spin" /> : 'Sign in'}
-                </button>
-                <button
-                  type="button"
-                  className="text-sm text-ev-subtle hover:text-ev-muted w-full"
-                  onClick={() => {
-                    setLoginToken('');
-                    setOtp('');
-                  }}
-                >
-                  ← Change email or password
-                </button>
-              </>
-            )}
+            <div>
+              <label className="ev-label">Registered email</label>
+              <div className="relative">
+                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                <input
+                  type="email"
+                  className="ev-input pl-10"
+                  placeholder="you@shop.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="ev-label">Password</label>
+              <div className="relative">
+                <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                <input
+                  type="password"
+                  className="ev-input pl-10"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                />
+              </div>
+            </div>
+            <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
+              {loading ? <Loader2 size={18} className="animate-spin" /> : 'Sign in'}
+            </button>
+            <p className="text-center text-sm text-ev-muted leading-relaxed">
+              Don&apos;t have an account?{' '}
+              <Link href="/admin/register" className="text-ev-primary hover:text-ev-primary-light font-medium">
+                Register your shop
+              </Link>
+              {' · '}
+              <Link href="/reset-password?role=admin" className="text-ev-primary hover:text-ev-primary-light font-medium">
+                Forgot password?
+              </Link>
+            </p>
           </form>
         </div>
       </div>

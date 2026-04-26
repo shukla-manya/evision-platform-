@@ -16,10 +16,14 @@ export class RegisterElectricianDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'SecurePass@123', minLength: 8 })
+  @ApiPropertyOptional({
+    example: 'SecurePass@123',
+    description: 'Optional legacy field; sign-in is mobile OTP only',
+  })
+  @IsOptional()
   @IsString()
   @MinLength(8)
-  password: string;
+  password?: string;
 
   @ApiPropertyOptional({ example: 'Near Sector 15 market, Faridabad' })
   @IsOptional()

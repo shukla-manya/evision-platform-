@@ -46,7 +46,7 @@ import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 
 type RootStackParamList = {
   Auth: undefined;
-  Register: { email?: string };
+  Register: { email?: string; phone?: string };
   PasswordReset: { role?: PasswordResetRole; phone?: string };
   Main: undefined;
   ProductDetail: { product: Product };
@@ -155,51 +155,55 @@ async function pickImageAsset(label: string) {
 }
 
 function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string, user: AppUser) => void; navigation: any }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [phoneDigits, setPhoneDigits] = useState('');
   const [otp, setOtp] = useState('');
-  const [loginToken, setLoginToken] = useState('');
-  const [phoneHint, setPhoneHint] = useState('');
-  const [step, setStep] = useState<'credentials' | 'otp'>('credentials');
+  const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [loading, setLoading] = useState(false);
 
-  const startLogin = async () => {
+  const phoneE164 = () => normalizePhone(phoneDigits);
+
+  const sendOtp = async () => {
     try {
       setLoading(true);
-      const { data } = await authApi.mobileLogin(email.trim().toLowerCase(), password);
-      setLoginToken(data.login_token);
-      setPhoneHint(data.phone);
+      const p = phoneE164();
+      if (p.replace(/\D/g, '').length < 11) {
+        Alert.alert('Invalid number', 'Enter a valid 10-digit mobile number.');
+        return;
+      }
+      await authApi.sendOtp(p);
       setStep('otp');
-      Alert.alert('OTP sent', `Verification code sent to ${data.phone}.`);
+      Alert.alert('OTP sent', 'Check your SMS for the 6-digit code.');
     } catch (err) {
-      Alert.alert('Login failed', asApiError(err, 'Unable to start login.'));
+      Alert.alert('Login failed', asApiError(err, 'Unable to send OTP.'));
     } finally {
       setLoading(false);
     }
   };
 
-  const verifyOtp = async () => {
+  const verifyOtpLogin = async () => {
     try {
       setLoading(true);
-      const { data } = await authApi.mobileLoginVerify(loginToken, otp);
+      const p = phoneE164();
+      const { data } = await authApi.verifyOtp(p, otp.replace(/\D/g, ''));
+      if (!data.is_registered) {
+        navigation.navigate('Register', { phone: p });
+        setStep('phone');
+        setOtp('');
+        return;
+      }
       const payload = parseJwt(data.access_token);
-      const profile = data.profile || {};
-      const userId = String((profile as Record<string, unknown>).id || payload?.sub || '');
-      const role = String(data.role || payload?.role || '');
+      const role = String(payload?.role || '');
+      const userId = String(payload?.sub || '');
       if (!userId || !role) {
-        Alert.alert('Error', 'Invalid token payload.');
+        Alert.alert('Error', 'Invalid session.');
         return;
       }
       onLoggedIn(data.access_token, {
         id: userId,
         role,
-        email: String((profile as Record<string, unknown>).email || payload?.email || '') || undefined,
-        phone: String((profile as Record<string, unknown>).phone || payload?.phone || '') || undefined,
-        name: String((profile as Record<string, unknown>).name || '') || undefined,
+        email: payload?.email ? String(payload.email) : undefined,
+        phone: payload?.phone ? String(payload.phone) : undefined,
       });
-      if (role === 'electrician') {
-        await setElectricianProfile(profile as Record<string, unknown>);
-      }
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'OTP verification failed.'));
     } finally {
@@ -211,55 +215,43 @@ function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: 
     <SafeAreaView style={styles.screen}>
       <View style={styles.centerBox}>
         <Text style={styles.title}>LensCart</Text>
-        <Text style={styles.subtitle}>LensCart · email + password + OTP</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-        />
-        {step === 'credentials' && (
+        <Text style={styles.subtitle}>Sign in with mobile number + OTP</Text>
+        {step === 'phone' ? (
           <TextInput
             style={styles.input}
-            placeholder="Password"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
+            placeholder="Mobile (10 digits)"
+            keyboardType="phone-pad"
+            value={phoneDigits}
+            onChangeText={(t) => setPhoneDigits(t.replace(/\D/g, '').slice(0, 10))}
+            maxLength={10}
           />
-        )}
-        {step === 'otp' && (
+        ) : (
           <>
-          <Text style={styles.cardMeta}>Sent to: {phoneHint || '-'}</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter 6-digit OTP"
-            keyboardType="number-pad"
-            value={otp}
-            onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
-            maxLength={6}
-          />
+            <Text style={styles.cardMeta}>Code sent to +91 {phoneDigits}</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="6-digit OTP"
+              keyboardType="number-pad"
+              value={otp}
+              onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
+              maxLength={6}
+            />
           </>
         )}
 
-        <Pressable
-          style={styles.button}
-          disabled={loading}
-          onPress={step === 'credentials' ? startLogin : verifyOtp}
-        >
+        <Pressable style={styles.button} disabled={loading} onPress={step === 'phone' ? sendOtp : verifyOtpLogin}>
           <Text style={styles.buttonText}>
-            {loading ? 'Please wait...' : step === 'credentials' ? 'Continue' : 'Verify OTP'}
+            {loading ? 'Please wait...' : step === 'phone' ? 'Send OTP' : 'Verify & sign in'}
           </Text>
         </Pressable>
-        <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('Register', { email })}>
+        {step === 'otp' ? (
+          <Pressable style={styles.buttonSecondary} onPress={() => { setStep('phone'); setOtp(''); }}>
+            <Text style={styles.buttonSecondaryText}>Change number</Text>
+          </Pressable>
+        ) : null}
+        <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('Register', {})}>
           <Text style={styles.buttonSecondaryText}>New user? Register</Text>
         </Pressable>
-        {step === 'credentials' && (
-          <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('PasswordReset', {})}>
-            <Text style={styles.buttonSecondaryText}>Forgot password?</Text>
-          </Pressable>
-        )}
       </View>
     </SafeAreaView>
   );
@@ -268,8 +260,11 @@ function UniversalLoginScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: 
 function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<RootStackParamList, 'Register'>; navigation: any; onLoggedIn: (token: string, user: AppUser) => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState(route.params?.email || '');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState(() => {
+    const raw = route.params?.phone || '';
+    const d = raw.replace(/\D/g, '');
+    return d.length >= 10 ? d.slice(-10) : '';
+  });
   const [otp, setOtp] = useState('');
   const [address, setAddress] = useState('');
   const [gstNo, setGstNo] = useState('');
@@ -295,12 +290,12 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   };
 
   const submit = async () => {
-    if (!password.trim() || password.length < 6) {
-      Alert.alert('Password required', 'Use at least 6 characters.');
-      return;
-    }
     if (role === 'dealer' && !gstNo.trim()) {
       Alert.alert('GST required', 'GST number is required for dealer accounts.');
+      return;
+    }
+    if (role === 'dealer' && !address.trim()) {
+      Alert.alert('Address required', 'Business / delivery address is required for dealer accounts.');
       return;
     }
     if (role === 'electrician') {
@@ -326,7 +321,6 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         fd.append('name', name.trim());
         fd.append('phone', normalizePhone(phone));
         fd.append('email', email.trim().toLowerCase());
-        fd.append('password', password);
         fd.append('lat', lat.trim());
         fd.append('lng', lng.trim());
         if (address.trim()) fd.append('address', address.trim());
@@ -353,11 +347,12 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         name: name.trim(),
         email: email.trim().toLowerCase(),
         phone: normalizePhone(phone),
-        password,
         otp,
         role,
         gst_no: role === 'dealer' ? gstNo.trim() : undefined,
         address: address.trim() || undefined,
+        business_name: role === 'dealer' ? name.trim() : undefined,
+        business_address: role === 'dealer' ? address.trim() : undefined,
       });
       const payload = parseJwt(data.access_token);
       if (!payload?.sub || !payload?.role) {
@@ -386,7 +381,6 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
           <TextInput style={styles.input} placeholder="Full name" value={name} onChangeText={setName} />
           <TextInput style={styles.input} placeholder="Email" keyboardType="email-address" value={email} onChangeText={setEmail} autoCapitalize="none" />
           <TextInput style={styles.input} placeholder="+91 9876543210" keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
-          <TextInput style={styles.input} placeholder="Password (min 6 chars)" secureTextEntry value={password} onChangeText={setPassword} />
           <View style={styles.roleRow}>
             {(['customer', 'dealer', 'electrician'] as const).map((option) => (
               <Pressable
@@ -460,7 +454,7 @@ function PasswordResetScreen({
   route: RouteProp<RootStackParamList, 'PasswordReset'>;
   navigation: any;
 }) {
-  const [role, setRole] = useState<PasswordResetRole>(route.params?.role || 'customer');
+  const [role, setRole] = useState<PasswordResetRole>(route.params?.role || 'admin');
   const [phone, setPhone] = useState(route.params?.phone || '');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -494,14 +488,14 @@ function PasswordResetScreen({
     }
   };
 
-  const roleOptions: PasswordResetRole[] = ['customer', 'dealer', 'electrician', 'admin'];
+  const roleOptions: PasswordResetRole[] = ['electrician', 'admin'];
 
   return (
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.listPad}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Reset Password</Text>
-          <Text style={styles.subtitle}>OTP on mobile number. Superadmin is not supported.</Text>
+          <Text style={styles.subtitle}>Shop admin or technician only. Shoppers use mobile OTP — no password.</Text>
           <View style={styles.roleRow}>
             {roleOptions.map((option) => (
               <Pressable
@@ -984,13 +978,11 @@ function OrderDetailScreen({ route }: { route: RouteProp<RootStackParamList, 'Or
 function ProfileScreen({
   user,
   onLogout,
-  onChangePassword,
   fcmToken,
   onOpenServiceHistory,
 }: {
   user: AppUser | null;
   onLogout: () => void;
-  onChangePassword: () => void;
   fcmToken: string | null;
   onOpenServiceHistory?: () => void;
 }) {
@@ -1015,9 +1007,6 @@ function ProfileScreen({
         <Pressable style={styles.button} onPress={onLogout}>
           <Text style={styles.buttonText}>Logout</Text>
         </Pressable>
-        <Pressable style={styles.buttonSecondary} onPress={onChangePassword}>
-          <Text style={styles.buttonSecondaryText}>Change Password (OTP)</Text>
-        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -1037,12 +1026,10 @@ function Loader({ text }: { text: string }) {
 function MainTabs({
   user,
   onLogout,
-  onChangePassword,
   fcmToken,
 }: {
   user: AppUser | null;
   onLogout: () => void;
-  onChangePassword: () => void;
   fcmToken: string | null;
 }) {
   const homeScreen = useMemo(
@@ -1071,7 +1058,6 @@ function MainTabs({
           <ProfileScreen
             user={user}
             onLogout={onLogout}
-            onChangePassword={onChangePassword}
             fcmToken={fcmToken}
             onOpenServiceHistory={() => {
               const parent = props.navigation.getParent();
@@ -1182,18 +1168,7 @@ function AppShell() {
   );
   const mainTabs = useMemo(
     () => (props: any) => (
-      <MainTabs
-        {...props}
-        user={user}
-        onLogout={logout}
-        onChangePassword={() =>
-          props.navigation.navigate('PasswordReset', {
-            role: (user?.role as PasswordResetRole) || 'customer',
-            phone: user?.phone,
-          })
-        }
-        fcmToken={fcmToken}
-      />
+      <MainTabs {...props} user={user} onLogout={logout} fcmToken={fcmToken} />
     ),
     [user, logout, fcmToken],
   );

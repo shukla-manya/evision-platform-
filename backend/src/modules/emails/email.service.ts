@@ -102,11 +102,15 @@ export class EmailService {
     });
   }
 
-  async sendAdminApproved(adminEmail: string, data: { ownerName: string; shopName: string; loginUrl: string }) {
+  async sendAdminApproved(
+    adminEmail: string,
+    data: { ownerName: string; shopName: string; loginUrl: string; setupPasswordUrl: string },
+  ) {
     const html = this.interpolate(this.loadTemplate('admin-approved'), {
       owner_name: data.ownerName,
       shop_name: data.shopName,
       login_url: data.loginUrl,
+      setup_password_url: data.setupPasswordUrl,
     });
     await this.send({
       to: adminEmail,
@@ -156,16 +160,33 @@ export class EmailService {
     electricianEmail: string,
     data: { name: string },
   ) {
+    const brand = this.config.get<string>('PUBLIC_BRAND_NAME')?.trim() || 'LensCart';
     const html = this.interpolate(this.loadTemplate('electrician-approved'), {
       electrician_name: data.name,
-      login_url: `${this.config.get('FRONTEND_URL')}/login`,
+      brand_name: brand,
+      login_url: `${this.config.get('FRONTEND_URL')}/electrician/login`,
     });
     await this.send({
       to: electricianEmail,
       to_role: 'electrician',
-      subject: 'Your electrician account has been approved',
+      subject: `Welcome to ${brand} — your technician account is approved!`,
       html,
       trigger_event: 'electrician_approved',
+    });
+  }
+
+  async sendDealerGstVerified(dealerEmail: string, data: { name: string }) {
+    const html = this.interpolate(this.loadTemplate('dealer-gst-verified'), {
+      dealer_name: data.name,
+      brand_name: 'E Vision',
+      shop_url: `${this.config.get('FRONTEND_URL')}/`,
+    });
+    await this.send({
+      to: dealerEmail,
+      to_role: 'dealer',
+      subject: 'Your dealer pricing is now active — E Vision',
+      html,
+      trigger_event: 'dealer_gst_verified',
     });
   }
 
@@ -173,15 +194,19 @@ export class EmailService {
     electricianEmail: string,
     data: { name: string; reason: string },
   ) {
+    const brand = this.config.get<string>('PUBLIC_BRAND_NAME')?.trim() || 'LensCart';
+    const support =
+      this.config.get<string>('TECHNICIAN_SUPPORT_EMAIL')?.trim() || 'support@lenscart.com';
     const html = this.interpolate(this.loadTemplate('electrician-rejected'), {
       electrician_name: data.name,
       reason: data.reason,
-      support_email: this.config.get('EMAIL_FROM'),
+      brand_name: brand,
+      support_email: support,
     });
     await this.send({
       to: electricianEmail,
       to_role: 'electrician',
-      subject: 'Update on your electrician registration',
+      subject: `Your ${brand} technician application — action required`,
       html,
       trigger_event: 'electrician_rejected',
     });

@@ -37,9 +37,9 @@
                   <td style="padding:20px 24px;">
                     <p style="color:#86efac;font-size:13px;font-weight:600;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.5px;">What's next?</p>
                     <ul style="color:#94a3b8;font-size:13px;line-height:2;margin:0;padding-left:18px;">
-                      <li>Log in to your admin panel</li>
+                      <li>Create your admin password using the secure link below (one-time setup)</li>
+                      <li>Then sign in with your email and password</li>
                       <li>Add your product catalogue with photos and pricing</li>
-                      <li>Configure stock and categories</li>
                       <li>Go live and start receiving orders!</li>
                     </ul>
                   </td>
@@ -47,13 +47,16 @@
               </table>
 
               <div style="text-align:center;">
-                <a href="{{login_url}}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;">
-                  Go to Admin Panel →
+                <a href="{{setup_password_url}}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:15px;font-weight:600;margin-bottom:12px;">
+                  Create your password →
                 </a>
+              </div>
+              <div style="text-align:center;margin-top:8px;">
+                <a href="{{login_url}}" style="color:#60a5fa;font-size:14px;text-decoration:underline;">Sign in after setup</a>
               </div>
 
               <p style="color:#64748b;font-size:12px;margin-top:28px;text-align:center;line-height:1.6;">
-                Need help? Reply to this email or contact us at {{login_url}}
+                The setup link expires in 7 days. Need help? Reply to this email.
               </p>
             </td>
           </tr>

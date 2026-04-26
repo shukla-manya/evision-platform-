@@ -27,8 +27,25 @@ export class ProductsService {
     return this.dynamo.tableName('products');
   }
 
+  private usersTable() {
+    return this.dynamo.tableName('users');
+  }
+
   private adminsTable() {
     return this.dynamo.tableName('admins');
+  }
+
+  /** Dealers without verified GST see customer catalog/cart pricing. */
+  async effectivePriceRoleFromJwtUser(user?: { id?: string; role?: string } | null): Promise<PriceViewerRole> {
+    if (!user?.role) return 'guest';
+    const r = String(user.role) as PriceViewerRole;
+    if (r !== 'dealer') return r;
+    if (!user.id) return 'customer';
+    const row = await this.dynamo.get(this.usersTable(), { id: user.id });
+    if (!row) return 'customer';
+    const gv = (row as Record<string, unknown>).gst_verified;
+    if (gv === true || gv === 'true' || gv === 1 || gv === '1') return 'dealer';
+    return 'customer';
   }
 
   /** Rewrites `images[]` and `shop_logo_url` to CloudFront when configured. */
@@ -79,6 +96,8 @@ export class ProductsService {
       active: dto.active !== false,
       images,
       low_stock_threshold: dto.low_stock_threshold ?? 10,
+      min_order_quantity: dto.min_order_quantity ?? 1,
+      mrp: dto.mrp ?? null,
       created_at: now,
       updated_at: now,
     };
@@ -123,6 +142,8 @@ export class ProductsService {
     assign('brand', dto.brand === undefined ? undefined : dto.brand?.trim() || null);
     assign('active', dto.active);
     assign('low_stock_threshold', dto.low_stock_threshold);
+    assign('min_order_quantity', dto.min_order_quantity);
+    assign('mrp', dto.mrp === undefined ? undefined : dto.mrp);
 
     if (dto.images !== undefined) {
       updates.images = [...dto.images, ...uploadedUrls];

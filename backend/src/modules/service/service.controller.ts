@@ -37,7 +37,7 @@ export class ServiceController {
   createRequest(
     @CurrentUser() user: { id: string },
     @Body() dto: CreateServiceRequestDto,
-    @UploadedFile() photo: Express.Multer.File,
+    @UploadedFile() photo?: Express.Multer.File,
   ) {
     return this.service.createRequest(user.id, dto, photo);
   }

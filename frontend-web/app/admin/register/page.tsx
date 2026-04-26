@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Camera, Store, User, Mail, Phone, Building2, MapPin, MapPinned, Hash, Lock, Loader2, CheckCircle, ImagePlus } from 'lucide-react';
+import { Camera, Store, User, Mail, Phone, Building2, MapPin, MapPinned, Hash, Loader2, CheckCircle, ImagePlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
@@ -16,8 +16,6 @@ export default function AdminRegisterPage() {
     owner_name: '',
     email: '',
     phone: '',
-    password: '',
-    confirm_password: '',
     gst_no: '',
     address: '',
     city: '',
@@ -30,10 +28,6 @@ export default function AdminRegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (form.password !== form.confirm_password) {
-      toast.error('Passwords do not match');
-      return;
-    }
     if (!/^\d{6}$/.test(form.pincode.trim())) {
       toast.error('Pincode must be exactly 6 digits');
       return;
@@ -54,7 +48,6 @@ export default function AdminRegisterPage() {
       fd.append('owner_name', form.owner_name.trim());
       fd.append('email', form.email.trim());
       fd.append('phone', phone);
-      fd.append('password', form.password);
       fd.append('gst_no', form.gst_no.trim());
       fd.append('address', form.address.trim());
       fd.append('city', form.city.trim());
@@ -79,7 +72,8 @@ export default function AdminRegisterPage() {
             </div>
             <h2 className="text-2xl font-bold text-ev-text mb-3">Thank you</h2>
             <p className="text-ev-muted text-sm leading-relaxed mb-6">
-              Your shop registration has been submitted. You&apos;ll receive an email once our team approves your account.
+              Your shop registration has been submitted. When a platform administrator approves your shop, you will get
+              an email with a secure link to create your password. After that, sign in with your email and password.
             </p>
             <div className="bg-ev-surface2 border border-ev-border rounded-xl p-4 text-left text-sm space-y-2 mb-6">
               <p className="text-ev-muted">
@@ -93,8 +87,9 @@ export default function AdminRegisterPage() {
                 <span className="text-ev-warning">Within 24 hours</span>
               </p>
             </div>
-            <Link href="/admin/login" className="ev-btn-primary inline-block">
-              Go to sign in
+            <p className="text-ev-subtle text-xs mb-4">You cannot sign in until you receive the approval email.</p>
+            <Link href="/" className="ev-btn-secondary inline-block text-sm">
+              Back to home
             </Link>
           </div>
         </div>
@@ -208,8 +203,12 @@ export default function AdminRegisterPage() {
 
             <div>
               <h3 className="text-ev-text font-semibold text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Mail size={14} className="text-ev-primary" /> Contact &amp; password
+                <Mail size={14} className="text-ev-primary" /> Contact
               </h3>
+              <p className="text-ev-subtle text-xs mb-4 -mt-2">
+                No password here. After approval, you&apos;ll get an email to create your password, then you sign in with
+                email + password.
+              </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="ev-label">Email address</label>
@@ -223,20 +222,6 @@ export default function AdminRegisterPage() {
                   <div className="relative">
                     <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
                     <input type="tel" className="ev-input pl-10" placeholder="+91 98765 43210" value={form.phone} onChange={set('phone')} required />
-                  </div>
-                </div>
-                <div>
-                  <label className="ev-label">Password</label>
-                  <div className="relative">
-                    <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                    <input type="password" className="ev-input pl-10" placeholder="Min 8 characters" value={form.password} onChange={set('password')} required minLength={8} />
-                  </div>
-                </div>
-                <div>
-                  <label className="ev-label">Confirm password</label>
-                  <div className="relative">
-                    <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                    <input type="password" className="ev-input pl-10" placeholder="Repeat password" value={form.confirm_password} onChange={set('confirm_password')} required />
                   </div>
                 </div>
               </div>

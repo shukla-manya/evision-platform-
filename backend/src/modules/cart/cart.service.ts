@@ -3,6 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { ProductsService } from '../products/products.service';
 import type { UserRole } from '../../common/decorators/roles.decorator';
+
+function minOrderQty(product: Record<string, unknown> | null): number {
+  if (!product) return 1;
+  return Math.max(1, Number(product.min_order_quantity || 1));
+}
 import { AddToCartDto } from './dto/add-to-cart.dto';
 
 @Injectable()
@@ -11,6 +16,11 @@ export class CartService {
     private dynamo: DynamoService,
     private products: ProductsService,
   ) {}
+
+  private async effectiveCartRole(userId: string, role: UserRole): Promise<'customer' | 'dealer'> {
+    const pr = await this.products.effectivePriceRoleFromJwtUser({ id: userId, role: String(role) });
+    return pr === 'dealer' ? 'dealer' : 'customer';
+  }
 
   private cartTable() {
     return this.dynamo.tableName('cart_items');
@@ -113,12 +123,14 @@ export class CartService {
   }
 
   async add(userId: string, role: UserRole, dto: AddToCartDto): Promise<Record<string, unknown>> {
+    const cartRole = await this.effectiveCartRole(userId, role);
     const product = await this.products.findRawById(dto.product_id);
     if (!product) throw new NotFoundException('Product not found');
     if (product.active === false) throw new NotFoundException('Product not found');
     if (!product.admin_id) throw new BadRequestException('Product is missing shop information');
 
     const quantity = dto.quantity ?? 1;
+    const minQ = minOrderQty(product as Record<string, unknown>);
 
     // If this product is already in the cart, increment quantity instead of adding a duplicate line.
     const existing = await this.dynamo.query({
@@ -129,11 +141,19 @@ export class CartService {
     });
     if (existing.length > 0) {
       const row = existing[0];
+      const newQty = Number(row.quantity || 0) + quantity;
+      if (cartRole === 'dealer' && newQty < minQ) {
+        throw new BadRequestException(`Minimum order is ${minQ} units for this product`);
+      }
       return this.dynamo.update(
         this.cartTable(),
         { user_id: userId, id: String(row.id) },
-        { quantity: Number(row.quantity || 0) + quantity },
+        { quantity: newQty },
       );
+    }
+
+    if (cartRole === 'dealer' && quantity < minQ) {
+      throw new BadRequestException(`Minimum order is ${minQ} units for this product`);
     }
 
     const item = {
@@ -144,7 +164,7 @@ export class CartService {
       product_name: String(product.name || ''),
       product_image_url: Array.isArray(product.images) ? product.images[0] || null : null,
       quantity,
-      price_at_time: this.priceForRole(product, role),
+      price_at_time: this.priceForRole(product, cartRole),
       created_at: new Date().toISOString(),
     };
     await this.dynamo.put(this.cartTable(), item);
@@ -155,6 +175,30 @@ export class CartService {
     const row = await this.dynamo.get(this.cartTable(), { user_id: userId, id: itemId });
     if (!row) throw new NotFoundException('Cart item not found');
     await this.dynamo.delete(this.cartTable(), { user_id: userId, id: itemId });
+  }
+
+  async setQuantity(
+    userId: string,
+    itemId: string,
+    quantity: number,
+    role: UserRole,
+  ): Promise<Record<string, unknown>> {
+    const cartRole = await this.effectiveCartRole(userId, role);
+    const row = await this.dynamo.get(this.cartTable(), { user_id: userId, id: itemId });
+    if (!row) throw new NotFoundException('Cart item not found');
+    const q = Number(quantity);
+    if (Number.isNaN(q) || q < 1) {
+      throw new BadRequestException('quantity must be at least 1');
+    }
+    const product = await this.products.findRawById(String(row.product_id));
+    const minQ = minOrderQty(product as Record<string, unknown> | null);
+    if (cartRole === 'dealer' && q < minQ) {
+      throw new BadRequestException(`Minimum order is ${minQ} units for this product`);
+    }
+    return this.dynamo.update(this.cartTable(), { user_id: userId, id: itemId }, {
+      quantity: q,
+      updated_at: new Date().toISOString(),
+    });
   }
 
   async clear(userId: string): Promise<void> {

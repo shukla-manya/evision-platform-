@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   ConflictException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -14,11 +15,11 @@ import {
   RegisterDto,
   AdminLoginDto,
   SuperadminLoginDto,
-  LoginOtpVerifyDto,
-  MobileLoginDto,
   PasswordResetStartDto,
   PasswordResetCompleteDto,
 } from './dto/register.dto';
+import { AdminSetupPasswordDto } from './dto/admin-setup-password.dto';
+import type { AddressBookEntryDto } from './dto/update-address-book.dto';
 
 @Injectable()
 export class AuthService {
@@ -74,17 +75,55 @@ export class AuthService {
     return { message: 'OTP sent successfully' };
   }
 
-  async verifyOtp(phone: string, otp: string): Promise<{ access_token: string; is_registered: boolean }> {
+  async verifyOtp(
+    phone: string,
+    otp: string,
+  ): Promise<{
+    access_token: string;
+    is_registered: boolean;
+    electrician_status?: 'pending' | 'rejected';
+  }> {
     await this.consumeOtp(phone, otp);
 
-    // Check if user exists
     const existing = await this.findUserByPhone(phone);
     if (existing) {
       const token = this.signToken(existing.id, existing.role, existing.email, phone);
       return { access_token: token, is_registered: true };
     }
 
-    // Issue a temporary token for registration
+    const electrician = await this.findElectricianByPhone(phone);
+    if (electrician) {
+      const st = String(electrician.status || '').toLowerCase();
+      if (st === 'approved') {
+        const token = this.signToken(
+          String(electrician.id),
+          'electrician',
+          String(electrician.email || ''),
+          phone,
+        );
+        return { access_token: token, is_registered: true };
+      }
+      if (st === 'pending') {
+        const token = this.signToken(
+          String(electrician.id),
+          'electrician_pending',
+          String(electrician.email || ''),
+          phone,
+        );
+        return { access_token: token, is_registered: true, electrician_status: 'pending' as const };
+      }
+      if (st === 'rejected') {
+        const token = this.signToken(
+          String(electrician.id),
+          'electrician_rejected',
+          String(electrician.email || ''),
+          phone,
+        );
+        return { access_token: token, is_registered: true, electrician_status: 'rejected' as const };
+      }
+      throw new UnauthorizedException('Technician account is not available for sign-in.');
+    }
+
     const tempToken = this.jwt.sign(
       { sub: `temp_${phone}`, role: 'unregistered', phone },
       { expiresIn: '15m' },
@@ -98,6 +137,21 @@ export class AuthService {
     if (dto.role === 'dealer' && !dto.gst_no) {
       throw new BadRequestException('GST number is required for dealer accounts');
     }
+    if (dto.role === 'dealer') {
+      if (!String(dto.business_name || '').trim()) {
+        throw new BadRequestException('Business name is required for dealer accounts');
+      }
+      if (!String(dto.business_address || '').trim()) {
+        throw new BadRequestException('Business address is required for dealer accounts');
+      }
+      if (!String(dto.business_city || '').trim()) {
+        throw new BadRequestException('Business city is required for dealer accounts');
+      }
+      const bp = String(dto.business_pincode || '').replace(/\D/g, '');
+      if (!/^\d{6}$/.test(bp)) {
+        throw new BadRequestException('A valid 6-digit business pincode is required for dealer accounts');
+      }
+    }
 
     const [existingPhone, existingEmail] = await Promise.all([
       this.findUserByPhone(dto.phone),
@@ -107,17 +161,37 @@ export class AuthService {
     if (existingPhone) throw new ConflictException('Phone number already registered');
     if (existingEmail) throw new ConflictException('Email already registered');
 
+    const electricianPhone = await this.findElectricianByPhone(dto.phone);
+    if (electricianPhone) {
+      throw new ConflictException('This phone number is already used for a technician account');
+    }
+
     const id = uuidv4();
+    const addressBook = dto.address?.trim()
+      ? [
+          {
+            label: dto.role === 'dealer' ? 'Business' : 'Home',
+            address: String(dto.address).trim(),
+            is_default: true,
+          },
+        ]
+      : [];
+
     const user = {
       id,
       name: dto.name,
       phone: dto.phone,
       email: dto.email,
-      password_hash: dto.password ? await bcrypt.hash(dto.password, 12) : null,
+      password_hash: null,
       role: dto.role,
       gst_no: dto.gst_no || null,
+      gst_verified: dto.role === 'dealer' ? false : undefined,
+      business_name: dto.role === 'dealer' ? String(dto.business_name || '').trim() : null,
+      business_address: dto.role === 'dealer' ? String(dto.business_address || '').trim() : null,
+      business_city: dto.role === 'dealer' ? String(dto.business_city || '').trim() : null,
+      business_pincode: dto.role === 'dealer' ? String(dto.business_pincode || '').replace(/\D/g, '').slice(0, 6) : null,
       fcm_token: null,
-      address_book: dto.address ? [{ label: 'Home', address: dto.address, is_default: true }] : [],
+      address_book: addressBook,
       created_at: new Date().toISOString(),
     };
 
@@ -128,147 +202,9 @@ export class AuthService {
     return { access_token: token, user: safeUser };
   }
 
-  async mobileLogin(
-    dto: MobileLoginDto,
-  ): Promise<{ otp_sent: boolean; login_token: string; role: string; phone: string }> {
-    const email = String(dto.email || '').trim().toLowerCase();
-    const password = String(dto.password || '');
-
-    const admin = await this.findAdminByEmail(email);
-    if (admin) {
-      if (String(admin.status) !== 'approved') {
-        throw new UnauthorizedException(
-          String(admin.status) === 'pending'
-            ? 'Your account is awaiting superadmin approval'
-            : 'Your account has been rejected',
-        );
-      }
-      const valid = await bcrypt.compare(password, String(admin.password_hash || ''));
-      if (!valid) throw new UnauthorizedException('Invalid credentials');
-      const phone = String(admin.phone || '');
-      if (!phone) throw new BadRequestException('Phone is missing for this account');
-      await this.sendOtp(phone);
-      const login_token = this.jwt.sign(
-        {
-          sub: admin.id,
-          role: 'admin',
-          email: admin.email,
-          phone,
-          otp_login: 'mobile_admin',
-        },
-        { expiresIn: '10m' },
-      );
-      return { otp_sent: true, login_token, role: 'admin', phone };
-    }
-
-    const user = await this.findUserByEmail(email);
-    if (user) {
-      if (!user.password_hash) {
-        throw new UnauthorizedException('Password login not enabled for this account');
-      }
-      const valid = await bcrypt.compare(password, String(user.password_hash || ''));
-      if (!valid) throw new UnauthorizedException('Invalid credentials');
-      const phone = String(user.phone || '');
-      if (!phone) throw new BadRequestException('Phone is missing for this account');
-      await this.sendOtp(phone);
-      const login_token = this.jwt.sign(
-        {
-          sub: user.id,
-          role: user.role,
-          email: user.email,
-          phone,
-          otp_login: 'mobile_user',
-        },
-        { expiresIn: '10m' },
-      );
-      return {
-        otp_sent: true,
-        login_token,
-        role: String(user.role || 'customer'),
-        phone,
-      };
-    }
-
-    const electrician = await this.findElectricianByEmail(email);
-    if (!electrician) throw new UnauthorizedException('Invalid credentials');
-    if (String(electrician.status) !== 'approved') {
-      throw new UnauthorizedException(
-        String(electrician.status) === 'pending'
-          ? 'Your account is awaiting approval'
-          : 'Your account has been rejected',
-      );
-    }
-    const valid = await bcrypt.compare(password, String(electrician.password_hash || ''));
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
-    const phone = String(electrician.phone || '');
-    if (!phone) throw new BadRequestException('Phone is missing for this account');
-    await this.sendOtp(phone);
-    const login_token = this.jwt.sign(
-      {
-        sub: electrician.id,
-        role: 'electrician',
-        email: electrician.email,
-        phone,
-        otp_login: 'mobile_electrician',
-      },
-      { expiresIn: '10m' },
-    );
-    return { otp_sent: true, login_token, role: 'electrician', phone };
-  }
-
-  async mobileLoginVerify(
-    dto: LoginOtpVerifyDto,
-  ): Promise<{ access_token: string; role: string; profile: any }> {
-    let payload: Record<string, unknown>;
-    try {
-      payload = this.jwt.verify<Record<string, unknown>>(dto.login_token);
-    } catch {
-      throw new UnauthorizedException('Invalid or expired login token');
-    }
-    const otpType = String(payload.otp_login || '');
-    if (!['mobile_user', 'mobile_electrician', 'mobile_admin'].includes(otpType)) {
-      throw new UnauthorizedException('Invalid login token');
-    }
-    const phone = String(payload.phone || '');
-    const id = String(payload.sub || '');
-    const role = String(payload.role || '');
-    if (!phone || !id || !role) throw new UnauthorizedException('Invalid login token payload');
-    await this.consumeOtp(phone, dto.otp);
-
-    if (otpType === 'mobile_user') {
-      const user = await this.dynamo.get(this.dynamo.tableName('users'), { id });
-      if (!user) throw new UnauthorizedException('User not found');
-      const token = this.signToken(String(user.id), String(user.role), String(user.email || ''), String(user.phone || ''));
-      const { password_hash, ...safeUser } = user;
-      return { access_token: token, role: String(user.role || role), profile: safeUser };
-    }
-
-    if (otpType === 'mobile_admin') {
-      const admin = await this.dynamo.get(this.dynamo.tableName('admins'), { id });
-      if (!admin) throw new UnauthorizedException('Admin not found');
-      const token = this.signToken(String(admin.id), 'admin', String(admin.email || ''), String(admin.phone || ''));
-      const { password_hash, ...safeAdmin } = admin;
-      return { access_token: token, role: 'admin', profile: safeAdmin };
-    }
-
-    const electrician = await this.dynamo.get(this.dynamo.tableName('electricians'), { id });
-    if (!electrician) throw new UnauthorizedException('Electrician not found');
-    const token = this.signToken(
-      String(electrician.id),
-      'electrician',
-      String(electrician.email || ''),
-      String(electrician.phone || ''),
-    );
-    const { password_hash, ...safeElectrician } = electrician;
-    return { access_token: token, role: 'electrician', profile: safeElectrician };
-  }
-
   async passwordResetStart(
     dto: PasswordResetStartDto,
   ): Promise<{ otp_sent: boolean; role: string; phone: string }> {
-    if (dto.role === 'superadmin') {
-      throw new BadRequestException('Password reset is not allowed for superadmin');
-    }
     const normalizedRole = dto.role;
     const phone = String(dto.phone || '').trim();
     const account = await this.findAccountByRoleAndPhone(normalizedRole, phone);
@@ -280,9 +216,6 @@ export class AuthService {
   async passwordResetComplete(
     dto: PasswordResetCompleteDto,
   ): Promise<{ updated: boolean; role: string }> {
-    if (dto.role === 'superadmin') {
-      throw new BadRequestException('Password reset is not allowed for superadmin');
-    }
     const normalizedRole = dto.role;
     const phone = String(dto.phone || '').trim();
     const account = await this.findAccountByRoleAndPhone(normalizedRole, phone);
@@ -290,14 +223,6 @@ export class AuthService {
     await this.consumeOtp(phone, dto.otp);
     const password_hash = await bcrypt.hash(String(dto.new_password || ''), 12);
 
-    if (normalizedRole === 'customer' || normalizedRole === 'dealer') {
-      await this.dynamo.update(
-        this.dynamo.tableName('users'),
-        { id: String(account.id) },
-        { password_hash, updated_at: new Date().toISOString() },
-      );
-      return { updated: true, role: normalizedRole };
-    }
     if (normalizedRole === 'admin') {
       await this.dynamo.update(
         this.dynamo.tableName('admins'),
@@ -327,132 +252,127 @@ export class AuthService {
     return { updated: true };
   }
 
-  // ── Admin Login (email + password) ────────────────────────────────────────
-  async adminLogin(dto: AdminLoginDto): Promise<{ otp_sent: boolean; login_token: string }> {
+  // ── Admin Login (email + password) — approved shops only, after password created from approval email ──
+  async adminLogin(dto: AdminLoginDto): Promise<{ access_token: string; admin: any }> {
     const admin = await this.findAdminByEmail(dto.email);
     if (!admin) throw new UnauthorizedException('Invalid credentials');
-    if (admin.status !== 'approved') {
+
+    const st = String(admin.status || '').toLowerCase();
+    if (st === 'pending') {
       throw new UnauthorizedException(
-        admin.status === 'pending'
-          ? 'Your account is awaiting superadmin approval'
-          : 'Your account has been rejected',
+        'Your shop registration is still under review. You will receive an email when it is approved.',
+      );
+    }
+    if (st === 'rejected') {
+      throw new UnauthorizedException('Your shop registration was not approved.');
+    }
+    if (st === 'suspended') {
+      throw new UnauthorizedException('Your shop account has been suspended.');
+    }
+    if (st !== 'approved') {
+      throw new UnauthorizedException('Your account is not available for sign-in.');
+    }
+
+    const ph = String(admin.password_hash || '');
+    if (!ph) {
+      throw new UnauthorizedException(
+        'You have not created a password yet. Open the link in your approval email to set your password, then sign in here.',
       );
     }
 
-    const valid = await bcrypt.compare(dto.password, admin.password_hash);
+    const valid = await bcrypt.compare(dto.password, ph);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
-    if (!admin.phone) {
-      throw new BadRequestException('Admin phone is missing; cannot complete OTP login');
-    }
-    await this.sendOtp(String(admin.phone));
-    const login_token = this.jwt.sign(
-      {
-        sub: admin.id,
-        role: 'admin',
-        email: admin.email,
-        phone: admin.phone,
-        otp_login: 'admin',
-      },
-      { expiresIn: '10m' },
-    );
-    return { otp_sent: true, login_token };
-  }
 
-  async adminLoginVerify(dto: LoginOtpVerifyDto): Promise<{ access_token: string; admin: any }> {
-    let payload: Record<string, unknown>;
-    try {
-      payload = this.jwt.verify<Record<string, unknown>>(dto.login_token);
-    } catch {
-      throw new UnauthorizedException('Invalid or expired login token');
-    }
-    if (payload.otp_login !== 'admin') throw new UnauthorizedException('Invalid login token');
-    const phone = String(payload.phone || '');
-    const adminId = String(payload.sub || '');
-    if (!phone || !adminId) throw new UnauthorizedException('Invalid login token payload');
-    await this.consumeOtp(phone, dto.otp);
-
-    const admin = await this.dynamo.get(this.dynamo.tableName('admins'), { id: adminId });
-    if (!admin) throw new UnauthorizedException('Admin not found');
-    const token = this.signToken(admin.id, 'admin', admin.email);
+    const token = this.signToken(String(admin.id), 'admin', String(admin.email || ''), String(admin.phone || ''));
     const { password_hash, ...safeAdmin } = admin;
     return { access_token: token, admin: safeAdmin };
   }
 
+  /** One-time password creation after superadmin approval (JWT from email). */
+  async adminSetupPasswordFromInvite(dto: AdminSetupPasswordDto): Promise<{ message: string }> {
+    let payload: { sub?: string; purpose?: string };
+    try {
+      payload = this.jwt.verify<{ sub?: string; purpose?: string }>(dto.token);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired setup link');
+    }
+    if (payload.purpose !== 'admin_password_setup' || !payload.sub) {
+      throw new UnauthorizedException('Invalid setup link');
+    }
+
+    const admin = await this.dynamo.get(this.dynamo.tableName('admins'), { id: payload.sub });
+    if (!admin) throw new NotFoundException('Admin not found');
+    if (String(admin.status || '') !== 'approved') {
+      throw new BadRequestException('Your shop must be approved before you can set a password.');
+    }
+    const existing = String(admin.password_hash || '');
+    if (existing.length > 0) {
+      throw new BadRequestException(
+        'A password is already set for this account. Sign in with your email and password, or use forgot password.',
+      );
+    }
+
+    const password_hash = await bcrypt.hash(dto.new_password, 12);
+    const now = new Date().toISOString();
+    await this.dynamo.update(this.dynamo.tableName('admins'), { id: payload.sub }, {
+      password_hash,
+      password_set_at: now,
+      updated_at: now,
+    });
+    return {
+      message: 'Your password has been created. You can now sign in with your email and password.',
+    };
+  }
+
   // ── Superadmin Login ──────────────────────────────────────────────────────
-  async superadminLogin(dto: SuperadminLoginDto): Promise<{ otp_sent: boolean; login_token: string }> {
+  async superadminLogin(dto: SuperadminLoginDto): Promise<{ access_token: string }> {
     const sa = await this.dynamo.get(this.dynamo.tableName('superadmin'), { id: 'SUPERADMIN' });
     if (!sa) throw new UnauthorizedException('Superadmin not found');
 
     const valid = await bcrypt.compare(dto.password, sa.password_hash);
     if (!valid || sa.email !== dto.email) throw new UnauthorizedException('Invalid credentials');
-    const saPhone = String(sa.phone || this.config.get<string>('SUPERADMIN_PHONE') || '');
-    if (!saPhone) {
-      throw new BadRequestException('Superadmin phone is missing; set SUPERADMIN_PHONE in env');
-    }
-    await this.sendOtp(saPhone);
-    const login_token = this.jwt.sign(
-      {
-        sub: 'SUPERADMIN',
-        role: 'superadmin',
-        email: sa.email,
-        phone: saPhone,
-        otp_login: 'superadmin',
-      },
-      { expiresIn: '10m' },
-    );
-    return { otp_sent: true, login_token };
-  }
-
-  async superadminLoginVerify(dto: LoginOtpVerifyDto): Promise<{ access_token: string }> {
-    let payload: Record<string, unknown>;
-    try {
-      payload = this.jwt.verify<Record<string, unknown>>(dto.login_token);
-    } catch {
-      throw new UnauthorizedException('Invalid or expired login token');
-    }
-    if (payload.otp_login !== 'superadmin') throw new UnauthorizedException('Invalid login token');
-    const phone = String(payload.phone || '');
-    if (!phone) throw new UnauthorizedException('Invalid login token payload');
-    await this.consumeOtp(phone, dto.otp);
-
-    const sa = await this.dynamo.get(this.dynamo.tableName('superadmin'), { id: 'SUPERADMIN' });
-    if (!sa) throw new UnauthorizedException('Superadmin not found');
-    const token = this.signToken('SUPERADMIN', 'superadmin', sa.email);
+    const token = this.signToken('SUPERADMIN', 'superadmin', String(sa.email || ''));
     return { access_token: token };
   }
 
-  async electricianLogin(
-    email: string,
-    password: string,
-  ): Promise<{ access_token: string; electrician: Record<string, unknown> }> {
-    const electrician = await this.dynamo.queryOne({
-      TableName: this.dynamo.tableName('electricians'),
-      IndexName: 'EmailIndex',
-      KeyConditionExpression: 'email = :email',
-      ExpressionAttributeValues: { ':email': email },
-    });
-    if (!electrician) throw new UnauthorizedException('Invalid credentials');
-    if (String(electrician.status) !== 'approved') {
-      throw new UnauthorizedException(
-        String(electrician.status) === 'pending'
-          ? 'Your account is awaiting approval'
-          : 'Your account has been rejected',
-      );
-    }
-    const valid = await bcrypt.compare(password, String(electrician.password_hash || ''));
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  /** Full profile for JWT holders (excludes password_hash). Used by GET /auth/me. */
+  async getMeProfile(user: { id: string; role: string; email?: string; phone?: string }): Promise<Record<string, unknown>> {
+    const strip = (row: Record<string, unknown>) => {
+      const { password_hash: _p, ...rest } = row;
+      return rest;
+    };
 
-    const token = this.signToken(
-      String(electrician.id),
-      'electrician',
-      String(electrician.email || ''),
-      String(electrician.phone || ''),
-    );
-    const { password_hash: _, ...safe } = electrician as any;
-    return { access_token: token, electrician: safe };
+    const role = String(user.role || '');
+    if (role === 'customer' || role === 'dealer') {
+      const u = await this.dynamo.get(this.dynamo.tableName('users'), { id: user.id });
+      if (!u) throw new NotFoundException('User not found');
+      return strip(u as Record<string, unknown>);
+    }
+    if (role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected') {
+      const e = await this.dynamo.get(this.dynamo.tableName('electricians'), { id: user.id });
+      if (!e) throw new NotFoundException('Profile not found');
+      return strip(e as Record<string, unknown>);
+    }
+    if (role === 'admin') {
+      const a = await this.dynamo.get(this.dynamo.tableName('admins'), { id: user.id });
+      if (!a) throw new NotFoundException('Admin not found');
+      return strip(a as Record<string, unknown>);
+    }
+    if (role === 'superadmin') {
+      const s = await this.dynamo.get(this.dynamo.tableName('superadmin'), { id: user.id });
+      if (!s) throw new NotFoundException('Not found');
+      return strip(s as Record<string, unknown>);
+    }
+
+    return {
+      id: user.id,
+      role,
+      email: user.email ?? null,
+      phone: user.phone ?? null,
+    };
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
   private signToken(id: string, role: string, email?: string, phone?: string): string {
     return this.jwt.sign({
       sub: id,
@@ -527,16 +447,11 @@ export class AuthService {
   }
 
   private async findAccountByRoleAndPhone(
-    role: 'customer' | 'dealer' | 'electrician' | 'admin' | 'superadmin',
+    role: 'electrician' | 'admin',
     phone: string,
   ): Promise<any | null> {
-    if (role === 'superadmin') return null;
     if (role === 'admin') return this.findAdminByPhone(phone);
-    if (role === 'electrician') return this.findElectricianByPhone(phone);
-    const user = await this.findUserByPhone(phone);
-    if (!user) return null;
-    if (String(user.role || '') !== role) return null;
-    return user;
+    return this.findElectricianByPhone(phone);
   }
 
   private async consumeOtp(phone: string, otp: string): Promise<void> {
@@ -552,5 +467,41 @@ export class AuthService {
     }
 
     await this.dynamo.delete(this.dynamo.tableName('otps'), { phone });
+  }
+
+  async replaceAddressBook(
+    userId: string,
+    addresses: AddressBookEntryDto[],
+  ): Promise<{ address_book: Record<string, unknown>[] }> {
+    const user = await this.dynamo.get(this.dynamo.tableName('users'), { id: userId });
+    if (!user) throw new NotFoundException('User not found');
+    const role = String(user.role || '');
+    if (role !== 'customer' && role !== 'dealer') {
+      throw new BadRequestException('Only customers and dealers can update address book');
+    }
+    const now = new Date().toISOString();
+    const hasDefault = addresses.some((a) => Boolean(a.is_default));
+    const normalized: Record<string, unknown>[] = addresses.map((a, i) => ({
+      id: a.id && String(a.id).length ? String(a.id) : uuidv4(),
+      label: String(a.label || '').trim(),
+      address: String(a.address || '').trim(),
+      city: String(a.city || '').trim(),
+      state: String(a.state || '').trim(),
+      pincode: String(a.pincode || '').trim(),
+      lat: a.lat != null && !Number.isNaN(Number(a.lat)) ? Number(a.lat) : undefined,
+      lng: a.lng != null && !Number.isNaN(Number(a.lng)) ? Number(a.lng) : undefined,
+      is_default: Boolean(a.is_default) || (!hasDefault && i === 0),
+    }));
+    const defaultIdx = normalized.findIndex((x) => Boolean(x.is_default));
+    if (defaultIdx >= 0) {
+      normalized.forEach((x, j) => {
+        x.is_default = j === defaultIdx;
+      });
+    }
+    await this.dynamo.update(this.dynamo.tableName('users'), { id: userId }, {
+      address_book: normalized,
+      updated_at: now,
+    });
+    return { address_book: normalized };
   }
 }

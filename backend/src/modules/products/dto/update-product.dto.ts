@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsArray,
   IsUrl,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -74,4 +75,19 @@ export class UpdateProductDto {
   @IsNumber()
   @Min(0)
   low_stock_threshold?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  min_order_quantity?: number;
+
+  @ApiPropertyOptional({ nullable: true, description: 'Set null to clear MRP' })
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  mrp?: number | null;
 }

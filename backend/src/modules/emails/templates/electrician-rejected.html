@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registration Update</title>
+  <title>Technician application — action required</title>
 </head>
 <body style="margin:0;padding:0;background-color:#050b1a;font-family:'Segoe UI',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#050b1a;padding:40px 20px;">
@@ -11,42 +11,23 @@
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
           <tr>
-            <td style="background:linear-gradient(135deg,#0d1626 0%,#1a2a4a 100%);border-radius:16px 16px 0 0;padding:36px 40px;text-align:center;border-bottom:2px solid #ef4444;">
-              <div style="display:inline-flex;align-items:center;gap:10px;">
-                <span style="font-size:28px;">⚡</span>
-                <span style="color:#3b82f6;font-size:26px;font-weight:700;letter-spacing:-0.5px;">E Vision</span>
-              </div>
-              <p style="color:#94a3b8;margin:8px 0 0;font-size:13px;">Pvt. Ltd. — Faridabad, Haryana</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="background:#0d1626;padding:40px;">
-              <div style="text-align:center;margin-bottom:28px;">
-                <div style="display:inline-block;background:#450a0a;border:2px solid #ef4444;border-radius:50%;width:60px;height:60px;line-height:60px;font-size:28px;">✕</div>
-              </div>
-              <h2 style="color:#e2e8f0;margin:0 0 8px;font-size:20px;font-weight:600;text-align:center;">Registration Not Approved</h2>
-              <p style="color:#94a3b8;margin:0 0 28px;font-size:14px;text-align:center;">
-                Hi {{electrician_name}}, unfortunately your electrician registration on E Vision could not be approved at this time.
+            <td style="background:#0d1626;padding:40px;border-radius:16px;border:1px solid #1e3a5f;">
+              <h2 style="color:#f87171;margin:0 0 12px;font-size:20px;font-weight:700;text-align:center;">Action required</h2>
+              <p style="color:#94a3b8;margin:0 0 16px;font-size:14px;text-align:center;line-height:1.75;">
+                Hello {{electrician_name}}, we were unable to approve your application at this time.
               </p>
-
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;overflow:hidden;border:1px solid #1e3a5f;margin-bottom:28px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;border:1px solid #1e3a5f;margin-bottom:20px;">
                 <tr>
-                  <td style="padding:20px 24px;">
-                    <p style="color:#94a3b8;font-size:13px;margin:0 0 6px;">Reason for rejection:</p>
-                    <p style="color:#e2e8f0;font-size:14px;margin:0;line-height:1.6;">{{reason}}</p>
+                  <td style="padding:18px 20px;">
+                    <p style="color:#94a3b8;font-size:12px;margin:0 0 6px;text-transform:uppercase;letter-spacing:0.04em;">Reason</p>
+                    <p style="color:#e2e8f0;font-size:14px;margin:0;line-height:1.65;">{{reason}}</p>
                   </td>
                 </tr>
               </table>
-
-              <p style="color:#94a3b8;font-size:13px;text-align:center;margin:0;">
-                If you believe this is a mistake or have additional information, please contact us at
-                <a href="mailto:{{support_email}}" style="color:#3b82f6;text-decoration:none;">{{support_email}}</a>.
+              <p style="color:#94a3b8;margin:0;font-size:13px;text-align:center;line-height:1.7;">
+                You can update your details and reapply from the app. Questions? Contact us at
+                <a href="mailto:{{support_email}}" style="color:#38bdf8;text-decoration:none;">{{support_email}}</a>
               </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="background:#060d1c;padding:20px 40px;border-radius:0 0 16px 16px;text-align:center;border-top:1px solid #1e3a5f;">
-              <p style="color:#475569;font-size:12px;margin:0;">© 2024 E Vision Pvt. Ltd., Faridabad, Haryana · All rights reserved</p>
             </td>
           </tr>
         </table>

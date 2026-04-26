@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Camera, Heart, Menu, Search, ShoppingCart, X } from 'lucide-react';
 import { cartApi } from '@/lib/api';
-import { getRole, isLoggedIn } from '@/lib/auth';
+import { clearAuth, getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
 import { wishlistCount } from '@/lib/wishlist';
 
@@ -31,6 +31,7 @@ export function PublicNavbar() {
     queueMicrotask(() => setRole(getRole()));
   }, []);
   const canCart = role === 'customer' || role === 'dealer';
+  const isShopper = role === 'customer' || role === 'dealer';
 
   const syncCounts = useCallback(() => {
     setHearts(wishlistCount());
@@ -136,15 +137,58 @@ export function PublicNavbar() {
               </span>
             ) : null}
           </Link>
-          <Link
-            href="/login"
-            className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition-colors whitespace-nowrap"
-          >
-            Sign In
-          </Link>
-          <Link href="/register" className="hidden sm:inline-flex ev-btn-primary text-sm py-2 px-4 whitespace-nowrap">
-            Register
-          </Link>
+          {isShopper ? (
+            <>
+              <Link
+                href="/home"
+                className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
+              >
+                Home
+              </Link>
+              <Link
+                href="/orders"
+                className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
+              >
+                My orders
+              </Link>
+              {role === 'dealer' ? (
+                <Link
+                  href="/dealer/dashboard"
+                  className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
+                >
+                  Dealer hub
+                </Link>
+              ) : null}
+              <Link
+                href="/profile"
+                className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
+              >
+                Profile
+              </Link>
+              <button
+                type="button"
+                className="hidden sm:inline-flex text-white/80 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
+                onClick={() => {
+                  clearAuth();
+                  window.location.href = '/';
+                }}
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 transition-colors whitespace-nowrap"
+              >
+                Sign In
+              </Link>
+              <Link href="/register" className="hidden sm:inline-flex ev-btn-primary text-sm py-2 px-4 whitespace-nowrap">
+                Register
+              </Link>
+            </>
+          )}
           <button
             type="button"
             className="lg:hidden p-2 rounded-lg text-white/85 hover:bg-white/10"
@@ -177,12 +221,43 @@ export function PublicNavbar() {
               {label}
             </Link>
           ))}
-          <Link href="/login" className="block py-2.5 text-white/85 hover:text-white font-medium">
-            Sign In
-          </Link>
-          <Link href="/register" className="block py-2.5 text-ev-primary-light font-semibold">
-            Register
-          </Link>
+          {isShopper ? (
+            <>
+              <Link href="/home" className="block py-2.5 text-white/85 hover:text-white font-medium">
+                Home
+              </Link>
+              <Link href="/orders" className="block py-2.5 text-white/85 hover:text-white font-medium">
+                My orders
+              </Link>
+              {role === 'dealer' ? (
+                <Link href="/dealer/dashboard" className="block py-2.5 text-white/85 hover:text-white font-medium">
+                  Dealer hub
+                </Link>
+              ) : null}
+              <Link href="/profile" className="block py-2.5 text-white/85 hover:text-white font-medium">
+                Profile
+              </Link>
+              <button
+                type="button"
+                className="block w-full text-left py-2.5 text-white/85 hover:text-white font-medium"
+                onClick={() => {
+                  clearAuth();
+                  window.location.href = '/';
+                }}
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="block py-2.5 text-white/85 hover:text-white font-medium">
+                Sign In
+              </Link>
+              <Link href="/register" className="block py-2.5 text-ev-primary-light font-semibold">
+                Register
+              </Link>
+            </>
+          )}
         </div>
       ) : null}
     </header>

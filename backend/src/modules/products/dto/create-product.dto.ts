@@ -78,4 +78,24 @@ export class CreateProductDto {
   @IsNumber()
   @Min(0)
   low_stock_threshold?: number;
+
+  @ApiPropertyOptional({
+    example: 3,
+    description: 'Minimum units per line for dealer checkout (default 1)',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  min_order_quantity?: number;
+
+  @ApiPropertyOptional({
+    example: 499,
+    description: 'Optional MRP / list price for dealer savings display; defaults to retail price if omitted',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  mrp?: number;
 }

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import PDFDocument = require('pdfkit');
 import { DynamoService } from '../../common/dynamo/dynamo.service';
@@ -10,6 +10,8 @@ import { PushService } from '../push/push.service';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     private dynamo: DynamoService,
     private email: EmailService,
@@ -156,7 +158,26 @@ export class OrdersService {
           }),
         );
 
-        return { ...group, sub_orders: enrichedSubOrders };
+        const numShops = enrichedSubOrders.length;
+        const lineUnits = enrichedSubOrders.reduce((acc, o) => {
+          const arr = Array.isArray(o.items) ? o.items : [];
+          return (
+            acc +
+            arr.reduce((s, it) => s + Number((it as Record<string, unknown>).quantity || 1), 0)
+          );
+        }, 0);
+        const idPart = String(group.id || '')
+          .replace(/-/g, '')
+          .slice(-4)
+          .toUpperCase();
+
+        return {
+          ...group,
+          group_display_id: `G${idPart}`,
+          shipment_count: numShops,
+          line_item_units: lineUnits,
+          sub_orders: enrichedSubOrders,
+        };
       }),
     );
   }
@@ -511,6 +532,51 @@ export class OrdersService {
         attachments,
       );
     }
+  }
+
+  async collectGstInvoiceUrlsForUser(userId: string): Promise<string[]> {
+    const groups = await this.listGroupsForUser(userId);
+    const set = new Set<string>();
+    for (const g of groups) {
+      const subs = (g as { sub_orders?: Record<string, unknown>[] }).sub_orders || [];
+      for (const sub of subs) {
+        const u = sub.gst_invoice_url;
+        if (typeof u === 'string' && (u.startsWith('http://') || u.startsWith('https://'))) {
+          set.add(u);
+        }
+      }
+    }
+    return [...set];
+  }
+
+  async streamGstInvoicesZip(userId: string, res: import('express').Response): Promise<void> {
+    const urls = await this.collectGstInvoiceUrlsForUser(userId);
+    if (!urls.length) {
+      throw new BadRequestException('No GST tax invoices available to download yet');
+    }
+    const archiver = (await import('archiver')).default;
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="gst-tax-invoices.zip"');
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.on('error', (err: Error) => {
+      this.logger.error(`GST ZIP error: ${err.message}`);
+      if (!res.headersSent) res.status(500);
+      res.end();
+    });
+    archive.pipe(res);
+    let i = 0;
+    for (const url of urls) {
+      i += 1;
+      try {
+        const r = await fetch(url);
+        if (!r.ok) continue;
+        const buf = Buffer.from(await r.arrayBuffer());
+        archive.append(buf, { name: `GST-Tax-Invoice-${String(i).padStart(3, '0')}.pdf` });
+      } catch (e) {
+        this.logger.warn(`Skip invoice URL in ZIP: ${(e as Error)?.message || e}`);
+      }
+    }
+    await archive.finalize();
   }
 
   private async buildInvoicePdf(data: {

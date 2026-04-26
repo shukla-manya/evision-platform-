@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Camera, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
@@ -9,6 +9,9 @@ import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { saveToken, parseJwt, redirectByRole } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
+import { OtpCells } from '@/components/auth/OtpCells';
+
+const OTP_ATTEMPTS = 5;
 
 type Mode = 'otp-phone' | 'otp-code' | 'admin';
 
@@ -17,88 +20,18 @@ function formatPhoneForApi(digits: string) {
   return `+91${d}`;
 }
 
-function OtpCells({
-  cells,
-  onCellsChange,
-  disabled,
-}: {
-  cells: string[];
-  onCellsChange: (next: string[]) => void;
-  disabled?: boolean;
-}) {
-  const refs = useRef<(HTMLInputElement | null)[]>([]);
-
-  const setAt = useCallback(
-    (index: number, digit: string) => {
-      const d = digit.replace(/\D/g, '').slice(-1);
-      const next = [...cells];
-      next[index] = d;
-      onCellsChange(next);
-    },
-    [cells, onCellsChange],
-  );
-
-  useEffect(() => {
-    refs.current[0]?.focus();
-  }, []);
-
-  return (
-    <div className="flex justify-center gap-2 sm:gap-3" role="group" aria-label="One-time password">
-      {Array.from({ length: 6 }, (_, i) => (
-        <input
-          key={i}
-          ref={(el) => {
-            refs.current[i] = el;
-          }}
-          type="text"
-          inputMode="numeric"
-          autoComplete={i === 0 ? 'one-time-code' : 'off'}
-          maxLength={1}
-          disabled={disabled}
-          className="w-10 h-12 sm:w-11 sm:h-14 text-center text-lg font-semibold rounded-xl border border-ev-border bg-ev-surface2 text-ev-text
-                     focus:outline-none focus:ring-2 focus:ring-ev-primary/40 focus:border-ev-primary transition-shadow"
-          value={cells[i] ?? ''}
-          onChange={(e) => {
-            const raw = e.target.value.replace(/\D/g, '');
-            if (raw.length > 1) {
-              const filled = raw.slice(0, 6).split('');
-              const next = Array.from({ length: 6 }, (_, j) => filled[j] ?? '');
-              onCellsChange(next);
-              refs.current[Math.min(5, filled.length)]?.focus();
-              return;
-            }
-            setAt(i, raw);
-            if (raw && i < 5) refs.current[i + 1]?.focus();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Backspace') {
-              if (cells[i]) {
-                setAt(i, '');
-              } else if (i > 0) {
-                refs.current[i - 1]?.focus();
-                setAt(i - 1, '');
-              }
-            }
-          }}
-          onFocus={(e) => e.target.select()}
-        />
-      ))}
-    </div>
-  );
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>('otp-phone');
   const [loading, setLoading] = useState(false);
   const [phoneDigits, setPhoneDigits] = useState('');
   const [otpCells, setOtpCells] = useState<string[]>(['', '', '', '', '', '']);
-  const [otpMountId, setOtpMountId] = useState(0);
+  const [otpFocusKey, setOtpFocusKey] = useState(0);
   const [resendSeconds, setResendSeconds] = useState(0);
-  const [adminOtp, setAdminOtp] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [adminLoginToken, setAdminLoginToken] = useState('');
+  const [otpAttemptsLeft, setOtpAttemptsLeft] = useState(OTP_ATTEMPTS);
+  const [noAccountForPhone, setNoAccountForPhone] = useState(false);
 
   const isOtpFlow = mode === 'otp-phone' || mode === 'otp-code';
 
@@ -116,11 +49,12 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
+    setNoAccountForPhone(false);
     try {
       await authApi.sendOtp(formatted);
-      toast.success('OTP sent to your phone');
       setOtpCells(['', '', '', '', '', '']);
-      setOtpMountId((n) => n + 1);
+      setOtpFocusKey((k) => k + 1);
+      setOtpAttemptsLeft(OTP_ATTEMPTS);
       setMode('otp-code');
       setResendSeconds(30);
     } catch (err: unknown) {
@@ -142,8 +76,9 @@ export default function LoginPage() {
       const formattedPhone = formatPhoneForApi(phoneDigits);
       const { data } = await authApi.verifyOtp(formattedPhone, otp);
       if (!data.is_registered) {
-        saveToken(data.access_token, 'unregistered');
-        router.push('/register');
+        setNoAccountForPhone(true);
+        setOtpCells(['', '', '', '', '', '']);
+        setOtpFocusKey((k) => k + 1);
         return;
       }
       const payload = parseJwt(data.access_token);
@@ -152,10 +87,25 @@ export default function LoginPage() {
         return;
       }
       saveToken(data.access_token, payload.role);
-      toast.success('Welcome back!');
+      toast.success('Signed in');
       router.push(redirectByRole(payload.role));
-    } catch (err: unknown) {
-      toast.error(getApiErrorMessage(err, 'Invalid OTP'));
+    } catch {
+      setOtpAttemptsLeft((prev) => {
+        const next = prev - 1;
+        if (next <= 0) {
+          queueMicrotask(() => {
+            toast.error('Too many incorrect codes. Tap Resend OTP for a new code.');
+            setMode('otp-phone');
+            setOtpCells(['', '', '', '', '', '']);
+            setResendSeconds(0);
+          });
+          return OTP_ATTEMPTS;
+        }
+        queueMicrotask(() => {
+          toast.error(`Incorrect code. Please check and try again. ${next} attempt${next === 1 ? '' : 's'} remaining.`);
+        });
+        return next;
+      });
     } finally {
       setLoading(false);
     }
@@ -165,16 +115,10 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!adminLoginToken) {
-        const { data } = await authApi.adminLogin(email, password);
-        setAdminLoginToken(data.login_token);
-        toast.success('OTP sent to your registered phone');
-      } else {
-        const { data } = await authApi.adminLoginVerify(adminLoginToken, adminOtp);
-        saveToken(data.access_token, 'admin');
-        toast.success('Logged in!');
-        router.push(redirectByRole('admin'));
-      }
+      const { data } = await authApi.adminLogin(email, password);
+      saveToken(data.access_token, 'admin');
+      toast.success('Logged in!');
+      router.push(redirectByRole('admin'));
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Invalid credentials'));
     } finally {
@@ -205,23 +149,26 @@ export default function LoginPage() {
 
           {isOtpFlow ? (
             <>
-              <p className="text-ev-muted text-sm font-medium tracking-wide mb-2">Customer / Dealer / Electrician — sign in</p>
               <h1 className="text-2xl font-bold text-ev-text">Welcome back</h1>
               {mode === 'otp-phone' && (
-                <p className="text-ev-muted text-sm mt-2">Enter your mobile number. We&apos;ll send you a quick OTP.</p>
+                <p className="text-ev-muted text-sm mt-2 leading-relaxed">
+                  Enter your mobile number and we&apos;ll send you a quick OTP to sign in
+                </p>
               )}
             </>
           ) : (
             <>
               <h1 className="text-2xl font-bold text-ev-text">Welcome back</h1>
-              <p className="text-ev-muted text-sm mt-1">Shop admin sign in</p>
+              <p className="text-ev-muted text-sm mt-1">
+                Shop admin — email and password (set password from approval email first)
+              </p>
             </>
           )}
         </div>
 
         <div className="ev-card p-1 flex gap-1 mb-6">
           {[
-            { key: 'otp-phone' as const, label: 'Customer / Dealer / Electrician' },
+            { key: 'otp-phone' as const, label: 'Mobile sign-in' },
             { key: 'admin' as const, label: 'Shop Admin' },
           ].map(({ key, label }) => (
             <button
@@ -231,8 +178,8 @@ export default function LoginPage() {
                 setMode(key);
                 setOtpCells(['', '', '', '', '', '']);
                 setResendSeconds(0);
-                setAdminOtp('');
-                setAdminLoginToken('');
+                setNoAccountForPhone(false);
+                setOtpAttemptsLeft(OTP_ATTEMPTS);
               }}
               className={`flex-1 py-2 px-3 rounded-xl text-xs font-medium transition-all duration-150 ${
                 mode === key || (key === 'otp-phone' && mode === 'otp-code')
@@ -249,7 +196,7 @@ export default function LoginPage() {
           {mode === 'otp-phone' && (
             <form onSubmit={handleSendOtp} className="space-y-5">
               <div>
-                <label className="ev-label">Mobile number</label>
+                <label className="ev-label">Mobile number (+91)</label>
                 <div className="flex rounded-xl border border-ev-border bg-ev-surface2 overflow-hidden focus-within:ring-2 focus-within:ring-ev-primary/40 focus-within:border-ev-primary transition-all">
                   <span className="flex items-center px-4 text-ev-muted text-sm font-semibold border-r border-ev-border shrink-0 select-none">
                     +91
@@ -283,143 +230,137 @@ export default function LoginPage() {
             </form>
           )}
 
-          {mode === 'otp-code' && (
-            <form onSubmit={handleVerifyOtp} className="space-y-6">
-              <p className="text-ev-muted text-sm text-center leading-relaxed">
-                We sent a 6-digit code to {phoneMasked}. Enter it below to verify your number.
-              </p>
-              <div>
-                <label className="ev-label text-center block">One-time password</label>
-                <OtpCells key={otpMountId} cells={otpCells} onCellsChange={setOtpCells} disabled={loading} />
+          {mode === 'otp-code' &&
+            (noAccountForPhone ? (
+              <div className="space-y-6">
+                <div className="rounded-xl border border-ev-border bg-ev-surface2 p-4 text-center space-y-3">
+                  <p className="text-ev-text text-sm font-medium">No account found with this number.</p>
+                  <p className="text-ev-muted text-sm">Would you like to register?</p>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Link href="/register" className="ev-btn-primary text-sm py-2.5 px-4 text-center">
+                      Create an account
+                    </Link>
+                    <button
+                      type="button"
+                      className="ev-btn-secondary text-sm py-2.5 px-4"
+                      onClick={() => {
+                        setNoAccountForPhone(false);
+                        setMode('otp-phone');
+                        setOtpCells(['', '', '', '', '', '']);
+                        setResendSeconds(0);
+                      }}
+                    >
+                      Try a different number
+                    </button>
+                  </div>
+                </div>
               </div>
-              <button
-                type="submit"
-                className="ev-btn-primary w-full flex items-center justify-center gap-2"
-                disabled={loading || otpCells.join('').length !== 6}
-              >
-                {loading ? <Loader2 size={16} className="animate-spin" /> : (
-                  <>
-                    <span>Verify and sign in</span>
-                    <ArrowRight size={18} />
-                  </>
-                )}
-              </button>
-              <p className="text-center text-ev-subtle text-sm leading-relaxed">
-                {resendSeconds > 0 ? (
-                  <span>Resend OTP in {resendSeconds} sec</span>
-                ) : (
-                  <button
-                    type="button"
-                    className="text-ev-primary hover:text-ev-primary-light font-medium disabled:opacity-50"
+            ) : (
+              <form onSubmit={handleVerifyOtp} className="space-y-6">
+                <p className="text-ev-muted text-sm text-center leading-relaxed">
+                  Enter the 6-digit code sent to {phoneMasked}
+                </p>
+                <div>
+                  <OtpCells
+                    key={otpFocusKey}
+                    autoFocusKey={otpFocusKey}
+                    cells={otpCells}
+                    onCellsChange={setOtpCells}
                     disabled={loading}
-                    onClick={() => void handleSendOtp()}
-                  >
-                    Resend OTP
-                  </button>
-                )}
-                <span className="text-ev-border"> · </span>
-                <span>
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="ev-btn-primary w-full flex items-center justify-center gap-2"
+                  disabled={loading || otpCells.join('').length !== 6}
+                >
+                  {loading ? <Loader2 size={16} className="animate-spin" /> : (
+                    <>
+                      <span>Verify and sign in</span>
+                      <ArrowRight size={18} />
+                    </>
+                  )}
+                </button>
+                <p className="text-center text-ev-subtle text-sm leading-relaxed">
+                  {resendSeconds > 0 ? (
+                    <span>Didn&apos;t get it? Resend OTP in {resendSeconds} seconds</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-ev-primary hover:text-ev-primary-light font-medium disabled:opacity-50"
+                      disabled={loading}
+                      onClick={() => void handleSendOtp()}
+                    >
+                      Resend OTP
+                    </button>
+                  )}
+                </p>
+                <p className="text-center text-ev-subtle text-sm">
                   New here?{' '}
                   <Link href="/register" className="text-ev-primary hover:text-ev-primary-light font-medium">
                     Create an account
                   </Link>
-                </span>
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('otp-phone');
-                  setOtpCells(['', '', '', '', '', '']);
-                  setResendSeconds(0);
-                }}
-                className="w-full text-center text-ev-subtle text-sm hover:text-ev-muted"
-              >
-                ← Change number
-              </button>
-            </form>
-          )}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('otp-phone');
+                    setOtpCells(['', '', '', '', '', '']);
+                    setResendSeconds(0);
+                    setNoAccountForPhone(false);
+                    setOtpAttemptsLeft(OTP_ATTEMPTS);
+                  }}
+                  className="w-full text-center text-ev-subtle text-sm hover:text-ev-muted"
+                >
+                  ← Change number
+                </button>
+              </form>
+            ))}
 
           {mode === 'admin' && (
             <form onSubmit={handleAdminLogin} className="space-y-5">
-              {!adminLoginToken ? (
-                <>
-                  <div>
-                    <label className="ev-label">Email Address</label>
-                    <div className="relative">
-                      <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                      <input
-                        type="email"
-                        className="ev-input pl-10"
-                        placeholder="admin@yourshop.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="ev-label">Password</label>
-                    <div className="relative">
-                      <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                      <input
-                        type="password"
-                        className="ev-input pl-10"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                    {loading ? <Loader2 size={16} className="animate-spin" /> : 'Continue to OTP'}
-                  </button>
-                  <p className="text-center text-ev-subtle text-sm">
-                    <Link href="/reset-password?role=admin" className="text-ev-primary hover:text-ev-primary-light">
-                      Forgot password?
-                    </Link>
-                  </p>
-                </>
-              ) : (
-                <>
-                  <div className="text-center mb-2">
-                    <p className="text-ev-muted text-sm">Password verified. Enter OTP sent to your phone.</p>
-                  </div>
-                  <div>
-                    <label className="ev-label">Enter 6-digit OTP</label>
-                    <input
-                      type="text"
-                      className="ev-input text-center text-xl tracking-[0.4em] font-mono"
-                      placeholder="• • • • • •"
-                      maxLength={6}
-                      value={adminOtp}
-                      onChange={(e) => setAdminOtp(e.target.value.replace(/\D/g, ''))}
-                      required
-                    />
-                  </div>
-                  <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
-                    {loading ? <Loader2 size={16} className="animate-spin" /> : `Verify OTP & Sign in`}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAdminLoginToken('');
-                      setAdminOtp('');
-                    }}
-                    className="w-full text-center text-ev-subtle text-sm hover:text-ev-muted"
-                  >
-                    ← Change credentials
-                  </button>
-                </>
-              )}
-              {mode === 'admin' && !adminLoginToken && (
-                <p className="text-center text-ev-subtle text-sm">
-                  No account?{' '}
-                  <Link href="/admin/register" className="text-ev-primary hover:text-ev-primary-light">
-                    Register your shop
-                  </Link>
-                </p>
-              )}
+              <div>
+                <label className="ev-label">Email Address</label>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                  <input
+                    type="email"
+                    className="ev-input pl-10"
+                    placeholder="admin@yourshop.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="ev-label">Password</label>
+                <div className="relative">
+                  <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-ev-subtle" />
+                  <input
+                    type="password"
+                    className="ev-input pl-10"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
+                {loading ? <Loader2 size={16} className="animate-spin" /> : 'Sign in'}
+              </button>
+              <p className="text-center text-ev-subtle text-sm">
+                <Link href="/reset-password?role=admin" className="text-ev-primary hover:text-ev-primary-light">
+                  Forgot password?
+                </Link>
+              </p>
+              <p className="text-center text-ev-subtle text-sm">
+                No account?{' '}
+                <Link href="/admin/register" className="text-ev-primary hover:text-ev-primary-light">
+                  Register your shop
+                </Link>
+              </p>
             </form>
           )}
         </div>

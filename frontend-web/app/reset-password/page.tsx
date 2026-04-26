@@ -7,9 +7,9 @@ import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 
-type ResetRole = 'customer' | 'dealer' | 'electrician' | 'admin';
+type ResetRole = 'electrician' | 'admin';
 
-const ROLES: ResetRole[] = ['customer', 'dealer', 'electrician', 'admin'];
+const ROLES: ResetRole[] = ['electrician', 'admin'];
 
 function normalizePhone(phone: string) {
   const trimmed = phone.trim();
@@ -18,7 +18,7 @@ function normalizePhone(phone: string) {
 }
 
 export default function ResetPasswordPage() {
-  const [role, setRole] = useState<ResetRole>('customer');
+  const [role, setRole] = useState<ResetRole>('admin');
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -67,7 +67,9 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md">
         <div className="ev-card p-8">
           <h1 className="text-2xl font-bold text-ev-text mb-1">Reset password</h1>
-          <p className="text-ev-muted text-sm mb-6">Use OTP on mobile number. Superadmin is not allowed.</p>
+          <p className="text-ev-muted text-sm mb-6">
+            For shop admins and technicians only. Customers and dealers sign in with mobile OTP — no password to reset.
+          </p>
 
           {step === 'start' ? (
             <form onSubmit={startReset} className="space-y-4">

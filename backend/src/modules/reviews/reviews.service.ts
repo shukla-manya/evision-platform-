@@ -94,11 +94,25 @@ export class ReviewsService {
       KeyConditionExpression: 'electrician_id = :eid',
       ExpressionAttributeValues: { ':eid': electricianId },
     });
-    return reviews.sort(
+    const sorted = reviews.sort(
       (a, b) =>
         new Date(String(b.created_at || 0)).getTime() -
         new Date(String(a.created_at || 0)).getTime(),
     );
+    const customerIds = [...new Set(sorted.map((r) => String(r.customer_id || '')).filter(Boolean))];
+    const nameByCustomer = new Map<string, string>();
+    await Promise.all(
+      customerIds.map(async (cid) => {
+        const u = await this.dynamo.get(this.usersTable(), { id: cid });
+        if (u && (u as { name?: string }).name) {
+          nameByCustomer.set(cid, String((u as { name?: string }).name));
+        }
+      }),
+    );
+    return sorted.map((r) => ({
+      ...r,
+      customer_name: nameByCustomer.get(String(r.customer_id || '')) || 'Customer',
+    }));
   }
 
   private async recalcElectricianRating(electricianId: string): Promise<void> {

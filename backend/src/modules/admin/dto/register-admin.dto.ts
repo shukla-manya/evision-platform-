@@ -21,11 +21,6 @@ export class RegisterAdminDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ example: 'SecurePass@123', minLength: 8 })
-  @IsString()
-  @MinLength(8)
-  password: string;
-
   @ApiProperty({ example: '07AABCU9603R1ZP' })
   @IsString()
   gst_no: string;
