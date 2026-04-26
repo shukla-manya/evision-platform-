@@ -222,13 +222,7 @@ function ShopListingInner() {
                     onChange={(e) => setApprovedShopsOnly(e.target.checked)}
                     className="rounded border-ev-border mt-0.5 shrink-0"
                   />
-                  <span>
-                    <span className="font-medium text-ev-text leading-snug block">Approved shops only</span>
-                    <span className="text-ev-muted text-xs leading-relaxed block mt-0.5">
-                      On: only verified partner stores and the products they listed. Off: include shops still in review
-                      or suspended.
-                    </span>
-                  </span>
+                  <span className="font-medium text-ev-text leading-snug">Approved shops only</span>
                 </label>
               </div>
               <div>
@@ -290,8 +284,7 @@ function ShopListingInner() {
             ) : products.length === 0 ? (
               <div className="ev-card p-16 text-center text-ev-muted">
                 <ShoppingBag className="mx-auto mb-3 opacity-40" size={36} />
-                <p className="font-medium text-ev-text mb-1">No products found for this filter.</p>
-                <p className="text-sm">Try adjusting your search.</p>
+                <p className="font-medium text-ev-text">No products in the catalogue right now.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">

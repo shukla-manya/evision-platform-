@@ -34,7 +34,7 @@ export class ListProductsQueryDto {
 
   @ApiPropertyOptional({
     description:
-      'When true or omitted, only products from shops with admin status `approved` appear. Set false to include pending/suspended shops.',
+      'When true or omitted, only products from shops with admin status `approved` are returned. When false, the filter is not applied by shop approval status.',
   })
   @IsOptional()
   @Transform(({ value }) => {

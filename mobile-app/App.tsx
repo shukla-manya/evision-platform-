@@ -1139,9 +1139,6 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
           <View style={styles.catalogFilterCard}>
             <View style={{ flex: 1, paddingRight: 10 }}>
               <Text style={styles.catalogFilterTitle}>Approved shops only</Text>
-              <Text style={styles.catalogFilterSub}>
-                Verified partner stores and the products they listed. Turn off to include shops still in review.
-              </Text>
             </View>
             <Switch
               accessibilityLabel="Toggle approved shops only"
@@ -1163,7 +1160,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
             {!!item.description && <Text style={styles.cardDesc}>{item.description}</Text>}
           </Pressable>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No products found.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>No products in the catalogue right now.</Text>}
       />
     </SafeAreaView>
   );
@@ -1945,7 +1942,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   catalogFilterTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
-  catalogFilterSub: { fontSize: 12, color: colors.textSecondary, marginTop: 4, lineHeight: 17 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
   roleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   splashContent: {
