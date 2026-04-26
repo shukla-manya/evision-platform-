@@ -1,6 +1,5 @@
 /** @type {import('jest').Config} */
 module.exports = {
-  preset: 'ts-jest',
   testEnvironment: 'node',
   watchman: false,
   rootDir: '.',
@@ -11,9 +10,27 @@ module.exports = {
   },
   transform: {
     '^.+\\.tsx?$': [
-      'ts-jest',
+      '@swc/jest',
       {
-        isolatedModules: true,
+        jsc: {
+          target: 'es2021',
+          parser: {
+            syntax: 'typescript',
+            decorators: true,
+            dynamicImport: true,
+          },
+          transform: {
+            legacyDecorator: true,
+            decoratorMetadata: true,
+            useDefineForClassFields: false,
+          },
+          keepClassNames: true,
+          baseUrl: __dirname,
+          paths: {
+            '@/*': ['./src/*'],
+          },
+        },
+        module: { type: 'commonjs' },
       },
     ],
   },

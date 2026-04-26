@@ -89,7 +89,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const shopTitle = admin?.shop_name?.trim() || 'LensCart';
+  const shopTitle = admin?.shop_name?.trim() || 'e vision';
 
   return (
     <div className="min-h-screen bg-ev-bg flex">

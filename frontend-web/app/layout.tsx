@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
-  title: 'LensCart — Camera & Gear Marketplace',
-  description: 'LensCart — A warm, trustworthy marketplace for cameras and gear.',
+  title: 'e vision — Camera & Gear Marketplace',
+  description: 'e vision — A warm, trustworthy marketplace for cameras and gear.',
   icons: { icon: '/favicon.ico' },
 };
 

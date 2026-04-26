@@ -279,7 +279,7 @@ export function ElectricianShell({ children }: { children: React.ReactNode }) {
               <Bolt size={18} className="text-white" />
             </div>
             <div className="min-w-0">
-              <p className="text-white font-bold text-sm truncate">LensCart</p>
+              <p className="text-white font-bold text-sm truncate">e vision</p>
               <p className="ev-sidebar-muted text-xs">Technician</p>
             </div>
           </Link>
