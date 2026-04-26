@@ -92,7 +92,7 @@ export default function SuperadminAnalyticsPage() {
                   <UserCog size={14} /> Active technicians
                 </p>
                 <p className="text-2xl font-bold text-ev-text mt-2">{activeElectricians}</p>
-                <p className="text-ev-subtle text-xs mt-2">Approved electrician profiles</p>
+                <p className="text-ev-subtle text-xs mt-2">Approved technician profiles</p>
               </div>
               <div className="ev-card p-5 border-ev-border">
                 <p className="text-ev-muted text-sm font-medium">Approved shops</p>

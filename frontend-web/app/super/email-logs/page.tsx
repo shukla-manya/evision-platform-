@@ -131,11 +131,11 @@ export default function EmailDeliveryHistoryPage() {
             <label className="text-xs text-ev-muted block mb-1">Recipient role</label>
             <select className="ev-input py-2 text-sm" value={toRole} onChange={(e) => setToRole(e.target.value)}>
               <option value="">Any</option>
-              <option value="superadmin">superadmin</option>
-              <option value="admin">admin</option>
-              <option value="customer">customer</option>
-              <option value="dealer">dealer</option>
-              <option value="electrician">electrician</option>
+              <option value="superadmin">Superadmin</option>
+              <option value="admin">Admin</option>
+              <option value="customer">Customer</option>
+              <option value="dealer">Dealer</option>
+              <option value="electrician">Technician</option>
             </select>
           </div>
           <div>
