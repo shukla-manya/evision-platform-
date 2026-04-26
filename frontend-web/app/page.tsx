@@ -229,7 +229,7 @@ export default function HomePage() {
           </div>
         )}
         <div className="text-center mt-10">
-          <Link href="/shop" className="text-ev-primary font-semibold inline-flex items-center gap-1 hover:underline">
+          <Link href="/shop" className="ev-btn-primary inline-flex items-center justify-center gap-2 text-base py-3 px-8">
             View all products <ArrowRight size={16} />
           </Link>
         </div>

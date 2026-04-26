@@ -79,7 +79,7 @@ export default function WishlistPage() {
           <div className="ev-card p-12 text-center text-ev-muted">
             <Package className="mx-auto mb-3 opacity-30" size={40} />
             <p className="text-ev-text font-medium mb-1">No saved products</p>
-            <Link href="/shop" className="text-ev-primary text-sm font-medium hover:underline">
+            <Link href="/shop" className="ev-btn-primary text-sm py-2.5 px-5 mt-4 inline-flex">
               Browse shop
             </Link>
           </div>

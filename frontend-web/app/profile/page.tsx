@@ -176,8 +176,8 @@ export default function ProfilePage() {
                   ))}
                 </ul>
               )}
-              <Link href="/checkout" className="text-ev-primary text-sm font-medium hover:underline inline-block">
-                Manage at checkout →
+              <Link href="/checkout" className="ev-btn-secondary text-sm py-2 px-4 inline-flex mt-1">
+                Manage at checkout
               </Link>
             </section>
 

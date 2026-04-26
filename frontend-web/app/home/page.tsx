@@ -191,7 +191,7 @@ export default function CustomerHomePage() {
               <div className="ev-card px-4 py-3 text-ev-muted text-sm max-w-md">
                 <p className="text-ev-text font-medium mb-1">No categories yet</p>
                 <p className="text-xs">Browse the full catalogue — products will appear here once categories are set up.</p>
-                <Link href="/shop" className="text-ev-primary text-sm font-medium mt-2 inline-block hover:underline">
+                <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 mt-3 inline-flex">
                   Open shop
                 </Link>
               </div>
@@ -212,7 +212,7 @@ export default function CustomerHomePage() {
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold text-ev-text">For you</h2>
-            <Link href="/shop" className="text-sm text-ev-primary font-medium hover:underline">
+            <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 inline-flex shrink-0">
               Browse all
             </Link>
           </div>
@@ -268,7 +268,7 @@ export default function CustomerHomePage() {
               <div className="col-span-full rounded-xl border border-ev-border border-dashed bg-ev-surface/60 px-4 py-8 text-center text-ev-muted text-sm">
                 <p className="text-ev-text font-medium mb-1">No products in the catalogue yet</p>
                 <p className="text-xs">When shops add listings, featured deals will show here.</p>
-                <Link href="/shop" className="text-ev-primary text-sm font-medium mt-3 inline-block hover:underline">
+                <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 mt-3 inline-flex">
                   Browse shop
                 </Link>
               </div>
