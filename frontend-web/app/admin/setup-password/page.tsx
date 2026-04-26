@@ -47,7 +47,7 @@ function SetupPasswordForm() {
     return (
       <div className="ev-card p-8 text-center space-y-4">
         <p className="text-ev-muted text-sm">This page needs a valid link from your shop approval email.</p>
-        <Link href="/admin/login" className="text-ev-primary font-medium hover:underline">
+        <Link href="/admin/login" className="ev-btn-primary text-sm py-2.5 px-5 inline-flex justify-center">
           Go to admin sign in
         </Link>
       </div>
@@ -83,11 +83,11 @@ function SetupPasswordForm() {
       <button type="submit" className="ev-btn-primary w-full flex items-center justify-center gap-2" disabled={loading}>
         {loading ? <Loader2 size={18} className="animate-spin" /> : <>Save password <ArrowRight size={16} /></>}
       </button>
-      <p className="text-center text-sm">
-        <Link href="/admin/login" className="text-ev-primary hover:underline">
+      <div className="flex justify-center pt-1">
+        <Link href="/admin/login" className="ev-btn-secondary text-sm py-2 px-4 inline-flex">
           Already set up? Sign in
         </Link>
-      </p>
+      </div>
     </form>
   );
 }

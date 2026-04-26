@@ -154,7 +154,7 @@ function TechniciansInner() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-      <Link href="/service/request" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-6">
+      <Link href="/service/request" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5 mb-6">
         <ArrowLeft size={14} /> Back
       </Link>
       <div className="flex items-start gap-2 mb-2">
@@ -174,13 +174,13 @@ function TechniciansInner() {
             {bookingStatus === 'accepted' && bookingDetail?.electrician ? (
               <Link
                 href={`/service/review?electricianId=${encodeURIComponent(String((bookingDetail.electrician as { id?: string }).id || ''))}&name=${encodeURIComponent(String((bookingDetail.electrician as { name?: string }).name || 'Technician'))}`}
-                className="text-ev-primary font-medium text-sm hover:underline"
+                className="ev-btn-primary text-sm py-2 px-4 inline-flex"
               >
                 Leave a review
               </Link>
             ) : null}
             {bookingStatus === 'declined' || bookingStatus === 'accepted' ? (
-              <Link href="/orders" className="text-ev-muted font-medium text-sm hover:underline">
+              <Link href="/orders" className="ev-btn-secondary text-sm py-2 px-4 inline-flex">
                 Back to orders
               </Link>
             ) : null}

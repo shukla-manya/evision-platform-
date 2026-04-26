@@ -356,7 +356,7 @@ export default function DealerDashboardPage() {
               <div>
                 <h1 className="text-2xl font-bold text-ev-text">{dealerIdentity.company}</h1>
                 <p className="text-ev-muted text-sm mt-1">Dealer account · GST verified</p>
-                <Link href="/shop" className="text-ev-primary text-sm font-medium hover:underline inline-flex mt-2">
+                <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 inline-flex mt-3">
                   Browse dealer prices
                 </Link>
               </div>
@@ -402,7 +402,7 @@ export default function DealerDashboardPage() {
                 <button
                   type="button"
                   onClick={() => void downloadAllGstInvoicesZip()}
-                  className="text-sm text-ev-primary font-medium inline-flex items-center gap-1 hover:underline disabled:opacity-50"
+                  className="ev-btn-secondary text-sm py-2 px-4 inline-flex items-center gap-1.5 disabled:opacity-50"
                   disabled={downloading || !computed.gstInvoicesCount}
                 >
                   {downloading ? 'Preparing ZIP…' : 'Download all GST invoices (ZIP)'}
@@ -441,7 +441,7 @@ export default function DealerDashboardPage() {
                                 href={row.invoice}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-ev-primary text-xs font-medium hover:underline"
+                                className="ev-btn-secondary text-xs py-1.5 px-2.5 inline-flex items-center gap-1"
                               >
                                 <Download size={12} />
                                 GST

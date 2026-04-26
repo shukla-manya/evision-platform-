@@ -369,7 +369,7 @@ export default function AdminDashboardPage() {
                 <h2 className="text-ev-text font-semibold">Orders needing shipment</h2>
                 <p className="text-ev-muted text-xs mt-0.5">Generate shipment via Shiprocket</p>
               </div>
-              <Link href="/admin/orders" className="text-sm text-ev-primary font-medium inline-flex items-center gap-1 hover:underline">
+              <Link href="/admin/orders" className="ev-btn-secondary text-sm py-2 px-4 inline-flex items-center gap-1.5">
                 View all orders
                 <ArrowRight size={14} />
               </Link>
@@ -455,7 +455,7 @@ export default function AdminDashboardPage() {
           <section className="lg:col-span-2 ev-card p-5 flex flex-col">
             <div className="flex items-center justify-between gap-2 mb-4">
               <h2 className="text-ev-text font-semibold">Low stock products</h2>
-              <Link href="/admin/inventory" className="text-xs text-ev-primary font-medium hover:underline">
+              <Link href="/admin/inventory" className="ev-btn-secondary text-xs py-1.5 px-3 inline-flex">
                 Restock
               </Link>
             </div>

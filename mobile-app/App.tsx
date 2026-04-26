@@ -219,8 +219,8 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
           <Text style={styles.splashSecondaryBtnText}>Admin? Sign in here</Text>
           <Text style={styles.splashCtaSubMuted}>For shop owners</Text>
         </Pressable>
-        <Pressable style={styles.splashRegisterLink} onPress={() => navigation.navigate('Register', {})}>
-          <Text style={styles.splashRegisterLinkText}>New user? Create an account</Text>
+        <Pressable style={[styles.buttonSecondary, { marginTop: 20 }]} onPress={() => navigation.navigate('Register', {})}>
+          <Text style={styles.buttonSecondaryText}>Create an account</Text>
         </Pressable>
         <PublicWebsiteLinks audience="signed_out" />
       </ScrollView>
@@ -413,16 +413,16 @@ function AdminSignInScreen({
             <Text style={styles.buttonText}>{loading ? 'Please wait...' : 'Sign in'}</Text>
           </Pressable>
           <Pressable
-            style={styles.buttonLinkWrap}
+            style={[styles.ctaOutline, { marginTop: 10 }]}
             onPress={() => navigation.navigate('PasswordReset', { role: 'admin' })}
           >
-            <Text style={styles.link}>Forgot password? Phone OTP</Text>
+            <Text style={styles.ctaOutlineText}>Forgot password? Phone OTP</Text>
           </Pressable>
         </View>
         <View style={styles.captionBlock}>
           <Text style={styles.captionNote}>New shop? Register in the app (Create account → Shop owner), then sign in here after approval.</Text>
-          <Pressable onPress={() => navigation.navigate('Register', { initialRole: 'shop_owner' })}>
-            <Text style={styles.link}>Register as shop owner</Text>
+          <Pressable style={[styles.buttonSecondary, { marginTop: 12 }]} onPress={() => navigation.navigate('Register', { initialRole: 'shop_owner' })}>
+            <Text style={styles.buttonSecondaryText}>Register as shop owner</Text>
           </Pressable>
         </View>
         <PublicWebsiteLinks audience="signed_out" />
@@ -1968,8 +1968,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   splashSecondaryBtnText: { color: colors.brandPrimary, fontWeight: '700', fontSize: 17 },
-  splashRegisterLink: { marginTop: 28, alignItems: 'center' },
-  splashRegisterLinkText: { color: colors.brandPrimary, fontWeight: '600', fontSize: 15 },
+  ctaOutline: {
+    width: '100%',
+    borderWidth: 2,
+    borderColor: colors.brandPrimary,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+  },
+  ctaOutlineText: { color: colors.brandPrimary, fontWeight: '700', fontSize: 15 },
   roleChip: {
     borderWidth: 1,
     borderColor: colors.border,

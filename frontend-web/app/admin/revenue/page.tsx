@@ -133,13 +133,14 @@ export default function AdminRevenuePage() {
           <TrendingUp size={26} className="text-ev-primary" />
           Revenue
         </h1>
-        <p className="text-ev-muted text-sm mb-8">
-          Derived from your shop orders. Payouts from the platform are handled separately — see{' '}
-          <Link href="/admin/dashboard" className="text-ev-primary hover:underline">
-            dashboard
-          </Link>{' '}
-          for operational KPIs.
+        <p className="text-ev-muted text-sm mb-3">
+          Derived from your shop orders. Payouts from the platform are handled separately — use the dashboard for operational KPIs.
         </p>
+        <div className="mb-8">
+          <Link href="/admin/dashboard" className="ev-btn-secondary text-sm py-2 px-4 inline-flex">
+            Open dashboard
+          </Link>
+        </div>
 
         {loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-16">
