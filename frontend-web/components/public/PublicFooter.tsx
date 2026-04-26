@@ -26,8 +26,8 @@ export function PublicFooter() {
               <span className="text-white/45">Careers</span>
             </li>
             <li>
-              <Link href="/about#contact" className="hover:text-white transition-colors">
-                Contact
+              <Link href="/contact" className="hover:text-white transition-colors">
+                Contact us
               </Link>
             </li>
           </ul>
@@ -127,7 +127,9 @@ export function PublicFooter() {
               <span className="text-white/45">Returns</span>
             </li>
             <li>
-              <span className="text-white/45">Privacy policy</span>
+              <Link href="/privacy" className="hover:text-white transition-colors">
+                Privacy policy
+              </Link>
             </li>
           </ul>
         </div>

@@ -145,8 +145,8 @@ export default function FaqPage() {
         <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-4">Frequently asked questions</h1>
         <p className="text-ev-muted leading-relaxed mb-10">
           Quick answers about {publicBrandName}. For account-specific issues, use{' '}
-          <Link href="/about#contact" className="text-ev-primary hover:text-ev-primary-light font-medium">
-            Contact
+          <Link href="/contact" className="text-ev-primary hover:text-ev-primary-light font-medium">
+            Contact us
           </Link>{' '}
           on our About page.
         </p>
