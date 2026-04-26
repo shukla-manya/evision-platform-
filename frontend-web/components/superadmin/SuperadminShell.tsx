@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   type LucideIcon,
-  Camera,
   LayoutDashboard,
   BarChart3,
   Inbox,
@@ -20,6 +19,7 @@ import {
 import { superadminApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
+import { EvisionLogo } from '@/components/brand/EvisionLogo';
 import { ResponsiveSidebarShell } from '@/components/layout/ResponsiveSidebarShell';
 
 type NavItem = {
@@ -75,9 +75,7 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
     <>
       <div className="p-5 border-b ev-sidebar-border shrink-0">
         <Link href="/super/dashboard" className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
-            <Camera size={18} className="text-white" />
-          </div>
+          <EvisionLogo variant="mark" height={36} className="shrink-0 shadow-ev-glow rounded-lg" />
           <div className="min-w-0">
             <p className="text-white font-bold text-sm tracking-tight truncate">{publicBrandName}</p>
             <p className="ev-sidebar-muted text-xs">Platform admin</p>

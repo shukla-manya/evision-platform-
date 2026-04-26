@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Camera, Heart, Menu, Search, ShoppingCart, X } from 'lucide-react';
+import { Heart, Menu, Search, ShoppingCart, X } from 'lucide-react';
 import { cartApi } from '@/lib/api';
 import { clearAuth, getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
+import { EvisionLogo } from '@/components/brand/EvisionLogo';
 import { wishlistCount } from '@/lib/wishlist';
 
 const NAV_LINKS = [
@@ -83,11 +84,8 @@ export function PublicNavbar() {
   return (
     <header className="sticky top-0 z-50 ev-header border-b border-white/10 pt-[env(safe-area-inset-top)]">
       <div className="mx-auto flex min-h-14 max-w-7xl items-center gap-3 px-4 py-2 sm:min-h-16 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 shrink-0 min-w-0">
-          <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
-            <Camera size={18} className="text-white" />
-          </div>
-          <span className="text-white font-bold text-lg tracking-tight truncate">{publicBrandName}</span>
+        <Link href="/" className="flex items-center gap-2 shrink-0 min-w-0" aria-label={publicBrandName}>
+          <EvisionLogo variant="full" wordmark={publicBrandName} height={34} tone="onDark" className="shrink-0" />
         </Link>
 
         <nav className="hidden lg:flex items-center gap-6 text-sm text-white/75 ml-4" aria-label="Primary">

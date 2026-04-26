@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { Camera } from 'lucide-react';
 import { publicBrandName } from '@/lib/public-brand';
+import { EvisionLogo } from '@/components/brand/EvisionLogo';
 import { publicAdminRegisterUrl, publicAdminSignInUrl, publicLoginPath, publicRegisterPath } from '@/lib/public-links';
 
 const year = 2026;
@@ -11,10 +11,7 @@ export function PublicFooter() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 text-sm">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow">
-              <Camera size={18} className="text-white" />
-            </div>
-            <span className="font-bold text-lg">{publicBrandName}</span>
+            <EvisionLogo variant="full" wordmark={publicBrandName} height={36} tone="onDark" />
           </div>
           <ul className="space-y-2 text-white/70">
             <li>

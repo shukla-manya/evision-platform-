@@ -15,6 +15,7 @@ import {
 import { electricianApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
 import { ELECTRICIAN_SUPPORT_EMAIL } from '@/lib/electrician-ui';
+import { EvisionLogo } from '@/components/brand/EvisionLogo';
 
 type MeRow = {
   status?: string;
@@ -275,9 +276,7 @@ export function ElectricianShell({ children }: { children: React.ReactNode }) {
       <aside className="hidden lg:flex ev-sidebar w-60 sm:w-64 flex-col fixed inset-y-0 z-30">
         <div className="p-5 border-b ev-sidebar-border">
           <Link href="/electrician/dashboard" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
-              <Bolt size={18} className="text-white" />
-            </div>
+            <EvisionLogo variant="mark" height={36} className="shrink-0 shadow-ev-glow rounded-lg" />
             <div className="min-w-0">
               <p className="text-white font-bold text-sm truncate">e vision</p>
               <p className="ev-sidebar-muted text-xs">Technician</p>

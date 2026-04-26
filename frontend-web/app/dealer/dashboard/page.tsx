@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Camera,
   LayoutDashboard,
   Store,
   ShoppingBag,
@@ -21,6 +20,7 @@ import { catalogApi, ordersApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { clearAuth, getRole, getToken, parseJwt } from '@/lib/auth';
 import { ResponsiveSidebarShell } from '@/components/layout/ResponsiveSidebarShell';
+import { EvisionLogo } from '@/components/brand/EvisionLogo';
 
 type OrderItem = {
   id: string;
@@ -297,9 +297,7 @@ export default function DealerDashboardPage() {
     <>
       <div className="p-5 border-b ev-sidebar-border shrink-0">
         <Link href="/dealer/dashboard" className="flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-gradient-primary rounded-lg flex items-center justify-center shadow-ev-glow shrink-0">
-            <Camera size={18} className="text-white" />
-          </div>
+          <EvisionLogo variant="mark" height={36} className="shrink-0 shadow-ev-glow rounded-lg" />
           <div className="min-w-0">
             <p className="text-white font-bold text-sm truncate">e vision Pro</p>
             <p className="ev-sidebar-muted text-xs">Dealer dashboard</p>

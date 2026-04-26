@@ -62,6 +62,7 @@ import { ElectricianPublicProfileScreen } from './src/screens/ElectricianPublicP
 import { ServiceBookingConfirmScreen } from './src/screens/ServiceBookingConfirmScreen';
 import { LeaveReviewScreen } from './src/screens/LeaveReviewScreen';
 import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
+import { EvisionLogo } from './src/components/EvisionLogo';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
 
@@ -196,7 +197,9 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.splashContent, { flexGrow: 1 }]}
       >
-        <Text style={styles.splashBrand}>e vision</Text>
+        <View style={styles.splashLogoWrap}>
+          <EvisionLogo variant="full" height={44} width={200} wordmarkOnLight />
+        </View>
         <View style={styles.splashGap} />
         <Pressable style={styles.splashPrimaryBtn} onPress={() => navigation.navigate('OtpSignIn')}>
           <Text style={styles.splashPrimaryBtnText}>Sign in with mobile OTP</Text>
@@ -1733,7 +1736,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center',
   },
-  splashBrand: { fontSize: 32, fontWeight: '800', color: colors.textPrimary, textAlign: 'center', letterSpacing: 0.5 },
+  splashLogoWrap: { alignItems: 'center', width: '100%' },
   splashGap: { height: 40 },
   splashPrimaryBtn: {
     width: '100%',
