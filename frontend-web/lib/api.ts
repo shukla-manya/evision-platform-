@@ -186,6 +186,7 @@ export const electricianApi = {
     status: 'on_the_way' | 'reached' | 'work_started' | 'completed',
   ) => api.put(`/electrician/job/${bookingId}/status`, { status }),
   setAvailability: (online: boolean) => api.put('/electrician/me/availability', { online }),
+  updateGeo: (lat: number, lng: number) => api.patch('/electrician/me/geo', { lat, lng }),
   uploadWorkPhoto: (bookingId: string, file: File) => {
     const fd = new FormData();
     fd.append('photo', file);
