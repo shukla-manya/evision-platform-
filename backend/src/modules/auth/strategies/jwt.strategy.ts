@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 import { DynamoService } from '../../../common/dynamo/dynamo.service';
 import { getRequestClientIp, normalizeClientIp } from '../../../common/http/client-ip.util';
-
 export interface JwtPayload {
   sub: string;
   role: string;
