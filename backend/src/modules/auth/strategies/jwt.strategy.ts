@@ -10,7 +10,6 @@ export interface JwtPayload {
   role: string;
   email?: string;
   phone?: string;
-  /** Superadmin single-session handle (rotated on each login). */
   sa_sess?: string;
 }
 
