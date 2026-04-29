@@ -266,11 +266,11 @@ function ShopListingInner() {
 
   return (
     <PublicShell>
-      <a href="#shop-main" className="ev-skip-link">
-        Skip to main content
-      </a>
       <a href="#site-navigation" className="ev-skip-link--nav">
         Skip to navigation
+      </a>
+      <a href="#shop-main" className="ev-skip-link">
+        Skip to main content
       </a>
       <PublicTrustStrip />
       <main id="shop-main" className="min-w-0">
