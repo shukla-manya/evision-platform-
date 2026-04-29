@@ -1485,7 +1485,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
             {!!item.description && <Text style={styles.cardDesc}>{item.description}</Text>}
           </Pressable>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No products in the catalogue right now.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>No products match this filter right now.</Text>}
       />
     </SafeAreaView>
   );
