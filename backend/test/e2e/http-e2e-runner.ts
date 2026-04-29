@@ -10,7 +10,6 @@ import { strict as assert } from 'node:assert';
 import * as bcrypt from 'bcryptjs';
 import * as http from 'http';
 import * as net from 'net';
-import { PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { ValidationPipe } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -147,6 +146,8 @@ async function main() {
     .useValue(pushStub)
     .compile();
   console.log('[e2e] compile done; init HTTP app…');
+
+  const { PutCommand, ScanCommand } = await import('@aws-sdk/lib-dynamodb');
 
   const app = moduleRef.createNestApplication({ rawBody: true });
   app.useGlobalPipes(
