@@ -11,7 +11,10 @@ import { EvisionLogo } from '@/components/brand/EvisionLogo';
 import { wishlistCount } from '@/lib/wishlist';
 
 const NAV_LINKS = [
+  { href: '/about', label: 'About' },
   { href: '/shop', label: 'Shop' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/contact', label: 'Contact' },
   { href: '/technician-services', label: 'Services' },
 ] as const;
 
@@ -81,7 +84,10 @@ export function PublicNavbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 ev-header border-b border-white/10 pt-[env(safe-area-inset-top)]">
+    <header
+      id="site-navigation"
+      className="sticky top-0 z-50 ev-header border-b border-white/10 pt-[env(safe-area-inset-top)]"
+    >
       <div className="mx-auto flex min-h-14 max-w-7xl min-w-0 items-center gap-2 px-4 py-2 sm:min-h-16 sm:gap-3 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 min-w-0" aria-label={publicBrandName}>
           <EvisionLogo variant="full" wordmark={publicBrandName} height={32} tone="onDark" className="shrink-0" />
