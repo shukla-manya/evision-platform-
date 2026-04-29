@@ -67,9 +67,13 @@ export type Product = {
   min_order_quantity?: number;
   shop_name?: string | null;
   category_id?: string;
+  category_name?: string | null;
   brand?: string | null;
   stock?: number;
   rating_avg?: number;
+  rating_count?: number;
+  amazon_url?: string | null;
+  low_stock_threshold?: number;
 };
 
 export type ApprovedShopRow = { id: string; shop_name: string };
