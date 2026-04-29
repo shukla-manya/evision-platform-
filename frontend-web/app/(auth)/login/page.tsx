@@ -13,31 +13,27 @@ import { OtpCells } from '@/components/auth/OtpCells';
 
 const OTP_ATTEMPTS = 5;
 
-function formatPhoneForApi(digits: string) {
-  const d = digits.replace(/\D/g, '').slice(-10);
-  return `+91${d}`;
+function maskEmail(em: string): string {
+  const s = em.trim().toLowerCase();
+  const [u, d] = s.split('@');
+  if (!d) return s;
+  if (u.length <= 2) return `${u[0] ?? '*'}***@${d}`;
+  return `${u.slice(0, 2)}***@${d}`;
 }
 
-/** Display line e.g. +91 98765 43210 (after OTP send — user already shared this number). */
-function formatPhoneForDisplayE16410(d10: string) {
-  const d = d10.replace(/\D/g, '').slice(-10);
-  if (d.length !== 10) return null;
-  return `+91 ${d.slice(0, 5)} ${d.slice(5)}`;
-}
-
-type Mode = 'phone' | 'code';
+type Mode = 'email' | 'code';
 
 function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<Mode>('phone');
+  const [mode, setMode] = useState<Mode>('email');
   const [loading, setLoading] = useState(false);
-  const [phoneDigits, setPhoneDigits] = useState('');
+  const [email, setEmail] = useState('');
   const [otpCells, setOtpCells] = useState<string[]>(['', '', '', '', '', '']);
   const [otpFocusKey, setOtpFocusKey] = useState(0);
   const [resendSeconds, setResendSeconds] = useState(0);
   const [otpAttemptsLeft, setOtpAttemptsLeft] = useState(OTP_ATTEMPTS);
-  const [noAccountForPhone, setNoAccountForPhone] = useState(false);
+  const [noAccountForEmail, setNoAccountForEmail] = useState(false);
   const approvedToast = useRef(false);
 
   useEffect(() => {
@@ -52,7 +48,7 @@ function LoginPageInner() {
     if (approvedToast.current) return;
     if (searchParams.get('approved') === '1') {
       approvedToast.current = true;
-      toast.success('You can sign in with your mobile number to continue.');
+      toast.success('You can sign in with the email on your shop account to continue.');
     }
   }, [searchParams]);
 
@@ -64,15 +60,15 @@ function LoginPageInner() {
 
   async function handleSendOtp(e?: React.FormEvent) {
     e?.preventDefault();
-    const formatted = formatPhoneForApi(phoneDigits);
-    if (formatted.length < 12) {
-      toast.error('Enter a valid 10-digit mobile number');
+    const em = email.trim().toLowerCase();
+    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+      toast.error('Enter a valid email address');
       return;
     }
     setLoading(true);
-    setNoAccountForPhone(false);
+    setNoAccountForEmail(false);
     try {
-      await authApi.sendOtp(formatted);
+      await authApi.sendOtp(em);
       setOtpCells(['', '', '', '', '', '']);
       setOtpFocusKey((k) => k + 1);
       setOtpAttemptsLeft(OTP_ATTEMPTS);
@@ -94,10 +90,10 @@ function LoginPageInner() {
     }
     setLoading(true);
     try {
-      const formattedPhone = formatPhoneForApi(phoneDigits);
-      const { data } = await authApi.verifyOtp(formattedPhone, otp);
+      const em = email.trim().toLowerCase();
+      const { data } = await authApi.verifyOtp(em, otp);
       if (!data.is_registered) {
-        setNoAccountForPhone(true);
+        setNoAccountForEmail(true);
         setOtpCells(['', '', '', '', '', '']);
         setOtpFocusKey((k) => k + 1);
         return;
@@ -125,7 +121,7 @@ function LoginPageInner() {
           if (next <= 0) {
             queueMicrotask(() => {
               toast.error('Too many incorrect codes. Request a new OTP.');
-              setMode('phone');
+              setMode('email');
               setOtpCells(['', '', '', '', '', '']);
               setResendSeconds(0);
             });
@@ -144,8 +140,7 @@ function LoginPageInner() {
     }
   }
 
-  const d10 = phoneDigits.replace(/\D/g, '').slice(-10);
-  const sentToLine = d10.length === 10 ? formatPhoneForDisplayE16410(d10) : null;
+  const sentToLine = email.trim() ? maskEmail(email) : null;
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
@@ -167,39 +162,32 @@ function LoginPageInner() {
             👋
           </p>
           <h1 className="text-2xl font-bold text-ev-text">Welcome back</h1>
-          {mode === 'phone' && (
+          {mode === 'email' && (
             <p className="text-ev-muted text-sm mt-2 leading-relaxed max-w-sm mx-auto">
-              Enter your mobile number to sign in
+              Enter your email — we will send a one-time code to sign in
             </p>
           )}
         </div>
 
         <div className="ev-card p-8">
-          {mode === 'phone' && (
+          {mode === 'email' && (
             <form onSubmit={handleSendOtp} className="space-y-5">
               <div>
-                <label className="ev-label">Mobile number</label>
-                <div className="flex rounded-xl border border-ev-border bg-ev-surface2 overflow-hidden focus-within:ring-2 focus-within:ring-ev-primary/40 focus-within:border-ev-primary transition-all">
-                  <span className="flex items-center px-4 text-ev-muted text-sm font-semibold border-r border-ev-border shrink-0 select-none">
-                    +91
-                  </span>
-                  <input
-                    type="tel"
-                    className="flex-1 min-w-0 bg-transparent px-4 py-3 text-ev-text placeholder-ev-subtle text-base outline-none tracking-wide"
-                    placeholder="9876543210"
-                    maxLength={10}
-                    value={phoneDigits}
-                    onChange={(e) => setPhoneDigits(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    autoComplete="tel-national"
-                    inputMode="numeric"
-                    required
-                  />
-                </div>
+                <label className="ev-label">Email</label>
+                <input
+                  type="email"
+                  className="ev-input"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  required
+                />
               </div>
               <button
                 type="submit"
                 className="ev-btn-primary w-full flex items-center justify-center gap-2"
-                disabled={loading || phoneDigits.replace(/\D/g, '').length !== 10}
+                disabled={loading || !email.trim()}
               >
                 {loading ? <Loader2 size={16} className="animate-spin" /> : (
                   <>
@@ -221,11 +209,11 @@ function LoginPageInner() {
           )}
 
           {mode === 'code' &&
-            (noAccountForPhone ? (
+            (noAccountForEmail ? (
               <div className="space-y-4">
                 <div className="rounded-xl border border-ev-border bg-ev-surface2 p-4 text-center space-y-3">
-                  <p className="text-ev-text text-sm font-medium">No account found. Register first?</p>
-                  <p className="text-ev-muted text-sm">Register, then sign in with the same number.</p>
+                  <p className="text-ev-text text-sm font-medium">No account found for this email</p>
+                  <p className="text-ev-muted text-sm">Create an account, then sign in with the same email.</p>
                   <div className="flex flex-col gap-2">
                     <Link href="/register" className="ev-btn-primary text-sm py-2.5 px-4 text-center">
                       Register
@@ -240,13 +228,13 @@ function LoginPageInner() {
                       type="button"
                       className="text-ev-subtle text-sm hover:text-ev-muted"
                       onClick={() => {
-                        setNoAccountForPhone(false);
-                        setMode('phone');
+                        setNoAccountForEmail(false);
+                        setMode('email');
                         setOtpCells(['', '', '', '', '', '']);
                         setResendSeconds(0);
                       }}
                     >
-                      Try a different number
+                      Try a different email
                     </button>
                   </div>
                 </div>
@@ -257,7 +245,7 @@ function LoginPageInner() {
                   <h2 className="text-lg font-semibold text-ev-text">Enter OTP</h2>
                   {sentToLine ? (
                     <p className="text-ev-muted text-sm">
-                      Sent to <span className="font-mono text-ev-text tabular-nums">{sentToLine}</span>
+                      Sent to <span className="font-mono text-ev-text">{sentToLine}</span>
                     </p>
                   ) : null}
                 </div>
@@ -297,15 +285,15 @@ function LoginPageInner() {
                 <button
                   type="button"
                   onClick={() => {
-                    setMode('phone');
+                    setMode('email');
                     setOtpCells(['', '', '', '', '', '']);
                     setResendSeconds(0);
-                    setNoAccountForPhone(false);
+                    setNoAccountForEmail(false);
                     setOtpAttemptsLeft(OTP_ATTEMPTS);
                   }}
                   className="w-full text-center text-ev-subtle text-sm hover:text-ev-muted"
                 >
-                  Use a different number
+                  Use a different email
                 </button>
               </form>
             ))}

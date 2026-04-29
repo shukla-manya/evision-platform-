@@ -218,10 +218,9 @@ export default function RegisterPage() {
 
   const sendShopperOtp = useCallback(async () => {
     if (!validateDetailsBeforeOtp()) return;
-    const phone = formatPhoneE164(phoneDigits);
     setOtpSending(true);
     try {
-      await authApi.sendOtp(phone, { purpose: 'signup', email: email.trim().toLowerCase() });
+      await authApi.sendOtp(email.trim().toLowerCase(), { purpose: 'signup' });
       setRegisterOtpCells(['', '', '', '', '', '']);
       setRegisterOtpKey((k) => k + 1);
       setOtpAttemptsLeft(OTP_ATTEMPTS);
@@ -232,7 +231,7 @@ export default function RegisterPage() {
     } finally {
       setOtpSending(false);
     }
-  }, [phoneDigits, email, validateDetailsBeforeOtp]);
+  }, [email, validateDetailsBeforeOtp]);
 
   useEffect(() => {
     if (registerStep !== 'otp' || resendSeconds <= 0) return;
@@ -347,10 +346,13 @@ export default function RegisterPage() {
     }
   }
 
-  const phoneMasked =
-    phoneLast10.length === 10
-      ? `+91 ${phoneLast10.slice(0, 2)}******${phoneLast10.slice(-2)}`
-      : '+91 XXXXXXXXXX';
+  const emailMasked = (() => {
+    const em = email.trim().toLowerCase();
+    const [u, d] = em.split('@');
+    if (!d) return em || 'your email';
+    if (u.length <= 2) return `${u[0] ?? '*'}***@${d}`;
+    return `${u.slice(0, 2)}***@${d}`;
+  })();
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
@@ -413,9 +415,9 @@ export default function RegisterPage() {
             ) : (
               <div className="text-center mb-6 space-y-2">
                 <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider">Step 2 of 2</p>
-                <h2 className="text-2xl font-bold text-ev-text">Verify your number</h2>
+                <h2 className="text-2xl font-bold text-ev-text">Verify your email</h2>
                 <p className="text-ev-muted text-sm max-w-md mx-auto leading-relaxed">
-                  We sent a 6-digit code to {phoneMasked}. It expires in 10 minutes.
+                  We sent a 6-digit code to {emailMasked}. It expires in 10 minutes.
                 </p>
               </div>
             )}

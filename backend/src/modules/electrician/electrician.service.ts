@@ -120,7 +120,7 @@ export class ElectricianService {
       throw new ConflictException('This email is already registered for a shopper account');
     }
 
-    await this.auth.consumeRegistrationOtp(dto.phone, dto.otp);
+    await this.auth.consumeRegistrationOtp(emailNorm, dto.otp);
 
     const id = uuidv4();
     const rawPwd = dto.password?.trim();

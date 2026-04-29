@@ -2,6 +2,7 @@
 export function evisionPartitionKeyFields(tableName: string): string[] {
   if (tableName === 'evision_cart_items') return ['user_id', 'id'];
   if (tableName === 'evision_order_items') return ['order_id', 'id'];
+  /** OTP rows: partition value is normalized email (legacy attribute name `phone`). */
   if (tableName === 'evision_otps') return ['phone'];
   return ['id'];
 }

@@ -31,20 +31,20 @@ export class AuthController {
   @Post('send-otp')
   @ApiOperation({
     summary:
-      'Send OTP (logged to server console when OTP_CONSOLE_ONLY=true; otherwise Twilio SMS)',
+      'Send 6-digit OTP to email via SMTP (Nodemailer). When OTP_CONSOLE_ONLY=true, code is logged only (no email).',
   })
   sendOtp(@Body() dto: SendOtpDto) {
-    return this.authService.sendOtp(dto.phone, { purpose: dto.purpose, email: dto.email });
+    return this.authService.sendOtp(dto.email, { purpose: dto.purpose });
   }
 
   @Public()
   @Post('verify-otp')
   @ApiOperation({
     summary:
-      'Verify OTP → JWT. No role in the request: resolves by phone—`users` (customer/dealer) first, then `electricians` (approved → role electrician; pending → electrician_pending; rejected → electrician_rejected). Unregistered → temp token.',
+      'Verify OTP → JWT. Resolves by email: `users` (customer/dealer) first, then `electricians`. Unregistered email → temporary JWT for signup.',
   })
   verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtp(dto.phone, dto.otp);
+    return this.authService.verifyOtp(dto.email, dto.otp);
   }
 
   @Public()
@@ -56,7 +56,7 @@ export class AuthController {
 
   @Public()
   @Post('password/reset/start')
-  @ApiOperation({ summary: 'Start password reset via phone OTP (shop admin or electrician only)' })
+  @ApiOperation({ summary: 'Start password reset via email OTP (shop admin or electrician only)' })
   passwordResetStart(@Body() dto: PasswordResetStartDto) {
     return this.authService.passwordResetStart(dto);
   }

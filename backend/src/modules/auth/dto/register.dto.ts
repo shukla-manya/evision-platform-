@@ -33,7 +33,7 @@ export class RegisterDto {
   @IsEnum(['customer', 'dealer'])
   role: 'customer' | 'dealer';
 
-  @ApiProperty({ example: '482931', description: 'OTP sent to the same phone via /auth/send-otp' })
+  @ApiProperty({ example: '482931', description: 'OTP sent to the same email via POST /auth/send-otp' })
   @IsString()
   @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
   @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
@@ -119,10 +119,10 @@ export class PasswordResetStartDto {
   @IsEnum(['electrician', 'admin'])
   role: 'electrician' | 'admin';
 
-  @ApiProperty({ example: '+919876543210' })
-  @IsString()
-  @Matches(/^\+[1-9]\d{9,14}$/, { message: 'Phone must be in E.164 format' })
-  phone: string;
+  @ApiProperty({ example: 'admin@shop.com' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @IsEmail()
+  email: string;
 }
 
 export class PasswordResetCompleteDto {
@@ -130,10 +130,10 @@ export class PasswordResetCompleteDto {
   @IsEnum(['electrician', 'admin'])
   role: 'electrician' | 'admin';
 
-  @ApiProperty({ example: '+919876543210' })
-  @IsString()
-  @Matches(/^\+[1-9]\d{9,14}$/, { message: 'Phone must be in E.164 format' })
-  phone: string;
+  @ApiProperty({ example: 'admin@shop.com' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @IsEmail()
+  email: string;
 
   @ApiProperty({ example: '482931' })
   @IsString()

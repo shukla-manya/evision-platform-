@@ -11,15 +11,9 @@ import type { PasswordResetApiRole } from '@/lib/user-roles';
 
 type ResetRole = PasswordResetApiRole;
 
-function normalizePhone(phone: string) {
-  const trimmed = phone.trim();
-  if (trimmed.startsWith('+')) return trimmed;
-  return `+91${trimmed}`;
-}
-
 export default function ResetPasswordPage() {
   const role: ResetRole = 'admin';
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [step, setStep] = useState<'start' | 'complete'>('start');
@@ -27,11 +21,16 @@ export default function ResetPasswordPage() {
 
   async function startReset(e: React.FormEvent) {
     e.preventDefault();
+    const em = email.trim().toLowerCase();
+    if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+      toast.error('Enter a valid email address');
+      return;
+    }
     setLoading(true);
     try {
-      await authApi.passwordResetStart(role, normalizePhone(phone));
+      await authApi.passwordResetStart(role, em);
       setStep('complete');
-      toast.success('OTP sent to your mobile number');
+      toast.success('OTP sent to your email');
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Unable to start reset'));
     } finally {
@@ -43,7 +42,7 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await authApi.passwordResetComplete(role, normalizePhone(phone), otp, newPassword);
+      await authApi.passwordResetComplete(role, email.trim().toLowerCase(), otp, newPassword);
       toast.success('Password updated successfully');
       setStep('start');
       setOtp('');
@@ -61,24 +60,24 @@ export default function ResetPasswordPage() {
         <div className="ev-card p-8">
           <h1 className="text-2xl font-bold text-ev-text mb-1">Reset password</h1>
           <p className="text-ev-muted text-sm mb-6">
-            For <strong className="text-ev-text">approved shop admins</strong> only. We SMS a 6-digit code to the{' '}
-            <strong className="text-ev-text">mobile on your shop account</strong>.{' '}
-            <strong className="text-ev-text">Technicians</strong>, <strong className="text-ev-text">customers</strong>, and{' '}
-            <strong className="text-ev-text">dealers</strong> sign in with a mobile OTP — no password reset here.{' '}
-            <strong className="text-ev-text">Superadmin</strong> uses the dedicated sign-in page.
+            For <strong className="text-ev-text">approved shop admins</strong> and{' '}
+            <strong className="text-ev-text">technicians with a password</strong>. We email a 6-digit code to the address on
+            your account. <strong className="text-ev-text">Customers and dealers</strong> sign in with an email OTP — no
+            password reset here. <strong className="text-ev-text">Superadmin</strong> uses the dedicated sign-in page.
           </p>
 
           {step === 'start' ? (
             <form onSubmit={startReset} className="space-y-4">
               <div>
-                <label className="ev-label">Mobile number</label>
+                <label className="ev-label">Email</label>
                 <input
-                  type="tel"
+                  type="email"
                   className="ev-input"
-                  placeholder="+91 9876543210"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="admin@shop.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                 />
               </div>
               <button type="submit" className="ev-btn-primary w-full inline-flex items-center justify-center gap-2" disabled={loading}>

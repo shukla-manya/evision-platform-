@@ -21,7 +21,7 @@ export class RegisterElectricianDto {
   @Matches(/^\+[1-9]\d{9,14}$/, { message: 'Phone must be E.164 format' })
   phone: string;
 
-  @ApiProperty({ example: '482931', description: '6-digit OTP from POST /auth/send-otp for this phone' })
+  @ApiProperty({ example: '482931', description: '6-digit OTP from POST /auth/send-otp to the same email' })
   @IsString()
   @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
   @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })

@@ -207,6 +207,39 @@ export class EmailService {
     });
   }
 
+  /** Login / signup / password-reset OTP (Nodemailer). */
+  async sendAuthOtpEmail(
+    to: string,
+    data: { code: string; purpose: 'login' | 'signup' },
+  ): Promise<{ ok: boolean; error: string | null }> {
+    const purposeLine =
+      data.purpose === 'signup'
+        ? 'Use this code to verify your email and complete registration.'
+        : 'Use this code to sign in. If you did not request this, you can ignore this email.';
+    const html = this.renderEmail(
+      'auth-otp',
+      {
+        otp_code: this.escapeHtml(data.code),
+        purpose_line: purposeLine,
+      },
+      {
+        email_title: data.purpose === 'signup' ? 'Your verification code' : 'Your sign-in code',
+        preheader: `${data.code} — valid for 10 minutes.`,
+        header_border_color: '#3b82f6',
+      },
+    );
+    return this.send({
+      to,
+      to_role: 'auth_otp',
+      subject:
+        data.purpose === 'signup'
+          ? `${this.brandDisplay()} — verify your email`
+          : `${this.brandDisplay()} — your one-time code`,
+      html,
+      trigger_event: 'auth_otp',
+    });
+  }
+
   // ── Template helpers ──────────────────────────────────────────────────────
   private loadTemplate(name: string): string {
     const candidates = [

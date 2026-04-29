@@ -94,10 +94,13 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const phoneLast10 = techPhoneDigits.replace(/\D/g, '').slice(-10);
-  const phoneMasked =
-    phoneLast10.length === 10
-      ? `+91 ${phoneLast10.slice(0, 2)}******${phoneLast10.slice(-2)}`
-      : '+91 XXXXXXXXXX';
+  const emailMasked = (() => {
+    const em = techEmail.trim().toLowerCase();
+    const [u, d] = em.split('@');
+    if (!d) return em || 'your email';
+    if (u.length <= 2) return `${u[0] ?? '*'}***@${d}`;
+    return `${u.slice(0, 2)}***@${d}`;
+  })();
 
   const getTechnicianFieldError = useCallback((): string | null => {
     if (!techName.trim()) return 'Enter your full name';
@@ -132,13 +135,9 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
     if (!validateCompleteTechnicianForm()) return;
     if (otpSendInFlight.current) return;
     otpSendInFlight.current = true;
-    const phone = formatPhoneE164(techPhoneDigits);
     setOtpSending(true);
     try {
-      await authApi.sendOtp(phone, {
-        purpose: 'signup',
-        email: techEmail.trim().toLowerCase(),
-      });
+      await authApi.sendOtp(techEmail.trim().toLowerCase(), { purpose: 'signup' });
       setOtpCells(['', '', '', '', '', '']);
       setOtpKey((k) => k + 1);
       setStep('otp');
@@ -149,7 +148,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
       otpSendInFlight.current = false;
       setOtpSending(false);
     }
-  }, [techPhoneDigits, techEmail, validateCompleteTechnicianForm]);
+  }, [techEmail, validateCompleteTechnicianForm]);
 
   useEffect(() => {
     if (step !== 'otp' || resendSeconds <= 0) return;
@@ -427,7 +426,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
                 </>
               ) : (
                 <>
-                  Send OTP to verify mobile
+                  Send OTP to verify email
                   <ArrowRight size={16} />
                 </>
               )}
@@ -445,7 +444,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
                 ← Edit details or documents
               </button>
               <p className="text-ev-muted text-sm leading-relaxed">
-                6-digit code sent to {phoneMasked}. Verify and submit your application.
+                6-digit code sent to {emailMasked}. Verify and submit your application.
               </p>
             </div>
             <OtpCells

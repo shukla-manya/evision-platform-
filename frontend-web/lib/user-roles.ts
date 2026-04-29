@@ -29,7 +29,7 @@ export function roleDisplayLabel(role: string | undefined | null): string {
     .join(' ');
 }
 
-/** Shop admins reset password via SMS OTP; technicians sign in with OTP only (no password on web). */
+/** Shop admins reset password via email OTP (SMTP). */
 export type PasswordResetApiRole = 'admin';
 
 export const PASSWORD_RESET_ROLE_OPTIONS: { value: PasswordResetApiRole; label: string }[] = [

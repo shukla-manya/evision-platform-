@@ -94,7 +94,7 @@ export class ElectricianController {
       properties: {
         name: { type: 'string', example: 'Ravi Kumar' },
         phone: { type: 'string', example: '+919876543210' },
-        otp: { type: 'string', example: '482931', description: '6-digit OTP from /auth/send-otp' },
+        otp: { type: 'string', example: '482931', description: '6-digit OTP from /auth/send-otp to this email' },
         email: { type: 'string', example: 'ravi@example.com' },
         password: { type: 'string', example: 'SecurePass@123', description: 'Optional' },
         address: { type: 'string', example: 'Sector 15, Faridabad' },

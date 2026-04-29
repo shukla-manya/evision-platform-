@@ -173,15 +173,20 @@ export const authApi = {
     api.post<{ access_token: string; admin: unknown }>('/auth/admin/login', { email, password }),
   superadminLogin: (email: string, password: string) =>
     api.post<{ access_token: string }>('/auth/superadmin/login', { email, password }),
-  sendOtp: (phone: string, extra?: { purpose?: 'signup'; email?: string }) =>
-    api.post('/auth/send-otp', { phone, ...extra }),
-  verifyOtp: (phone: string, otp: string) =>
-    api.post<OtpVerifyResponse>('/auth/verify-otp', { phone, otp }),
+  sendOtp: (email: string, extra?: { purpose?: 'signup' }) =>
+    api.post('/auth/send-otp', { email: email.trim().toLowerCase(), ...extra }),
+  verifyOtp: (email: string, otp: string) =>
+    api.post<OtpVerifyResponse>('/auth/verify-otp', { email: email.trim().toLowerCase(), otp }),
   register: (payload: RegisterRequest) => api.post('/auth/register', payload),
-  passwordResetStart: (role: PasswordResetRole, phone: string) =>
-    api.post('/auth/password/reset/start', { role, phone }),
-  passwordResetComplete: (role: PasswordResetRole, phone: string, otp: string, newPassword: string) =>
-    api.post('/auth/password/reset/complete', { role, phone, otp, new_password: newPassword }),
+  passwordResetStart: (role: PasswordResetRole, email: string) =>
+    api.post('/auth/password/reset/start', { role, email: email.trim().toLowerCase() }),
+  passwordResetComplete: (role: PasswordResetRole, email: string, otp: string, newPassword: string) =>
+    api.post('/auth/password/reset/complete', {
+      role,
+      email: email.trim().toLowerCase(),
+      otp,
+      new_password: newPassword,
+    }),
   me: () => api.get('/auth/me'),
   saveDeviceToken: (fcmToken: string) => api.post('/auth/me/device-token', { fcm_token: fcmToken }),
   updateGeo: (lat: number, lng: number) => api.patch<{ lat: number; lng: number; geo_captured_at: string }>('/auth/me/geo', { lat, lng }),

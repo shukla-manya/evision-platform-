@@ -5,6 +5,7 @@ import {
   ConflictException,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -21,6 +22,7 @@ import {
 } from './dto/register.dto';
 import { AdminSetupPasswordDto } from './dto/admin-setup-password.dto';
 import type { AddressBookEntryDto } from './dto/update-address-book.dto';
+import { EmailService } from '../emails/email.service';
 
 @Injectable()
 export class AuthService {
@@ -30,31 +32,28 @@ export class AuthService {
     private dynamo: DynamoService,
     private jwt: JwtService,
     private config: ConfigService,
+    private email: EmailService,
   ) {}
 
-  // ── OTP ──────────────────────────────────────────────────────────────────
-  async sendOtp(
-    phone: string,
-    opts?: { purpose?: 'login' | 'signup'; email?: string },
-  ): Promise<{ message: string }> {
+  // ── OTP (email only; Dynamo partition attribute is still `phone` for legacy table keys) ──
+  private normalizeOtpEmail(raw: string): string {
+    return String(raw || '')
+      .trim()
+      .toLowerCase();
+  }
+
+  async sendOtp(emailRaw: string, opts?: { purpose?: 'login' | 'signup' }): Promise<{ message: string }> {
+    const email = this.normalizeOtpEmail(emailRaw);
+    if (!email) {
+      throw new BadRequestException('Email is required');
+    }
+
     const purpose = opts?.purpose ?? 'login';
     if (purpose === 'signup') {
-      const emailNorm = String(opts?.email || '').trim().toLowerCase();
-      if (!emailNorm) {
-        throw new BadRequestException('Email is required when requesting signup OTP');
-      }
-      const [existingPhone, existingEmailUser, ecPhone, ecEmail] = await Promise.all([
-        this.findUserByPhone(phone),
-        this.findUserByEmail(emailNorm),
-        this.findElectricianByPhone(phone),
-        this.findElectricianByEmail(emailNorm),
+      const [existingEmailUser, ecEmail] = await Promise.all([
+        this.findUserByEmail(email),
+        this.findElectricianByEmail(email),
       ]);
-      if (existingPhone) {
-        throw new ConflictException('This phone number is already registered. Sign in instead.');
-      }
-      if (ecPhone) {
-        throw new ConflictException('This phone number is already used for a technician account.');
-      }
       if (existingEmailUser) {
         throw new ConflictException('Email already registered');
       }
@@ -67,7 +66,7 @@ export class AuthService {
     const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 min TTL
 
     await this.dynamo.put(this.dynamo.tableName('otps'), {
-      phone,
+      phone: email,
       otp,
       expires_at: expiresAt,
     });
@@ -84,57 +83,46 @@ export class AuthService {
       flag === 'yes';
 
     if (consoleOnly) {
-      this.logger.log(`[OTP] ${phone} → ${otp} (valid 10 minutes)`);
+      this.logger.log(`[OTP email] ${email} → ${otp} (valid 10 minutes, OTP_CONSOLE_ONLY)`);
       return { message: 'OTP sent successfully' };
     }
 
-    try {
-      const twilio = require('twilio')(
-        this.config.get('TWILIO_ACCOUNT_SID'),
-        this.config.get('TWILIO_AUTH_TOKEN'),
+    const { ok, error } = await this.email.sendAuthOtpEmail(email, { code: otp, purpose });
+    if (!ok) {
+      await this.dynamo.delete(this.dynamo.tableName('otps'), { phone: email });
+      throw new ServiceUnavailableException(
+        error ||
+          'Unable to send verification email. Configure SMTP (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM).',
       );
-      await twilio.messages.create({
-        body: `Your E vision OTP is: ${otp}. Valid for 10 minutes.`,
-        from: this.config.get('TWILIO_PHONE_NUMBER'),
-        to: phone,
-      });
-      this.logger.log(`OTP sent to ${phone}`);
-    } catch (err: any) {
-      this.logger.warn(`Twilio send failed for ${phone}: ${err?.message ?? err}`);
-      if (this.config.get('NODE_ENV') !== 'production') {
-        this.logger.log(`[OTP] ${phone} → ${otp} (fallback after Twilio failure)`);
-      }
     }
 
     return { message: 'OTP sent successfully' };
   }
 
   async verifyOtp(
-    phone: string,
+    emailRaw: string,
     otp: string,
   ): Promise<{
     access_token: string;
     is_registered: boolean;
     electrician_status?: 'pending' | 'rejected';
   }> {
-    await this.consumeOtp(phone, otp);
+    const email = this.normalizeOtpEmail(emailRaw);
+    await this.consumeOtp(email, otp);
 
-    const existing = await this.findUserByPhone(phone);
+    const existing = await this.findUserByEmail(email);
     if (existing) {
-      const token = this.signToken(existing.id, existing.role, existing.email, phone);
+      const ph = String(existing.phone || '');
+      const token = this.signToken(existing.id, existing.role, existing.email, ph);
       return { access_token: token, is_registered: true };
     }
 
-    const electrician = await this.findElectricianByPhone(phone);
+    const electrician = await this.findElectricianByEmail(email);
     if (electrician) {
+      const ph = String(electrician.phone || '');
       const st = String(electrician.status || '').toLowerCase();
       if (st === 'approved') {
-        const token = this.signToken(
-          String(electrician.id),
-          'electrician',
-          String(electrician.email || ''),
-          phone,
-        );
+        const token = this.signToken(String(electrician.id), 'electrician', String(electrician.email || ''), ph);
         return { access_token: token, is_registered: true };
       }
       if (st === 'pending') {
@@ -142,7 +130,7 @@ export class AuthService {
           String(electrician.id),
           'electrician_pending',
           String(electrician.email || ''),
-          phone,
+          ph,
         );
         return { access_token: token, is_registered: true, electrician_status: 'pending' as const };
       }
@@ -151,23 +139,21 @@ export class AuthService {
           String(electrician.id),
           'electrician_rejected',
           String(electrician.email || ''),
-          phone,
+          ph,
         );
         return { access_token: token, is_registered: true, electrician_status: 'rejected' as const };
       }
       throw new UnauthorizedException('Technician account is not available for sign-in.');
     }
 
-    const tempToken = this.jwt.sign(
-      { sub: `temp_${phone}`, role: 'unregistered', phone },
-      { expiresIn: '15m' },
-    );
+    const tempToken = this.jwt.sign({ sub: `temp_${email}`, role: 'unregistered', email }, { expiresIn: '15m' });
     return { access_token: tempToken, is_registered: false };
   }
 
   // ── Registration ──────────────────────────────────────────────────────────
   async register(dto: RegisterDto): Promise<{ access_token: string; user: any }> {
-    await this.consumeOtp(dto.phone, dto.otp);
+    const emailNorm = String(dto.email || '').trim().toLowerCase();
+    await this.consumeOtp(emailNorm, dto.otp);
     if (dto.role === 'dealer' && !dto.gst_no) {
       throw new BadRequestException('GST number is required for dealer accounts');
     }
@@ -187,7 +173,6 @@ export class AuthService {
       }
     }
 
-    const emailNorm = String(dto.email || '').trim().toLowerCase();
     if (!emailNorm) {
       throw new BadRequestException('Email is required');
     }
@@ -262,23 +247,23 @@ export class AuthService {
 
   async passwordResetStart(
     dto: PasswordResetStartDto,
-  ): Promise<{ otp_sent: boolean; role: string; phone: string }> {
+  ): Promise<{ otp_sent: boolean; role: string; email: string }> {
     const normalizedRole = dto.role;
-    const phone = String(dto.phone || '').trim();
-    const account = await this.findAccountByRoleAndPhone(normalizedRole, phone);
-    if (!account) throw new UnauthorizedException('Account not found for provided role and phone');
-    await this.sendOtp(phone);
-    return { otp_sent: true, role: normalizedRole, phone };
+    const email = this.normalizeOtpEmail(dto.email);
+    const account = await this.findAccountByRoleAndEmail(normalizedRole, email);
+    if (!account) throw new UnauthorizedException('Account not found for provided role and email');
+    await this.sendOtp(email, { purpose: 'login' });
+    return { otp_sent: true, role: normalizedRole, email };
   }
 
   async passwordResetComplete(
     dto: PasswordResetCompleteDto,
   ): Promise<{ updated: boolean; role: string }> {
     const normalizedRole = dto.role;
-    const phone = String(dto.phone || '').trim();
-    const account = await this.findAccountByRoleAndPhone(normalizedRole, phone);
-    if (!account) throw new UnauthorizedException('Account not found for provided role and phone');
-    await this.consumeOtp(phone, dto.otp);
+    const email = this.normalizeOtpEmail(dto.email);
+    const account = await this.findAccountByRoleAndEmail(normalizedRole, email);
+    if (!account) throw new UnauthorizedException('Account not found for provided role and email');
+    await this.consumeOtp(email, dto.otp);
     const password_hash = await bcrypt.hash(String(dto.new_password || ''), 12);
 
     if (normalizedRole === 'admin') {
@@ -388,7 +373,7 @@ export class AuthService {
     const existing = String(admin.password_hash || '');
     if (existing.length > 0) {
       throw new BadRequestException(
-        'A password is already set for this account. Sign in with your email and password, or reset it with the phone OTP flow.',
+        'A password is already set for this account. Sign in with your email and password, or reset it with the email OTP flow.',
       );
     }
 
@@ -564,16 +549,17 @@ export class AuthService {
     return items[0] || null;
   }
 
-  private async findAccountByRoleAndPhone(
+  private async findAccountByRoleAndEmail(
     role: 'electrician' | 'admin',
-    phone: string,
+    email: string,
   ): Promise<any | null> {
-    if (role === 'admin') return this.findAdminByPhone(phone);
-    return this.findElectricianByPhone(phone);
+    if (role === 'admin') return this.findAdminByEmail(email);
+    return this.findElectricianByEmail(email);
   }
 
-  private async consumeOtp(phone: string, otp: string): Promise<void> {
-    const record = await this.dynamo.get(this.dynamo.tableName('otps'), { phone });
+  /** @param otpKey normalized email (stored under Dynamo attribute `phone` for legacy partition key). */
+  private async consumeOtp(otpKey: string, otp: string): Promise<void> {
+    const record = await this.dynamo.get(this.dynamo.tableName('otps'), { phone: otpKey });
 
     if (!record) throw new UnauthorizedException('OTP not found or expired');
     const stored = String(record.otp ?? '').replace(/\D/g, '');
@@ -584,16 +570,16 @@ export class AuthService {
 
     const nowSeconds = Math.floor(Date.now() / 1000);
     if (record.expires_at < nowSeconds) {
-      await this.dynamo.delete(this.dynamo.tableName('otps'), { phone });
+      await this.dynamo.delete(this.dynamo.tableName('otps'), { phone: otpKey });
       throw new UnauthorizedException('OTP has expired');
     }
 
-    await this.dynamo.delete(this.dynamo.tableName('otps'), { phone });
+    await this.dynamo.delete(this.dynamo.tableName('otps'), { phone: otpKey });
   }
 
   /** Used by technician self-registration: validate and delete OTP in one step with multipart submit. */
-  async consumeRegistrationOtp(phone: string, otp: string): Promise<void> {
-    await this.consumeOtp(phone, otp);
+  async consumeRegistrationOtp(email: string, otp: string): Promise<void> {
+    await this.consumeOtp(this.normalizeOtpEmail(email), otp);
   }
 
   async replaceAddressBook(

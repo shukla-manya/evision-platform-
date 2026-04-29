@@ -1,14 +1,16 @@
-import { IsString, Length, Matches } from 'class-validator';
+import { IsString, Length, Matches, IsEmail } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class VerifyOtpDto {
-  @ApiProperty({ example: '+919876543210' })
-  @IsString()
-  @Matches(/^\+[1-9]\d{9,14}$/, { message: 'Phone must be in E.164 format' })
-  phone: string;
+  @ApiProperty({ example: 'user@example.com' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @IsEmail()
+  email: string;
 
   @ApiProperty({ example: '482931' })
   @IsString()
   @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
+  @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
   otp: string;
 }
