@@ -7,7 +7,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { EmailService } from '../emails/email.service';
@@ -23,7 +22,6 @@ export class AdminService {
     private email: EmailService,
     private config: ConfigService,
     private s3: S3Service,
-    private jwt: JwtService,
   ) {}
 
   async register(dto: RegisterAdminDto, logoFile?: Express.Multer.File): Promise<{ message: string }> {
