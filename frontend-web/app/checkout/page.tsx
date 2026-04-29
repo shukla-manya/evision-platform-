@@ -133,10 +133,6 @@ export default function CheckoutPage() {
   }
 
   async function payNow() {
-    if (!window.Razorpay) {
-      toast.error('Payment SDK not loaded');
-      return;
-    }
     if (!addresses.length) {
       toast.error('Add a delivery address first');
       setStep(1);
@@ -144,59 +140,31 @@ export default function CheckoutPage() {
     }
     setPaying(true);
     try {
-      const { data } = await checkoutApi.createOrder();
+      const { data } = await checkoutApi.createOrder({ delivery_address_index: selectedIdx });
       const d = data as {
-        razorpay_order_id: string;
-        amount_paise: number;
-        currency: string;
-        key_id?: string;
+        payment_provider?: string;
+        action?: string;
+        fields?: Record<string, string>;
       };
-      if (!d.razorpay_order_id || !d.key_id) {
+      if (d.payment_provider !== 'payu' || !d.action || !d.fields) {
         toast.error('Checkout response is incomplete');
         return;
       }
-
-      const rp = new window.Razorpay({
-        key: d.key_id,
-        amount: d.amount_paise,
-        currency: d.currency || 'INR',
-        order_id: d.razorpay_order_id,
-        name: 'E vision',
-        description: 'Order payment — UPI, card, netbanking',
-        handler: async (response: Record<string, string>) => {
-          try {
-            const confirmRes = await checkoutApi.confirm({
-              status: 'success',
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              delivery_address_index: selectedIdx,
-            });
-            const gid = String((confirmRes.data as { order_group_id?: string })?.order_group_id || '');
-            const shipments = cart.shops.length;
-            const tail = gid.replace(/-/g, '').slice(-4).toUpperCase();
-            router.push(
-              `/checkout/success?group=${encodeURIComponent(gid)}&shipments=${shipments}&ref=${encodeURIComponent(`G${tail}`)}`,
-            );
-          } catch {
-            toast.error('Could not confirm payment');
-            router.push('/checkout/failure');
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            if (paying) setPaying(false);
-          },
-        },
-        theme: { color: '#E8532A' },
-      });
-      rp.on('payment.failed', () => {
-        router.push('/checkout/failure');
-      });
-      rp.open();
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = d.action;
+      form.style.display = 'none';
+      for (const [name, value] of Object.entries(d.fields)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      }
+      document.body.appendChild(form);
+      form.submit();
     } catch {
       toast.error('Could not start payment');
-    } finally {
       setPaying(false);
     }
   }
@@ -205,7 +173,6 @@ export default function CheckoutPage() {
 
   return (
     <PublicShell>
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
@@ -372,7 +339,8 @@ export default function CheckoutPage() {
               <section className="ev-card p-6 space-y-4">
                 <h2 className="text-lg font-semibold text-ev-text">Pay securely</h2>
                 <p className="text-ev-muted text-sm leading-relaxed">
-                  Pay {formatInr(total)} via Razorpay — UPI, card, or netbanking. Your order is created after successful payment.
+                  Pay {formatInr(total)} via PayU (UPI, card, netbanking). You will leave this site to complete payment;
+                  your order is created after PayU returns successfully.
                 </p>
                 <div className="rounded-xl bg-ev-surface2 border border-ev-border p-4 text-sm text-ev-muted flex gap-2">
                   <CheckCircle2 size={16} className="text-ev-success shrink-0 mt-0.5" />
