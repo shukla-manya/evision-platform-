@@ -16,14 +16,21 @@ const LINKS: { label: string; path: string }[] = [
 export function PublicWebsiteLinks({
   audience,
   onOpenBlog,
+  onOpenContact,
 }: {
   audience: 'signed_in' | 'signed_out';
   /** When set, “Blog” opens in-app instead of the browser (customer / dealer stack). */
   onOpenBlog?: () => void;
+  /** When set, “Contact” opens in-app instead of the browser. */
+  onOpenContact?: () => void;
 }) {
   const open = (path: string) => () => {
     if (path === '/blog' && onOpenBlog) {
       onOpenBlog();
+      return;
+    }
+    if (path === '/contact' && onOpenContact) {
+      onOpenContact();
       return;
     }
     void Linking.openURL(publicWebUrl(path));
