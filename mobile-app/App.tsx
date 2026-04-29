@@ -1613,54 +1613,60 @@ function CheckoutScreen({ navigation }: any) {
   );
 }
 
-function PaymentScreen({ route, navigation, user }: { route: RouteProp<RootStackParamList, 'Payment'>; navigation: any; user: AppUser | null }) {
+function PaymentScreen({ route, navigation }: { route: RouteProp<RootStackParamList, 'Payment'>; navigation: any }) {
   const { checkoutData } = route.params;
-  const [loading, setLoading] = useState(false);
+  const handledUrlRef = useRef<string | null>(null);
 
-  const payNow = async () => {
-    try {
-      setLoading(true);
-      const paymentResult = await openRazorpayCheckout({
-        key: checkoutData.key_id,
-        amountPaise: checkoutData.amount_paise,
-        orderId: checkoutData.razorpay_order_id,
-        prefillEmail: user?.email,
-        prefillContact: user?.phone,
-      });
-      await checkoutApi.confirm({
-        status: 'success',
-        razorpay_order_id: String(paymentResult.razorpay_order_id || checkoutData.razorpay_order_id),
-        razorpay_payment_id: String(paymentResult.razorpay_payment_id || ''),
-        razorpay_signature: String(paymentResult.razorpay_signature || ''),
-      });
-      Alert.alert('Payment successful', 'Your order is being finalized.');
-      navigation.navigate('Main', { screen: 'Orders' });
-    } catch (err) {
-      const errorDescription = asApiError(err, 'Could not complete payment.');
-      try {
-        await checkoutApi.confirm({
-          status: 'failure',
-          razorpay_order_id: checkoutData.razorpay_order_id,
-          failure_reason: errorDescription,
-        });
-      } catch {
-        // Webhook flow can still mark payment outcome even if confirm fails.
+  const payuHtml = useMemo(() => {
+    if (checkoutData.payment_provider !== 'payu' || !checkoutData.action || !checkoutData.fields) return '';
+    return buildPayuAutoSubmitHtml(checkoutData.action, checkoutData.fields);
+  }, [checkoutData]);
+
+  const handleNavUrl = useCallback(
+    (url: string) => {
+      if (!url || url === 'about:blank') return;
+      if (handledUrlRef.current === url) return;
+      if (url.includes('/checkout/success')) {
+        handledUrlRef.current = url;
+        Alert.alert('Payment successful', 'Your order is confirmed.');
+        navigation.navigate('Main', { screen: 'Orders' });
+      } else if (url.includes('/checkout/failure')) {
+        handledUrlRef.current = url;
+        Alert.alert('Payment failed', 'Please try again from checkout.');
+        navigation.goBack();
       }
-      Alert.alert('Payment failed', errorDescription);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [navigation],
+  );
+
+  if (!payuHtml) {
+    return (
+      <SafeAreaView style={styles.screen}>
+        <View style={styles.centerBox}>
+          <Text style={styles.title}>Payment</Text>
+          <Text style={styles.subtitle}>Invalid checkout response. Go back and try again.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.screen}>
-      <View style={styles.centerBox}>
-        <Text style={styles.title}>Razorpay Payment</Text>
-        <Text style={styles.subtitle}>Amount: {formatINR(checkoutData.amount)}</Text>
-        <Pressable style={styles.button} onPress={payNow} disabled={loading}>
-          <Text style={styles.buttonText}>{loading ? 'Opening...' : 'Pay Now'}</Text>
-        </Pressable>
+    <SafeAreaView style={[styles.screen, { flex: 1 }]}>
+      <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
+        <Text style={styles.subtitle}>Amount: {formatINR(checkoutData.amount)} · PayU</Text>
       </View>
+      <WebView
+        style={{ flex: 1 }}
+        originWhitelist={['*']}
+        javaScriptEnabled
+        domStorageEnabled
+        source={{ html: payuHtml }}
+        onNavigationStateChange={(nav) => handleNavUrl(nav.url || '')}
+        onShouldStartLoadWithRequest={(req) => {
+          handleNavUrl(req.url);
+          return true;
+        }}
+      />
     </SafeAreaView>
   );
 }
