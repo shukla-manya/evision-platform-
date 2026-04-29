@@ -194,4 +194,38 @@ export class AdminService {
     await this.dynamo.update(this.dynamo.tableName('admins'), { id }, { last_settlement_at: now });
     return { message: 'Marked as settled', last_settlement_at: now };
   }
+
+  /**
+   * Ensures a synthetic approved "shop" row exists so platform catalogue products can use `admin_id`.
+   * Id must match `PLATFORM_CATALOG_ADMIN_ID` in env.
+   */
+  async ensurePlatformCatalogAdmin(platformId: string): Promise<void> {
+    const id = platformId.trim();
+    if (!id) return;
+    const existing = await this.dynamo.get(this.dynamo.tableName('admins'), { id });
+    if (existing) return;
+
+    const shopName = this.config.get<string>('PLATFORM_SHOP_NAME')?.trim() || 'Evision India';
+    const email = `platform-catalog-${id.slice(0, 8)}@internal.evision`;
+    const admin = {
+      id,
+      shop_name: shopName,
+      owner_name: 'Platform catalogue',
+      email,
+      phone: '+910000000001',
+      gst_no: 'NA',
+      address: 'Platform',
+      city: 'Faridabad',
+      pincode: '121002',
+      logo_url: null,
+      password_hash: null,
+      status: 'approved',
+      reject_reason: null,
+      approved_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      platform_commission_pct: 0,
+    };
+    await this.dynamo.put(this.dynamo.tableName('admins'), admin);
+    this.logger.log(`Seeded platform catalogue admin ${id} (${shopName})`);
+  }
 }

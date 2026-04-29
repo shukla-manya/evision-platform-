@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { S3Service } from '../../common/s3/s3.service';
@@ -21,6 +22,7 @@ export class ProductsService {
     private dynamo: DynamoService,
     private s3: S3Service,
     private categories: CategoriesService,
+    private config: ConfigService,
   ) {}
 
   private productsTable() {
@@ -35,6 +37,11 @@ export class ProductsService {
     return this.dynamo.tableName('admins');
   }
 
+  /** When set, storefront only lists this admin's products; shop picker only shows this row. */
+  platformCatalogAdminId(): string | undefined {
+    return this.config.get<string>('PLATFORM_CATALOG_ADMIN_ID')?.trim() || undefined;
+  }
+
   /** Public directory: approved shop admins for storefront filters. */
   async listApprovedShopsPublic(): Promise<{ id: string; shop_name: string }[]> {
     const rows = await this.dynamo.queryAllPages({
@@ -44,13 +51,16 @@ export class ProductsService {
       ExpressionAttributeNames: { '#s': 'status' },
       ExpressionAttributeValues: { ':st': 'approved' },
     });
-    return rows
+    let list = rows
       .map((r) => ({
         id: String((r as { id?: unknown }).id || ''),
         shop_name: String((r as { shop_name?: unknown }).shop_name || 'Shop'),
       }))
       .filter((x) => x.id)
       .sort((a, b) => a.shop_name.localeCompare(b.shop_name, undefined, { sensitivity: 'base' }));
+    const pid = this.platformCatalogAdminId();
+    if (pid) list = list.filter((x) => x.id === pid);
+    return list;
   }
 
   /** Approved shops — used for indexed catalogue reads when no category filter is set. */
@@ -321,6 +331,11 @@ export class ProductsService {
     }
 
     items = items.filter((p) => p.active !== false);
+
+    const pid = this.platformCatalogAdminId();
+    if (pid && (role === 'guest' || role === 'customer' || role === 'dealer')) {
+      items = items.filter((p) => String(p.admin_id) === pid);
+    }
 
     if (query.brand?.trim()) {
       const b = query.brand.trim().toLowerCase();
