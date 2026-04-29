@@ -1,27 +1,15 @@
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import * as bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
+import { MongoClient } from 'mongodb';
 import * as path from 'path';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
-const endpoint =
-  process.env.DYNAMODB_ENDPOINT || process.env.DYNAMO_ENDPOINT || undefined;
-const isLocal = Boolean(endpoint);
-const raw = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'ap-south-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || (isLocal ? 'local' : ''),
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || (isLocal ? 'local' : ''),
-  },
-  ...(endpoint ? { endpoint } : {}),
-});
-const client = DynamoDBDocumentClient.from(raw);
-
 async function seedSuperadmin() {
   console.log('\n⚡ E vision — Superadmin Seed\n');
 
+  const uri =
+    process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/evision';
   const email = process.env.SUPERADMIN_EMAIL;
   const password = process.env.SUPERADMIN_PASSWORD;
   const name = process.env.SUPERADMIN_NAME || 'Super Admin';
@@ -32,43 +20,41 @@ async function seedSuperadmin() {
     process.exit(1);
   }
 
-  // Check if already exists
-  const existing = await client.send(
-    new GetCommand({ TableName: 'evision_superadmin', Key: { id: 'SUPERADMIN' } }),
-  );
+  const client = new MongoClient(uri);
+  await client.connect();
+  const col = client.db().collection('evision_superadmin');
 
-  if (existing.Item) {
-    console.log('  ⚠ Superadmin already exists. Skipping.\n');
-    console.log(`  Email: ${existing.Item.email}`);
-    console.log('  To update, delete the record and re-run this script.\n');
-    return;
+  try {
+    const existing = await col.findOne({ id: 'SUPERADMIN' });
+    if (existing) {
+      console.log('  ⚠ Superadmin already exists. Skipping.\n');
+      console.log(`  Email: ${existing.email}`);
+      console.log('  To update, delete the record and re-run this script.\n');
+      return;
+    }
+
+    const password_hash = await bcrypt.hash(password, 12);
+    await col.insertOne({
+      id: 'SUPERADMIN',
+      name,
+      email,
+      phone,
+      password_hash,
+      role: 'superadmin',
+      created_at: new Date().toISOString(),
+    });
+
+    console.log('  ✅ Superadmin seeded successfully!\n');
+    console.log(`  Name:  ${name}`);
+    console.log(`  Email: ${email}`);
+    console.log('  Password: (hidden — from .env SUPERADMIN_PASSWORD)\n');
+    console.log('  API login: POST /auth/superadmin/login  ·  Web UI (private): /super/signin\n');
+  } finally {
+    await client.close();
   }
-
-  const password_hash = await bcrypt.hash(password, 12);
-
-  await client.send(
-    new PutCommand({
-      TableName: 'evision_superadmin',
-      Item: {
-        id: 'SUPERADMIN',
-        name,
-        email,
-        phone,
-        password_hash,
-        role: 'superadmin',
-        created_at: new Date().toISOString(),
-      },
-    }),
-  );
-
-  console.log('  ✅ Superadmin seeded successfully!\n');
-  console.log(`  Name:  ${name}`);
-  console.log(`  Email: ${email}`);
-  console.log('  Password: (hidden — from .env SUPERADMIN_PASSWORD)\n');
-  console.log('  API login: POST /auth/superadmin/login  ·  Web UI (private): /super/signin\n');
 }
 
-seedSuperadmin().catch(err => {
+seedSuperadmin().catch((err) => {
   console.error('Seed failed:', err.message);
   process.exit(1);
 });
