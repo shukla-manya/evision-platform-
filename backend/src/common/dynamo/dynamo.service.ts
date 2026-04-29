@@ -1,90 +1,97 @@
-import { Injectable, OnModuleInit, Logger, ServiceUnavailableException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
-  DynamoDBDocumentClient,
-  PutCommand,
-  GetCommand,
-  UpdateCommand,
-  DeleteCommand,
-  QueryCommand,
-  ScanCommand,
-  QueryCommandInput,
-  ScanCommandInput,
-} from '@aws-sdk/lib-dynamodb';
-import { ensureEvisionDynamoTables } from '../../seeds/dynamo-tables.setup';
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { MongoClient, Db, Collection, Document } from 'mongodb';
+import { evisionPartitionKeyFields } from './collection-keys';
+import {
+  mongoFilterFromQueryInput,
+  mongoFilterFromScanInput,
+  mongoProjectionFromExpression,
+  type DynamoLikeQueryInput,
+  type DynamoLikeScanInput,
+} from './mongo-dynamo-query.util';
+
+function stripMongoId(doc: Record<string, unknown> | null | undefined): any {
+  if (!doc || typeof doc !== 'object') return doc;
+  const { _id, ...rest } = doc;
+  void _id;
+  return rest;
+}
+
+function stripMongoIds(docs: Record<string, unknown>[]): any[] {
+  return docs.map((d) => stripMongoId(d));
+}
+
+function keyFilter(tableName: string, key: Record<string, unknown>): Record<string, unknown> {
+  const fields = evisionPartitionKeyFields(tableName);
+  const f: Record<string, unknown> = {};
+  for (const k of fields) {
+    if (key[k] === undefined) {
+      throw new Error(`Missing key field "${k}" for ${tableName}`);
+    }
+    f[k] = key[k];
+  }
+  return f;
+}
 
 @Injectable()
-export class DynamoService implements OnModuleInit {
+export class DynamoService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(DynamoService.name);
-  private client: DynamoDBDocumentClient;
+  private client: MongoClient | null = null;
+  private db: Db | null = null;
 
   constructor(private config: ConfigService) {}
 
   async onModuleInit(): Promise<void> {
-    const endpoint =
-      this.config.get('DYNAMODB_ENDPOINT') ||
-      this.config.get('DYNAMO_ENDPOINT') ||
-      undefined;
-    const isLocal = Boolean(endpoint);
-    const accessKeyId = this.config.get<string>('AWS_ACCESS_KEY_ID');
-    const secretAccessKey = this.config.get<string>('AWS_SECRET_ACCESS_KEY');
-    const credentials =
-      isLocal
-        ? {
-            accessKeyId: accessKeyId || 'local',
-            secretAccessKey: secretAccessKey || 'local',
-          }
-        : accessKeyId && secretAccessKey
-          ? { accessKeyId, secretAccessKey }
-          : undefined;
-
-    const raw = new DynamoDBClient({
-      region: this.config.get('AWS_REGION', 'ap-south-1'),
-      ...(credentials ? { credentials } : {}),
-      ...(endpoint ? { endpoint } : {}),
-    });
-
-    if (isLocal) {
-      try {
-        await ensureEvisionDynamoTables(raw);
-        this.logger.log('DynamoDB local: tables verified/created (see npm run setup:tables)');
-      } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : String(e);
-        this.logger.warn(
-          `DynamoDB local: could not auto-create tables (${msg}). Start dynalite (npm run dynamo:local) then restart the API, or run npm run setup:tables.`,
-        );
-      }
+    const uri =
+      this.config.get<string>('MONGODB_URI') ||
+      this.config.get<string>('DATABASE_URL') ||
+      'mongodb://127.0.0.1:27017/evision';
+    try {
+      this.client = new MongoClient(uri);
+      await this.client.connect();
+      this.db = this.client.db();
+      this.logger.log(`MongoDB connected (${this.logUriHint(uri)})`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.logger.error(`MongoDB connection failed: ${msg}`);
+      throw new ServiceUnavailableException(
+        'Cannot connect to MongoDB. Set MONGODB_URI (or DATABASE_URL) and ensure the server is running.',
+      );
     }
-
-    this.client = DynamoDBDocumentClient.from(raw, {
-      marshallOptions: { removeUndefinedValues: true },
-    });
-    this.logger.log(
-      isLocal
-        ? `DynamoDB client (local) → ${endpoint}`
-        : 'DynamoDB client (AWS)',
-    );
   }
 
-  /** Maps missing-table errors to a clear API response (avoids opaque 500s in local dev). */
+  async onModuleDestroy(): Promise<void> {
+    await this.client?.close();
+    this.client = null;
+    this.db = null;
+  }
+
+  private logUriHint(uri: string): string {
+    const host = uri.replace(/^mongodb(\+srv)?:\/\//, '').split(/[/:?@]/);
+    const h = host.find((x) => x.includes('.') || x === 'localhost' || x === '127.0.0.1');
+    return h ? `host ${h}` : 'configured URI';
+  }
+
+  private col(table: string): Collection<Document> {
+    if (!this.db) throw new Error('MongoDB not initialized');
+    return this.db.collection(table);
+  }
+
   private async send<T>(label: string, fn: () => Promise<T>): Promise<T> {
     try {
       return await fn();
     } catch (e: unknown) {
-      const name =
-        e && typeof e === 'object' && 'name' in e ? String((e as { name?: string }).name) : '';
       const msg = e instanceof Error ? e.message : String(e);
-      if (name === 'ResourceNotFoundException') {
-        this.logger.error(`DynamoDB ${label}: table or index not found`);
+      if (/ECONNREFUSED|ECONNRESET|ENOTFOUND|socket hang up|getaddrinfo|MongoNetworkError|not connected/i.test(msg)) {
+        this.logger.error(`MongoDB ${label}: ${msg}`);
         throw new ServiceUnavailableException(
-          'DynamoDB tables are missing or out of date. For local development: start dynalite, then from the backend folder run npm run setup:tables.',
-        );
-      }
-      if (/ECONNREFUSED|ECONNRESET|ENOTFOUND|socket hang up|getaddrinfo/i.test(msg)) {
-        this.logger.error(`DynamoDB ${label}: ${msg}`);
-        throw new ServiceUnavailableException(
-          'Cannot reach DynamoDB. Start local Dynalite (from backend: npm run dynamo:local), confirm DYNAMODB_ENDPOINT in .env, then restart the API.',
+          'Cannot reach MongoDB. Confirm MONGODB_URI and that the database is running.',
         );
       }
       throw e;
@@ -92,14 +99,16 @@ export class DynamoService implements OnModuleInit {
   }
 
   async put(table: string, item: Record<string, any>): Promise<void> {
-    await this.send('put', () => this.client.send(new PutCommand({ TableName: table, Item: item })));
+    const keys = evisionPartitionKeyFields(table);
+    const filter = Object.fromEntries(keys.map((k) => [k, item[k]]));
+    await this.send('put', () =>
+      this.col(table).replaceOne(filter, { ...item } as Document, { upsert: true }),
+    );
   }
 
   async get(table: string, key: Record<string, any>): Promise<any | null> {
-    const result = await this.send('get', () =>
-      this.client.send(new GetCommand({ TableName: table, Key: key })),
-    );
-    return result.Item || null;
+    const doc = await this.send('get', () => this.col(table).findOne(keyFilter(table, key)));
+    return stripMongoId(doc as Record<string, unknown> | null);
   }
 
   async update(
@@ -108,93 +117,75 @@ export class DynamoService implements OnModuleInit {
     updates: Record<string, any>,
     removeAttrs?: string[],
   ): Promise<any> {
-    const setExpressions: string[] = [];
-    const names: Record<string, string> = {};
-    const values: Record<string, any> = {};
-
-    for (const [k, v] of Object.entries(updates)) {
-      const nameKey = `#${k}`;
-      const valueKey = `:${k}`;
-      setExpressions.push(`${nameKey} = ${valueKey}`);
-      names[nameKey] = k;
-      values[valueKey] = v;
+    const filter = keyFilter(table, key);
+    const $set: Record<string, unknown> = { ...updates };
+    const $unset: Record<string, ''> = {};
+    for (const k of removeAttrs || []) {
+      if (k) $unset[k] = '';
     }
-
-    const removeNames = (removeAttrs || []).filter(Boolean);
-    for (const k of removeNames) {
-      names[`#r_${k}`] = k;
-    }
-    const removeExpr = removeNames.length ? ` REMOVE ${removeNames.map((k) => `#r_${k}`).join(', ')}` : '';
-    const setPart = setExpressions.length ? `SET ${setExpressions.join(', ')}` : '';
-    const updateExpression = `${setPart}${removeExpr}`.trim();
-    if (!updateExpression) {
+    const updateDoc: Record<string, unknown> = {};
+    if (Object.keys($set).length) updateDoc.$set = $set;
+    if (Object.keys($unset).length) updateDoc.$unset = $unset;
+    if (!Object.keys(updateDoc).length) {
       throw new Error('DynamoService.update: empty update and remove');
     }
-
-    const result = await this.send('update', () =>
-      this.client.send(
-        new UpdateCommand({
-          TableName: table,
-          Key: key,
-          UpdateExpression: updateExpression,
-          ExpressionAttributeNames: names,
-          ...(Object.keys(values).length ? { ExpressionAttributeValues: values } : {}),
-          ReturnValues: 'ALL_NEW',
-        }),
-      ),
-    );
-    return result.Attributes;
+    await this.send('update', async () => {
+      const ur = await this.col(table).updateOne(filter, updateDoc);
+      if (ur.matchedCount === 0) {
+        throw new Error(`DynamoService.update: no document matched ${table} ${JSON.stringify(key)}`);
+      }
+    });
+    const out = await this.col(table).findOne(filter);
+    return stripMongoId(out as Record<string, unknown> | null);
   }
 
   async delete(table: string, key: Record<string, any>): Promise<void> {
-    await this.send('delete', () => this.client.send(new DeleteCommand({ TableName: table, Key: key })));
+    await this.send('delete', () => this.col(table).deleteOne(keyFilter(table, key)));
   }
 
-  async query(params: QueryCommandInput): Promise<any[]> {
-    const result = await this.send('query', () => this.client.send(new QueryCommand(params)));
-    return result.Items || [];
+  async query(params: DynamoLikeQueryInput): Promise<any[]> {
+    const { TableName, Limit, ProjectionExpression, ScanIndexForward } = params;
+    const filter = mongoFilterFromQueryInput(params);
+    const proj = mongoProjectionFromExpression(ProjectionExpression);
+    const opts = proj ? { projection: proj } : {};
+    let cursor = this.col(TableName).find(filter, opts);
+    if (ScanIndexForward === false) cursor = cursor.sort({ _id: -1 });
+    else if (ScanIndexForward === true) cursor = cursor.sort({ _id: 1 });
+    if (Limit != null && Limit > 0) cursor = cursor.limit(Limit);
+    const items = await this.send('query', () => cursor.toArray());
+    return stripMongoIds(items as Record<string, unknown>[]);
   }
 
-  /** Paginated query (DynamoDB returns at most 1MB per page). */
-  async queryAllPages(params: QueryCommandInput): Promise<any[]> {
-    const { ExclusiveStartKey: _start, ...rest } = params;
-    void _start;
-    const out: any[] = [];
-    let ExclusiveStartKey: Record<string, unknown> | undefined;
-    for (;;) {
-      const result = await this.send('queryAllPages', () =>
-        this.client.send(new QueryCommand({ ...rest, ExclusiveStartKey })),
-      );
-      out.push(...(result.Items || []));
-      ExclusiveStartKey = result.LastEvaluatedKey;
-      if (!ExclusiveStartKey) break;
-    }
-    return out;
+  async queryAllPages(params: DynamoLikeQueryInput): Promise<any[]> {
+    const { TableName, ProjectionExpression } = params;
+    const filter = mongoFilterFromQueryInput(params);
+    const proj = mongoProjectionFromExpression(ProjectionExpression);
+    const opts = proj ? { projection: proj } : {};
+    const items = await this.send('queryAllPages', () => this.col(TableName).find(filter, opts).toArray());
+    return stripMongoIds(items as Record<string, unknown>[]);
   }
 
-  async scan(params: ScanCommandInput): Promise<any[]> {
-    const result = await this.send('scan', () => this.client.send(new ScanCommand(params)));
-    return result.Items || [];
+  async scan(params: DynamoLikeScanInput): Promise<any[]> {
+    const { TableName, Limit, ProjectionExpression } = params;
+    const filter = mongoFilterFromScanInput(params);
+    const proj = mongoProjectionFromExpression(ProjectionExpression);
+    const opts = proj ? { projection: proj } : {};
+    let cursor = this.col(TableName).find(filter, opts);
+    if (Limit != null && Limit > 0) cursor = cursor.limit(Limit);
+    const items = await this.send('scan', () => cursor.toArray());
+    return stripMongoIds(items as Record<string, unknown>[]);
   }
 
-  /** Paginated scan — use sparingly; prefer GSIs and Query. */
-  async scanAllPages(params: ScanCommandInput): Promise<any[]> {
-    const { ExclusiveStartKey: _start, ...rest } = params;
-    void _start;
-    const out: any[] = [];
-    let ExclusiveStartKey: Record<string, unknown> | undefined;
-    for (;;) {
-      const result = await this.send('scanAllPages', () =>
-        this.client.send(new ScanCommand({ ...rest, ExclusiveStartKey })),
-      );
-      out.push(...(result.Items || []));
-      ExclusiveStartKey = result.LastEvaluatedKey;
-      if (!ExclusiveStartKey) break;
-    }
-    return out;
+  async scanAllPages(params: DynamoLikeScanInput): Promise<any[]> {
+    const { TableName, ProjectionExpression } = params;
+    const filter = mongoFilterFromScanInput(params);
+    const proj = mongoProjectionFromExpression(ProjectionExpression);
+    const opts = proj ? { projection: proj } : {};
+    const items = await this.send('scanAllPages', () => this.col(TableName).find(filter, opts).toArray());
+    return stripMongoIds(items as Record<string, unknown>[]);
   }
 
-  async queryOne(params: QueryCommandInput): Promise<any | null> {
+  async queryOne(params: DynamoLikeQueryInput): Promise<any | null> {
     const items = await this.query({ ...params, Limit: 1 });
     return items[0] || null;
   }
