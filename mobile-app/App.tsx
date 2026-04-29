@@ -56,6 +56,7 @@ import { clearSession, getToken, setElectricianProfile, setToken } from './src/s
 import { PasswordInputWithToggle } from './src/components/PasswordInputWithToggle';
 import { PublicWebsiteLinks } from './src/components/PublicWebsiteLinks';
 import { BlogListScreen, BlogPostScreen } from './src/screens/BlogScreens';
+import { ContactScreen } from './src/screens/ContactScreen';
 import { SuperadminWebQueueLinks } from './src/components/SuperadminWebQueueLinks';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { WebView } from 'react-native-webview';
@@ -106,6 +107,7 @@ type RootStackParamList = {
   Main: undefined;
   Blog: undefined;
   BlogPost: { slug: string };
+  Contact: undefined;
   ProductDetail: { product: Product };
   Checkout: undefined;
   Payment: { checkoutData: CheckoutResponse };
@@ -184,6 +186,17 @@ function getProductPriceForRole(product: Product, role?: string) {
   const preferred = isDealer ? product.price_dealer : product.price_customer;
   const fallback = isDealer ? product.price_customer : product.price_dealer;
   return Number(preferred ?? fallback ?? 0);
+}
+
+/** Open in-app Contact when nested under root stack + tabs; otherwise false. */
+function tryNavigateRootContact(navigation: { getParent?: () => any } | undefined): boolean {
+  const tab = navigation?.getParent?.();
+  const stack = tab?.getParent?.();
+  if (stack && typeof stack.navigate === 'function') {
+    stack.navigate('Contact');
+    return true;
+  }
+  return false;
 }
 
 function asApiError(err: unknown, fallback: string) {
