@@ -93,6 +93,23 @@ export const catalogApi = {
   getApprovedShops: () => api.get<Array<{ id: string; shop_name: string }>>('/products/shops/approved'),
 };
 
+export type ContactMessageResponse = {
+  ok: true;
+  greeting_name: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  message: string;
+};
+
+/** Public — no auth; sends mail via backend SMTP */
+export const publicContactApi = {
+  submitMessage: (body: { first_name: string; last_name: string; email: string; message: string }) =>
+    api.post<ContactMessageResponse>('/contact/message', body),
+  subscribeNewsletter: (body: { email: string }) =>
+    api.post<{ ok: boolean; email: string }>('/contact/newsletter', body),
+};
+
 // ── Cart / Checkout ────────────────────────────────────────────────────────
 export const cartApi = {
   getCart: () => api.get('/cart'),

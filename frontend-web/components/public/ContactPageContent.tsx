@@ -14,7 +14,7 @@ import {
   publicSupportEmail,
   publicSupportPhone,
 } from '@/lib/public-contact';
-import { publicBrandName } from '@/lib/public-brand';
+import { publicContactApi, type ContactMessageResponse } from '@/lib/api';
 
 function telHref(display: string) {
   const d = display.replace(/\D/g, '');
@@ -22,11 +22,12 @@ function telHref(display: string) {
   return `tel:${display}`;
 }
 
-function buildMailto(to: string, subject: string, body: string) {
-  const q = new URLSearchParams();
-  q.set('subject', subject);
-  q.set('body', body);
-  return `mailto:${to}?${q.toString()}`;
+function apiErrorMessage(err: unknown, fallback: string): string {
+  const d = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data;
+  const m = d?.message;
+  if (typeof m === 'string') return m;
+  if (Array.isArray(m)) return m.join(', ');
+  return fallback;
 }
 
 export function ContactPageContent() {
@@ -36,27 +37,69 @@ export function ContactPageContent() {
   const [message, setMessage] = useState('');
   const [subscribeEmail, setSubscribeEmail] = useState('');
 
-  const sendMessage = useCallback(() => {
-    const body = [
-      `Name: ${firstName.trim()} ${lastName.trim()}`.trim(),
-      `Email: ${email.trim()}`,
-      '',
-      message.trim(),
-    ].join('\n');
-    const href = buildMailto(publicSupportEmail, `Website contact — ${publicBrandName}`, body);
-    window.location.href = href;
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState<ContactMessageResponse | null>(null);
+
+  const [subSubmitting, setSubSubmitting] = useState(false);
+  const [subError, setSubError] = useState<string | null>(null);
+  const [subSuccessEmail, setSubSuccessEmail] = useState<string | null>(null);
+
+  const sendMessage = useCallback(async () => {
+    setFormError(null);
+    setFormSuccess(null);
+    const fn = firstName.trim();
+    const ln = lastName.trim();
+    const em = email.trim();
+    const msg = message.trim();
+    if (!fn || !ln || !em || !msg) {
+      setFormError('Please fill in all fields.');
+      return;
+    }
+    try {
+      setFormSubmitting(true);
+      const { data } = await publicContactApi.submitMessage({
+        first_name: fn,
+        last_name: ln,
+        email: em,
+        message: msg,
+      });
+      setFormSuccess(data);
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setMessage('');
+    } catch (err) {
+      setFormError(apiErrorMessage(err, 'Could not send your message. Please try again.'));
+    } finally {
+      setFormSubmitting(false);
+    }
   }, [firstName, lastName, email, message]);
 
-  const subscribe = useCallback(() => {
+  const subscribe = useCallback(async () => {
+    setSubError(null);
+    setSubSuccessEmail(null);
     const em = subscribeEmail.trim();
-    if (!em) return;
-    const href = buildMailto(
-      publicMarketingEmail,
-      `Subscribe — ${publicBrandName}`,
-      `Please add this email to the newsletter list:\n${em}`,
-    );
-    window.location.href = href;
+    if (!em) {
+      setSubError('Enter your email to subscribe.');
+      return;
+    }
+    try {
+      setSubSubmitting(true);
+      const { data } = await publicContactApi.subscribeNewsletter({ email: em });
+      setSubSuccessEmail(data.email);
+      setSubscribeEmail('');
+    } catch (err) {
+      setSubError(apiErrorMessage(err, 'Could not subscribe right now. Please try again.'));
+    } finally {
+      setSubSubmitting(false);
+    }
   }, [subscribeEmail]);
+
+  const resetFormFlow = useCallback(() => {
+    setFormSuccess(null);
+    setFormError(null);
+  }, []);
 
   return (
     <>
@@ -70,8 +113,8 @@ export function ContactPageContent() {
       <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-2">Get in Touch</h1>
         <p className="text-ev-muted max-w-2xl mb-10">
-          We are here for orders, accounts, dealers, technicians, and partnerships. Prefer the form below — it opens your
-          email app with your message addressed to our support team.
+          We are here for orders, accounts, dealers, technicians, and partnerships. Submit the form below — we email our
+          team and send you a confirmation with everything you entered.
         </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 mb-14">
@@ -146,86 +189,145 @@ export function ContactPageContent() {
           </div>
 
           <div className="space-y-8">
-            <div className="ev-card p-6 sm:p-8">
-              <h2 className="text-xl font-bold text-ev-text mb-6">Get in Touch</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label htmlFor="contact-first" className="block text-sm font-medium text-ev-text mb-1.5">
-                    First name
+            {formSuccess ? (
+              <div className="ev-card p-6 sm:p-8 border-2 border-ev-primary/30 bg-ev-primary/5">
+                <p className="text-xl font-bold text-ev-text">Thank you, {formSuccess.greeting_name}!</p>
+                <p className="text-ev-muted mt-3 leading-relaxed">
+                  Your message was delivered to our team. We also sent a confirmation email to{' '}
+                  <strong className="text-ev-text">{formSuccess.email}</strong> with a copy of what you submitted.
+                </p>
+                <div className="mt-6 rounded-xl border border-ev-border bg-white/80 p-4 text-sm">
+                  <p className="font-semibold text-ev-text mb-3">Here is what we have on file:</p>
+                  <dl className="space-y-2 text-ev-text">
+                    <div className="flex gap-2">
+                      <dt className="text-ev-muted w-28 shrink-0">First name</dt>
+                      <dd>{formSuccess.first_name}</dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="text-ev-muted w-28 shrink-0">Last name</dt>
+                      <dd>{formSuccess.last_name}</dd>
+                    </div>
+                    <div className="flex gap-2">
+                      <dt className="text-ev-muted w-28 shrink-0">Email</dt>
+                      <dd className="break-all">{formSuccess.email}</dd>
+                    </div>
+                    <div className="flex flex-col gap-1 pt-2">
+                      <dt className="text-ev-muted">Your message</dt>
+                      <dd className="whitespace-pre-wrap text-ev-text leading-relaxed">{formSuccess.message}</dd>
+                    </div>
+                  </dl>
+                </div>
+                <button type="button" className="ev-btn-secondary mt-6 text-sm" onClick={resetFormFlow}>
+                  Send another message
+                </button>
+              </div>
+            ) : (
+              <div className="ev-card p-6 sm:p-8">
+                <h2 className="text-xl font-bold text-ev-text mb-6">Get in Touch</h2>
+                {formError ? (
+                  <p className="text-sm text-red-600 mb-4 rounded-lg bg-red-50 px-3 py-2 border border-red-100">{formError}</p>
+                ) : null}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label htmlFor="contact-first" className="block text-sm font-medium text-ev-text mb-1.5">
+                      First name
+                    </label>
+                    <input
+                      id="contact-first"
+                      type="text"
+                      autoComplete="given-name"
+                      placeholder="First name"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="w-full rounded-xl border border-ev-border bg-white px-3 py-2.5 text-sm text-ev-text outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/30"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="contact-last" className="block text-sm font-medium text-ev-text mb-1.5">
+                      Last name
+                    </label>
+                    <input
+                      id="contact-last"
+                      type="text"
+                      autoComplete="family-name"
+                      placeholder="Last name"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      className="w-full rounded-xl border border-ev-border bg-white px-3 py-2.5 text-sm text-ev-text outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/30"
+                    />
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="contact-email" className="block text-sm font-medium text-ev-text mb-1.5">
+                    Email
                   </label>
                   <input
-                    id="contact-first"
-                    type="text"
-                    autoComplete="given-name"
-                    placeholder="First name"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    id="contact-email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full rounded-xl border border-ev-border bg-white px-3 py-2.5 text-sm text-ev-text outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/30"
                   />
                 </div>
-                <div>
-                  <label htmlFor="contact-last" className="block text-sm font-medium text-ev-text mb-1.5">
-                    Last name
+                <div className="mb-6">
+                  <label htmlFor="contact-message" className="block text-sm font-medium text-ev-text mb-1.5">
+                    Your Message
                   </label>
-                  <input
-                    id="contact-last"
-                    type="text"
-                    autoComplete="family-name"
-                    placeholder="Last name"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    className="w-full rounded-xl border border-ev-border bg-white px-3 py-2.5 text-sm text-ev-text outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/30"
+                  <textarea
+                    id="contact-message"
+                    rows={5}
+                    placeholder="Your Message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    className="w-full rounded-xl border border-ev-border bg-white px-3 py-2.5 text-sm text-ev-text outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/30 resize-y min-h-[120px]"
                   />
                 </div>
+                <button
+                  type="button"
+                  onClick={() => void sendMessage()}
+                  disabled={formSubmitting}
+                  className="ev-btn-primary w-full sm:w-auto px-8 py-3 disabled:opacity-60"
+                >
+                  {formSubmitting ? 'Sending…' : 'Send Message'}
+                </button>
+                <p className="text-ev-muted text-xs mt-3">Delivered through our server; check your inbox for the confirmation.</p>
               </div>
-              <div className="mb-4">
-                <label htmlFor="contact-email" className="block text-sm font-medium text-ev-text mb-1.5">
-                  Email
-                </label>
-                <input
-                  id="contact-email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-ev-border bg-white px-3 py-2.5 text-sm text-ev-text outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/30"
-                />
-              </div>
-              <div className="mb-6">
-                <label htmlFor="contact-message" className="block text-sm font-medium text-ev-text mb-1.5">
-                  Your Message
-                </label>
-                <textarea
-                  id="contact-message"
-                  rows={5}
-                  placeholder="Your Message"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="w-full rounded-xl border border-ev-border bg-white px-3 py-2.5 text-sm text-ev-text outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/30 resize-y min-h-[120px]"
-                />
-              </div>
-              <button type="button" onClick={sendMessage} className="ev-btn-primary w-full sm:w-auto px-8 py-3">
-                Send Message
-              </button>
-              <p className="text-ev-muted text-xs mt-3">Opens your email app with the message pre-filled to {publicSupportEmail}.</p>
-            </div>
+            )}
 
             <div className="ev-card p-6 sm:p-8">
               <h2 className="text-lg font-bold text-ev-text mb-4">Subscribe us</h2>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  value={subscribeEmail}
-                  onChange={(e) => setSubscribeEmail(e.target.value)}
-                  className="flex-1 rounded-xl border border-ev-border bg-white px-3 py-2.5 text-sm text-ev-text outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/30"
-                />
-                <button type="button" onClick={subscribe} className="ev-btn-secondary px-6 py-2.5 whitespace-nowrap">
-                  Subscribe
-                </button>
-              </div>
-              <p className="text-ev-muted text-xs mt-2">Sends a request to {publicMarketingEmail}.</p>
+              {subSuccessEmail ? (
+                <p className="text-sm text-ev-text leading-relaxed">
+                  Thank you! We received your subscription request for <strong>{subSuccessEmail}</strong>. You should get a
+                  short confirmation email shortly.
+                </p>
+              ) : (
+                <>
+                  {subError ? (
+                    <p className="text-sm text-red-600 mb-3 rounded-lg bg-red-50 px-3 py-2 border border-red-100">{subError}</p>
+                  ) : null}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="email"
+                      placeholder="Your email"
+                      value={subscribeEmail}
+                      onChange={(e) => setSubscribeEmail(e.target.value)}
+                      className="flex-1 rounded-xl border border-ev-border bg-white px-3 py-2.5 text-sm text-ev-text outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/30"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void subscribe()}
+                      disabled={subSubmitting}
+                      className="ev-btn-secondary px-6 py-2.5 whitespace-nowrap disabled:opacity-60"
+                    >
+                      {subSubmitting ? 'Sending…' : 'Subscribe'}
+                    </button>
+                  </div>
+                  <p className="text-ev-muted text-xs mt-2">We notify marketing and email you a confirmation.</p>
+                </>
+              )}
             </div>
           </div>
         </div>
