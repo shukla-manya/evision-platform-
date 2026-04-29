@@ -64,7 +64,11 @@ function asApiError(err: unknown, fallback: string) {
 
 type Props = {
   route: RouteProp<RootProductDetail, 'ProductDetail'>;
-  navigation: { navigate: (name: string, params?: Record<string, unknown>) => void; goBack: () => void };
+  navigation: {
+    navigate: (name: string, params?: Record<string, unknown>) => void;
+    goBack: () => void;
+    replace: (name: string, params?: Record<string, unknown>) => void;
+  };
   userRole?: string;
 };
 
@@ -184,7 +188,8 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
     const fn = thenCheckout ? setBuyLoading : setCartLoading;
     fn(true);
     try {
-      await cartApi.add(product.id, qty);
+      const n = userRole === 'dealer' ? Math.max(dealerMin, qty) : qty;
+      await cartApi.add(product.id, n);
       if (thenCheckout) {
         navigation.navigate('Checkout');
       } else {
@@ -232,7 +237,6 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
       setEnqName('');
       setEnqEmail('');
       setEnqMessage('');
-      Alert.alert('Sent', 'Thank you — we will get back to you soon.');
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'Could not send enquiry.'));
     } finally {
