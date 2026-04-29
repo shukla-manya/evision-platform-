@@ -1879,6 +1879,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                         return;
                       }
                     }
+                    if (l.path === '/contact' && tryNavigateRootContact(navigation)) return;
                     void Linking.openURL(publicWebUrl(l.path));
                   }}
                 >
@@ -2375,6 +2376,9 @@ function ProfileScreen({
             const p = navigation?.getParent?.();
             if (p && typeof p.navigate === 'function') p.navigate('Blog');
           }}
+          onOpenContact={() => {
+            if (!tryNavigateRootContact(navigation)) void Linking.openURL(publicWebUrl('/contact'));
+          }}
         />
         <Pressable style={styles.button} onPress={onLogout}>
           <Text style={styles.buttonText}>Logout</Text>
@@ -2635,6 +2639,7 @@ function AppShell() {
         <RootStack.Screen name="PasswordReset" component={PasswordResetScreen} options={{ title: 'Password Reset' }} />
         <RootStack.Screen name="Blog" component={BlogListScreen} options={{ title: 'Blog' }} />
         <RootStack.Screen name="BlogPost" component={BlogPostScreen} options={{ title: 'Article' }} />
+        <RootStack.Screen name="Contact" component={ContactScreen} options={{ title: 'Contact' }} />
       </RootStack.Navigator>
     </NavigationContainer>
   );
