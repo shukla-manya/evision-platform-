@@ -84,8 +84,7 @@ function StarRow({ rating }: { rating: number }) {
 
 function isHotProduct(p: Product): boolean {
   const r = Number(p.rating_avg || 0);
-  const st = p.stock == null ? true : Number(p.stock) > 0;
-  return st && r >= 4.65;
+  return r >= 4.6;
 }
 
 function ShopListingInner() {
@@ -545,110 +544,211 @@ function ShopListingInner() {
                 <p className="font-medium text-ev-text">No products in the catalogue right now.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {products.map((p) => {
-                  const img = p.images?.[0];
-                  const rating = Number(p.rating_avg || 0);
-                  const wished = isInWishlist(p.id);
-                  return (
-                    <article
-                      key={p.id}
-                      className="ev-card overflow-hidden flex flex-col hover:border-ev-primary/40 hover:shadow-ev-md transition-all duration-300"
-                    >
-                      <div className="relative aspect-[4/3] bg-ev-surface2 border-b border-ev-border overflow-hidden">
-                        <Link href={`/products/${p.id}`} className="absolute inset-0 block">
-                          {img ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                          ) : (
-                            <div className="absolute inset-0 flex items-center justify-center text-ev-subtle text-sm">No image</div>
-                          )}
-                        </Link>
-                        <button
-                          type="button"
-                          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-ev-surface/95 border border-ev-border flex items-center justify-center shadow-ev-sm hover:border-ev-primary z-10"
-                          aria-label="Wishlist"
-                          onClick={() => {
-                            toggleWishlistId(p.id);
-                            refreshWishlist();
-                          }}
-                        >
-                          <Heart size={18} className={wished ? 'text-ev-primary fill-ev-primary' : 'text-ev-muted'} />
-                        </button>
-                      </div>
-                      <div className="p-5 flex-1 flex flex-col">
-                        <p className="text-ev-subtle text-xs uppercase tracking-wide mb-1 truncate">{p.shop_name || 'Partner shop'}</p>
-                        <Link href={`/products/${p.id}`} className="text-ev-text font-semibold text-lg leading-snug line-clamp-2 hover:text-ev-primary transition-colors">
-                          {p.name}
-                        </Link>
-                        <div className="mt-1 flex items-center gap-2">
-                          {rating > 0 ? (
-                            <>
-                              <Stars value={rating} />
-                              <span className="text-ev-muted text-xs">{rating.toFixed(1)}</span>
-                            </>
-                          ) : (
-                            <span className="text-ev-subtle text-xs">New</span>
-                          )}
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {pageProducts.map((p) => {
+                    const img = p.images?.[0];
+                    const rating = Number(p.rating_avg || 0);
+                    const wished = isInWishlist(p.id);
+                    const inStock = p.stock == null || Number(p.stock) > 0;
+                    const catName = categories.find((c) => c.id === p.category_id)?.name;
+                    const categoryLine = [catName, p.brand].filter(Boolean).join(', ') || 'Surveillance';
+                    const hot = isHotProduct(p);
+                    return (
+                      <article
+                        key={p.id}
+                        className="ev-card overflow-hidden flex flex-col hover:border-ev-primary/40 hover:shadow-ev-md transition-all duration-300"
+                      >
+                        <div className="relative aspect-[4/3] bg-ev-surface2 border-b border-ev-border overflow-hidden">
+                          {hot ? (
+                            <span className="absolute top-3 left-3 z-10 rounded-md bg-red-600 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
+                              Hot
+                            </span>
+                          ) : null}
+                          <Link href={`/products/${p.id}`} className="absolute inset-0 block">
+                            {img ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center text-ev-subtle text-sm">No image</div>
+                            )}
+                          </Link>
+                          <button
+                            type="button"
+                            className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-ev-border bg-ev-surface/95 shadow-ev-sm hover:border-ev-primary"
+                            aria-label="Wishlist"
+                            onClick={() => {
+                              toggleWishlistId(p.id);
+                              refreshWishlist();
+                            }}
+                          >
+                            <Heart size={18} className={wished ? 'fill-ev-primary text-ev-primary' : 'text-ev-muted'} />
+                          </button>
                         </div>
-                        <div className="mt-3 space-y-1">
-                          {role === 'dealer' ? (
-                            <>
-                              <span className="inline-flex items-center rounded-md bg-ev-indigo/15 text-ev-indigo text-[10px] font-bold uppercase tracking-wide px-2 py-0.5">
-                                Dealer price
-                              </span>
+                        <div className="flex flex-1 flex-col p-5">
+                          <Link
+                            href={`/products/${p.id}`}
+                            className="line-clamp-2 text-lg font-semibold leading-snug text-ev-text transition-colors hover:text-ev-primary"
+                          >
+                            {p.name}
+                          </Link>
+                          <p className="mt-1 line-clamp-2 text-sm text-ev-muted">{categoryLine}</p>
+                          <div className="mt-2">
+                            {rating > 0 ? <StarRow rating={rating} /> : <span className="text-ev-subtle text-xs">New</span>}
+                          </div>
+                          <p className={`mt-2 text-xs font-medium ${inStock ? 'text-ev-success' : 'text-ev-warning'}`}>
+                            {inStock ? 'In stock' : 'Out of stock'}
+                          </p>
+                          <div className="mt-3 space-y-1">
+                            {role === 'dealer' ? (
+                              <>
+                                <span className="inline-flex items-center rounded-md bg-ev-indigo/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ev-indigo">
+                                  Dealer price
+                                </span>
+                                <p className="text-2xl font-bold text-ev-text">{displayPrice(p, role)}</p>
+                                {Number(p.mrp) > 0 && Number(p.price_dealer) > 0 ? (
+                                  <p className="text-xs text-ev-muted">
+                                    <span className="font-semibold text-ev-success">
+                                      You save {formatInr(Math.max(0, Number(p.mrp) - Number(p.price_dealer)))} vs retail
+                                    </span>
+                                    <span className="mx-1">·</span>
+                                    <span className="line-through text-ev-subtle">MRP {formatInr(Number(p.mrp))}</span>
+                                  </p>
+                                ) : null}
+                                {dealerMinQty(p) > 1 ? (
+                                  <p className="text-[11px] font-medium text-ev-warning">Minimum order: {dealerMinQty(p)} units</p>
+                                ) : null}
+                              </>
+                            ) : (
                               <p className="text-2xl font-bold text-ev-text">{displayPrice(p, role)}</p>
-                              {Number(p.mrp) > 0 && Number(p.price_dealer) > 0 ? (
-                                <p className="text-xs text-ev-muted">
-                                  <span className="text-ev-success font-semibold">
-                                    You save {formatInr(Math.max(0, Number(p.mrp) - Number(p.price_dealer)))} vs retail
-                                  </span>
-                                  <span className="mx-1">·</span>
-                                  <span className="line-through text-ev-subtle">MRP {formatInr(Number(p.mrp))}</span>
-                                </p>
-                              ) : null}
-                              {dealerMinQty(p) > 1 ? (
-                                <p className="text-[11px] text-ev-warning font-medium">Minimum order: {dealerMinQty(p)} units</p>
-                              ) : null}
-                            </>
-                          ) : (
-                            <p className="text-2xl font-bold text-ev-text">{displayPrice(p, role)}</p>
-                          )}
+                            )}
+                          </div>
+                          <div className="mt-auto pt-4">
+                            {!inStock ? (
+                              <Link href={`/products/${p.id}`} className="ev-btn-secondary block w-full py-2.5 text-center text-sm">
+                                Read more
+                              </Link>
+                            ) : canAddToCart ? (
+                              <button
+                                type="button"
+                                className="ev-btn-primary inline-flex w-full items-center justify-center gap-1.5 py-2.5 text-sm"
+                                onClick={async () => {
+                                  try {
+                                    const n = role === 'dealer' ? dealerMinQty(p) : 1;
+                                    await cartApi.addItem(p.id, n);
+                                    toast.success(role === 'dealer' ? `Added ${n} to cart (minimum order)` : 'Added to cart');
+                                  } catch (err: unknown) {
+                                    const msg =
+                                      err && typeof err === 'object' && 'response' in err
+                                        ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message || '')
+                                        : '';
+                                    toast.error(msg || 'Could not add to cart');
+                                  }
+                                }}
+                              >
+                                <Plus size={16} /> Add to cart
+                              </button>
+                            ) : (
+                              <Link href="/login" className="ev-btn-secondary block w-full py-2.5 text-center text-sm">
+                                Sign in to add to cart
+                              </Link>
+                            )}
+                          </div>
                         </div>
-                        <div className="mt-auto pt-4">
-                          {canAddToCart ? (
-                            <button
-                              type="button"
-                              className="ev-btn-primary w-full text-sm py-2.5 inline-flex items-center justify-center gap-1.5"
-                              onClick={async () => {
-                                try {
-                                  const n = role === 'dealer' ? dealerMinQty(p) : 1;
-                                  await cartApi.addItem(p.id, n);
-                                  toast.success(role === 'dealer' ? `Added ${n} to cart (minimum order)` : 'Added to cart');
-                                } catch (err: unknown) {
-                                  const msg = err && typeof err === 'object' && 'response' in err
-                                    ? String((err as { response?: { data?: { message?: string } } }).response?.data?.message || '')
-                                    : '';
-                                  toast.error(msg || 'Could not add to cart');
-                                }
-                              }}
-                            >
-                              <Plus size={16} /> Add to cart
-                            </button>
-                          ) : (
-                            <Link href="/login" className="ev-btn-secondary w-full text-sm py-2.5 block text-center">
-                              Sign in to add to cart
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
+                      </article>
+                    );
+                  })}
+                </div>
+                {totalPages > 1 ? (
+                  <nav className="flex flex-wrap items-center justify-center gap-2 pt-8" aria-label="Pagination">
+                    <button
+                      type="button"
+                      disabled={safePage <= 1}
+                      onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                      className="ev-btn-secondary px-3 py-2 text-sm disabled:opacity-40"
+                    >
+                      ←
+                    </button>
+                    {totalPages <= 7 ? (
+                      Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => setPage(num)}
+                          className={`min-w-[2.25rem] rounded-lg border px-2 py-2 text-sm ${
+                            num === safePage ? 'border-ev-primary bg-ev-primary/10 font-semibold text-ev-text' : 'border-ev-border text-ev-muted'
+                          }`}
+                        >
+                          {num}
+                        </button>
+                      ))
+                    ) : (
+                      <span className="text-sm text-ev-muted">
+                        Page {safePage} of {totalPages}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      disabled={safePage >= totalPages}
+                      onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                      className="ev-btn-secondary px-3 py-2 text-sm disabled:opacity-40"
+                    >
+                      →
+                    </button>
+                  </nav>
+                ) : null}
+              </>
             )}
           </div>
         </div>
+        </div>
+        <section className="mt-12 border-t border-ev-border bg-ev-surface2/30 py-10 sm:py-12" aria-labelledby="shop-brand-footer">
+          <div className="ev-container">
+            <p id="shop-brand-footer" className="mx-auto max-w-3xl text-center text-sm leading-relaxed text-ev-muted sm:text-base">
+              {aboutBrandSummary}
+            </p>
+            <div className="mt-10 grid gap-10 md:grid-cols-2">
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-ev-text">Quick Links</h2>
+                <ul className="mt-4 space-y-2 text-sm">
+                  {siteQuickLinks.map((item) => (
+                    <li key={item.href}>
+                      <Link href={item.href} className="text-ev-muted transition-colors hover:text-ev-primary">
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-ev-text">Contact Information</h2>
+                <ul className="mt-4 space-y-2 text-sm text-ev-muted">
+                  <li>
+                    <a href={`tel:${publicSalesPhone.replace(/\s/g, '')}`} className="hover:text-ev-primary">
+                      {publicSalesPhone}
+                    </a>
+                  </li>
+                  <li>
+                    <a href={`tel:${publicSupportPhone.replace(/\s/g, '')}`} className="hover:text-ev-primary">
+                      {publicSupportPhone}
+                    </a>
+                  </li>
+                  <li>
+                    <a href={`mailto:${publicMarketingEmail}`} className="hover:text-ev-primary">
+                      {publicMarketingEmail}
+                    </a>
+                  </li>
+                  <li>
+                    <a href={`mailto:${publicSupportEmail}`} className="hover:text-ev-primary">
+                      {publicSupportEmail}
+                    </a>
+                  </li>
+                  <li className="pt-1 leading-relaxed">{publicRegisteredAddress}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </PublicShell>
   );
