@@ -77,6 +77,8 @@ import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 import { EvisionLogo } from './src/components/EvisionLogo';
 import { screenGutter } from './src/theme/layout';
 import { publicWebUrl } from './src/config/publicWeb';
+import { publicMarketingHomeTagline, publicSupportPhoneDisplay, publicSupportTelHref } from './src/config/publicMarketing';
+import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
@@ -235,6 +237,9 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
         <View style={styles.splashLogoWrap}>
           <EvisionLogo variant="full" height={44} width={200} wordmarkOnLight />
         </View>
+        <Text style={[styles.captionNote, { marginTop: 12, paddingHorizontal: 8 }]}>
+          {publicMarketingHomeTagline}
+        </Text>
         <View style={styles.splashGap} />
         <Pressable style={styles.splashPrimaryBtn} onPress={() => navigation.navigate('OtpSignIn')}>
           <Text style={styles.splashPrimaryBtnText}>Sign in with mobile OTP</Text>
