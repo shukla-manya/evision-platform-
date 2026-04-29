@@ -13,6 +13,8 @@ export interface SendEmailOptions {
   html: string;
   trigger_event: string;
   attachments?: any[];
+  /** Set on inbound messages so staff can reply directly to the visitor. */
+  replyTo?: string;
 }
 
 type EmailLayoutMeta = {
