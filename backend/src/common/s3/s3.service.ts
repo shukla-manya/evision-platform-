@@ -42,7 +42,7 @@ export class S3Service {
             accessKeyId: accessKeyId || 'minioadmin',
             secretAccessKey: secretAccessKey || 'minioadmin',
           }
-        : accessKeyId && secretAccessKey && !isDynamoLocalStyleCreds
+        : accessKeyId && secretAccessKey && !isPlaceholderLocalCreds
           ? { accessKeyId, secretAccessKey }
           : undefined;
 
@@ -54,10 +54,10 @@ export class S3Service {
     });
     this.cloudfrontDomain = (config.get('CLOUDFRONT_DOMAIN') || '').replace(/\/$/, '') || null;
 
-    this.s3Disabled = !isLocal && isDynamoLocalStyleCreds;
+    this.s3Disabled = !isLocal && isPlaceholderLocalCreds;
     if (this.s3Disabled) {
       this.logger.warn(
-        'AWS_ACCESS_KEY_ID/SECRET are the DynamoDB-local placeholder (local/local); ' +
+        'AWS_ACCESS_KEY_ID/SECRET are the local placeholder (local/local); ' +
           'they are not used for S3. Set S3_ENDPOINT (e.g. MinIO) for local uploads, or use real AWS credentials / ~/.aws. ' +
           'S3 uploads are DISABLED — stub URLs will be returned in local dev mode.',
       );
