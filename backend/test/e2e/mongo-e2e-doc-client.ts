@@ -29,7 +29,7 @@ export function createE2eDocClient(db: Db) {
   return {
     send: async (cmd: PutCommand | ScanCommand): Promise<{ Items?: Record<string, unknown>[] } | Record<string, never>> => {
       const input = cmd.input as PutCommandInput & ScanCommandInput;
-      if (input.Item) {
+      if (input.Item != null && typeof input.Item === 'object') {
         await evisionPut(db, String(input.TableName), input.Item as Record<string, unknown>);
         return {};
       }
