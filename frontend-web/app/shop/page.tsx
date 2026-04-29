@@ -254,6 +254,17 @@ function ShopListingInner() {
       ? `Price: ${formatInr(appliedMin || cataloguePriceExtent.min)} — ${formatInr(appliedMax || cataloguePriceExtent.max)}`
       : 'Price: —';
 
+  const sortHuman =
+    sort === 'price_asc'
+      ? 'Sorted by price: low to high'
+      : sort === 'price_desc'
+        ? 'Sorted by price: high to low'
+        : sort === 'newest'
+          ? 'Sorted by newest'
+          : sort === 'rating'
+            ? 'Sorted by rating'
+            : 'Sorted by relevance';
+
   return (
     <PublicShell>
       <a href="#shop-main" className="ev-skip-link">
@@ -460,28 +471,60 @@ function ShopListingInner() {
           </aside>
 
           <div className="flex-1 min-w-0 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-              <div className="relative flex-1 min-w-0">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ev-subtle" />
-                <input
-                  className="ev-input pl-9 py-2.5 text-sm w-full"
-                  placeholder="Search products…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-              <select
-                className="ev-input py-2.5 text-sm sm:w-56 shrink-0"
-                value={sort}
-                onChange={(e) => setSort(e.target.value as SortKey)}
-              >
-                <option value="relevance">Relevance</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="newest">Newest</option>
-                <option value="rating">Best rated</option>
-              </select>
+            <div className="relative flex-1 min-w-0">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ev-subtle" />
+              <input
+                className="ev-input pl-9 py-2.5 text-sm w-full"
+                placeholder="Search for products"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label="Search for products"
+              />
             </div>
+            {!loadError && !loading && products.length > 0 ? (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-ev-border bg-ev-surface2/40 px-3 py-3 text-sm">
+                <p className="text-ev-muted">
+                  <span className="text-ev-text font-medium">
+                    Showing {pageStart}–{pageEnd} of {totalFiltered} results
+                  </span>
+                  <span className="hidden sm:inline text-ev-subtle"> · </span>
+                  <span className="block sm:inline text-ev-subtle">{sortHuman}</span>
+                </p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="flex items-center gap-2 text-xs text-ev-text">
+                    <span className="text-ev-muted">Show</span>
+                    <select
+                      className="ev-input py-1.5 text-xs min-w-[4.5rem]"
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setPage(1);
+                      }}
+                    >
+                      {[9, 12, 18, 24].map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-ev-text">
+                    <span className="text-ev-muted shrink-0">Sort</span>
+                    <select
+                      className="ev-input py-1.5 text-xs min-w-[10rem]"
+                      value={sort}
+                      onChange={(e) => setSort(e.target.value as SortKey)}
+                    >
+                      <option value="relevance">Relevance</option>
+                      <option value="price_asc">Price: low to high</option>
+                      <option value="price_desc">Price: high to low</option>
+                      <option value="newest">Newest</option>
+                      <option value="rating">Best rated</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+            ) : null}
 
             {loadError && !loading ? (
               <div className="ev-card p-12 text-center space-y-4">
