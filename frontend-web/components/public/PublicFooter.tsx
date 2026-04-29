@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
 import { EvisionLogo } from '@/components/brand/EvisionLogo';
-import { publicAdminRegisterUrl, publicAdminSignInUrl, publicLoginPath } from '@/lib/public-links';
+import { publicLoginPath } from '@/lib/public-links';
 
 const year = 2026;
 
