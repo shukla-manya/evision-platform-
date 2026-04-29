@@ -157,7 +157,7 @@ function ShopListingInner() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, categoryId, brand, minPrice, maxPrice, shopFilter, inStockOnly, minRating, approvedShopsOnly, sort]);
+  }, [search, categoryId, brand, minPrice, maxPrice, shopFilter, inStockOnly, minRating, approvedShopsOnly, sort, pageSize]);
 
   const load = useCallback(async () => {
     setLoading(true);
