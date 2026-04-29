@@ -98,4 +98,12 @@ export class CreateProductDto {
   @IsNumber()
   @Min(0)
   mrp?: number;
+
+  @ApiPropertyOptional({
+    example: 'https://www.amazon.in/dp/XXXXXXXXXX',
+    description: 'Optional external purchase link (e.g. Amazon) shown on the product page',
+  })
+  @IsOptional()
+  @IsUrl()
+  amazon_url?: string;
 }

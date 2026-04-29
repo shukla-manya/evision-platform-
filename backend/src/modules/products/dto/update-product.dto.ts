@@ -90,4 +90,13 @@ export class UpdateProductDto {
   @IsNumber()
   @Min(0)
   mrp?: number | null;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description: 'Amazon or other buy link; set null to remove',
+  })
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsUrl()
+  amazon_url?: string | null;
 }

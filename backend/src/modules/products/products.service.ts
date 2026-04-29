@@ -165,6 +165,7 @@ export class ProductsService {
       low_stock_threshold: dto.low_stock_threshold ?? 10,
       min_order_quantity: dto.min_order_quantity ?? 1,
       mrp: dto.mrp ?? null,
+      amazon_url: dto.amazon_url?.trim() || null,
       created_at: now,
       updated_at: now,
     };
@@ -211,6 +212,10 @@ export class ProductsService {
     assign('low_stock_threshold', dto.low_stock_threshold);
     assign('min_order_quantity', dto.min_order_quantity);
     assign('mrp', dto.mrp === undefined ? undefined : dto.mrp);
+    assign(
+      'amazon_url',
+      dto.amazon_url === undefined ? undefined : dto.amazon_url === null ? null : dto.amazon_url?.trim() || null,
+    );
 
     if (dto.images !== undefined) {
       updates.images = [...dto.images, ...uploadedUrls];
@@ -296,7 +301,11 @@ export class ProductsService {
     const raw = enriched[0] as Record<string, unknown>;
     const serialized = serializeProductForRole(raw, role) as Record<string, unknown>;
     this.applyCdnToProductPayload(serialized);
-    return this.withStockFlag(serialized, role, raw);
+    const withStock = this.withStockFlag(serialized, role, raw);
+    const cats = await this.categories.listAll();
+    const catNameById = new Map(cats.map((c: { id: string; name: string }) => [c.id, c.name]));
+    const category_name = catNameById.get(String(withStock.category_id || '')) || null;
+    return { ...withStock, category_name };
   }
 
   async listForRole(
