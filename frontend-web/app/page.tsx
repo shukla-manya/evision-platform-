@@ -177,6 +177,7 @@ function HomeLeadForm() {
 export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [, setWishBump] = useState(0);
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canBuy = role === 'customer' || role === 'dealer';
 
@@ -201,16 +202,10 @@ export default function HomePage() {
 
   return (
     <PublicShell>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-ev-primary focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
-      >
+      <a href="#main-content" className="ev-skip-link">
         Skip to main content
       </a>
-      <a
-        href="#site-navigation"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-40 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-ev-primary focus:px-4 focus:py-2 focus:text-white focus:shadow-lg"
-      >
+      <a href="#site-navigation" className="ev-skip-link--nav">
         Skip to navigation
       </a>
 

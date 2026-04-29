@@ -194,4 +194,15 @@
   .ev-container {
     @apply mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-6 lg:px-8;
   }
+
+  /** Visible only when focused — WCAG skip links */
+  .ev-skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100]
+           focus:rounded-lg focus:bg-ev-primary focus:px-4 focus:py-2 focus:text-white focus:shadow-lg;
+  }
+
+  .ev-skip-link--nav {
+    @apply sr-only focus:not-sr-only focus:absolute focus:left-44 focus:top-4 focus:z-[100]
+           focus:rounded-lg focus:bg-ev-primary focus:px-4 focus:py-2 focus:text-white focus:shadow-lg;
+  }
 }

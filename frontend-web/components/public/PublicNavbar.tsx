@@ -108,7 +108,7 @@ export function PublicNavbar() {
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for cameras, lenses, accessories…"
+              placeholder="Search CCTV, PoE, kits, accessories…"
               className="w-full rounded-xl bg-white/10 border border-white/15 text-white placeholder:text-white/45 text-sm pl-10 pr-3 py-2.5 outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/40"
             />
           </div>
@@ -237,7 +237,7 @@ export function PublicNavbar() {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search cameras, lenses…"
+            placeholder="Search CCTV, PoE, kits…"
             className="w-full rounded-xl bg-white/10 border border-white/15 text-white placeholder:text-white/45 text-sm pl-10 pr-3 py-2.5 outline-none focus:border-ev-primary"
           />
         </div>
