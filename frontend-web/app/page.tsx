@@ -72,15 +72,7 @@ function StarRow({ rating }: { rating: number }) {
   );
 }
 
-function StaticProductCard({
-  p,
-  canBuy,
-  setWishBump,
-}: {
-  p: StaticShowcaseProduct;
-  canBuy: boolean;
-  setWishBump: React.Dispatch<React.SetStateAction<number>>;
-}) {
+function StaticProductCard({ p, canBuy }: { p: StaticShowcaseProduct; canBuy: boolean }) {
   const shopHref = `/shop?search=${encodeURIComponent(p.searchQuery)}`;
   return (
     <article className="ev-card overflow-hidden flex flex-col relative">
@@ -185,7 +177,6 @@ function HomeLeadForm() {
 export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [, setWishBump] = useState(0);
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canBuy = role === 'customer' || role === 'dealer';
 
@@ -323,7 +314,7 @@ export default function HomePage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {showcasePrimary.map((p) => (
-                <StaticProductCard key={p.name} p={p} canBuy={canBuy} setWishBump={setWishBump} />
+                <StaticProductCard key={p.name} p={p} canBuy={canBuy} />
               ))}
             </div>
           </div>
@@ -343,7 +334,7 @@ export default function HomePage() {
           </div>
           <div className="grid sm:grid-cols-3 gap-5 max-w-5xl mx-auto">
             {showcaseCombos.map((p) => (
-              <StaticProductCard key={p.name} p={p} canBuy={canBuy} setWishBump={setWishBump} />
+              <StaticProductCard key={p.name} p={p} canBuy={canBuy} />
             ))}
           </div>
         </section>
