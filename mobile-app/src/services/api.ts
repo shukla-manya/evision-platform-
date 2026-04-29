@@ -63,8 +63,13 @@ export type Product = {
   images?: string[];
   price_customer?: number;
   price_dealer?: number;
+  mrp?: number;
+  min_order_quantity?: number;
   shop_name?: string | null;
   category_id?: string;
+  brand?: string | null;
+  stock?: number;
+  rating_avg?: number;
 };
 
 export type ApprovedShopRow = { id: string; shop_name: string };
@@ -177,8 +182,14 @@ export const authApi = {
 };
 
 export const productApi = {
-  list: (params?: { approved_shops_only?: boolean; category_id?: string; search?: string }) =>
-    api.get<Product[]>('/products', { params }),
+  list: (params?: {
+    approved_shops_only?: boolean;
+    category_id?: string;
+    search?: string;
+    min_price?: number;
+    max_price?: number;
+    brand?: string;
+  }) => api.get<Product[]>('/products', { params }),
   getById: (id: string) => api.get<Product>(`/products/${id}`),
   listApprovedShops: () => api.get<ApprovedShopRow[]>('/products/shops/approved'),
 };
