@@ -14,6 +14,7 @@ import {
   Sparkles,
   Star,
   Store,
+  Truck,
   Wrench,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
