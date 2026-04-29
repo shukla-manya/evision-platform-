@@ -776,7 +776,8 @@ async function main() {
         },
       }),
     );
-    const svc = app.get(ServiceCls);
+    const { ServiceService: ServiceServiceCls } = await import('../../src/modules/service/service.service');
+    const svc = app.get(ServiceServiceCls);
     const r = await svc.expirePendingBookings();
     assert.ok(r.expired >= 1);
     const b = await docClient.send(

@@ -203,7 +203,7 @@ describe('EmailService', () => {
     const html = lastHtml();
     expect(html).toContain('ACME');
     expect(html).toContain('New paid order');
-    expect(html).toContain('admin/orders');
+    expect(html).toContain('super/orders');
     expect(lastTrigger()).toBe('payment_confirmed_admin');
   });
 
