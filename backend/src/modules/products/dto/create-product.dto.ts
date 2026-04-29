@@ -64,7 +64,7 @@ export class CreateProductDto {
 
   @ApiPropertyOptional({
     description:
-      'Existing image URLs (typically from POST /admin/products/images/upload). Stored in DynamoDB; served via CloudFront when CLOUDFRONT_DOMAIN is set.',
+      'Existing image URLs (typically from POST /superadmin/products/images/upload). Stored in DynamoDB; served via CloudFront when CLOUDFRONT_DOMAIN is set.',
     type: [String],
   })
   @IsOptional()
