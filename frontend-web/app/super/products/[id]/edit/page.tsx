@@ -25,6 +25,7 @@ type Product = {
   low_stock_threshold?: number;
   mrp?: number | null;
   min_order_quantity?: number;
+  amazon_url?: string | null;
 };
 
 export default function AdminProductEditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -47,6 +48,7 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
     mrp: '',
     min_order_quantity: '1',
     images: [] as string[],
+    amazon_url: '',
   });
 
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
           mrp: p.mrp != null && !Number.isNaN(Number(p.mrp)) ? String(p.mrp) : '',
           min_order_quantity: String(Math.max(1, Number(p.min_order_quantity ?? 1))),
           images: Array.isArray(p.images) ? p.images : [],
+          amazon_url: typeof p.amazon_url === 'string' ? p.amazon_url : '',
         });
       })
       .catch(() => {
@@ -106,6 +109,7 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
         mrp: form.mrp.trim() === '' ? null : Number(form.mrp),
         images: nextImages,
+        amazon_url: form.amazon_url.trim() === '' ? null : form.amazon_url.trim(),
       });
       toast.success('Product updated');
       router.push('/super/products');
@@ -283,6 +287,17 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
           <div>
             <label className="ev-label">Brand (optional)</label>
             <input className="ev-input" value={form.brand} onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} />
+          </div>
+          <div>
+            <label className="ev-label">Amazon / external buy URL (optional)</label>
+            <input
+              type="url"
+              className="ev-input"
+              value={form.amazon_url}
+              onChange={(e) => setForm((f) => ({ ...f, amazon_url: e.target.value }))}
+              placeholder="https://www.amazon.in/…"
+            />
+            <p className="text-ev-subtle text-xs mt-1">Shown as “Buy from Amazon” on the public product page. Leave empty to hide.</p>
           </div>
           <label className="flex items-center gap-2 text-sm text-ev-text cursor-pointer">
             <input

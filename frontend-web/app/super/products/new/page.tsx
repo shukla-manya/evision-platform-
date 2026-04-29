@@ -28,6 +28,7 @@ export default function AdminProductNewPage() {
     low_stock_threshold: '10',
     mrp: '',
     min_order_quantity: '1',
+    amazon_url: '',
   });
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function AdminProductNewPage() {
         low_stock_threshold: Number(form.low_stock_threshold) || 10,
         min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
         ...(form.mrp.trim() !== '' ? { mrp: Number(form.mrp) } : {}),
+        ...(form.amazon_url.trim() !== '' ? { amazon_url: form.amazon_url.trim() } : {}),
         ...(imageUrls.length ? { images: imageUrls } : {}),
       };
       await superadminApi.createCatalogProduct(body);
@@ -210,6 +212,16 @@ export default function AdminProductNewPage() {
           <div>
             <label className="ev-label">Brand (optional)</label>
             <input className="ev-input" value={form.brand} onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} />
+          </div>
+          <div>
+            <label className="ev-label">Amazon / external buy URL (optional)</label>
+            <input
+              type="url"
+              className="ev-input"
+              value={form.amazon_url}
+              onChange={(e) => setForm((f) => ({ ...f, amazon_url: e.target.value }))}
+              placeholder="https://www.amazon.in/…"
+            />
           </div>
           <label className="flex items-center gap-2 text-sm text-ev-text cursor-pointer">
             <input

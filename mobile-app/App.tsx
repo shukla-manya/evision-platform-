@@ -57,6 +57,7 @@ import { PasswordInputWithToggle } from './src/components/PasswordInputWithToggl
 import { PublicWebsiteLinks } from './src/components/PublicWebsiteLinks';
 import { BlogListScreen, BlogPostScreen } from './src/screens/BlogScreens';
 import { ContactScreen } from './src/screens/ContactScreen';
+import { ProductDetailScreen } from './src/screens/ProductDetailScreen';
 import { SuperadminWebQueueLinks } from './src/components/SuperadminWebQueueLinks';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { WebView } from 'react-native-webview';
@@ -1908,71 +1909,6 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
   );
 }
 
-function ProductDetailScreen({
-  route,
-  navigation,
-  userRole,
-}: {
-  route: RouteProp<RootStackParamList, 'ProductDetail'>;
-  navigation: any;
-  userRole?: string;
-}) {
-  const { product } = route.params;
-  const [loading, setLoading] = useState(false);
-  const inStock = product.stock == null || Number(product.stock) > 0;
-  const img = product.images?.[0] || product.image_url;
-  const rating = Number(product.rating_avg || 0);
-  const canAddToCart = (userRole === 'customer' || userRole === 'dealer') && inStock;
-
-  const addToCart = async () => {
-    if (!inStock) return;
-    try {
-      setLoading(true);
-      const n = userRole === 'dealer' ? Math.max(1, Number(product.min_order_quantity || 1)) : 1;
-      await cartApi.add(product.id, n);
-      Alert.alert('Added', n > 1 ? `Added ${n} to cart (minimum order).` : 'Product added to cart.');
-      navigation.navigate('Main', { screen: 'Cart' });
-    } catch (err) {
-      Alert.alert('Error', asApiError(err, 'Failed to add to cart.'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.listPad}>
-        <View style={styles.card}>
-          {img ? (
-            <Image source={{ uri: img }} style={styles.detailProductImage} resizeMode="cover" />
-          ) : null}
-          {isHotProduct(product) ? (
-            <View style={styles.detailHotBadge}>
-              <Text style={styles.hotBadgeText}>Hot</Text>
-            </View>
-          ) : null}
-          <Text style={styles.cardTitle}>{product.name}</Text>
-          {rating > 0 ? <Text style={styles.ratingLine}>Rated {rating.toFixed(2)} out of 5</Text> : null}
-          <Text style={[styles.stockLine, inStock ? styles.stockIn : styles.stockOut]}>
-            {inStock ? 'In stock' : 'Out of stock'}
-          </Text>
-          <Text style={styles.bigPrice}>{formatINR(getProductPriceForRole(product, userRole))}</Text>
-          <Text style={styles.cardDesc}>{product.description || 'No description available.'}</Text>
-          {canAddToCart ? (
-            <Pressable style={styles.button} onPress={() => void addToCart()} disabled={loading}>
-              <Text style={styles.buttonText}>{loading ? 'Adding...' : 'Add to cart'}</Text>
-            </Pressable>
-          ) : !inStock ? (
-            <Text style={styles.cardMeta}>This item is out of stock. You can still review details above.</Text>
-          ) : (
-            <Text style={styles.cardMeta}>Sign in as a customer or dealer to add this product to your cart.</Text>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
 function CartScreen({ navigation }: any) {
   const [cart, setCart] = useState<CartResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -3060,13 +2996,4 @@ const styles = StyleSheet.create({
   shopFooterHeading: { fontSize: 12, fontWeight: '800', color: colors.textPrimary, marginTop: 14, letterSpacing: 0.6, textTransform: 'uppercase' },
   shopFooterLink: { fontSize: 14, color: colors.brandPrimary, marginTop: 8, fontWeight: '600' },
   shopFooterAddress: { fontSize: 13, color: colors.textSecondary, marginTop: 12, lineHeight: 20 },
-  detailProductImage: { width: '100%', height: 220, borderRadius: 10, marginBottom: 12, backgroundColor: colors.softPanel },
-  detailHotBadge: {
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-    backgroundColor: '#DC2626',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
 });
