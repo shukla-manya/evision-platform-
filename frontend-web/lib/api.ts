@@ -129,8 +129,7 @@ export const cartApi = {
 };
 
 export const checkoutApi = {
-  createOrder: () => api.post('/checkout'),
-  confirm: (body: Record<string, unknown>) => api.post('/checkout/confirm', body),
+  createOrder: (body?: { delivery_address_index?: number }) => api.post('/checkout', body ?? {}),
 };
 
 /** Customer/dealer service & technician discovery */
