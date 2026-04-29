@@ -3,12 +3,23 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ChevronDown, ChevronUp, Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronRight, ChevronUp, Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
+import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
+import { publicShopBrandMark } from '@/lib/public-brand';
+import { aboutBrandSummary } from '@/lib/about-company-content';
+import { siteQuickLinks } from '@/lib/site-quick-links';
+import {
+  publicMarketingEmail,
+  publicRegisteredAddress,
+  publicSalesPhone,
+  publicSupportEmail,
+  publicSupportPhone,
+} from '@/lib/public-contact';
 
 type Product = {
   id: string;
