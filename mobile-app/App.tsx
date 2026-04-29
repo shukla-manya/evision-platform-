@@ -392,19 +392,19 @@ function OtpSignInScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: strin
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.centerBoxScrollable}
         >
-          <Text style={styles.subtitle}>Sign in with your mobile number. We will send a 6-digit OTP.</Text>
-          {step === 'phone' ? (
+          <Text style={styles.subtitle}>Sign in with your email. We will send a 6-digit OTP.</Text>
+          {step === 'email' ? (
             <TextInput
               style={styles.input}
-              placeholder="Mobile (10 digits)"
-              keyboardType="phone-pad"
-              value={phoneDigits}
-              onChangeText={(t) => setPhoneDigits(t.replace(/\D/g, '').slice(0, 10))}
-              maxLength={10}
+              placeholder="Email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={emailInput}
+              onChangeText={setEmailInput}
             />
           ) : (
             <>
-              <Text style={styles.cardMeta}>Code sent to +91 {phoneDigits}</Text>
+              <Text style={styles.cardMeta}>Code sent to {normalizedEmail()}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="6-digit OTP"
@@ -416,14 +416,14 @@ function OtpSignInScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: strin
             </>
           )}
 
-          <Pressable style={styles.button} disabled={loading} onPress={step === 'phone' ? sendOtp : verifyOtpLogin}>
+          <Pressable style={styles.button} disabled={loading} onPress={step === 'email' ? sendOtp : verifyOtpLogin}>
             <Text style={styles.buttonText}>
-              {loading ? 'Please wait...' : step === 'phone' ? 'Send OTP' : 'Verify & sign in'}
+              {loading ? 'Please wait...' : step === 'email' ? 'Send OTP' : 'Verify & sign in'}
             </Text>
           </Pressable>
           {step === 'otp' ? (
-            <Pressable style={styles.buttonSecondary} onPress={() => { setStep('phone'); setOtp(''); }}>
-              <Text style={styles.buttonSecondaryText}>Change number</Text>
+            <Pressable style={styles.buttonSecondary} onPress={() => { setStep('email'); setOtp(''); }}>
+              <Text style={styles.buttonSecondaryText}>Change email</Text>
             </Pressable>
           ) : null}
           <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('Register', {})}>
@@ -714,14 +714,9 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     try {
       setSendingOtp(true);
       if (role === 'customer' || role === 'dealer' || role === 'electrician') {
-        await authApi.sendOtp(normalizePhone(phone), {
-          purpose: 'signup',
-          email: email.trim().toLowerCase(),
-        });
-      } else {
-        await authApi.sendOtp(normalizePhone(phone));
+        await authApi.sendOtp(email.trim().toLowerCase(), { purpose: 'signup' });
       }
-      Alert.alert('OTP sent', 'Use this OTP to complete registration.');
+      Alert.alert('OTP sent', 'Check your email for the code to complete registration.');
       setRegisterDetailsLocked(true);
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'Failed to send OTP.'));
@@ -1194,7 +1189,7 @@ function PasswordResetScreen({
   navigation: any;
 }) {
   const role: PasswordResetRole = 'admin';
-  const [phone, setPhone] = useState(route.params?.phone || '');
+  const [emailReset, setEmailReset] = useState(route.params?.email || '');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [step, setStep] = useState<'start' | 'complete'>('start');
@@ -1203,9 +1198,9 @@ function PasswordResetScreen({
   const start = async () => {
     try {
       setLoading(true);
-      await authApi.passwordResetStart(role, normalizePhone(phone));
+      await authApi.passwordResetStart(role, emailReset.trim().toLowerCase());
       setStep('complete');
-      Alert.alert('OTP sent', 'A password reset OTP was sent to your mobile number.');
+      Alert.alert('OTP sent', 'A password reset OTP was sent to your email.');
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'Could not start password reset.'));
     } finally {
@@ -1216,7 +1211,7 @@ function PasswordResetScreen({
   const complete = async () => {
     try {
       setLoading(true);
-      await authApi.passwordResetComplete(role, normalizePhone(phone), otp, newPassword);
+      await authApi.passwordResetComplete(role, emailReset.trim().toLowerCase(), otp, newPassword);
       Alert.alert('Success', 'Password updated successfully.', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
@@ -1233,15 +1228,16 @@ function PasswordResetScreen({
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Reset Password</Text>
           <Text style={styles.subtitle}>
-            Shop admins only. We SMS a 6-digit OTP to the mobile on your shop account. Technicians, customers, and
-            dealers sign in with a mobile OTP — no password reset here. Superadmin uses the web sign-in flow.
+            Shop admins only. We email a 6-digit OTP to the address on your shop account. Customers and dealers sign in
+            with an email OTP — no password reset here. Superadmin uses the web sign-in flow.
           </Text>
           <TextInput
             style={styles.input}
-            placeholder="+91 9876543210"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
+            placeholder="admin@shop.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={emailReset}
+            onChangeText={setEmailReset}
           />
           {step === 'complete' && (
             <>
@@ -2520,7 +2516,7 @@ function AppShell() {
             <RootStack.Screen name="Auth" options={{ headerShown: false }}>
               {(props) => <AuthWelcomeScreen {...props} />}
             </RootStack.Screen>
-            <RootStack.Screen name="OtpSignIn" options={{ title: 'Mobile sign-in' }}>
+            <RootStack.Screen name="OtpSignIn" options={{ title: 'Sign in' }}>
               {(props) => <OtpSignInScreen {...props} onLoggedIn={handleLoggedIn} />}
             </RootStack.Screen>
             <RootStack.Screen name="Register" options={{ title: 'Register' }}>
