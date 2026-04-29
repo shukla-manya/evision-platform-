@@ -26,7 +26,6 @@ import {
   publicRegisteredAddress,
   publicSalesPhone,
   publicSupportEmail,
-  publicSupportPhone,
 } from '@/lib/public-contact';
 import { getRole } from '@/lib/auth';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
@@ -215,24 +214,7 @@ export default function HomePage() {
       </a>
 
       <main id="main-content" className="min-w-0">
-        {/* Trust strip */}
-        <section className="border-b border-ev-border bg-ev-surface">
-          <div className="ev-container py-3 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 sm:gap-10 text-sm text-ev-text">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-ev-primary">24/7 Support</span>
-              <a href={`tel:${publicSupportPhone.replace(/\s/g, '')}`} className="text-ev-muted hover:text-ev-primary">
-                {publicSupportPhone}
-              </a>
-            </div>
-            <div className="hidden sm:block h-4 w-px bg-ev-border" aria-hidden />
-            <div className="flex items-center gap-2 text-ev-muted">
-              <Truck size={18} className="text-ev-primary shrink-0" aria-hidden />
-              <span>
-                <strong className="text-ev-text">Free Shipping</strong> — All over India
-              </span>
-            </div>
-          </div>
-        </section>
+        <PublicTrustStrip />
 
         {/* Hero promos */}
         <section className="relative overflow-hidden border-b border-ev-border">
