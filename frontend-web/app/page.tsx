@@ -468,7 +468,7 @@ export default function HomePage() {
         <section className="ev-container py-10 sm:py-14 border-t border-ev-border">
           <p className="text-center text-ev-muted text-xs uppercase tracking-widest mb-6">Trusted by teams across India</p>
           <div className="flex flex-wrap justify-center gap-6 sm:gap-10 opacity-50 grayscale" aria-label="Partner logos">
-            {['client-6', 'client-7', 'client-9', 'client-10', 'client-11'].map((id) => (
+            {['client-3', 'client-5', 'client-6', 'client-7', 'client-9', 'client-10', 'client-11'].map((id) => (
               <div
                 key={id}
                 className="h-12 w-28 rounded-lg bg-ev-border/80 border border-ev-border flex items-center justify-center text-[10px] font-mono text-ev-muted"
