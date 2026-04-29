@@ -63,7 +63,7 @@ function parseServiceAddress(addr?: string): {
   if (!raw) {
     return { experienceLabel: '', areaLabel: '—', full: '—' };
   }
-  const m = raw.match(/^Experience:\s*([^·]+)\s*·\s*(.+)$/is);
+  const m = raw.match(/^Experience:\s*([^·]+)\s*·\s*([\s\S]+)$/i);
   if (m) {
     return {
       experienceLabel: m[1].trim(),

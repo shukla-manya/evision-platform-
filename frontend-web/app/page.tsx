@@ -27,6 +27,7 @@ import {
   publicRegisteredAddress,
   publicSalesPhone,
   publicSupportEmail,
+  publicSupportPhone,
 } from '@/lib/public-contact';
 import { getRole } from '@/lib/auth';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
