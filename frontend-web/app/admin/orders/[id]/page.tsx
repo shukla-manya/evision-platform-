@@ -223,7 +223,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                   <span className="text-ev-text font-medium">{order.order_group?.status || '—'}</span>
                 </p>
                 <p className="text-ev-muted text-xs">
-                  Razorpay and payout timing are managed by the platform. Contact support for settlement questions.
+                  PayU and payout timing are managed by the platform. Contact support for settlement questions.
                 </p>
               </div>
             </section>
