@@ -14,78 +14,77 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ProductsService } from './products.service';
 import { S3Service } from '../../common/s3/s3.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
-@ApiTags('Products')
+@ApiTags('Superadmin Products')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
-@Controller('admin/products')
-export class ProductsAdminController {
+@Roles('superadmin')
+@Controller('superadmin/products')
+export class ProductsSuperadminController {
   constructor(
     private products: ProductsService,
     private s3: S3Service,
+    private config: ConfigService,
   ) {}
 
+  private platformAdminId(): string {
+    const id = this.config.get<string>('PLATFORM_CATALOG_ADMIN_ID')?.trim();
+    if (!id) {
+      throw new BadRequestException('PLATFORM_CATALOG_ADMIN_ID must be set in server environment');
+    }
+    return id;
+  }
+
   @Get()
-  @ApiOperation({ summary: 'List products for your shop (both prices, stock flags)' })
-  listMine(@CurrentUser() user: { id: string }) {
-    return this.products.listMine(user.id);
+  @ApiOperation({ summary: 'List platform catalogue products (customer + dealer prices)' })
+  list() {
+    return this.products.listMine(this.platformAdminId());
   }
 
   @Get(':id')
-  @ApiOperation({
-    summary: 'Get one product by id (your shop only). Always returns both price_customer and price_dealer.',
-  })
-  getMineById(@CurrentUser() user: { id: string }, @Param('id', ParseUUIDPipe) id: string) {
-    return this.products.getMineById(user.id, id);
+  @ApiOperation({ summary: 'Get one platform catalogue product by id' })
+  getOne(@Param('id', ParseUUIDPipe) id: string) {
+    return this.products.getMineById(this.platformAdminId(), id);
   }
 
   @Post()
   @UseInterceptors(FilesInterceptor('images', 12))
   @ApiConsumes('multipart/form-data', 'application/json')
-  @ApiOperation({ summary: 'Create product (JSON body, or multipart with image files field `images`)' })
-  create(
-    @CurrentUser() user: { id: string },
-    @Body() dto: CreateProductDto,
-    @UploadedFiles() files?: Express.Multer.File[],
-  ) {
-    return this.products.create(user.id, dto, files);
+  @ApiOperation({ summary: 'Create catalogue product (multipart field `images` optional)' })
+  create(@Body() dto: CreateProductDto, @UploadedFiles() files?: Express.Multer.File[]) {
+    return this.products.create(this.platformAdminId(), dto, files);
   }
 
   @Put(':id')
   @UseInterceptors(FilesInterceptor('images', 12))
   @ApiConsumes('multipart/form-data', 'application/json')
-  @ApiOperation({ summary: 'Update product (append images when multipart files sent; body.images replaces list when provided)' })
+  @ApiOperation({ summary: 'Update catalogue product' })
   update(
-    @CurrentUser() user: { id: string },
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProductDto,
     @UploadedFiles() files?: Express.Multer.File[],
   ) {
-    return this.products.update(user.id, id, dto, files);
+    return this.products.update(this.platformAdminId(), id, dto, files);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete product and remove its images from S3' })
-  remove(@CurrentUser() user: { id: string }, @Param('id', ParseUUIDPipe) id: string) {
-    return this.products.remove(user.id, id).then(() => ({ deleted: true, id }));
+  @ApiOperation({ summary: 'Delete catalogue product and its images' })
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.products.remove(this.platformAdminId(), id).then(() => ({ deleted: true, id }));
   }
 
   @Post('images/upload')
   @UseInterceptors(FilesInterceptor('images', 12))
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({
-    summary:
-      'Upload product images to S3 (multipart field `images`). Returns public URLs (CloudFront when CLOUDFRONT_DOMAIN is configured) to pass in `images` on create/update.',
-  })
+  @ApiOperation({ summary: 'Upload product images to S3; returns URLs for create/update body' })
   async uploadImages(@UploadedFiles() files?: Express.Multer.File[]) {
     if (!files?.length) throw new BadRequestException('No image files (field name: images)');
     const urls = await Promise.all(

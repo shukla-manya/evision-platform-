@@ -128,6 +128,7 @@ export class CartService {
     if (!product) throw new NotFoundException('Product not found');
     if (product.active === false) throw new NotFoundException('Product not found');
     if (!product.admin_id) throw new BadRequestException('Product is missing shop information');
+    this.products.assertProductInPlatformCatalog(product as Record<string, unknown>, String(role));
 
     const quantity = dto.quantity ?? 1;
     const minQ = minOrderQty(product as Record<string, unknown>);

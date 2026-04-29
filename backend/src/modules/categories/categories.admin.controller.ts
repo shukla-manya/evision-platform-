@@ -10,13 +10,13 @@ import { Roles } from '../../common/decorators/roles.decorator';
 @ApiTags('Categories')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin', 'superadmin')
-@Controller('admin/categories')
-export class CategoriesAdminController {
+@Roles('superadmin')
+@Controller('superadmin/categories')
+export class CategoriesSuperadminController {
   constructor(private categories: CategoriesService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a category (admin or superadmin)' })
+  @ApiOperation({ summary: 'Create a category' })
   create(@Body() dto: CreateCategoryDto) {
     return this.categories.create(dto);
   }

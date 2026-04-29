@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
-import { InvoicesAdminController } from './invoices.admin.controller';
+import { InvoicesSuperadminController } from './invoices.superadmin.controller';
 import { InvoicePdfService } from './invoice-pdf.service';
 
 @Module({
-  controllers: [InvoicesAdminController],
+  controllers: [InvoicesSuperadminController],
   providers: [InvoicesService, InvoicePdfService],
   exports: [InvoicesService],
 })

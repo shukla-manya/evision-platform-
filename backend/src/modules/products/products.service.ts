@@ -273,6 +273,15 @@ export class ProductsService {
     return row || null;
   }
 
+  /** Block cart/checkout for non-platform products when catalogue is restricted. */
+  assertProductInPlatformCatalog(product: Record<string, unknown>, role: string): void {
+    const pid = this.platformCatalogAdminId();
+    const r = String(role);
+    if (pid && (r === 'customer' || r === 'dealer') && String(product.admin_id) !== pid) {
+      throw new NotFoundException('Product not found');
+    }
+  }
+
   async findByIdForRole(id: string, role: PriceViewerRole): Promise<Record<string, unknown>> {
     const p = await this.findRawById(id);
     if (!p) throw new NotFoundException('Product not found');

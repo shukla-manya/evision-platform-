@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { OrdersAdminController } from './orders.admin.controller';
+import { OrdersSuperadminController } from './orders.superadmin.controller';
 import { OrdersController } from './orders.controller';
 import { OrdersWebhookController } from './orders.webhook.controller';
 import { ShiprocketService } from './shiprocket.service';
 
 @Module({
-  controllers: [OrdersAdminController, OrdersController, OrdersWebhookController],
+  controllers: [OrdersSuperadminController, OrdersController, OrdersWebhookController],
   providers: [OrdersService, ShiprocketService],
   exports: [OrdersService],
 })
