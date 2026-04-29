@@ -198,6 +198,54 @@ export function PublicFooter() {
           </ul>
         </div>
       </div>
+
+      <div className="border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <p className="font-semibold text-white mb-4 text-sm">Visit &amp; contact</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+            <div className="text-sm text-white/80 space-y-4">
+              <p className="text-white/60">
+                <a href={publicTelHref(publicSalesPhone)} className="text-white hover:underline">
+                  {formatIndianPhoneDisplay(publicSalesPhone)}
+                </a>
+                <span className="mx-2 text-white/35">·</span>
+                <a href={publicTelHref(publicSupportPhone)} className="text-white hover:underline">
+                  {formatIndianPhoneDisplay(publicSupportPhone)}
+                </a>
+                <span className="mx-2 text-white/35">·</span>
+                <a href={`mailto:${publicMarketingEmail}`} className="text-white hover:underline">
+                  {publicMarketingEmail}
+                </a>
+                <span className="mx-2 text-white/35">·</span>
+                <a href={`mailto:${publicSupportEmail}`} className="text-white hover:underline">
+                  {publicSupportEmail}
+                </a>
+              </p>
+              <p className="leading-relaxed text-white/75">
+                <a
+                  href={publicOfficeGoogleMapsOpenUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white hover:underline"
+                >
+                  {publicRegisteredAddress}
+                </a>
+              </p>
+            </div>
+            <div className="rounded-xl overflow-hidden border border-white/15 bg-black/20 min-h-[220px] lg:min-h-0">
+              <iframe
+                title="E-Vision India office on Google Maps"
+                src={publicOfficeMapEmbedUrl()}
+                className="w-full h-[240px] lg:h-full lg:min-h-[260px] border-0"
+                loading="eager"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/50 text-center sm:text-left">
           <span>
