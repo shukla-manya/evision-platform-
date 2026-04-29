@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Linking,
   Pressable,
@@ -24,14 +25,16 @@ import {
   publicSupportTelHref,
 } from '../config/publicMarketing';
 import { publicWebUrl } from '../config/publicWeb';
+import { publicContactApi, type ContactMessageResponse } from '../services/api';
 import { colors } from '../theme/colors';
 import { screenGutter } from '../theme/layout';
 
-function buildMailto(to: string, subject: string, body: string) {
-  const q = new URLSearchParams();
-  q.set('subject', subject);
-  q.set('body', body);
-  return `mailto:${to}?${q.toString()}`;
+function apiErrorMessage(err: unknown, fallback: string): string {
+  const d = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data;
+  const m = d?.message;
+  if (typeof m === 'string') return m;
+  if (Array.isArray(m)) return m.join(', ');
+  return fallback;
 }
 
 export function ContactScreen() {
@@ -41,31 +44,67 @@ export function ContactScreen() {
   const [message, setMessage] = useState('');
   const [subscribeEmail, setSubscribeEmail] = useState('');
 
-  const sendMessage = useCallback(() => {
-    const body = [`Name: ${firstName.trim()} ${lastName.trim()}`.trim(), `Email: ${email.trim()}`, '', message.trim()].join(
-      '\n',
-    );
-    const href = buildMailto(publicSupportEmail, 'App contact — Evision', body);
-    void Linking.openURL(href).catch(() => Alert.alert('Unable to open email', 'Install a mail app or email us at ' + publicSupportEmail));
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formSuccess, setFormSuccess] = useState<ContactMessageResponse | null>(null);
+
+  const [subSubmitting, setSubSubmitting] = useState(false);
+  const [subSuccessEmail, setSubSuccessEmail] = useState<string | null>(null);
+
+  const sendMessage = useCallback(async () => {
+    const fn = firstName.trim();
+    const ln = lastName.trim();
+    const em = email.trim();
+    const msg = message.trim();
+    if (!fn || !ln || !em || !msg) {
+      Alert.alert('Missing fields', 'Please fill in first name, last name, email, and your message.');
+      return;
+    }
+    try {
+      setFormSubmitting(true);
+      const { data } = await publicContactApi.submitMessage({
+        first_name: fn,
+        last_name: ln,
+        email: em,
+        message: msg,
+      });
+      setFormSuccess(data);
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setMessage('');
+    } catch (err) {
+      Alert.alert('Could not send', apiErrorMessage(err, 'Please try again in a moment.'));
+    } finally {
+      setFormSubmitting(false);
+    }
   }, [firstName, lastName, email, message]);
 
-  const subscribe = useCallback(() => {
+  const subscribe = useCallback(async () => {
     const em = subscribeEmail.trim();
     if (!em) {
       Alert.alert('Email required', 'Enter your email to subscribe.');
       return;
     }
-    const href = buildMailto(publicMarketingEmail, 'Newsletter subscribe — Evision', `Please add:\n${em}`);
-    void Linking.openURL(href).catch(() => Alert.alert('Unable to open email', 'Write to ' + publicMarketingEmail));
+    try {
+      setSubSubmitting(true);
+      const { data } = await publicContactApi.subscribeNewsletter({ email: em });
+      setSubSuccessEmail(data.email);
+      setSubscribeEmail('');
+    } catch (err) {
+      Alert.alert('Subscribe failed', apiErrorMessage(err, 'Please try again later.'));
+    } finally {
+      setSubSubmitting(false);
+    }
   }, [subscribeEmail]);
+
+  const resetFormSuccess = useCallback(() => setFormSuccess(null), []);
 
   return (
     <SafeAreaView style={styles.screen} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.pad} keyboardShouldPersistTaps="handled">
         <Text style={styles.h1}>Get in Touch</Text>
         <Text style={styles.lead}>
-          Orders, accounts, dealers, technicians, and partnerships. The button below opens your mail app with your message
-          to our support team.
+          Submit the form — our server emails the team and sends you a confirmation with what you entered.
         </Text>
 
         <View style={styles.card}>
@@ -106,61 +145,111 @@ export function ContactScreen() {
         </View>
 
         <Text style={styles.sectionTitle}>Get in Touch</Text>
-        <View style={styles.card}>
-          <Text style={styles.label}>First name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="First name"
-            value={firstName}
-            onChangeText={setFirstName}
-            autoCapitalize="words"
-          />
-          <Text style={[styles.label, { marginTop: 10 }]}>Last name</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Last name"
-            value={lastName}
-            onChangeText={setLastName}
-            autoCapitalize="words"
-          />
-          <Text style={[styles.label, { marginTop: 10 }]}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <Text style={[styles.label, { marginTop: 10 }]}>Your Message</Text>
-          <TextInput
-            style={[styles.input, styles.textarea]}
-            placeholder="Your Message"
-            value={message}
-            onChangeText={setMessage}
-            multiline
-            textAlignVertical="top"
-          />
-          <Pressable style={styles.btnPrimary} onPress={sendMessage}>
-            <Text style={styles.btnPrimaryText}>Send Message</Text>
-          </Pressable>
-          <Text style={styles.hint}>Opens your mail app to {publicSupportEmail}.</Text>
-        </View>
+        {formSuccess ? (
+          <View style={[styles.card, styles.successCard]}>
+            <Text style={styles.successTitle}>Thank you, {formSuccess.greeting_name}!</Text>
+            <Text style={styles.muted}>
+              Your message was delivered. We sent a confirmation to {formSuccess.email} with a copy of your details.
+            </Text>
+            <View style={styles.summaryBox}>
+              <Text style={styles.summaryHeading}>What you sent</Text>
+              <Text style={styles.summaryLine}>
+                <Text style={styles.summaryLabel}>Name: </Text>
+                {formSuccess.first_name} {formSuccess.last_name}
+              </Text>
+              <Text style={styles.summaryLine}>
+                <Text style={styles.summaryLabel}>Email: </Text>
+                {formSuccess.email}
+              </Text>
+              <Text style={styles.summaryLabel}>Message</Text>
+              <Text style={styles.summaryMessage}>{formSuccess.message}</Text>
+            </View>
+            <Pressable style={styles.btnSecondary} onPress={resetFormSuccess}>
+              <Text style={styles.btnSecondaryText}>Send another message</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={styles.card}>
+            <Text style={styles.label}>First name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="First name"
+              value={firstName}
+              onChangeText={setFirstName}
+              autoCapitalize="words"
+            />
+            <Text style={[styles.label, { marginTop: 10 }]}>Last name</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Last name"
+              value={lastName}
+              onChangeText={setLastName}
+              autoCapitalize="words"
+            />
+            <Text style={[styles.label, { marginTop: 10 }]}>Email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <Text style={[styles.label, { marginTop: 10 }]}>Your Message</Text>
+            <TextInput
+              style={[styles.input, styles.textarea]}
+              placeholder="Your Message"
+              value={message}
+              onChangeText={setMessage}
+              multiline
+              textAlignVertical="top"
+            />
+            <Pressable
+              style={[styles.btnPrimary, formSubmitting && styles.btnDisabled]}
+              onPress={() => void sendMessage()}
+              disabled={formSubmitting}
+            >
+              {formSubmitting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.btnPrimaryText}>Send Message</Text>
+              )}
+            </Pressable>
+            <Text style={styles.hint}>Confirmation is sent from our mail server.</Text>
+          </View>
+        )}
 
         <Text style={styles.sectionTitle}>Subscribe us</Text>
         <View style={styles.card}>
-          <TextInput
-            style={styles.input}
-            placeholder="Your email"
-            value={subscribeEmail}
-            onChangeText={setSubscribeEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <Pressable style={[styles.btnSecondary, { marginTop: 12 }]} onPress={subscribe}>
-            <Text style={styles.btnSecondaryText}>Subscribe</Text>
-          </Pressable>
-          <Text style={styles.hint}>Sends a request to {publicMarketingEmail}.</Text>
+          {subSuccessEmail ? (
+            <Text style={styles.muted}>
+              Thank you! We received your subscription for <Text style={{ fontWeight: '700', color: colors.textPrimary }}>{subSuccessEmail}</Text>.
+              Check your inbox for a short confirmation.
+            </Text>
+          ) : (
+            <>
+              <TextInput
+                style={styles.input}
+                placeholder="Your email"
+                value={subscribeEmail}
+                onChangeText={setSubscribeEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+              <Pressable
+                style={[styles.btnSecondary, { marginTop: 12 }, subSubmitting && styles.btnDisabled]}
+                onPress={() => void subscribe()}
+                disabled={subSubmitting}
+              >
+                {subSubmitting ? (
+                  <ActivityIndicator color={colors.brandPrimary} />
+                ) : (
+                  <Text style={styles.btnSecondaryText}>Subscribe</Text>
+                )}
+              </Pressable>
+              <Text style={styles.hint}>Marketing is notified and you get a confirmation email.</Text>
+            </>
+          )}
         </View>
 
         <Text style={[styles.muted, { marginTop: 20, lineHeight: 22 }]}>{aboutBrandSummary}</Text>
@@ -207,6 +296,20 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
+  successCard: { borderColor: colors.brandPrimary, backgroundColor: 'rgba(232, 83, 42, 0.08)' },
+  successTitle: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, marginBottom: 8 },
+  summaryBox: {
+    marginTop: 14,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  summaryHeading: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, marginBottom: 8 },
+  summaryLine: { fontSize: 14, color: colors.textPrimary, marginBottom: 6 },
+  summaryLabel: { fontWeight: '700', color: colors.textSecondary },
+  summaryMessage: { fontSize: 14, color: colors.textPrimary, marginTop: 4, lineHeight: 22 },
   cardTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 6 },
   muted: { fontSize: 14, color: colors.textSecondary, lineHeight: 22 },
   link: { fontSize: 15, color: colors.brandPrimary, fontWeight: '600' },
@@ -228,16 +331,22 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
   },
   btnPrimaryText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   btnSecondary: {
+    marginTop: 12,
     borderWidth: 2,
     borderColor: colors.brandPrimary,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
   },
   btnSecondaryText: { color: colors.brandPrimary, fontSize: 15, fontWeight: '700' },
+  btnDisabled: { opacity: 0.55 },
   hint: { fontSize: 12, color: colors.textSecondary, marginTop: 8 },
   quickLink: { fontSize: 14, color: colors.brandPrimary, fontWeight: '600', paddingVertical: 8 },
   copyright: { fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
