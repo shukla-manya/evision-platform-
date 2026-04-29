@@ -44,10 +44,9 @@ const INDEX_SPECS: { collection: string; keys: Record<string, 1 | -1>; options?:
 export async function ensureEvisionMongoIndexes(client: MongoClient): Promise<void> {
   const db = client.db();
   for (const { collection, keys, options } of INDEX_SPECS) {
-    const name = Object.entries(keys)
-      .map(([k, v]) => `${k}_${v}`)
-      .join('_');
-    await db.collection(collection).createIndex(keys, { name, ...(options?.unique ? { unique: true } : {}) });
+    await db
+      .collection(collection)
+      .createIndex(keys, options?.unique ? { unique: true } : {});
   }
 }
 
