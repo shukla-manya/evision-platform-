@@ -18,27 +18,13 @@ import {
   premierServicesIntro,
   premierServicesTitle,
 } from '@/lib/about-company-content';
+import { siteQuickLinks } from '@/lib/site-quick-links';
 
 export const metadata: Metadata = {
   title: `About us — ${publicBrandName}`,
   description:
     'E-Vision India — electronic security and safety since 2000. CCTV, access control, smart home, consulting, and ISO-minded manufacturing.',
 };
-
-const quickLinks: { label: string; href: string }[] = [
-  { label: 'Home', href: '/' },
-  { label: 'About', href: '/about' },
-  { label: 'Shop', href: '/shop' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Contact', href: '/contact' },
-  { label: 'Support', href: '/contact' },
-  { label: 'Return & Refund Policy', href: '/faq' },
-  { label: 'Terms and Conditions', href: '/contact' },
-  { label: 'Privacy Policy', href: '/privacy' },
-  { label: 'Shipping Policy', href: '/contact' },
-  { label: 'Pricing Policy', href: '/shop' },
-  { label: 'Cancellation Policy', href: '/contact' },
-];
 
 const clientIds = ['client-3', 'client-5', 'client-6', 'client-7', 'client-9', 'client-10', 'client-11'];
 
@@ -157,7 +143,7 @@ export default function AboutPage() {
         <section className="ev-container py-12 sm:py-16 max-w-5xl">
           <h2 className="text-xl font-bold text-ev-text mb-6 text-center sm:text-left">Quick Links</h2>
           <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-            {quickLinks.map((l) => (
+            {siteQuickLinks.map((l) => (
               <Link
                 key={l.label}
                 href={l.href}
