@@ -79,24 +79,11 @@ describe('E2E flows (local)', () => {
     process.env.SHIPROCKET_WEBHOOK_TOKEN = 'e2e-wh-token';
     process.env.SUPERADMIN_EMAIL = 'superadmin-notify@e2e.invalid';
 
-    dynServer = dynalite({ createTableMs: 0 });
-    await new Promise<void>((resolve, reject) => {
-      dynServer.listen(0, '127.0.0.1', () => resolve());
-      dynServer.on('error', reject);
-    });
-    const dPort = (dynServer.address() as net.AddressInfo).port;
-    process.env.DYNAMODB_ENDPOINT = `http://127.0.0.1:${dPort}`;
-    process.env.AWS_ACCESS_KEY_ID = 'local';
-    process.env.AWS_SECRET_ACCESS_KEY = 'local';
-    process.env.AWS_REGION = 'ap-south-1';
-
-    const raw = new DynamoDBClient({
-      region: 'ap-south-1',
-      endpoint: process.env.DYNAMODB_ENDPOINT,
-      credentials: { accessKeyId: 'local', secretAccessKey: 'local' },
-    });
-    await ensureEvisionDynamoTables(raw);
-    docClient = DynamoDBDocumentClient.from(raw, { marshallOptions: { removeUndefinedValues: true } });
+    mongod = await MongoMemoryServer.create();
+    process.env.MONGODB_URI = mongod.getUri();
+    mongoClient = new MongoClient(process.env.MONGODB_URI);
+    await mongoClient.connect();
+    docClient = createE2eDocClient(mongoClient.db());
 
     pdfFixture = await startPdfHttpServer();
     let uploadSeq = 0;
@@ -156,9 +143,8 @@ describe('E2E flows (local)', () => {
     await app?.close();
     await moduleRef?.close();
     await pdfFixture?.close();
-    await new Promise<void>((resolve, reject) => {
-      dynServer?.close((err) => (err ? reject(err) : resolve()));
-    });
+    await mongoClient?.close();
+    await mongod?.stop();
   });
 
   function customerToken(sub: string, email: string) {
