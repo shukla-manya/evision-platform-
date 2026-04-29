@@ -51,7 +51,7 @@ export function TestimonialsMarquee() {
     <div className="ev-marquee-outer overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 px-0">
       <div className="ev-marquee-track py-1">
         {loop.map((t, i) => (
-          <TestimonialCard key={`${t.id}-${i}`} quote={t.quote} name={t.name} role={t.role} suffix={`${t.id}-${i}`} />
+          <TestimonialCard key={`${t.id}-${i}`} quote={t.quote} name={t.name} role={t.role} />
         ))}
       </div>
     </div>

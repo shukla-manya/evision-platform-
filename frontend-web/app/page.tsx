@@ -21,6 +21,7 @@ import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
 import { PublicShell } from '@/components/public/PublicShell';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
+import { TestimonialsMarquee } from '@/components/public/TestimonialsMarquee';
 import { publicBrandName } from '@/lib/public-brand';
 import {
   publicMarketingEmail,
