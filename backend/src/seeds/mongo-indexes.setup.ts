@@ -39,7 +39,6 @@ const INDEX_SPECS: { collection: string; keys: Record<string, 1 | -1>; options?:
   { collection: 'evision_reviews', keys: { user_id: 1 } },
   { collection: 'evision_cart_items', keys: { user_id: 1, id: 1 }, options: { unique: true } },
   { collection: 'evision_order_items', keys: { order_id: 1, id: 1 }, options: { unique: true } },
-  { collection: 'evision_otps', keys: { expires_at: 1 }, options: {} },
 ];
 
 export async function ensureEvisionMongoIndexes(client: MongoClient): Promise<void> {
