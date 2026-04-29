@@ -13,8 +13,21 @@ const LINKS: { label: string; path: string }[] = [
 ];
 
 /** Signed-out: “Returns” opens storefront sign-in; signed-in: Returns row hidden (matches web footer). */
-export function PublicWebsiteLinks({ audience }: { audience: 'signed_in' | 'signed_out' }) {
-  const open = (path: string) => () => void Linking.openURL(publicWebUrl(path));
+export function PublicWebsiteLinks({
+  audience,
+  onOpenBlog,
+}: {
+  audience: 'signed_in' | 'signed_out';
+  /** When set, “Blog” opens in-app instead of the browser (customer / dealer stack). */
+  onOpenBlog?: () => void;
+}) {
+  const open = (path: string) => () => {
+    if (path === '/blog' && onOpenBlog) {
+      onOpenBlog();
+      return;
+    }
+    void Linking.openURL(publicWebUrl(path));
+  };
 
   return (
     <View style={styles.wrap}>

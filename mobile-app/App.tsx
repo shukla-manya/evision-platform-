@@ -55,6 +55,7 @@ import {
 import { clearSession, getToken, setElectricianProfile, setToken } from './src/services/storage';
 import { PasswordInputWithToggle } from './src/components/PasswordInputWithToggle';
 import { PublicWebsiteLinks } from './src/components/PublicWebsiteLinks';
+import { BlogListScreen, BlogPostScreen } from './src/screens/BlogScreens';
 import { SuperadminWebQueueLinks } from './src/components/SuperadminWebQueueLinks';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { WebView } from 'react-native-webview';
@@ -104,6 +105,8 @@ type RootStackParamList = {
   ShopPending: { shopName: string; email: string };
   PasswordReset: { role?: PasswordResetRole; phone?: string };
   Main: undefined;
+  Blog: undefined;
+  BlogPost: { slug: string };
   ProductDetail: { product: Product };
   Checkout: undefined;
   Payment: { checkoutData: CheckoutResponse };
@@ -1842,7 +1845,19 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
               <Text style={styles.shopFooterBlurb}>{aboutBrandSummary}</Text>
               <Text style={styles.shopFooterHeading}>Quick links</Text>
               {siteQuickLinks.map((l) => (
-                <Pressable key={l.path + l.label} onPress={() => void Linking.openURL(publicWebUrl(l.path))}>
+                <Pressable
+                  key={l.path + l.label}
+                  onPress={() => {
+                    if (l.path === '/blog') {
+                      const p = navigation.getParent();
+                      if (p && typeof (p as { navigate?: (name: string) => void }).navigate === 'function') {
+                        (p as { navigate: (name: string) => void }).navigate('Blog');
+                        return;
+                      }
+                    }
+                    void Linking.openURL(publicWebUrl(l.path));
+                  }}
+                >
                   <Text style={styles.shopFooterLink}>{l.label}</Text>
                 </Pressable>
               ))}
@@ -2304,11 +2319,13 @@ function ProfileScreen({
   onLogout,
   fcmToken,
   onOpenServiceHistory,
+  navigation,
 }: {
   user: AppUser | null;
   onLogout: () => void;
   fcmToken: string | null;
   onOpenServiceHistory?: () => void;
+  navigation?: { getParent: () => { navigate?: (name: string) => void } | undefined };
 }) {
   const showServiceExtras = user?.role === 'customer' || user?.role === 'dealer';
   return (
@@ -2328,7 +2345,13 @@ function ProfileScreen({
             <Text style={styles.buttonSecondaryText}>Service history & reviews</Text>
           </Pressable>
         ) : null}
-        <PublicWebsiteLinks audience="signed_in" />
+        <PublicWebsiteLinks
+          audience="signed_in"
+          onOpenBlog={() => {
+            const p = navigation?.getParent?.();
+            if (p && typeof p.navigate === 'function') p.navigate('Blog');
+          }}
+        />
         <Pressable style={styles.button} onPress={onLogout}>
           <Text style={styles.buttonText}>Logout</Text>
         </Pressable>
@@ -2381,6 +2404,7 @@ function MainTabs({
       <Tab.Screen name="Profile">
         {(props) => (
           <ProfileScreen
+            navigation={props.navigation}
             user={user}
             onLogout={onLogout}
             fcmToken={fcmToken}
@@ -2595,6 +2619,8 @@ function AppShell() {
           </>
         )}
         <RootStack.Screen name="PasswordReset" component={PasswordResetScreen} options={{ title: 'Password Reset' }} />
+        <RootStack.Screen name="Blog" component={BlogListScreen} options={{ title: 'Blog' }} />
+        <RootStack.Screen name="BlogPost" component={BlogPostScreen} options={{ title: 'Article' }} />
       </RootStack.Navigator>
     </NavigationContainer>
   );

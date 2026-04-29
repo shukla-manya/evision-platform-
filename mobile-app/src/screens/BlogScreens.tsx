@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -89,6 +90,16 @@ export function BlogListScreen({ navigation }: NativeStackScreenProps<RootBlogPa
 
 export function BlogPostScreen({ route, navigation }: NativeStackScreenProps<RootBlogParams, 'BlogPost'>) {
   const post = getBlogPostBySlug(route.params.slug);
+
+  useLayoutEffect(() => {
+    if (!post) {
+      navigation.setOptions({ title: 'Not found' });
+      return;
+    }
+    const t = post.title;
+    navigation.setOptions({ title: t.length > 34 ? `${t.slice(0, 31)}…` : t });
+  }, [navigation, post]);
+
   if (!post) {
     return (
       <SafeAreaView style={styles.screen} edges={['bottom']}>
@@ -108,13 +119,15 @@ export function BlogPostScreen({ route, navigation }: NativeStackScreenProps<Roo
         <Pressable onPress={() => navigation.navigate('Blog')} style={{ marginBottom: 12 }}>
           <Text style={styles.continueText}>← Blog</Text>
         </Pressable>
-        <View style={styles.rowTop}>
+        <View style={styles.articleByline}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{post.author.initials}</Text>
           </View>
-          <Text style={styles.metaLine}>
-            {post.author.name} · {formatBlogDateShort(post.publishedAt)} · {post.commentCount} comments
-          </Text>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.metaLine}>
+              {post.author.name} · {formatBlogDateShort(post.publishedAt)} · {post.commentCount} comments
+            </Text>
+          </View>
         </View>
         <Text style={styles.articleTitle}>{post.title}</Text>
         <Text style={styles.excerpt}>{post.excerpt}</Text>
@@ -178,6 +191,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   rowTop: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  articleByline: { flexDirection: 'row', gap: 12, alignItems: 'center', marginBottom: 4 },
   avatar: {
     width: 44,
     height: 44,
