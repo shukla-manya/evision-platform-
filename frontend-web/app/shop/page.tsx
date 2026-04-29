@@ -144,6 +144,10 @@ function ShopListingInner() {
     });
   }, [searchParams]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [search, categoryId, brand, minPrice, maxPrice, shopFilter, inStockOnly, minRating, approvedShopsOnly, sort]);
+
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(false);
@@ -195,12 +199,77 @@ function ShopListingInner() {
     return list;
   }, [rawProducts, shopFilter, inStockOnly, minRating, sort, role]);
 
+  const categoryCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of rawProducts) {
+      const id = String(p.category_id || '');
+      if (!id) continue;
+      m.set(id, (m.get(id) || 0) + 1);
+    }
+    return m;
+  }, [rawProducts]);
+
+  const priceVal = useCallback(
+    (p: Product) => Number(role === 'dealer' ? p.price_dealer ?? p.price_customer : p.price_customer ?? 0),
+    [role],
+  );
+
+  const cataloguePriceExtent = useMemo(() => {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const p of rawProducts) {
+      const v = priceVal(p);
+      if (v > 0) {
+        min = Math.min(min, v);
+        max = Math.max(max, v);
+      }
+    }
+    if (!Number.isFinite(min)) return { min: 0, max: 0 };
+    return { min: Math.floor(min), max: Math.ceil(max) };
+  }, [rawProducts, priceVal]);
+
+  const totalFiltered = products.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pageStart = totalFiltered === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const pageEnd = Math.min(safePage * pageSize, totalFiltered);
+  const pageProducts = useMemo(
+    () => products.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [products, safePage, pageSize],
+  );
+
+  const appliedMin = minPrice ? Number(minPrice) : cataloguePriceExtent.min;
+  const appliedMax = maxPrice ? Number(maxPrice) : cataloguePriceExtent.max;
+  const priceBandLabel =
+    cataloguePriceExtent.max > 0
+      ? `Price: ${formatInr(appliedMin || cataloguePriceExtent.min)} — ${formatInr(appliedMax || cataloguePriceExtent.max)}`
+      : 'Price: —';
+
   return (
     <PublicShell>
-      <main className="ev-container py-6 sm:py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight">All Cameras &amp; Accessories</h1>
-          <p className="text-ev-muted text-sm mt-1">Browse every listing from partner stores in one catalogue.</p>
+      <a href="#shop-main" className="ev-skip-link">
+        Skip to main content
+      </a>
+      <a href="#site-navigation" className="ev-skip-link--nav">
+        Skip to navigation
+      </a>
+      <PublicTrustStrip />
+      <main id="shop-main" className="min-w-0">
+        <div className="ev-container py-6 sm:py-8">
+        <nav className="text-sm text-ev-muted mb-3 flex items-center gap-1.5 flex-wrap" aria-label="Breadcrumb">
+          <Link href="/" className="hover:text-ev-primary">
+            Home
+          </Link>
+          <ChevronRight size={14} className="text-ev-subtle shrink-0" aria-hidden />
+          <span className="text-ev-text font-medium">Shop</span>
+        </nav>
+        <div className="mb-8 border-b border-ev-border pb-8">
+          <p className="text-ev-primary font-bold text-xs sm:text-sm tracking-[0.28em] uppercase mb-2">{publicShopBrandMark}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight">Shop</h1>
+          <p className="text-ev-muted text-sm mt-2 max-w-2xl">
+            Search products, filter by category and price, and sort like the full storefront — all listings from approved partner
+            shops.
+          </p>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
