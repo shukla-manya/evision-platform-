@@ -104,7 +104,7 @@ type RootStackParamList = {
   AdminSignIn: undefined;
   Register: { email?: string; phone?: string; initialRole?: RegisterInitialRole };
   ShopPending: { shopName: string; email: string };
-  PasswordReset: { role?: PasswordResetRole; phone?: string };
+  PasswordReset: { role?: PasswordResetRole; email?: string };
   Main: undefined;
   Blog: undefined;
   BlogPost: { slug: string };
@@ -324,24 +324,24 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
 }
 
 function OtpSignInScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: string, user: AppUser) => void; navigation: any }) {
-  const [phoneDigits, setPhoneDigits] = useState('');
+  const [emailInput, setEmailInput] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'phone' | 'otp'>('phone');
+  const [step, setStep] = useState<'email' | 'otp'>('email');
   const [loading, setLoading] = useState(false);
 
-  const phoneE164 = () => normalizePhone(phoneDigits);
+  const normalizedEmail = () => emailInput.trim().toLowerCase();
 
   const sendOtp = async () => {
     try {
       setLoading(true);
-      const p = phoneE164();
-      if (p.replace(/\D/g, '').length < 11) {
-        Alert.alert('Invalid number', 'Enter a valid 10-digit mobile number.');
+      const em = normalizedEmail();
+      if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
+        Alert.alert('Invalid email', 'Enter a valid email address.');
         return;
       }
-      await authApi.sendOtp(p);
+      await authApi.sendOtp(em);
       setStep('otp');
-      Alert.alert('OTP sent', 'Check your SMS for the 6-digit code.');
+      Alert.alert('OTP sent', 'Check your email for the 6-digit code.');
     } catch (err) {
       Alert.alert('Login failed', asApiError(err, 'Unable to send OTP.'));
     } finally {
@@ -352,11 +352,11 @@ function OtpSignInScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: strin
   const verifyOtpLogin = async () => {
     try {
       setLoading(true);
-      const p = phoneE164();
-      const { data } = await authApi.verifyOtp(p, otp.replace(/\D/g, ''));
+      const em = normalizedEmail();
+      const { data } = await authApi.verifyOtp(em, otp.replace(/\D/g, ''));
       if (!data.is_registered) {
-        navigation.navigate('Register', { phone: p });
-        setStep('phone');
+        navigation.navigate('Register', { email: em });
+        setStep('email');
         setOtp('');
         return;
       }
