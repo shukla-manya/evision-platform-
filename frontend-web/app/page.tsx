@@ -275,11 +275,14 @@ export default function HomePage() {
               <p key={p.slice(0, 48)}>{p}</p>
             ))}
           </div>
-          <p className="text-center mt-8">
-            <Link href="/about" className="text-ev-primary font-semibold text-sm hover:underline inline-flex items-center gap-1">
-              Full company story, services &amp; certificates <ArrowRight size={14} aria-hidden />
+          <div className="flex justify-center mt-8">
+            <Link
+              href="/about"
+              className="ev-btn-primary inline-flex items-center gap-2 text-sm py-2.5 px-6"
+            >
+              Full company story, services & certificates <ArrowRight size={16} aria-hidden />
             </Link>
-          </p>
+          </div>
         </section>
 
         {/* Showcase grid */}
