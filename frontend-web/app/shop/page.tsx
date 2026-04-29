@@ -105,7 +105,7 @@ function ShopListingInner() {
   const [maxPrice, setMaxPrice] = useState('');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [minRating, setMinRating] = useState('');
-  const [sort, setSort] = useState<SortKey>('relevance');
+  const [sort, setSort] = useState<SortKey>('price_asc');
   const [wishTick, setWishTick] = useState(0);
   const refreshWishlist = useCallback(() => setWishTick((n) => n + 1), []);
   void wishTick;
@@ -141,10 +141,14 @@ function ShopListingInner() {
     queueMicrotask(() => {
       if (q) setSearch(q);
       const sortParam = searchParams.get('sort');
-      if (sortParam === 'newest' || sortParam === 'price_asc' || sortParam === 'price_desc' || sortParam === 'rating') {
+      if (
+        sortParam === 'relevance' ||
+        sortParam === 'newest' ||
+        sortParam === 'price_asc' ||
+        sortParam === 'price_desc' ||
+        sortParam === 'rating'
+      ) {
         setSort(sortParam);
-      } else if (!sortParam) {
-        setSort('price_asc');
       }
       const cat = searchParams.get('category_id');
       if (cat) setCategoryId(cat);
