@@ -9,15 +9,6 @@ import { authApi, cartApi, checkoutApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
 
-declare global {
-  interface Window {
-    Razorpay?: new (options: Record<string, unknown>) => {
-      open: () => void;
-      on: (event: string, handler: (response: unknown) => void) => void;
-    };
-  }
-}
-
 type Addr = {
   id?: string;
   label?: string;
