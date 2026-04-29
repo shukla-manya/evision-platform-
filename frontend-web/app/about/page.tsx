@@ -124,16 +124,12 @@ export default function AboutPage() {
 
         <section className="border-t border-ev-border bg-ev-surface py-10 sm:py-14">
           <div className="ev-container">
-            <p className="text-center text-ev-muted text-xs uppercase tracking-widest mb-6">Trusted partners</p>
-            <div className="flex flex-wrap justify-center gap-6 sm:gap-8 opacity-60 grayscale" aria-label="Client logos">
-              {clientIds.map((id) => (
-                <div
-                  key={id}
-                  className="h-12 w-28 rounded-lg bg-ev-border/60 border border-ev-border flex items-center justify-center text-[10px] font-mono text-ev-muted"
-                >
-                  {id}
-                </div>
-              ))}
+            <p className="text-center text-ev-muted text-xs uppercase tracking-widest mb-2">Trusted by teams across India</p>
+            <p className="text-center text-ev-subtle text-xs mb-8 max-w-2xl mx-auto">
+              Representative feedback from integrators, facility teams, and partners — hover the strip to pause.
+            </p>
+            <div className="max-w-7xl mx-auto" role="region" aria-label="Customer testimonials">
+              <TestimonialsMarquee />
             </div>
             <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">{aboutBrandSummary}</p>
           </div>
