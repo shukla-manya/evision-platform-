@@ -1,19 +1,17 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
-import Razorpay from 'razorpay';
-import { createHmac } from 'crypto';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { CartService } from '../cart/cart.service';
 import { EmailService } from '../emails/email.service';
-import { ConfirmPaymentDto } from './dto/confirm-payment.dto';
+import { CreateCheckoutDto } from './dto/create-checkout.dto';
 import { PushService } from '../push/push.service';
 import { ElectricianService } from '../electrician/electrician.service';
+import { buildPayuPaymentHash, verifyPayuResponseHash } from './payu-hash.util';
 
 @Injectable()
 export class CheckoutService {
   private readonly logger = new Logger(CheckoutService.name);
-  private razorpayClient: Razorpay | null = null;
 
   constructor(
     private dynamo: DynamoService,
@@ -44,20 +42,39 @@ export class CheckoutService {
     return this.dynamo.tableName('admins');
   }
 
-  private razorpay(): Razorpay {
-    if (this.razorpayClient) return this.razorpayClient;
-    const keyId = this.config.get<string>('RAZORPAY_KEY_ID');
-    const keySecret = this.config.get<string>('RAZORPAY_KEY_SECRET');
-    if (!keyId || !keySecret) {
-      throw new BadRequestException(
-        'Razorpay is not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET',
-      );
-    }
-    this.razorpayClient = new Razorpay({ key_id: keyId, key_secret: keySecret });
-    return this.razorpayClient;
+  private payuKey(): string {
+    const k = this.config.get<string>('PAYU_MERCHANT_KEY') || this.config.get<string>('PAYU_KEY');
+    if (!k) throw new BadRequestException('PayU is not configured. Set PAYU_MERCHANT_KEY (or PAYU_KEY) and PAYU_SALT');
+    return k;
   }
 
-  async createOrder(userId: string): Promise<Record<string, unknown>> {
+  private payuSalt(): string {
+    const s = this.config.get<string>('PAYU_SALT');
+    if (!s) throw new BadRequestException('PAYU_SALT is not configured');
+    return s;
+  }
+
+  private payuActionUrl(): string {
+    const mode = String(this.config.get('PAYU_MODE') || 'test').toLowerCase();
+    if (mode === 'production' || mode === 'prod' || mode === 'live') {
+      return 'https://secure.payu.in/_payment';
+    }
+    return 'https://test.payu.in/_payment';
+  }
+
+  private callbackBaseUrl(): string {
+    const b =
+      this.config.get<string>('BACKEND_PUBLIC_URL') ||
+      this.config.get<string>('API_PUBLIC_URL') ||
+      `http://localhost:${this.config.get('PORT', '8000')}`;
+    return String(b).replace(/\/$/, '');
+  }
+
+  private frontendBaseUrl(): string {
+    return String(this.config.get('FRONTEND_URL', 'http://localhost:3000')).replace(/\/$/, '');
+  }
+
+  async createOrder(userId: string, dto?: CreateCheckoutDto): Promise<Record<string, unknown>> {
     const cartItems = await this.cart.listUserItems(userId);
     if (!cartItems.length) throw new BadRequestException('Cart is empty');
 
@@ -74,145 +91,145 @@ export class CheckoutService {
       total += lineTotal;
     }
 
-    const amountPaise = Math.round(total * 100);
-    if (amountPaise <= 0) {
+    if (total <= 0) {
       throw new BadRequestException('Total amount must be greater than zero');
     }
 
-    const rpOrder = await this.razorpay().orders.create({
-      amount: amountPaise,
-      currency: 'INR',
-      receipt: `chk_${uuidv4().slice(0, 18)}`,
-      notes: {
-        user_id: userId,
-      },
+    const user = await this.dynamo.get(this.usersTable(), { id: userId });
+    if (!user) throw new BadRequestException('User not found');
+
+    const amountStr = total.toFixed(2);
+    const txnid = `EV${uuidv4().replace(/-/g, '').slice(0, 20)}`;
+    const key = this.payuKey();
+    const salt = this.payuSalt();
+    const email = String((user as { email?: string }).email || 'customer@example.com');
+    const name = String((user as { name?: string }).name || 'Customer');
+    const phone = String((user as { phone?: string }).phone || '9999999999').replace(/\D/g, '') || '9999999999';
+    const deliveryIdx =
+      dto?.delivery_address_index !== undefined && dto.delivery_address_index !== null
+        ? String(Math.max(0, Math.floor(dto.delivery_address_index)))
+        : '0';
+
+    const udf1 = userId;
+    const udf2 = amountStr;
+    const udf3 = deliveryIdx;
+    const udf4 = '';
+    const udf5 = '';
+
+    const productinfo = 'E vision cart checkout';
+    const hash = buildPayuPaymentHash({
+      key,
+      txnid,
+      amount: amountStr,
+      productinfo,
+      firstname: name.split(/\s+/)[0] || name,
+      email,
+      udf1,
+      udf2,
+      udf3,
+      udf4,
+      udf5,
+      salt,
     });
 
+    const surl = `${this.callbackBaseUrl()}/webhooks/payu/return`;
+    const furl = surl;
+
     return {
-      razorpay_order_id: rpOrder.id,
+      payment_provider: 'payu',
+      action: this.payuActionUrl(),
+      method: 'POST',
+      fields: {
+        key,
+        txnid,
+        amount: amountStr,
+        productinfo,
+        firstname: name.split(/\s+/)[0] || name,
+        email,
+        phone,
+        surl,
+        furl,
+        udf1,
+        udf2,
+        udf3,
+        udf4,
+        udf5,
+        hash,
+      },
       amount: total,
-      amount_paise: amountPaise,
       currency: 'INR',
-      key_id: this.config.get<string>('RAZORPAY_KEY_ID'),
+      txnid,
     };
   }
 
-  private verifyClientPaymentSignature(
-    razorpayOrderId: string,
-    razorpayPaymentId: string,
-    razorpaySignature: string,
-  ): void {
-    const secret = this.config.get<string>('RAZORPAY_KEY_SECRET');
-    if (!secret) {
-      throw new BadRequestException('RAZORPAY_KEY_SECRET is not configured');
-    }
-    const expected = createHmac('sha256', secret)
-      .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-      .digest('hex');
-    if (expected !== razorpaySignature) {
-      throw new BadRequestException('Invalid Razorpay payment signature');
-    }
-  }
+  /** PayU browser return (surl/furl): verify hash, then finalize order or redirect to failure. */
+  async handlePayuBrowserReturn(body: Record<string, string>): Promise<string> {
+    const front = this.frontendBaseUrl();
+    const salt = this.payuSalt();
 
-  async confirmPayment(userId: string, dto: ConfirmPaymentDto): Promise<Record<string, unknown>> {
-    const razorpayOrderId = String(dto.razorpay_order_id || '');
-    if (!razorpayOrderId) {
-      throw new BadRequestException('razorpay_order_id is required');
+    if (!verifyPayuResponseHash(body, salt)) {
+      this.logger.warn('PayU return: invalid hash');
+      return `${front}/checkout/failure?reason=invalid_hash`;
     }
 
-    const existing = await this.findOrderGroupByRazorpayOrderId(razorpayOrderId);
-    if (existing) {
-      if (String(existing.user_id || '') !== userId) {
-        throw new BadRequestException('Order does not belong to this user');
+    const status = String(body.status || '').toLowerCase();
+    const txnid = String(body.txnid || '');
+    const userId = String(body.udf1 || '');
+    const amountExpected = String(body.udf2 || '');
+    const mihpayid = String(body.mihpayid || '');
+
+    if (!txnid || !userId) {
+      return `${front}/checkout/failure?reason=invalid_response`;
+    }
+
+    if (amountExpected && Math.abs(Number(body.amount) - Number(amountExpected)) > 0.02) {
+      this.logger.warn('PayU return: amount mismatch');
+      return `${front}/checkout/failure?reason=amount_mismatch`;
+    }
+
+    const deliveryIdx = Number.parseInt(String(body.udf3 ?? '0'), 10);
+    const deliveryAddressIndex = Number.isFinite(deliveryIdx) ? deliveryIdx : 0;
+
+    if (status === 'success') {
+      try {
+        const out = await this.finalizeSuccessfulPayment(userId, txnid, mihpayid, deliveryAddressIndex);
+        const gid = String(out.order_group_id || '');
+        const tail = gid.replace(/-/g, '').slice(-4).toUpperCase();
+        const ref = encodeURIComponent(`G${tail}`);
+        return `${front}/checkout/success?group=${encodeURIComponent(gid)}&ref=${ref}`;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        this.logger.error(`PayU success finalize failed: ${msg}`);
+        return `${front}/checkout/failure?reason=${encodeURIComponent('finalize_failed')}`;
       }
-      return { ok: true, duplicate: true, order_group_id: existing.id, status: existing.status };
     }
 
-    if (dto.status === 'success') {
-      const paymentId = String(dto.razorpay_payment_id || '');
-      const signature = String(dto.razorpay_signature || '');
-      if (!paymentId || !signature) {
-        throw new BadRequestException(
-          'razorpay_payment_id and razorpay_signature are required for success',
-        );
-      }
-      this.verifyClientPaymentSignature(razorpayOrderId, paymentId, signature);
-      return this.handlePaymentCaptured(
-        {
-          event: 'payment.captured',
-          payload: {
-            payment: {
-              entity: {
-                id: paymentId,
-                order_id: razorpayOrderId,
-                notes: { user_id: userId },
-              },
-            },
-          },
-        },
-        { deliveryAddressIndex: dto.delivery_address_index },
-      );
+    const reason = String(body.field9 || body.error_Message || body.error || 'payment_failed');
+    try {
+      await this.finalizeFailedPayment(userId, txnid, mihpayid, Number(body.amount) || 0, reason);
+    } catch (e: unknown) {
+      this.logger.warn(`PayU failure record: ${e instanceof Error ? e.message : e}`);
     }
-
-    return this.handlePaymentFailed({
-      event: 'payment.failed',
-      payload: {
-        payment: {
-          entity: {
-            id: String(dto.razorpay_payment_id || ''),
-            order_id: razorpayOrderId,
-            amount: 0,
-            currency: 'INR',
-            notes: { user_id: userId },
-            error_description: dto.failure_reason || 'Payment failed from client callback',
-          },
-        },
-      },
-    });
+    return `${front}/checkout/failure?reason=${encodeURIComponent(reason.slice(0, 120))}`;
   }
 
-  private verifyWebhookSignature(rawBody: Buffer, signature: string): void {
-    const secret = this.config.get<string>('RAZORPAY_WEBHOOK_SECRET');
-    if (!secret) {
-      throw new BadRequestException('RAZORPAY_WEBHOOK_SECRET is not configured');
-    }
-    const expected = createHmac('sha256', secret)
-      .update(rawBody)
-      .digest('hex');
-    if (expected !== signature) {
-      throw new BadRequestException('Invalid Razorpay webhook signature');
-    }
-  }
-
-  async processWebhook(rawBody: Buffer, signature: string, payload: Record<string, unknown>): Promise<Record<string, unknown>> {
-    this.verifyWebhookSignature(rawBody, signature);
-    const event = String(payload.event || '');
-    if (event === 'payment.captured') {
-      return this.handlePaymentCaptured(payload);
-    }
-    if (event === 'payment.failed') {
-      return this.handlePaymentFailed(payload);
-    }
-    return { ok: true, ignored: true, event };
-  }
-
-  private async findOrderGroupByRazorpayOrderId(orderId: string): Promise<Record<string, unknown> | null> {
+  private async findOrderGroupByGatewayTxnId(txnId: string): Promise<Record<string, unknown> | null> {
     try {
       const rows = await this.dynamo.query({
         TableName: this.orderGroupsTable(),
         IndexName: 'RazorpayOrderIndex',
         KeyConditionExpression: 'razorpay_order_id = :roid',
-        ExpressionAttributeValues: { ':roid': orderId },
+        ExpressionAttributeValues: { ':roid': txnId },
         Limit: 5,
       });
       if (rows[0]) return rows[0];
     } catch {
-      // Legacy tables without RazorpayOrderIndex — fall back to scan (slow).
+      /* index missing */
     }
     const groups = await this.dynamo.scan({
       TableName: this.orderGroupsTable(),
       FilterExpression: 'razorpay_order_id = :roid',
-      ExpressionAttributeValues: { ':roid': orderId },
+      ExpressionAttributeValues: { ':roid': txnId },
     });
     return groups[0] || null;
   }
@@ -300,22 +317,18 @@ export class CheckoutService {
     );
   }
 
-  private async handlePaymentCaptured(
-    payload: Record<string, unknown>,
-    meta?: { deliveryAddressIndex?: number },
-  ): Promise<Record<string, unknown>> {
-    const payment = (((payload.payload as Record<string, unknown>)?.payment as Record<string, unknown>)?.entity ||
-      {}) as Record<string, unknown>;
-    const razorpayOrderId = String(payment.order_id || '');
-    const razorpayPaymentId = String(payment.id || '');
-    const userId = String((payment.notes as Record<string, unknown> | undefined)?.user_id || '');
-    if (!razorpayOrderId || !userId) {
-      throw new BadRequestException('Invalid payment payload');
-    }
-
-    const existing = await this.findOrderGroupByRazorpayOrderId(razorpayOrderId);
+  private async finalizeSuccessfulPayment(
+    userId: string,
+    gatewayTxnId: string,
+    gatewayPaymentId: string,
+    deliveryAddressIndex: number,
+  ): Promise<{ order_group_id: string; duplicate?: boolean }> {
+    const existing = await this.findOrderGroupByGatewayTxnId(gatewayTxnId);
     if (existing) {
-      return { ok: true, duplicate: true, order_group_id: existing.id };
+      if (String(existing.user_id || '') !== userId) {
+        throw new BadRequestException('Order does not belong to this user');
+      }
+      return { order_group_id: String(existing.id), duplicate: true };
     }
 
     const cartItems = await this.cart.listUserItems(userId);
@@ -327,14 +340,14 @@ export class CheckoutService {
     let delivery_snapshot: Record<string, unknown> | null = null;
     if (
       user &&
-      meta?.deliveryAddressIndex !== undefined &&
-      meta.deliveryAddressIndex !== null &&
-      !Number.isNaN(Number(meta.deliveryAddressIndex))
+      deliveryAddressIndex !== undefined &&
+      deliveryAddressIndex !== null &&
+      !Number.isNaN(Number(deliveryAddressIndex))
     ) {
       const book = Array.isArray((user as Record<string, unknown>).address_book)
         ? ((user as Record<string, unknown>).address_book as Record<string, unknown>[])
         : [];
-      const sel = book[Number(meta.deliveryAddressIndex)];
+      const sel = book[Number(deliveryAddressIndex)];
       if (sel && typeof sel === 'object') {
         delivery_snapshot = { ...sel };
       }
@@ -367,8 +380,9 @@ export class CheckoutService {
       total_amount: total,
       currency: 'INR',
       status: 'payment_confirmed',
-      razorpay_order_id: razorpayOrderId,
-      razorpay_payment_id: razorpayPaymentId,
+      razorpay_order_id: gatewayTxnId,
+      razorpay_payment_id: gatewayPaymentId,
+      payment_provider: 'payu',
       ...(delivery_snapshot ? { delivery_snapshot } : {}),
       created_at: now,
       updated_at: now,
@@ -458,23 +472,20 @@ export class CheckoutService {
     }
 
     await this.cart.clear(userId);
-    this.logger.log(`Payment captured; order group ${groupId} created for user ${userId}`);
-    return { ok: true, order_group_id: groupId };
+    this.logger.log(`PayU captured; order group ${groupId} created for user ${userId}`);
+    return { order_group_id: groupId };
   }
 
-  private async handlePaymentFailed(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const payment = (((payload.payload as Record<string, unknown>)?.payment as Record<string, unknown>)?.entity ||
-      {}) as Record<string, unknown>;
-    const razorpayOrderId = String(payment.order_id || '');
-    const userId = String((payment.notes as Record<string, unknown> | undefined)?.user_id || '');
-    const failureReason = String(payment.error_description || payment.error_reason || 'Payment failed');
-    if (!razorpayOrderId || !userId) {
-      throw new BadRequestException('Invalid failed payment payload');
-    }
-
-    const existing = await this.findOrderGroupByRazorpayOrderId(razorpayOrderId);
+  private async finalizeFailedPayment(
+    userId: string,
+    gatewayTxnId: string,
+    gatewayPaymentId: string,
+    amount: number,
+    failureReason: string,
+  ): Promise<{ order_group_id: string; duplicate?: boolean }> {
+    const existing = await this.findOrderGroupByGatewayTxnId(gatewayTxnId);
     if (existing) {
-      return { ok: true, duplicate: true, order_group_id: existing.id };
+      return { order_group_id: String(existing.id), duplicate: true };
     }
 
     const groupId = uuidv4();
@@ -482,12 +493,13 @@ export class CheckoutService {
     await this.dynamo.put(this.orderGroupsTable(), {
       id: groupId,
       user_id: userId,
-      total_amount: Number(payment.amount || 0) / 100,
-      currency: String(payment.currency || 'INR'),
+      total_amount: amount,
+      currency: 'INR',
       status: 'payment_failed',
       failure_reason: failureReason,
-      razorpay_order_id: razorpayOrderId,
-      razorpay_payment_id: String(payment.id || ''),
+      razorpay_order_id: gatewayTxnId,
+      razorpay_payment_id: gatewayPaymentId,
+      payment_provider: 'payu',
       created_at: now,
       updated_at: now,
     });
@@ -505,7 +517,7 @@ export class CheckoutService {
       body: `Payment failed for order ${groupId}.`,
       data: { order_group_id: groupId, type: 'payment_failed' },
     });
-    this.logger.warn(`Payment failed for user ${userId}; group ${groupId} marked payment_failed`);
-    return { ok: true, order_group_id: groupId, status: 'payment_failed' };
+    this.logger.warn(`PayU failed for user ${userId}; group ${groupId} marked payment_failed`);
+    return { order_group_id: groupId };
   }
 }
