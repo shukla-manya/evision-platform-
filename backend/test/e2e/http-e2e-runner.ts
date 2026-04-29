@@ -96,6 +96,11 @@ async function main() {
   process.env.SHIPROCKET_WEBHOOK_TOKEN = 'e2e-wh-token';
   process.env.SUPERADMIN_EMAIL = 'superadmin-notify@e2e.invalid';
 
+  /** Avoid long hangs from the AWS SDK default credential chain (IMDS) when .env has no keys. */
+  process.env.AWS_EC2_METADATA_DISABLED = process.env.AWS_EC2_METADATA_DISABLED ?? 'true';
+  if (!process.env.AWS_ACCESS_KEY_ID) process.env.AWS_ACCESS_KEY_ID = 'local';
+  if (!process.env.AWS_SECRET_ACCESS_KEY) process.env.AWS_SECRET_ACCESS_KEY = 'local';
+
   const mongod = await MongoMemoryServer.create();
   process.env.MONGODB_URI = mongod.getUri();
   const mongoClient = new MongoClient(process.env.MONGODB_URI);
@@ -122,13 +127,12 @@ async function main() {
   };
 
   console.log('[e2e] dynamic-import AppModule + providers…');
-  const [{ AppModule }, { EmailService: EmailCls }, { S3Service: S3Cls }, { PushService: PushCls }, { ServiceService: ServiceCls }] =
+  const [{ AppModule }, { EmailService: EmailCls }, { S3Service: S3Cls }, { PushService: PushCls }] =
     await Promise.all([
       import('../../src/app.module'),
       import('../../src/modules/emails/email.service'),
       import('../../src/common/s3/s3.service'),
       import('../../src/modules/push/push.service'),
-      import('../../src/modules/service/service.service'),
     ]);
   console.log('[e2e] Nest TestingModule.compile()…');
 

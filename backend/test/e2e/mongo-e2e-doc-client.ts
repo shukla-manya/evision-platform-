@@ -1,5 +1,4 @@
 import type { PutCommandInput, ScanCommandInput } from '@aws-sdk/lib-dynamodb';
-import { PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import type { Db } from 'mongodb';
 import { evisionPartitionKeyFields } from '../../src/common/dynamo/collection-keys';
 import { mongoFilterFromScanInput } from '../../src/common/dynamo/mongo-dynamo-query.util';

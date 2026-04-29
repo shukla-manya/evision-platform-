@@ -102,6 +102,10 @@ describe('E2E flows (local)', () => {
     process.env.SHIPROCKET_WEBHOOK_TOKEN = 'e2e-wh-token';
     process.env.SUPERADMIN_EMAIL = 'superadmin-notify@e2e.invalid';
 
+    process.env.AWS_EC2_METADATA_DISABLED = process.env.AWS_EC2_METADATA_DISABLED ?? 'true';
+    if (!process.env.AWS_ACCESS_KEY_ID) process.env.AWS_ACCESS_KEY_ID = 'local';
+    if (!process.env.AWS_SECRET_ACCESS_KEY) process.env.AWS_SECRET_ACCESS_KEY = 'local';
+
     mongod = await MongoMemoryServer.create();
     process.env.MONGODB_URI = mongod.getUri();
     mongoClient = new MongoClient(process.env.MONGODB_URI);
