@@ -115,6 +115,11 @@ function ShopListingInner() {
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canAddToCart = role === 'customer' || role === 'dealer';
 
+  const priceVal = useCallback(
+    (p: Product) => Number(role === 'dealer' ? p.price_dealer ?? p.price_customer : p.price_customer ?? 0),
+    [role],
+  );
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
