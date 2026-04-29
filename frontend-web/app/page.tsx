@@ -282,22 +282,19 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* What we provide */}
+        {/* What we provide — same copy as /about */}
         <section className="ev-container py-12 sm:py-16 max-w-4xl">
-          <h2 className="text-2xl sm:text-3xl font-bold text-ev-text text-center mb-6">What We Provide to Our Customers?</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-ev-text text-center mb-6">{aboutWhatWeProvideTitle}</h2>
           <div className="text-ev-muted text-sm sm:text-base leading-relaxed space-y-4 text-center sm:text-left">
-            <p>
-              We as E-Vision India are proud of providing customized security solutions meant to meet the unique requirements of each
-              client. With lot of expertise and dedication, we have specialist knowledge on how dependable security system can be
-              conceptualized. These highly experienced consultants are there to guide you through an individualized selection process
-              so that you end up with a security solution that best suits your home, business or public place.
-            </p>
-            <p>
-              The coverage of our security arrangement is therefore designed specifically for your peace of mind in which they secure
-              all what it is important to protect. Find out today how E-vision India can improve your safety by responding to our
-              inquiry form.
-            </p>
+            {aboutWhatWeProvideParagraphs.map((p) => (
+              <p key={p.slice(0, 48)}>{p}</p>
+            ))}
           </div>
+          <p className="text-center mt-8">
+            <Link href="/about" className="text-ev-primary font-semibold text-sm hover:underline inline-flex items-center gap-1">
+              Full company story, services &amp; certificates <ArrowRight size={14} aria-hidden />
+            </Link>
+          </p>
         </section>
 
         {/* Showcase grid */}
@@ -480,10 +477,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">
-            EVISION is a surveillance solutions brand delivering high-performance CCTV systems and advanced network infrastructure,
-            including PoE and AI-based technologies for reliable security across homes, businesses, and large-scale projects.
-          </p>
+          <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">{aboutBrandSummary}</p>
           <div className="mt-8 flex flex-col sm:flex-row flex-wrap justify-center gap-4 text-sm text-ev-muted text-center">
             <a href={`tel:${publicSalesPhone.replace(/\s/g, '')}`} className="hover:text-ev-primary">
               {publicSalesPhone}
