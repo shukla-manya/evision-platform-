@@ -204,7 +204,7 @@ export function PublicFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/50 text-center sm:text-left">
-          <span>© {year} E vision Pvt. Ltd. Payments secured by Razorpay.</span>
+          <span>© {year} E vision Pvt. Ltd. Payments secured by PayU.</span>
           <span className="text-white/40">Made with love by Manya Shukla · {year}</span>
         </div>
       </div>

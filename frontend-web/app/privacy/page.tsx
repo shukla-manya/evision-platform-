@@ -56,7 +56,7 @@ export default function PrivacyPage() {
             </li>
             <li>
               <strong className="text-ev-text">Orders and payments:</strong> order details, delivery address, payment
-              status, and transaction references. Card payments are processed by our payment partner (e.g. Razorpay); we
+              status, and transaction references. Card payments are processed by our payment partner (PayU); we
               do not store full card numbers on our servers.
             </li>
             <li>

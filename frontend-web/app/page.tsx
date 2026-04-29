@@ -306,8 +306,8 @@ export default function HomePage() {
               {
                 kicker: 'Payments',
                 Icon: CreditCard,
-                title: 'Razorpay at checkout',
-                body: 'UPI, cards, and netbanking run through Razorpay on the web checkout you already know. We do not route you to random IDs or off-platform payment links.',
+                title: 'PayU at checkout',
+                body: 'UPI, cards, and netbanking run through PayU on the hosted checkout you already know. We do not route you to random IDs or off-platform payment links.',
               },
               {
                 kicker: 'B2B',

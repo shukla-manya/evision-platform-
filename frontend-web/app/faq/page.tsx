@@ -53,7 +53,7 @@ const SECTIONS: { title: string; items: FaqItem[] }[] = [
     items: [
       {
         q: 'How do I pay?',
-        a: 'Checkout uses Razorpay. You complete payment on the secure Razorpay flow; we never store your full card details on our servers.',
+        a: 'Checkout uses PayU. You complete payment on the secure PayU hosted page; we never store your full card details on our servers.',
       },
       {
         q: 'When will my order ship?',

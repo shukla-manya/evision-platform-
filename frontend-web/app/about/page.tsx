@@ -59,7 +59,7 @@ export default function AboutPage() {
           <section>
             <h2 className="text-lg font-semibold text-ev-text mb-3 pb-2 border-b border-ev-border">Payments & trust</h2>
             <p className="text-ev-muted text-sm leading-relaxed">
-              Checkout is powered by <strong className="text-ev-text">Razorpay</strong>. We focus on clear order status,
+              Checkout is powered by <strong className="text-ev-text">PayU</strong>. We focus on clear order status,
               shipment tracking when provided by the shop and courier, and support channels so you are never left guessing
               about your purchase.
             </p>
