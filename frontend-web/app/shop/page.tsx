@@ -143,6 +143,8 @@ function ShopListingInner() {
       const sortParam = searchParams.get('sort');
       if (sortParam === 'newest' || sortParam === 'price_asc' || sortParam === 'price_desc' || sortParam === 'rating') {
         setSort(sortParam);
+      } else {
+        setSort('price_asc');
       }
       const cat = searchParams.get('category_id');
       if (cat) setCategoryId(cat);
