@@ -1229,35 +1229,14 @@ function PasswordResetScreen({
   );
 }
 
-type MciName = ComponentProps<typeof MaterialCommunityIcons>['name'];
-
-const SHOP_CATEGORY_TILES_MOBILE: {
-  label: string;
-  icon: MciName;
-  iconBg: string;
-  iconColor: string;
-}[] = [
-  { label: 'DSLR Cameras', icon: 'camera-outline', iconBg: '#fff7ed', iconColor: '#c2410c' },
-  { label: 'Mirrorless', icon: 'cellphone', iconBg: '#f1f5f9', iconColor: '#334155' },
-  { label: 'Lenses', icon: 'blur', iconBg: '#e0f2fe', iconColor: '#075985' },
-  { label: 'Action Cameras', icon: 'motion-play-outline', iconBg: '#ffe4e6', iconColor: '#9f1239' },
-  { label: 'Tripods & Mounts', icon: 'axis-arrow', iconBg: '#f5f5f4', iconColor: '#44403c' },
-  { label: 'Memory Cards', icon: 'sd', iconBg: '#ede9fe', iconColor: '#5b21b6' },
-  { label: 'Bags & Cases', icon: 'bag-suitcase-outline', iconBg: '#ecfdf5', iconColor: '#065f46' },
-  { label: 'Lighting', icon: 'ceiling-light-outline', iconBg: '#fef9c3', iconColor: '#854d0e' },
-  { label: 'Filters', icon: 'tune-variant', iconBg: '#e0e7ff', iconColor: '#312e81' },
-  { label: 'Accessories', icon: 'package-variant', iconBg: '#ffedd5', iconColor: '#9a3412' },
-];
-
 function resolveCatalogBrowseParams(
   label: string,
-  index: number,
+  _index: number,
   categories: Array<{ id: string; name: string }>,
 ): { category_id?: string; search?: string } {
   const token = label.split(' ')[0].toLowerCase();
   const match = categories.find((c) => c.name.toLowerCase().includes(token));
   if (match?.id) return { category_id: match.id };
-  if (categories[index]?.id) return { category_id: categories[index].id };
   return { search: label };
 }
 
@@ -1328,7 +1307,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
     return products.filter((p) => String(p.shop_name || '').trim().toLowerCase() === t);
   }, [products, shopFilter]);
 
-  if (loading) return <Loader text="Loading products..." />;
+  if (loading) return <Loader text="Loading catalogue..." />;
 
   return (
     <SafeAreaView style={styles.screen}>
