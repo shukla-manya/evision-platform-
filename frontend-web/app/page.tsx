@@ -38,6 +38,11 @@ import {
   showcasePrimary,
   type StaticShowcaseProduct,
 } from '@/lib/home-cctv-content';
+import {
+  aboutBrandSummary,
+  aboutWhatWeProvideParagraphs,
+  aboutWhatWeProvideTitle,
+} from '@/lib/about-company-content';
 
 type Product = {
   id: string;
