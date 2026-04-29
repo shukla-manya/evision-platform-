@@ -1317,11 +1317,38 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
           <View style={{ marginBottom: 14, gap: 12 }}>
+            <View style={styles.homeMarketingHero}>
+              <Text style={styles.homeMarketingKicker}>24/7 support · Free shipping, all over India</Text>
+              <Pressable onPress={() => void Linking.openURL(publicSupportTelHref())} accessibilityRole="link">
+                <Text style={styles.homeMarketingPhone}>{publicSupportPhoneDisplay}</Text>
+              </Pressable>
+              <Text style={styles.homeMarketingTitle}>Advanced CCTV &amp; security</Text>
+              <Text style={styles.homeMarketingBody}>
+                Wi-Fi cameras, PoE switches, solar and 4G outdoor lines — then scroll for live listings from approved partner
+                shops.
+              </Text>
+              <View style={styles.homeMarketingActions}>
+                <Pressable
+                  style={styles.homeMarketingBtnPrimary}
+                  onPress={() => void Linking.openURL(publicWebUrl('/'))}
+                  accessibilityRole="link"
+                >
+                  <Text style={styles.homeMarketingBtnPrimaryText}>Full storefront (web)</Text>
+                </Pressable>
+                <Pressable
+                  style={styles.homeMarketingBtnSecondary}
+                  onPress={() => void Linking.openURL(publicWebUrl('/shop'))}
+                  accessibilityRole="link"
+                >
+                  <Text style={styles.homeMarketingBtnSecondaryText}>Open web shop</Text>
+                </Pressable>
+              </View>
+            </View>
             <View style={styles.categorySection}>
               <View style={styles.categorySectionHeader}>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.categorySectionTitle}>Shop by category</Text>
-                  <Text style={styles.categorySectionSubtitle}>Browse the catalogue by aisle</Text>
+                  <Text style={styles.categorySectionTitle}>Browse by solution</Text>
+                  <Text style={styles.categorySectionSubtitle}>CCTV, PoE, kits &amp; verticals — same catalogue filters as the web</Text>
                 </View>
                 <Pressable
                   onPress={() => void Linking.openURL(publicWebUrl('/shop'))}
@@ -1337,7 +1364,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.categoryScrollInner}
               >
-                {SHOP_CATEGORY_TILES_MOBILE.map((tile, i) => {
+                {CCTV_HOME_BROWSE_TILES.map((tile, i) => {
                   const active = browseLabel === tile.label;
                   return (
                     <Pressable
