@@ -3,10 +3,13 @@ import { publicWebUrl } from '../config/publicWeb';
 import { colors } from '../theme/colors';
 
 const LINKS: { label: string; path: string }[] = [
+  { label: 'Store home', path: '/' },
+  { label: 'Shop', path: '/shop' },
+  { label: 'About', path: '/about' },
+  { label: 'Blog', path: '/blog' },
+  { label: 'Contact', path: '/contact' },
   { label: 'FAQs', path: '/faq' },
   { label: 'Privacy', path: '/privacy' },
-  { label: 'About', path: '/about' },
-  { label: 'Contact', path: '/contact' },
 ];
 
 /** Signed-out: “Returns” opens storefront sign-in; signed-in: Returns row hidden (matches web footer). */
