@@ -1,6 +1,6 @@
-import { BadRequestException, Controller, Headers, Post, Req } from '@nestjs/common';
+import { BadRequestException, Controller, Post, Req, Res } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { Public } from '../../common/decorators/public.decorator';
 import { CheckoutService } from './checkout.service';
 
@@ -10,18 +10,17 @@ export class CheckoutWebhookController {
   constructor(private checkout: CheckoutService) {}
 
   @Public()
-  @Post('razorpay')
-  @ApiOperation({ summary: 'Razorpay payment webhook' })
-  handle(
-    @Req() req: Request & { rawBody?: Buffer },
-    @Headers('x-razorpay-signature') signature?: string,
-  ) {
-    if (!signature) throw new BadRequestException('Missing x-razorpay-signature header');
-    if (!req.rawBody) throw new BadRequestException('Missing raw webhook body');
-    return this.checkout.processWebhook(
-      req.rawBody,
-      signature,
-      req.body as Record<string, unknown>,
-    );
+  @Post('payu/return')
+  @ApiOperation({ summary: 'PayU browser return (surl/furl) — verifies hash and redirects to storefront' })
+  async payuReturn(@Req() req: Request, @Res() res: Response) {
+    if (!req.body || typeof req.body !== 'object') {
+      throw new BadRequestException('Invalid PayU callback body');
+    }
+    const flat: Record<string, string> = {};
+    for (const [k, v] of Object.entries(req.body as Record<string, unknown>)) {
+      flat[k] = v === undefined || v === null ? '' : String(v);
+    }
+    const url = await this.checkout.handlePayuBrowserReturn(flat);
+    return res.redirect(302, url);
   }
 }
