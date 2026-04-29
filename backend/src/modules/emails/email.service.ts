@@ -78,14 +78,6 @@ export class EmailService {
     return { ok: status === 'sent', error: errorMessage };
   }
 
-  private escapeHtml(text: string): string {
-    return String(text || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
   private messageToHtmlParagraphs(message: string): string {
     return this.escapeHtml(message)
       .split('\n')
