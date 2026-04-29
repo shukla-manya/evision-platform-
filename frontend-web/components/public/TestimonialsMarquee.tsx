@@ -6,10 +6,7 @@ import { marqueeTestimonials } from '@/lib/public-testimonials';
 
 function TestimonialCard({ quote, name, role }: { quote: string; name: string; role: string }) {
   return (
-    <figure
-      className="ev-card shrink-0 w-[min(100vw-2rem,320px)] sm:w-[300px] border-ev-border p-5 shadow-ev-sm"
-      aria-label={`Testimonial from ${name}`}
-    >
+    <figure className="ev-card shrink-0 w-[min(100vw-2rem,320px)] sm:w-[300px] border-ev-border p-5 shadow-ev-sm">
       <div className="flex gap-0.5 text-amber-500 mb-3" aria-hidden>
         {Array.from({ length: 5 }, (_, i) => (
           <Star key={i} size={14} className="fill-amber-400 text-amber-500" />
