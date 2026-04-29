@@ -1322,7 +1322,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
               <Pressable onPress={() => void Linking.openURL(publicSupportTelHref())} accessibilityRole="link">
                 <Text style={styles.homeMarketingPhone}>{publicSupportPhoneDisplay}</Text>
               </Pressable>
-              <Text style={styles.homeMarketingTitle}>Advanced CCTV &amp; security</Text>
+              <Text style={styles.homeMarketingTitle}>Advanced CCTV & security</Text>
               <Text style={styles.homeMarketingBody}>
                 Wi-Fi cameras, PoE switches, solar and 4G outdoor lines — then scroll for live listings from approved partner
                 shops.
@@ -1348,7 +1348,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
               <View style={styles.categorySectionHeader}>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={styles.categorySectionTitle}>Browse by solution</Text>
-                  <Text style={styles.categorySectionSubtitle}>CCTV, PoE, kits &amp; verticals — same catalogue filters as the web</Text>
+                  <Text style={styles.categorySectionSubtitle}>CCTV, PoE, kits and verticals — same catalogue filters as the web</Text>
                 </View>
                 <Pressable
                   onPress={() => void Linking.openURL(publicWebUrl('/shop'))}
