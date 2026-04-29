@@ -196,7 +196,8 @@ export class CheckoutService {
         const gid = String(out.order_group_id || '');
         const tail = gid.replace(/-/g, '').slice(-4).toUpperCase();
         const ref = encodeURIComponent(`G${tail}`);
-        return `${front}/checkout/success?group=${encodeURIComponent(gid)}&ref=${ref}`;
+        const ship = out.shipments != null ? `&shipments=${encodeURIComponent(String(out.shipments))}` : '';
+        return `${front}/checkout/success?group=${encodeURIComponent(gid)}&ref=${ref}${ship}`;
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         this.logger.error(`PayU success finalize failed: ${msg}`);
@@ -328,7 +329,7 @@ export class CheckoutService {
       if (String(existing.user_id || '') !== userId) {
         throw new BadRequestException('Order does not belong to this user');
       }
-      return { order_group_id: String(existing.id), duplicate: true };
+      return { order_group_id: String(existing.id), duplicate: true, shipments: undefined };
     }
 
     const cartItems = await this.cart.listUserItems(userId);
@@ -471,9 +472,11 @@ export class CheckoutService {
       });
     }
 
+    const shipments = grouped.size;
+
     await this.cart.clear(userId);
     this.logger.log(`PayU captured; order group ${groupId} created for user ${userId}`);
-    return { order_group_id: groupId };
+    return { order_group_id: groupId, shipments };
   }
 
   private async finalizeFailedPayment(
