@@ -2061,7 +2061,7 @@ function AppShell() {
   }, []);
 
   const paymentScreen = useMemo(
-    () => (props: any) => <PaymentScreen {...props} user={user} />,
+    () => (props: any) => <PaymentScreen {...props} />,
     [user],
   );
   const productDetailScreen = useMemo(
