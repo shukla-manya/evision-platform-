@@ -62,14 +62,30 @@ function dealerMinQty(p: Product) {
   return Math.max(1, Number(p.min_order_quantity || 1));
 }
 
-function Stars({ value }: { value: number }) {
-  const full = Math.round(Math.min(5, Math.max(0, value)));
+function StarRow({ rating }: { rating: number }) {
+  const full = Math.floor(rating);
+  const partial = rating - full >= 0.5;
   return (
-    <span className="text-ev-warning text-xs tracking-tight" aria-hidden>
-      {'★'.repeat(full)}
-      {'☆'.repeat(5 - full)}
-    </span>
+    <div className="flex items-center gap-0.5 text-amber-500" aria-label={`Rated ${rating.toFixed(2)} out of 5`}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <Star
+          key={i}
+          size={12}
+          className={
+            i < full ? 'fill-amber-400 text-amber-500' : i === full && partial ? 'fill-amber-400/60 text-amber-500' : 'fill-none text-ev-border'
+          }
+          aria-hidden
+        />
+      ))}
+      <span className="text-ev-muted text-xs ml-1 tabular-nums">Rated {rating.toFixed(2)} out of 5</span>
+    </div>
   );
+}
+
+function isHotProduct(p: Product): boolean {
+  const r = Number(p.rating_avg || 0);
+  const st = p.stock == null ? true : Number(p.stock) > 0;
+  return st && r >= 4.65;
 }
 
 function ShopListingInner() {
@@ -93,6 +109,8 @@ function ShopListingInner() {
   const [wishTick, setWishTick] = useState(0);
   const refreshWishlist = useCallback(() => setWishTick((n) => n + 1), []);
   void wishTick;
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
 
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canAddToCart = role === 'customer' || role === 'dealer';
