@@ -196,13 +196,12 @@ function ShopListingInner() {
     if (minRating && !Number.isNaN(mr)) {
       list = list.filter((p) => Number(p.rating_avg || 0) >= mr);
     }
-    const priceVal = (p: Product) => Number(role === 'dealer' ? p.price_dealer ?? p.price_customer : p.price_customer ?? 0);
     if (sort === 'price_asc') list.sort((a, b) => priceVal(a) - priceVal(b));
     if (sort === 'price_desc') list.sort((a, b) => priceVal(b) - priceVal(a));
     if (sort === 'newest') list.sort(() => 0);
     if (sort === 'rating') list.sort((a, b) => Number(b.rating_avg || 0) - Number(a.rating_avg || 0));
     return list;
-  }, [rawProducts, shopFilter, inStockOnly, minRating, sort, role]);
+  }, [rawProducts, shopFilter, inStockOnly, minRating, sort, priceVal]);
 
   const categoryCounts = useMemo(() => {
     const m = new Map<string, number>();
@@ -213,11 +212,6 @@ function ShopListingInner() {
     }
     return m;
   }, [rawProducts]);
-
-  const priceVal = useCallback(
-    (p: Product) => Number(role === 'dealer' ? p.price_dealer ?? p.price_customer : p.price_customer ?? 0),
-    [role],
-  );
 
   const cataloguePriceExtent = useMemo(() => {
     let min = Infinity;
