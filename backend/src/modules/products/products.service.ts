@@ -276,6 +276,10 @@ export class ProductsService {
   async findByIdForRole(id: string, role: PriceViewerRole): Promise<Record<string, unknown>> {
     const p = await this.findRawById(id);
     if (!p) throw new NotFoundException('Product not found');
+    const pid = this.platformCatalogAdminId();
+    if (pid && (role === 'guest' || role === 'customer' || role === 'dealer') && String(p.admin_id) !== pid) {
+      throw new NotFoundException('Product not found');
+    }
     if (!p.active && !['admin', 'superadmin'].includes(role)) {
       throw new NotFoundException('Product not found');
     }
