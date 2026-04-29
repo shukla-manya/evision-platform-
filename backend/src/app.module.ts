@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { Logger, Module, OnApplicationBootstrap } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { DynamoModule } from './common/dynamo/dynamo.module';
 import { S3Module } from './common/s3/s3.module';
@@ -19,6 +19,7 @@ import { ServiceModule } from './modules/service/service.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { LocationModule } from './modules/location/location.module';
 import { AppController } from './app.controller';
+import { AdminService } from './modules/admin/admin.service';
 
 @Module({
   controllers: [AppController],
@@ -44,4 +45,23 @@ import { AppController } from './app.controller';
     LocationModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements OnApplicationBootstrap {
+  private readonly logger = new Logger(AppModule.name);
+
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  async onApplicationBootstrap() {
+    const id = this.configService.get<string>('PLATFORM_CATALOG_ADMIN_ID')?.trim();
+    if (id) {
+      await this.adminService.ensurePlatformCatalogAdmin(id);
+      this.logger.log(`Platform catalogue admin row ensured (${id})`);
+    } else {
+      this.logger.warn(
+        'PLATFORM_CATALOG_ADMIN_ID is not set — set it to a fixed UUID and restart so the public catalogue can be restricted to superadmin-managed products.',
+      );
+    }
+  }
+}
