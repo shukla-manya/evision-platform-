@@ -1270,21 +1270,32 @@ function resolveCatalogBrowseParams(
 function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [catalogueReady, setCatalogueReady] = useState(false);
   const [approvedShopsOnly, setApprovedShopsOnly] = useState(true);
   const [approvedShopList, setApprovedShopList] = useState<Array<{ id: string; shop_name: string }>>([]);
   const [shopFilter, setShopFilter] = useState('');
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
-  const [apiCategories, setApiCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [apiCategories, setApiCategories] = useState<Array<{ id: string; name: string; parent_id?: string | null }>>([]);
   const [browseCategoryId, setBrowseCategoryId] = useState<string | undefined>();
   const [browseSearch, setBrowseSearch] = useState<string | undefined>();
   const [browseLabel, setBrowseLabel] = useState<string | null>(null);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [sort, setSort] = useState<CatalogueSortKey>('price_asc');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [cartBusyId, setCartBusyId] = useState<string | null>(null);
+
+  const canAddToCart = userRole === 'customer' || userRole === 'dealer';
 
   useEffect(() => {
     let cancelled = false;
     void catalogApi
       .getCategories()
       .then((r) => {
-        if (!cancelled && Array.isArray(r.data)) setApiCategories(r.data as Array<{ id: string; name: string }>);
+        if (!cancelled && Array.isArray(r.data)) {
+          setApiCategories(r.data as Array<{ id: string; name: string; parent_id?: string | null }>);
+        }
       })
       .catch(() => {
         if (!cancelled) setApiCategories([]);
@@ -1301,14 +1312,17 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
         approved_shops_only: approvedShopsOnly,
         ...(browseCategoryId ? { category_id: browseCategoryId } : {}),
         ...(browseSearch && !browseCategoryId ? { search: browseSearch } : {}),
+        ...(minPrice.trim() ? { min_price: Number(minPrice.replace(/\D/g, '')) } : {}),
+        ...(maxPrice.trim() ? { max_price: Number(maxPrice.replace(/\D/g, '')) } : {}),
       });
       setProducts(data || []);
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'Failed to load products.'));
     } finally {
       setLoading(false);
+      setCatalogueReady(true);
     }
-  }, [approvedShopsOnly, browseCategoryId, browseSearch]);
+  }, [approvedShopsOnly, browseCategoryId, browseSearch, minPrice, maxPrice]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1328,20 +1342,113 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
 
   useFocusEffect(useCallback(() => { void load(); }, [load]));
 
+  useEffect(() => {
+    setPage(1);
+  }, [shopFilter, browseCategoryId, browseSearch, minPrice, maxPrice, approvedShopsOnly, sort, pageSize]);
+
   const visibleProducts = useMemo(() => {
     if (!shopFilter.trim()) return products;
     const t = shopFilter.trim().toLowerCase();
     return products.filter((p) => String(p.shop_name || '').trim().toLowerCase() === t);
   }, [products, shopFilter]);
 
-  if (loading) return <Loader text="Loading catalogue..." />;
+  const categoryCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const p of products) {
+      const id = String(p.category_id || '');
+      if (!id) continue;
+      m.set(id, (m.get(id) || 0) + 1);
+    }
+    return m;
+  }, [products]);
+
+  const cataloguePriceExtent = useMemo(() => {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const p of products) {
+      const v = priceValForRole(p, userRole);
+      if (v > 0) {
+        min = Math.min(min, v);
+        max = Math.max(max, v);
+      }
+    }
+    if (!Number.isFinite(min)) return { min: 0, max: 0 };
+    return { min: Math.floor(min), max: Math.ceil(max) };
+  }, [products, userRole]);
+
+  const appliedMin = minPrice.trim() ? Number(minPrice.replace(/\D/g, '')) : cataloguePriceExtent.min;
+  const appliedMax = maxPrice.trim() ? Number(maxPrice.replace(/\D/g, '')) : cataloguePriceExtent.max;
+  const priceBandLabel =
+    cataloguePriceExtent.max > 0
+      ? `Price: ${formatINR(appliedMin || cataloguePriceExtent.min)} — ${formatINR(appliedMax || cataloguePriceExtent.max)}`
+      : 'Price: —';
+
+  const sortedProducts = useMemo(() => {
+    const list = [...visibleProducts];
+    if (sort === 'price_asc') list.sort((a, b) => priceValForRole(a, userRole) - priceValForRole(b, userRole));
+    else if (sort === 'price_desc') list.sort((a, b) => priceValForRole(b, userRole) - priceValForRole(a, userRole));
+    else if (sort === 'rating') list.sort((a, b) => Number(b.rating_avg || 0) - Number(a.rating_avg || 0));
+    return list;
+  }, [visibleProducts, sort, userRole]);
+
+  const totalFiltered = sortedProducts.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pageStart = totalFiltered === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const pageEnd = Math.min(safePage * pageSize, totalFiltered);
+  const pageSlice = useMemo(
+    () => sortedProducts.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [sortedProducts, safePage, pageSize],
+  );
+
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
+
+  const sortHuman =
+    sort === 'price_asc'
+      ? 'Sorted by price: low to high'
+      : sort === 'price_desc'
+        ? 'Sorted by price: high to low'
+        : sort === 'newest'
+          ? 'Sorted by newest'
+          : sort === 'rating'
+            ? 'Sorted by rating'
+            : 'Sorted by relevance';
+
+  const sortOptions: { key: CatalogueSortKey; label: string }[] = [
+    { key: 'price_asc', label: 'Low' },
+    { key: 'price_desc', label: 'High' },
+    { key: 'rating', label: 'Rated' },
+    { key: 'relevance', label: 'Default' },
+  ];
+
+  const addProductToCart = async (p: Product) => {
+    try {
+      setCartBusyId(p.id);
+      const n = userRole === 'dealer' ? Math.max(1, Number(p.min_order_quantity || 1)) : 1;
+      await cartApi.add(p.id, n);
+      Alert.alert('Added', n > 1 ? `Added ${n} to cart (minimum order).` : 'Product added to cart.', [
+        { text: 'OK', onPress: () => navigation.navigate('Main', { screen: 'Cart' }) },
+        { text: 'Stay', style: 'cancel' },
+      ]);
+    } catch (err) {
+      Alert.alert('Error', asApiError(err, 'Could not add to cart.'));
+    } finally {
+      setCartBusyId(null);
+    }
+  };
+
+  if (loading && !catalogueReady) return <Loader text="Loading catalogue..." />;
 
   return (
     <SafeAreaView style={styles.screen}>
       <FlatList
         contentContainerStyle={styles.listPad}
-        data={visibleProducts}
+        data={pageSlice}
         keyExtractor={(item) => item.id}
+        refreshing={loading && catalogueReady}
+        onRefresh={() => void load()}
         ListHeaderComponent={
           <View style={{ marginBottom: 14, gap: 12 }}>
             <View style={styles.homeMarketingHero}>
@@ -1371,11 +1478,24 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                 </Pressable>
               </View>
             </View>
+
+            <View style={styles.shopPageTitleBlock}>
+              <Text style={styles.shopBrandMark}>{publicShopBrandMark}</Text>
+              <Text style={styles.shopHeading}>Shop</Text>
+              <View style={styles.shopBreadcrumbRow}>
+                <Pressable onPress={() => void Linking.openURL(publicWebUrl('/'))}>
+                  <Text style={styles.shopBreadcrumbLink}>Home</Text>
+                </Pressable>
+                <Text style={styles.shopBreadcrumbSep}> · </Text>
+                <Text style={styles.shopBreadcrumbCurrent}>Shop</Text>
+              </View>
+            </View>
+
             <View style={styles.categorySection}>
               <View style={styles.categorySectionHeader}>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={styles.categorySectionTitle}>Browse by solution</Text>
-                  <Text style={styles.categorySectionSubtitle}>CCTV, PoE, kits and verticals — same catalogue filters as the web</Text>
+                  <Text style={styles.categorySectionSubtitle}>CCTV, PoE, kits and verticals — same filters as the web shop</Text>
                 </View>
                 <Pressable
                   onPress={() => void Linking.openURL(publicWebUrl('/shop'))}
@@ -1397,9 +1517,9 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                     <Pressable
                       key={tile.label}
                       onPress={() => {
-                        const p = resolveCatalogBrowseParams(tile.label, i, apiCategories);
-                        setBrowseCategoryId(p.category_id);
-                        setBrowseSearch(p.category_id ? undefined : p.search);
+                        const pr = resolveCatalogBrowseParams(tile.label, i, apiCategories);
+                        setBrowseCategoryId(pr.category_id);
+                        setBrowseSearch(pr.category_id ? undefined : pr.search);
                         setBrowseLabel(tile.label);
                       }}
                       style={[styles.categoryTile, active && styles.categoryTileActive]}
@@ -1429,6 +1549,114 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                 </Pressable>
               ) : null}
             </View>
+
+            <View style={styles.shopPickerCard}>
+              <Text style={styles.catalogFilterTitle}>Category</Text>
+              <ScrollView style={styles.categoryCountScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+                <Pressable
+                  style={[styles.catCountRow, !browseCategoryId && !browseSearch && styles.catCountRowActive]}
+                  onPress={() => {
+                    setBrowseCategoryId(undefined);
+                    setBrowseSearch(undefined);
+                    setBrowseLabel(null);
+                  }}
+                >
+                  <Text style={styles.catCountName}>All</Text>
+                  <Text style={styles.catCountNum}>{products.length}</Text>
+                </Pressable>
+                {apiCategories.map((c) => {
+                  const active = browseCategoryId === c.id;
+                  const count = categoryCounts.get(c.id) ?? 0;
+                  const label = c.parent_id ? `↳ ${c.name}` : c.name;
+                  return (
+                    <Pressable
+                      key={c.id}
+                      style={[styles.catCountRow, active && styles.catCountRowActive]}
+                      onPress={() => {
+                        setBrowseCategoryId(c.id);
+                        setBrowseSearch(undefined);
+                        setBrowseLabel(c.name);
+                      }}
+                    >
+                      <Text style={styles.catCountName} numberOfLines={1}>
+                        {label}
+                      </Text>
+                      <Text style={styles.catCountNum}>{count}</Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+
+            <View style={styles.shopPickerCard}>
+              <Text style={styles.catalogFilterTitle}>Filter by price</Text>
+              <View style={styles.priceRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.priceMicroLabel}>Min ₹</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={cataloguePriceExtent.min > 0 ? String(cataloguePriceExtent.min) : '0'}
+                    keyboardType="number-pad"
+                    value={minPrice}
+                    onChangeText={(t) => setMinPrice(t.replace(/\D/g, ''))}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.priceMicroLabel}>Max ₹</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={cataloguePriceExtent.max > 0 ? String(cataloguePriceExtent.max) : 'Any'}
+                    keyboardType="number-pad"
+                    value={maxPrice}
+                    onChangeText={(t) => setMaxPrice(t.replace(/\D/g, ''))}
+                  />
+                </View>
+              </View>
+              <Text style={styles.priceBandText}>{priceBandLabel}</Text>
+              <Pressable style={styles.buttonSecondary} onPress={() => void load()}>
+                <Text style={styles.buttonSecondaryText}>Filter</Text>
+              </Pressable>
+            </View>
+
+            {totalFiltered > 0 ? (
+              <View style={styles.resultsBar}>
+                <Text style={styles.resultsBarText}>
+                  <Text style={styles.resultsBarStrong}>
+                    Showing {pageStart}–{pageEnd} of {totalFiltered} results
+                  </Text>
+                  {'\n'}
+                  <Text style={styles.resultsBarMuted}>{sortHuman}</Text>
+                </Text>
+                <Text style={styles.chipRowLabel}>Show</Text>
+                <View style={styles.chipRow}>
+                  {[9, 12, 18, 24].map((n) => (
+                    <Pressable
+                      key={n}
+                      onPress={() => {
+                        setPageSize(n);
+                        setPage(1);
+                      }}
+                      style={[styles.sizeChip, pageSize === n && styles.sizeChipActive]}
+                    >
+                      <Text style={[styles.sizeChipText, pageSize === n && styles.sizeChipTextActive]}>{n}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Text style={[styles.chipRowLabel, { marginTop: 8 }]}>Sort</Text>
+                <View style={styles.chipRow}>
+                  {sortOptions.map((o) => (
+                    <Pressable
+                      key={o.key}
+                      onPress={() => setSort(o.key)}
+                      style={[styles.sizeChip, sort === o.key && styles.sizeChipActive]}
+                    >
+                      <Text style={[styles.sizeChipText, sort === o.key && styles.sizeChipTextActive]}>{o.label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
             <View style={[styles.catalogFilterCard, { marginBottom: 0 }]}>
               <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={styles.catalogFilterTitle}>Approved shops only</Text>
@@ -1502,17 +1730,139 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
             </View>
           </View>
         }
-        renderItem={({ item }) => (
-          <Pressable style={styles.card} onPress={() => navigation.navigate('ProductDetail', { product: item })}>
-            <Text style={styles.cardTitle}>{item.name}</Text>
-            {!!item.shop_name && <Text style={styles.cardMeta}>{item.shop_name}</Text>}
-            <Text style={styles.cardMeta}>
-              {formatINR(getProductPriceForRole(item, userRole))}
-            </Text>
-            {!!item.description && <Text style={styles.cardDesc}>{item.description}</Text>}
-          </Pressable>
-        )}
-        ListEmptyComponent={<Text style={styles.empty}>No products match this filter right now.</Text>}
+        renderItem={({ item }) => {
+          const img = item.images?.[0] || item.image_url;
+          const rating = Number(item.rating_avg || 0);
+          const inStock = item.stock == null || Number(item.stock) > 0;
+          const catName = apiCategories.find((c) => c.id === item.category_id)?.name;
+          const categoryLine = [catName, item.brand].filter(Boolean).join(', ') || 'Surveillance';
+          const hot = isHotProduct(item);
+          return (
+            <View style={styles.shopProductCard}>
+              <Pressable onPress={() => navigation.navigate('ProductDetail', { product: item })} style={styles.shopProductMain}>
+                <View style={styles.shopProductImageWrap}>
+                  {img ? (
+                    <Image source={{ uri: img }} style={styles.shopProductImage} resizeMode="cover" />
+                  ) : (
+                    <View style={[styles.shopProductImage, styles.shopProductImagePlaceholder]}>
+                      <Text style={styles.cardMeta}>No image</Text>
+                    </View>
+                  )}
+                  {hot ? (
+                    <View style={styles.hotBadge}>
+                      <Text style={styles.hotBadgeText}>Hot</Text>
+                    </View>
+                  ) : null}
+                </View>
+                <Text style={styles.cardTitle}>{item.name}</Text>
+                <Text style={styles.shopCategoryLine} numberOfLines={2}>
+                  {categoryLine}
+                </Text>
+                {rating > 0 ? (
+                  <Text style={styles.ratingLine}>Rated {rating.toFixed(2)} out of 5</Text>
+                ) : (
+                  <Text style={styles.ratingLineMuted}>New</Text>
+                )}
+                <Text style={[styles.stockLine, inStock ? styles.stockIn : styles.stockOut]}>
+                  {inStock ? 'In stock' : 'Out of stock'}
+                </Text>
+                <Text style={styles.bigPrice}>{formatINR(getProductPriceForRole(item, userRole))}</Text>
+              </Pressable>
+              <View style={styles.shopProductActions}>
+                {!inStock ? (
+                  <Pressable
+                    style={styles.buttonSecondary}
+                    onPress={() => navigation.navigate('ProductDetail', { product: item })}
+                  >
+                    <Text style={styles.buttonSecondaryText}>Read more</Text>
+                  </Pressable>
+                ) : canAddToCart ? (
+                  <Pressable
+                    style={styles.button}
+                    disabled={cartBusyId === item.id}
+                    onPress={() => void addProductToCart(item)}
+                  >
+                    <Text style={styles.buttonText}>{cartBusyId === item.id ? 'Adding…' : 'Add to cart'}</Text>
+                  </Pressable>
+                ) : (
+                  <Pressable
+                    style={styles.buttonSecondary}
+                    onPress={() => navigation.navigate('ProductDetail', { product: item })}
+                  >
+                    <Text style={styles.buttonSecondaryText}>View product</Text>
+                  </Pressable>
+                )}
+              </View>
+            </View>
+          );
+        }}
+        ListEmptyComponent={
+          loading ? (
+            <Text style={styles.empty}>Updating catalogue…</Text>
+          ) : (
+            <Text style={styles.empty}>No products match this filter right now.</Text>
+          )
+        }
+        ListFooterComponent={
+          <View style={{ marginTop: 8, gap: 16 }}>
+            {totalPages > 1 ? (
+              <View style={styles.paginationRow}>
+                <Pressable
+                  style={[styles.pageNavBtn, safePage <= 1 && styles.pageNavBtnDisabled]}
+                  disabled={safePage <= 1}
+                  onPress={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  <Text style={styles.pageNavBtnText}>←</Text>
+                </Pressable>
+                {totalPages <= 7 ? (
+                  Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+                    <Pressable
+                      key={num}
+                      style={[styles.pageNumBtn, num === safePage && styles.pageNumBtnActive]}
+                      onPress={() => setPage(num)}
+                    >
+                      <Text style={[styles.pageNumBtnText, num === safePage && styles.pageNumBtnTextActive]}>{num}</Text>
+                    </Pressable>
+                  ))
+                ) : (
+                  <Text style={styles.pageOfText}>
+                    Page {safePage} of {totalPages}
+                  </Text>
+                )}
+                <Pressable
+                  style={[styles.pageNavBtn, safePage >= totalPages && styles.pageNavBtnDisabled]}
+                  disabled={safePage >= totalPages}
+                  onPress={() => setPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  <Text style={styles.pageNavBtnText}>→</Text>
+                </Pressable>
+              </View>
+            ) : null}
+            <View style={styles.shopFooterBand}>
+              <Text style={styles.shopFooterBlurb}>{aboutBrandSummary}</Text>
+              <Text style={styles.shopFooterHeading}>Quick links</Text>
+              {siteQuickLinks.map((l) => (
+                <Pressable key={l.path + l.label} onPress={() => void Linking.openURL(publicWebUrl(l.path))}>
+                  <Text style={styles.shopFooterLink}>{l.label}</Text>
+                </Pressable>
+              ))}
+              <Text style={[styles.shopFooterHeading, { marginTop: 16 }]}>Contact information</Text>
+              <Pressable onPress={() => void Linking.openURL(publicSalesTelHref())}>
+                <Text style={styles.shopFooterLink}>{publicSalesPhoneDisplay}</Text>
+              </Pressable>
+              <Pressable onPress={() => void Linking.openURL(publicSupportTelHref())}>
+                <Text style={styles.shopFooterLink}>{publicSupportPhoneDisplay}</Text>
+              </Pressable>
+              <Pressable onPress={() => void Linking.openURL(`mailto:${publicMarketingEmail}`)}>
+                <Text style={styles.shopFooterLink}>{publicMarketingEmail}</Text>
+              </Pressable>
+              <Pressable onPress={() => void Linking.openURL(`mailto:${publicSupportEmail}`)}>
+                <Text style={styles.shopFooterLink}>{publicSupportEmail}</Text>
+              </Pressable>
+              <Text style={styles.shopFooterAddress}>{publicRegisteredAddress}</Text>
+            </View>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -1529,12 +1879,18 @@ function ProductDetailScreen({
 }) {
   const { product } = route.params;
   const [loading, setLoading] = useState(false);
+  const inStock = product.stock == null || Number(product.stock) > 0;
+  const img = product.images?.[0] || product.image_url;
+  const rating = Number(product.rating_avg || 0);
+  const canAddToCart = (userRole === 'customer' || userRole === 'dealer') && inStock;
 
   const addToCart = async () => {
+    if (!inStock) return;
     try {
       setLoading(true);
-      await cartApi.add(product.id, 1);
-      Alert.alert('Added', 'Product added to cart.');
+      const n = userRole === 'dealer' ? Math.max(1, Number(product.min_order_quantity || 1)) : 1;
+      await cartApi.add(product.id, n);
+      Alert.alert('Added', n > 1 ? `Added ${n} to cart (minimum order).` : 'Product added to cart.');
       navigation.navigate('Main', { screen: 'Cart' });
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'Failed to add to cart.'));
@@ -1547,12 +1903,30 @@ function ProductDetailScreen({
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={styles.listPad}>
         <View style={styles.card}>
+          {img ? (
+            <Image source={{ uri: img }} style={styles.detailProductImage} resizeMode="cover" />
+          ) : null}
+          {isHotProduct(product) ? (
+            <View style={styles.detailHotBadge}>
+              <Text style={styles.hotBadgeText}>Hot</Text>
+            </View>
+          ) : null}
           <Text style={styles.cardTitle}>{product.name}</Text>
+          {rating > 0 ? <Text style={styles.ratingLine}>Rated {rating.toFixed(2)} out of 5</Text> : null}
+          <Text style={[styles.stockLine, inStock ? styles.stockIn : styles.stockOut]}>
+            {inStock ? 'In stock' : 'Out of stock'}
+          </Text>
           <Text style={styles.bigPrice}>{formatINR(getProductPriceForRole(product, userRole))}</Text>
           <Text style={styles.cardDesc}>{product.description || 'No description available.'}</Text>
-          <Pressable style={styles.button} onPress={addToCart} disabled={loading}>
-            <Text style={styles.buttonText}>{loading ? 'Adding...' : 'Add to Cart'}</Text>
-          </Pressable>
+          {canAddToCart ? (
+            <Pressable style={styles.button} onPress={() => void addToCart()} disabled={loading}>
+              <Text style={styles.buttonText}>{loading ? 'Adding...' : 'Add to cart'}</Text>
+            </Pressable>
+          ) : !inStock ? (
+            <Text style={styles.cardMeta}>This item is out of stock. You can still review details above.</Text>
+          ) : (
+            <Text style={styles.cardMeta}>Sign in as a customer or dealer to add this product to your cart.</Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -2522,4 +2896,132 @@ const styles = StyleSheet.create({
   roleChipTextActive: { color: colors.brandPrimary, fontWeight: '600' },
   remove: { color: colors.error, fontWeight: '600' },
   shopTotal: { marginTop: 8, fontWeight: '700', color: colors.textPrimary },
+  shopPageTitleBlock: { marginBottom: 2, paddingBottom: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  shopBrandMark: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.brandPrimary,
+    letterSpacing: 2.8,
+    textTransform: 'uppercase',
+  },
+  shopHeading: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginTop: 6, letterSpacing: -0.3 },
+  shopBreadcrumbRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 6 },
+  shopBreadcrumbLink: { fontSize: 13, color: colors.brandPrimary, fontWeight: '600' },
+  shopBreadcrumbSep: { fontSize: 13, color: colors.muted },
+  shopBreadcrumbCurrent: { fontSize: 13, color: colors.textSecondary, fontWeight: '600' },
+  categoryCountScroll: { maxHeight: 200, marginTop: 10 },
+  catCountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginTop: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.softPanel,
+  },
+  catCountRowActive: { borderColor: colors.brandPrimary, backgroundColor: colors.brandSoft },
+  catCountName: { flex: 1, fontSize: 14, color: colors.textPrimary, fontWeight: '600', marginRight: 8 },
+  catCountNum: { fontSize: 12, color: colors.muted, fontVariant: ['tabular-nums'] },
+  priceRow: { flexDirection: 'row', gap: 10, marginTop: 10 },
+  priceMicroLabel: { fontSize: 11, color: colors.muted, marginBottom: 4 },
+  priceBandText: { fontSize: 11, color: colors.muted, marginTop: 8 },
+  resultsBar: {
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.softPanel,
+  },
+  resultsBarText: { fontSize: 13, color: colors.textSecondary, lineHeight: 20 },
+  resultsBarStrong: { fontWeight: '700', color: colors.textPrimary },
+  resultsBarMuted: { color: colors.muted, fontSize: 12 },
+  chipRowLabel: { fontSize: 11, fontWeight: '700', color: colors.textSecondary, marginBottom: 6, textTransform: 'uppercase' },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  sizeChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  sizeChipActive: { borderColor: colors.brandPrimary, backgroundColor: colors.brandSoft },
+  sizeChipText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
+  sizeChipTextActive: { color: colors.brandPrimary },
+  shopProductCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  shopProductMain: { padding: 14, gap: 6 },
+  shopProductImageWrap: { position: 'relative', width: '100%', aspectRatio: 4 / 3, borderRadius: 10, overflow: 'hidden', marginBottom: 8, backgroundColor: colors.softPanel },
+  shopProductImage: { width: '100%', height: '100%' },
+  shopProductImagePlaceholder: { alignItems: 'center', justifyContent: 'center' },
+  hotBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  hotBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
+  shopCategoryLine: { fontSize: 13, color: colors.textSecondary },
+  ratingLine: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  ratingLineMuted: { fontSize: 12, color: colors.muted, marginTop: 2 },
+  stockLine: { fontSize: 12, fontWeight: '700', marginTop: 4 },
+  stockIn: { color: colors.serviceSuccess },
+  stockOut: { color: colors.pending },
+  shopProductActions: { paddingHorizontal: 14, paddingBottom: 14 },
+  paginationRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 8 },
+  pageNavBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  pageNavBtnDisabled: { opacity: 0.35 },
+  pageNavBtnText: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+  pageNumBtn: {
+    minWidth: 40,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+  },
+  pageNumBtnActive: { borderColor: colors.brandPrimary, backgroundColor: colors.brandSoft },
+  pageNumBtnText: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
+  pageNumBtnTextActive: { color: colors.brandPrimary },
+  pageOfText: { fontSize: 13, color: colors.muted, paddingHorizontal: 8 },
+  shopFooterBand: {
+    marginTop: 8,
+    paddingTop: 20,
+    paddingBottom: 24,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  shopFooterBlurb: { fontSize: 13, color: colors.textSecondary, lineHeight: 21, textAlign: 'center' },
+  shopFooterHeading: { fontSize: 12, fontWeight: '800', color: colors.textPrimary, marginTop: 14, letterSpacing: 0.6, textTransform: 'uppercase' },
+  shopFooterLink: { fontSize: 14, color: colors.brandPrimary, marginTop: 8, fontWeight: '600' },
+  shopFooterAddress: { fontSize: 13, color: colors.textSecondary, marginTop: 12, lineHeight: 20 },
+  detailProductImage: { width: '100%', height: 220, borderRadius: 10, marginBottom: 12, backgroundColor: colors.softPanel },
+  detailHotBadge: {
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
 });
