@@ -282,3 +282,20 @@ export const adminApi = {
 export const catalogApi = {
   getCategories: () => api.get<any[]>('/categories'),
 };
+
+export type ContactMessageResponse = {
+  ok: true;
+  greeting_name: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  message: string;
+};
+
+/** Public — no auth; backend sends staff + confirmation emails */
+export const publicContactApi = {
+  submitMessage: (body: { first_name: string; last_name: string; email: string; message: string }) =>
+    api.post<ContactMessageResponse>('/contact/message', body),
+  subscribeNewsletter: (body: { email: string }) =>
+    api.post<{ ok: boolean; email: string }>('/contact/newsletter', body),
+};
