@@ -399,10 +399,14 @@ export class ProductsService {
       enriched as Record<string, unknown>[],
       role,
     ) as Record<string, unknown>[];
+    const cats = await this.categories.listAll();
+    const catNameById = new Map(cats.map((c: { id: string; name: string }) => [c.id, c.name]));
     return serialized
       .map((p, i) => {
         this.applyCdnToProductPayload(p);
-        return this.withStockFlag(p, role, enriched[i] as Record<string, unknown>);
+        const row = this.withStockFlag(p, role, enriched[i] as Record<string, unknown>);
+        const category_name = catNameById.get(String(row.category_id || '')) || null;
+        return { ...row, category_name };
       })
       .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
   }
