@@ -2,7 +2,6 @@
  * Local E2E: in-memory MongoDB + Nest + supertest.
  * @see docs/qa/LOCAL-E2E.md
  */
-import { createHmac } from 'crypto';
 import * as http from 'http';
 import * as net from 'net';
 import { PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
@@ -16,9 +15,31 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import { createE2eDocClient } from './mongo-e2e-doc-client';
+import { buildPayuReverseHash } from '../../src/modules/checkout/payu-hash.util';
 
-function razorpayClientSignature(orderId: string, paymentId: string, secret: string): string {
-  return createHmac('sha256', secret).update(`${orderId}|${paymentId}`).digest('hex');
+function payuReturnBody(
+  fields: Record<string, string>,
+  status: string,
+  mihpayid: string,
+  salt: string,
+): Record<string, string> {
+  const p: Record<string, string> = { ...fields, status, mihpayid, hash: '' };
+  p.hash = buildPayuReverseHash({
+    salt,
+    status: p.status,
+    udf5: p.udf5 ?? '',
+    udf4: p.udf4 ?? '',
+    udf3: p.udf3 ?? '',
+    udf2: p.udf2 ?? '',
+    udf1: p.udf1 ?? '',
+    email: p.email,
+    firstname: p.firstname,
+    productinfo: p.productinfo,
+    amount: p.amount,
+    txnid: p.txnid,
+    key: p.key,
+  });
+  return p;
 }
 
 function createEmailSpy(): {
@@ -70,11 +91,13 @@ describe('E2E flows (local)', () => {
   let emailSpy: { service: import('../../src/modules/emails/email.service').EmailService; triggers: string[] };
   let pdfFixture: { baseUrl: string; close: () => Promise<void> };
   const JWT_SECRET = process.env.JWT_SECRET || 'e2e-jwt-secret-min-32-chars-long!!';
-  const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'e2e-rzp-secret-32chars-minimum!!';
+  const PAYU_SALT = process.env.PAYU_SALT || 'eCwWELxi';
 
   beforeAll(async () => {
     process.env.JWT_SECRET = JWT_SECRET;
-    process.env.RAZORPAY_KEY_SECRET = RAZORPAY_KEY_SECRET;
+    process.env.PAYU_MERCHANT_KEY = process.env.PAYU_MERCHANT_KEY || 'gtKFFx';
+    process.env.PAYU_SALT = PAYU_SALT;
+    process.env.PAYU_MODE = 'test';
     process.env.SHIPROCKET_MOCK = 'true';
     process.env.SHIPROCKET_WEBHOOK_TOKEN = 'e2e-wh-token';
     process.env.SUPERADMIN_EMAIL = 'superadmin-notify@e2e.invalid';
@@ -136,6 +159,14 @@ describe('E2E flows (local)', () => {
       }),
     );
     await app.init();
+    await app.listen(0);
+    const httpAddr = app.getHttpServer().address() as net.AddressInfo | string | null;
+    const listenPort =
+      httpAddr && typeof httpAddr === 'object' && 'port' in httpAddr ? httpAddr.port : 8000;
+    const publicBase = `http://127.0.0.1:${listenPort}`;
+    process.env.BACKEND_PUBLIC_URL = publicBase;
+    process.env.FRONTEND_URL = publicBase;
+
     jwt = moduleRef.get(JwtService);
   });
 
@@ -285,35 +316,30 @@ describe('E2E flows (local)', () => {
       .send({ product_id: productB, quantity: 2 })
       .expect(201);
 
-    const roId = `order_e2e_${uuidv4().slice(0, 24)}`;
-    const payId = `pay_e2e_${uuidv4().slice(0, 24)}`;
-    const sig = razorpayClientSignature(roId, payId, RAZORPAY_KEY_SECRET);
-
-    const payRes = await request(app.getHttpServer())
-      .post('/checkout/confirm')
+    const co = await request(app.getHttpServer())
+      .post('/checkout')
       .set('Authorization', `Bearer ${custJwt}`)
-      .send({
-        status: 'success',
-        razorpay_order_id: roId,
-        razorpay_payment_id: payId,
-        razorpay_signature: sig,
-      })
+      .send({ delivery_address_index: 0 })
       .expect(201);
-
-    expect(payRes.body.order_group_id).toBeTruthy();
-    const groupId = payRes.body.order_group_id as string;
+    const chk = co.body as { fields: Record<string, string> };
+    const mih = `mih_e2e_${uuidv4().slice(0, 16)}`;
+    const cb = payuReturnBody(chk.fields, 'success', mih, PAYU_SALT);
+    const payRes = await request(app.getHttpServer())
+      .post('/webhooks/payu/return')
+      .type('form')
+      .send(cb)
+      .expect(302);
+    const loc = String(payRes.headers.location || '');
+    const gm = loc.match(/group=([^&]+)/);
+    expect(gm).toBeTruthy();
+    const groupId = decodeURIComponent(gm![1]);
 
     const dup = await request(app.getHttpServer())
-      .post('/checkout/confirm')
-      .set('Authorization', `Bearer ${custJwt}`)
-      .send({
-        status: 'success',
-        razorpay_order_id: roId,
-        razorpay_payment_id: payId,
-        razorpay_signature: sig,
-      })
-      .expect(201);
-    expect(dup.body.duplicate).toBe(true);
+      .post('/webhooks/payu/return')
+      .type('form')
+      .send(cb)
+      .expect(302);
+    expect(String(dup.headers.location || '')).toContain(groupId);
 
     const my = await request(app.getHttpServer())
       .get('/orders/my')
@@ -415,18 +441,85 @@ describe('E2E flows (local)', () => {
       }),
     );
     const tok = customerToken(userId, `fail-${userId}@e2e.invalid`);
-    const roId = `order_fail_${uuidv4().slice(0, 20)}`;
-    const res = await request(app.getHttpServer())
-      .post('/checkout/confirm')
+    const adminF = uuidv4();
+    const catF = uuidv4();
+    const productF = uuidv4();
+    await docClient.send(
+      new PutCommand({
+        TableName: 'evision_categories',
+        Item: { id: catF, name: 'E2E CatF', parent_id: null, created_at: now },
+      }),
+    );
+    await docClient.send(
+      new PutCommand({
+        TableName: 'evision_admins',
+        Item: {
+          id: adminF,
+          shop_name: 'Shop F',
+          owner_name: 'Owner F',
+          email: `f-${adminF}@e2e.invalid`,
+          phone: '+919111111099',
+          status: 'approved',
+          gst_no: '22FFFFF0000F1Z5',
+          address: 'Addr',
+          city: 'Faridabad',
+          pincode: '121001',
+          created_at: now,
+        },
+      }),
+    );
+    await docClient.send(
+      new PutCommand({
+        TableName: 'evision_products',
+        Item: {
+          id: productF,
+          admin_id: adminF,
+          name: 'FailPay Item',
+          description: 'd',
+          price_customer: 50,
+          price_dealer: 45,
+          stock: 10,
+          category_id: catF,
+          active: true,
+          images: [],
+          created_at: now,
+          updated_at: now,
+        },
+      }),
+    );
+    await request(app.getHttpServer()).post('/cart/add').set('Authorization', `Bearer ${tok}`).send({
+      product_id: productF,
+      quantity: 1,
+    }).expect(201);
+    const coF = await request(app.getHttpServer())
+      .post('/checkout')
       .set('Authorization', `Bearer ${tok}`)
-      .send({
-        status: 'failure',
-        razorpay_order_id: roId,
-        razorpay_payment_id: 'pay_fail_x',
-        failure_reason: 'user_cancelled',
-      })
+      .send({ delivery_address_index: 0 })
       .expect(201);
-    expect(res.body.status).toBe('payment_failed');
+    const fFields = (coF.body as { fields: Record<string, string> }).fields;
+    const fcb: Record<string, string> = {
+      ...fFields,
+      status: 'failure',
+      mihpayid: 'pay_fail_x',
+      error_Message: 'user_cancelled',
+      hash: '',
+    };
+    fcb.hash = buildPayuReverseHash({
+      salt: PAYU_SALT,
+      status: fcb.status,
+      udf5: fcb.udf5 ?? '',
+      udf4: fcb.udf4 ?? '',
+      udf3: fcb.udf3 ?? '',
+      udf2: fcb.udf2 ?? '',
+      udf1: fcb.udf1 ?? '',
+      email: fcb.email,
+      firstname: fcb.firstname,
+      productinfo: fcb.productinfo,
+      amount: fcb.amount,
+      txnid: fcb.txnid,
+      key: fcb.key,
+    });
+    await request(app.getHttpServer()).post('/webhooks/payu/return').type('form').send(fcb).expect(302);
 
     const orders = await docClient.send(
       new ScanCommand({
@@ -518,20 +611,22 @@ describe('E2E flows (local)', () => {
       .send({ product_id: productId, quantity: 2 })
       .expect(201);
 
-    const roId = `order_dealer_${uuidv4().slice(0, 20)}`;
-    const payId = `pay_dealer_${uuidv4().slice(0, 20)}`;
-    const sig = razorpayClientSignature(roId, payId, RAZORPAY_KEY_SECRET);
-    const payRes = await request(app.getHttpServer())
-      .post('/checkout/confirm')
+    const coD = await request(app.getHttpServer())
+      .post('/checkout')
       .set('Authorization', `Bearer ${dj}`)
-      .send({
-        status: 'success',
-        razorpay_order_id: roId,
-        razorpay_payment_id: payId,
-        razorpay_signature: sig,
-      })
+      .send({ delivery_address_index: 0 })
       .expect(201);
-    const groupId = payRes.body.order_group_id as string;
+    const fldD = (coD.body as { fields: Record<string, string> }).fields;
+    const cbD = payuReturnBody(fldD, 'success', `mih_dealer_${uuidv4().slice(0, 12)}`, PAYU_SALT);
+    const payRes = await request(app.getHttpServer())
+      .post('/webhooks/payu/return')
+      .type('form')
+      .send(cbD)
+      .expect(302);
+    const locD = String(payRes.headers.location || '');
+    const gmD = locD.match(/group=([^&]+)/);
+    expect(gmD).toBeTruthy();
+    const groupId = decodeURIComponent(gmD![1]);
 
     const list = await request(app.getHttpServer())
       .get('/admin/orders')
