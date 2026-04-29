@@ -25,12 +25,12 @@ export function isLoggedIn(): boolean {
   return !!Cookies.get(TOKEN_KEY);
 }
 
-/** Post-login landing: customers use the same public landing `/` as guests; dealers use `/dealer/*`. */
+/** Post-login landing: each role gets its dashboard; `/` stays the public marketing home for browsing anytime. */
 export function redirectByRole(role: string): string {
   const routes: Record<string, string> = {
     superadmin: '/super/dashboard',
     admin: '/admin/dashboard',
-    customer: '/',
+    customer: '/dashboard',
     dealer: '/dealer/dashboard',
     electrician: '/electrician/dashboard',
     electrician_pending: '/electrician/dashboard',

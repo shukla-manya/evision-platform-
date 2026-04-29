@@ -141,6 +141,14 @@ export function PublicNavbar() {
               >
                 Home
               </Link>
+              {role === 'customer' ? (
+                <Link
+                  href="/dashboard"
+                  className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
+                >
+                  Dashboard
+                </Link>
+              ) : null}
               <Link
                 href="/orders"
                 className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
@@ -241,6 +249,11 @@ export function PublicNavbar() {
               <Link href="/" className="block py-2.5 text-white/85 hover:text-white font-medium">
                 Home
               </Link>
+              {role === 'customer' ? (
+                <Link href="/dashboard" className="block py-2.5 text-white/85 hover:text-white font-medium">
+                  Dashboard
+                </Link>
+              ) : null}
               <Link href="/orders" className="block py-2.5 text-white/85 hover:text-white font-medium">
                 My orders
               </Link>

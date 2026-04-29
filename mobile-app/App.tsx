@@ -57,7 +57,11 @@ import { PublicWebsiteLinks } from './src/components/PublicWebsiteLinks';
 import { SuperadminWebQueueLinks } from './src/components/SuperadminWebQueueLinks';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { WebView } from 'react-native-webview';
-import { buildPayuAutoSubmitHtml } from './src/services/payu';
+import {
+  buildPayuAutoSubmitHtml,
+  isCheckoutFailureReturnUrl,
+  isCheckoutSuccessReturnUrl,
+} from './src/services/payu';
 import { TrackingScreen } from './src/screens/TrackingScreen';
 import { ElectricianFlow } from './src/electrician/ElectricianFlow';
 import { AdminFlow } from './src/admin/AdminFlow';
@@ -1602,13 +1606,16 @@ function CheckoutScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.centerBox}>
+      <ScrollView contentContainerStyle={styles.centerBoxScrollable} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Checkout</Text>
-        <Text style={styles.subtitle}>Review and continue to PayU payment.</Text>
-        <Pressable style={styles.button} onPress={startCheckout} disabled={loading}>
-          <Text style={styles.buttonText}>{loading ? 'Creating order...' : 'Go to Payment'}</Text>
+        <Text style={[styles.subtitle, { marginTop: 8, paddingHorizontal: 4, lineHeight: 20 }]}>
+          Pay securely with PayU (UPI, cards, net banking). You will leave this screen to complete payment on PayU; when it
+          finishes, you will be returned and your order will be confirmed.
+        </Text>
+        <Pressable style={[styles.button, { marginTop: 20 }]} onPress={startCheckout} disabled={loading}>
+          <Text style={styles.buttonText}>{loading ? 'Creating order…' : 'Continue to PayU'}</Text>
         </Pressable>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -1626,11 +1633,11 @@ function PaymentScreen({ route, navigation }: { route: RouteProp<RootStackParamL
     (url: string) => {
       if (!url || url === 'about:blank') return;
       if (handledUrlRef.current === url) return;
-      if (url.includes('/checkout/success')) {
+      if (isCheckoutSuccessReturnUrl(url)) {
         handledUrlRef.current = url;
         Alert.alert('Payment successful', 'Your order is confirmed.');
         navigation.navigate('Main', { screen: 'Orders' });
-      } else if (url.includes('/checkout/failure')) {
+      } else if (isCheckoutFailureReturnUrl(url)) {
         handledUrlRef.current = url;
         Alert.alert('Payment failed', 'Please try again from checkout.');
         navigation.goBack();
@@ -1653,13 +1660,17 @@ function PaymentScreen({ route, navigation }: { route: RouteProp<RootStackParamL
   return (
     <SafeAreaView style={[styles.screen, { flex: 1 }]}>
       <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
-        <Text style={styles.subtitle}>Amount: {formatINR(checkoutData.amount)} · PayU</Text>
+        <Text style={styles.subtitle}>
+          {formatINR(checkoutData.amount)} · PayU hosted checkout (UPI, card, net banking)
+        </Text>
       </View>
       <WebView
         style={{ flex: 1 }}
         originWhitelist={['*']}
         javaScriptEnabled
         domStorageEnabled
+        sharedCookiesEnabled
+        thirdPartyCookiesEnabled
         source={{ html: payuHtml }}
         onNavigationStateChange={(nav) => handleNavUrl(nav.url || '')}
         onShouldStartLoadWithRequest={(req) => {
@@ -2150,8 +2161,8 @@ function AppShell() {
             {user?.role !== 'electrician' && user?.role !== 'electrician_pending' && user?.role !== 'electrician_rejected' && user?.role !== 'admin' && user?.role !== 'superadmin' && (
               <>
                 <RootStack.Screen name="ProductDetail" component={productDetailScreen} options={{ title: 'Product Detail' }} />
-                <RootStack.Screen name="Checkout" component={CheckoutScreen} />
-                <RootStack.Screen name="Payment" component={paymentScreen} />
+                <RootStack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Checkout' }} />
+                <RootStack.Screen name="Payment" component={paymentScreen} options={{ title: 'Pay with PayU' }} />
                 <RootStack.Screen name="OrderDetail" component={OrderDetailScreen} options={{ title: 'Order Detail' }} />
                 <RootStack.Screen name="ServiceRequest" component={ServiceRequestScreen} options={{ title: 'Request Service' }} />
                 <RootStack.Screen name="ElectricianList" component={ElectricianListScreen} options={{ title: 'Electricians' }} />

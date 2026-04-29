@@ -8,7 +8,7 @@ import { Camera, User, Mail, MapPin, ArrowRight, Loader2, Navigation } from 'luc
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
-import { saveToken, parseJwt } from '@/lib/auth';
+import { saveToken, parseJwt, redirectByRole } from '@/lib/auth';
 import { TechnicianApplicationForm } from '@/components/register/TechnicianApplicationForm';
 import { publicBrandName } from '@/lib/public-brand';
 import { OtpCells } from '@/components/auth/OtpCells';
@@ -291,7 +291,7 @@ export default function RegisterPage() {
         return;
       }
       toast.success(`Welcome to ${publicBrandName}, ${firstName.trim() || 'there'}!`);
-      router.push('/');
+      router.push(redirectByRole(String(payload.role)));
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;

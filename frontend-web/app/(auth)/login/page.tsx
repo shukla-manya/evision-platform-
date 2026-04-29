@@ -7,7 +7,7 @@ import { Camera, ArrowRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
-import { saveToken, parseJwt, redirectByRole } from '@/lib/auth';
+import { saveToken, parseJwt, redirectByRole, getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
 import { OtpCells } from '@/components/auth/OtpCells';
 
@@ -39,6 +39,14 @@ function LoginPageInner() {
   const [otpAttemptsLeft, setOtpAttemptsLeft] = useState(OTP_ATTEMPTS);
   const [noAccountForPhone, setNoAccountForPhone] = useState(false);
   const approvedToast = useRef(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!isLoggedIn()) return;
+    const r = getRole();
+    if (!r) return;
+    router.replace(redirectByRole(r));
+  }, [router]);
 
   useEffect(() => {
     if (approvedToast.current) return;

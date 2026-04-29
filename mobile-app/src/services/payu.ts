@@ -1,3 +1,24 @@
+/** After PayU, the backend redirects the browser to these paths on FRONTEND_URL. */
+export function isCheckoutSuccessReturnUrl(url: string): boolean {
+  if (!url || url === 'about:blank') return false;
+  try {
+    const p = new URL(url).pathname.replace(/\/$/, '') || '/';
+    return p.endsWith('/checkout/success');
+  } catch {
+    return /\/checkout\/success(\?|\/|$)/i.test(url);
+  }
+}
+
+export function isCheckoutFailureReturnUrl(url: string): boolean {
+  if (!url || url === 'about:blank') return false;
+  try {
+    const p = new URL(url).pathname.replace(/\/$/, '') || '/';
+    return p.endsWith('/checkout/failure');
+  } catch {
+    return /\/checkout\/failure(\?|\/|$)/i.test(url);
+  }
+}
+
 /** HTML document that auto-submits a POST form to PayU hosted checkout. */
 export function buildPayuAutoSubmitHtml(action: string, fields: Record<string, string>): string {
   const escAttr = (s: string) =>
