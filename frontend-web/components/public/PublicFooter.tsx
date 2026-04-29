@@ -91,8 +91,8 @@ export function PublicFooter() {
             shopper ? (
               <ul className="space-y-2 text-white/80">
                 <li>
-                  <Link href="/home" className="hover:text-white transition-colors font-medium">
-                    My home
+                  <Link href="/" className="hover:text-white transition-colors font-medium">
+                    Home
                   </Link>
                 </li>
                 <li>

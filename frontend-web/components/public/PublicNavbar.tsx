@@ -136,7 +136,7 @@ export function PublicNavbar() {
           {isShopper ? (
             <>
               <Link
-                href="/home"
+                href="/"
                 className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
               >
                 Home
@@ -238,7 +238,7 @@ export function PublicNavbar() {
           ))}
           {isShopper ? (
             <>
-              <Link href="/home" className="block py-2.5 text-white/85 hover:text-white font-medium">
+              <Link href="/" className="block py-2.5 text-white/85 hover:text-white font-medium">
                 Home
               </Link>
               <Link href="/orders" className="block py-2.5 text-white/85 hover:text-white font-medium">

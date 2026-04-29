@@ -30,7 +30,7 @@ import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
 import { PublicShell } from '@/components/public/PublicShell';
 import { publicBrandName } from '@/lib/public-brand';
-import { getRole, isLoggedIn } from '@/lib/auth';
+import { getRole } from '@/lib/auth';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 
 type Product = {
@@ -75,10 +75,6 @@ export default function HomePage() {
   const [, setWishBump] = useState(0);
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canBuy = role === 'customer' || role === 'dealer';
-  const [hidePartnerSignup, setHidePartnerSignup] = useState(false);
-  useEffect(() => {
-    if (isLoggedIn()) setHidePartnerSignup(true);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -348,30 +344,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      {!hidePartnerSignup ? (
-        <section className="px-4 sm:px-6 pb-16 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="ev-card p-8 md:p-10 border-ev-primary/20 bg-gradient-to-br from-ev-surface to-ev-primary/5">
-            <Sparkles className="text-ev-primary mb-3" size={22} />
-            <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you a dealer or distributor?</h2>
-            <p className="text-ev-muted text-sm md:text-base mb-6">
-              Get exclusive wholesale pricing, GST invoices, and bulk order support. Register your business and unlock dealer prices today.
-            </p>
-            <Link href="/register?role=dealer" className="ev-btn-primary inline-flex items-center gap-2">
-              Register as Dealer <ArrowRight size={16} />
-            </Link>
-          </div>
-          <div className="ev-card p-8 md:p-10 border-ev-border">
-            <Clock className="text-ev-primary mb-3" size={22} />
-            <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you a technician?</h2>
-            <p className="text-ev-muted text-sm md:text-base mb-6">
-              Join our technician network. Get job requests from verified customers in your area. Flexible hours, real earnings.
-            </p>
-            <Link href="/technician/register" className="ev-btn-secondary inline-flex items-center gap-2">
-              Join as Technician <ArrowRight size={16} />
-            </Link>
-          </div>
-        </section>
-      ) : null}
+      <section className="px-4 sm:px-6 pb-16 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="ev-card p-8 md:p-10 border-ev-primary/20 bg-gradient-to-br from-ev-surface to-ev-primary/5">
+          <Sparkles className="text-ev-primary mb-3" size={22} />
+          <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you a dealer or distributor?</h2>
+          <p className="text-ev-muted text-sm md:text-base mb-6">
+            Get exclusive wholesale pricing, GST invoices, and bulk order support. Register your business and unlock dealer prices today.
+          </p>
+          <Link href="/register?role=dealer" className="ev-btn-primary inline-flex items-center gap-2">
+            Register as Dealer <ArrowRight size={16} />
+          </Link>
+        </div>
+        <div className="ev-card p-8 md:p-10 border-ev-border">
+          <Clock className="text-ev-primary mb-3" size={22} />
+          <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you a technician?</h2>
+          <p className="text-ev-muted text-sm md:text-base mb-6">
+            Join our technician network. Get job requests from verified customers in your area. Flexible hours, real earnings.
+          </p>
+          <Link href="/technician/register" className="ev-btn-secondary inline-flex items-center gap-2">
+            Join as Technician <ArrowRight size={16} />
+          </Link>
+        </div>
+      </section>
     </PublicShell>
   );
 }

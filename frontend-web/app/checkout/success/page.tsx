@@ -29,7 +29,7 @@ function SuccessInner() {
             <Link href="/orders" className="ev-btn-primary">
               Track orders
             </Link>
-            <Link href="/home" className="ev-btn-secondary">
+            <Link href="/" className="ev-btn-secondary">
               Back to home
             </Link>
           </div>

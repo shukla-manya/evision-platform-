@@ -18,7 +18,7 @@ function DoneInner() {
           <p className="text-ev-text font-medium leading-relaxed">
             Thank you for your review! It&apos;s now live on {decodeURIComponent(name)}&apos;s profile.
           </p>
-          <Link href="/home" className="ev-btn-primary inline-flex mt-8">
+          <Link href="/" className="ev-btn-primary inline-flex mt-8">
             Back to home
           </Link>
         </div>
