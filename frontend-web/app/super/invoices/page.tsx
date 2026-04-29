@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { FileText, Loader2, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { adminApi } from '@/lib/api';
-import { AdminShell } from '@/components/admin/AdminShell';
+import { superadminApi } from '@/lib/api';
+import { SuperadminShell } from '@/components/superadmin/SuperadminShell';
 
 type Invoice = {
   id: string;
@@ -37,8 +37,8 @@ export default function AdminInvoicesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    adminApi
-      .getInvoices()
+    superadminApi
+      .getCatalogInvoices()
       .then((r) => setRows(Array.isArray(r.data) ? (r.data as Invoice[]) : []))
       .catch(() => toast.error('Failed to load invoices'))
       .finally(() => setLoading(false));
@@ -49,7 +49,7 @@ export default function AdminInvoicesPage() {
   }
 
   return (
-    <AdminShell>
+    <SuperadminShell>
       <main className="w-full min-w-0 max-w-6xl">
         <h1 className="text-2xl font-bold text-ev-text mb-1">Invoices</h1>
         <p className="text-ev-muted text-sm mb-8">PDFs generated for your shop orders</p>
@@ -122,6 +122,6 @@ export default function AdminInvoicesPage() {
           </div>
         )}
       </main>
-    </AdminShell>
+    </SuperadminShell>
   );
 }

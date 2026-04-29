@@ -310,9 +310,9 @@ export default function AdminRegisterPage() {
           </form>
 
           <p className="text-center text-ev-subtle text-sm mt-6">
-            Already approved?{' '}
-            <Link href="/admin/login" className="text-ev-primary hover:text-ev-primary-light font-medium">
-              Sign in
+            Manage the public catalogue?{' '}
+            <Link href="/super/signin" className="text-ev-primary hover:text-ev-primary-light font-medium">
+              Superadmin sign in
             </Link>
           </p>
         </div>

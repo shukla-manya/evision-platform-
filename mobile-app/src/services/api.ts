@@ -167,6 +167,8 @@ export type ElectricianProfile = {
 export const authApi = {
   adminLogin: (email: string, password: string) =>
     api.post<{ access_token: string; admin: unknown }>('/auth/admin/login', { email, password }),
+  superadminLogin: (email: string, password: string) =>
+    api.post<{ access_token: string }>('/auth/superadmin/login', { email, password }),
   sendOtp: (phone: string, extra?: { purpose?: 'signup'; email?: string }) =>
     api.post('/auth/send-otp', { phone, ...extra }),
   verifyOtp: (phone: string, otp: string) =>
@@ -270,37 +272,11 @@ export const electricianRegisterApi = {
 };
 
 export const adminApi = {
-  /** Public: self-service shop registration (multipart, optional logo). */
+  /** Public: partner shop registration (multipart, optional logo). No in-app shop console. */
   registerShop: (formData: FormData) =>
     api.post('/admin/register', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
-  me: () => api.get('/admin/me'),
-  uploadLogo: (file: { uri: string; name: string; type: string }) => {
-    const fd = new FormData();
-    fd.append('logo', file as never);
-    return api.post('/admin/upload-logo', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-  getProducts: () => api.get<any[]>('/admin/products'),
-  getProduct: (id: string) => api.get<any>(`/admin/products/${id}`),
-  createProduct: (payload: Record<string, unknown>) => api.post('/admin/products', payload),
-  updateProduct: (id: string, payload: Record<string, unknown>) =>
-    api.put(`/admin/products/${id}`, payload),
-  deleteProduct: (id: string) => api.delete(`/admin/products/${id}`),
-  uploadProductImages: (files: { uri: string; name: string; type: string }[]) => {
-    const fd = new FormData();
-    files.forEach((f) => fd.append('images', f as never));
-    return api.post('/admin/products/images/upload', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-  getOrders: () => api.get<any[]>('/admin/orders'),
-  getOrder: (id: string) => api.get<any>(`/admin/orders/${id}`),
-  shipOrder: (id: string, payload?: Record<string, unknown>) =>
-    api.post(`/admin/orders/${id}/ship`, payload || {}),
-  getInvoices: () => api.get<any[]>('/admin/invoices'),
 };
 
 export const catalogApi = {

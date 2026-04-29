@@ -211,19 +211,19 @@ export class EmailService {
 
   async sendAdminApproved(
     adminEmail: string,
-    data: { ownerName: string; shopName: string; loginUrl: string; setupPasswordUrl: string },
+    data: { ownerName: string; shopName: string; storefrontUrl: string; contactUrl: string },
   ) {
     const html = this.renderEmail(
       'admin-approved',
       {
         owner_name: data.ownerName,
         shop_name: data.shopName,
-        login_url: data.loginUrl,
-        setup_password_url: data.setupPasswordUrl,
+        storefront_url: data.storefrontUrl,
+        contact_url: data.contactUrl,
       },
       {
         email_title: 'Your shop was approved',
-        preheader: `${data.shopName} is approved — create your password to get started.`,
+        preheader: `${data.shopName} is approved on ${this.brandDisplay()}.`,
         header_border_color: '#10b981',
       },
     );
@@ -629,7 +629,7 @@ export class EmailService {
         shop_name: data.shopName,
         order_group_id: data.orderGroupId,
         amount: String(data.amount.toFixed(2)),
-        admin_orders_url: `${this.frontendUrl()}/admin/orders`,
+        admin_orders_url: `${this.frontendUrl()}/super/orders`,
       },
       {
         email_title: 'New paid order',

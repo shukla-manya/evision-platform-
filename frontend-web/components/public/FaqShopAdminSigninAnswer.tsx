@@ -7,22 +7,22 @@ import { publicAdminRegisterUrl, publicAdminSignInUrl } from '@/lib/public-links
 
 export function FaqShopAdminSigninAnswer() {
   const [guest, setGuest] = useState(true);
-  const [shopAdmin, setShopAdmin] = useState(false);
+  const [superadmin, setSuperadmin] = useState(false);
 
   useEffect(() => {
     const loggedIn = isLoggedIn();
     setGuest(!loggedIn);
-    setShopAdmin(getRole() === 'admin');
+    setSuperadmin(getRole() === 'superadmin');
   }, []);
 
-  if (!guest && shopAdmin) {
+  if (!guest && superadmin) {
     return (
       <>
-        You&apos;re signed in as a shop admin. Open your{' '}
-        <Link href="/admin/dashboard" className="text-ev-primary hover:text-ev-primary-light font-medium">
-          Shop dashboard
-        </Link>
-        .
+        You&apos;re signed in as superadmin. Open the{' '}
+        <Link href="/super/dashboard" className="text-ev-primary hover:text-ev-primary-light font-medium">
+          platform dashboard
+        </Link>{' '}
+        to manage the catalogue, orders, and registrations.
       </>
     );
   }
@@ -30,25 +30,23 @@ export function FaqShopAdminSigninAnswer() {
   if (!guest) {
     return (
       <>
-        Shop admins use a separate sign-in with <strong className="text-ev-text">email and password</strong>, not
-        mobile OTP. Those links are meant for store owners and are shown in the site footer when you are signed out. To
-        open the shop console, sign out first or use a saved bookmark to the admin URL.
+        The public storefront catalogue is managed in the superadmin console (separate sign-in). Use the footer links
+        when signed out, or ask your organisation for the correct URL.
       </>
     );
   }
 
   return (
     <>
-      Shop admins use a separate sign-in with <strong className="text-ev-text">email and password</strong>, not mobile
-      OTP. Use{' '}
-      <a href={publicAdminSignInUrl} className="text-ev-primary hover:text-ev-primary-light font-medium">
-        Admin sign in
-      </a>{' '}
-      (opens the admin site). New shops can{' '}
+      Partner shop applications (optional) use{' '}
       <a href={publicAdminRegisterUrl} className="text-ev-primary hover:text-ev-primary-light font-medium">
-        register
-      </a>{' '}
-      there or from the mobile app.
+        shop registration
+      </a>
+      . The product catalogue is maintained by{' '}
+      <a href={publicAdminSignInUrl} className="text-ev-primary hover:text-ev-primary-light font-medium">
+        superadmin sign-in
+      </a>
+      .
     </>
   );
 }

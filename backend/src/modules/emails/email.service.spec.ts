@@ -71,10 +71,11 @@ describe('EmailService', () => {
     await email.sendAdminApproved('adm@test.local', {
       ownerName: 'Pat',
       shopName: 'ACME',
-      loginUrl: 'https://app.test.local/login',
-      setupPasswordUrl: 'https://app.test.local/setup?token=x',
+      storefrontUrl: 'https://app.test.local/',
+      contactUrl: 'https://app.test.local/contact',
     });
-    expect(lastHtml()).toContain('setup?token=x');
+    expect(lastHtml()).toContain('https://app.test.local/');
+    expect(lastHtml()).toContain('https://app.test.local/contact');
     expect(lastTrigger()).toBe('admin_approved');
   });
 

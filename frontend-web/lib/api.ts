@@ -28,7 +28,6 @@ function loginPathFor401(): string {
   if (typeof window === 'undefined') return '/login';
   const p = window.location.pathname;
   if (p.startsWith('/super') || p.startsWith('/superadmin')) return '/super/signin';
-  if (p.startsWith('/admin')) return '/admin/login';
   return '/login';
 }
 
@@ -39,7 +38,6 @@ api.interceptors.response.use(
       const path = typeof window !== 'undefined' ? window.location.pathname : '';
       if (
         path === '/super/signin' ||
-        path === '/admin/login' ||
         path === '/login' ||
         path === '/register'
       ) {
@@ -80,35 +78,11 @@ export async function registerElectricianFormData(formData: FormData) {
   return api.post<{ message: string; electrician_id: string }>('/electrician/register', formData);
 }
 
-// ── Admin (shop) ───────────────────────────────────────────────────────────
+// ── Public shop registration (no shop-admin console; catalogue is superadmin-managed) ──
 export const adminApi = {
-  /** Multipart (shop logo) or JSON — backend accepts both for `/admin/register`. */
+  /** Multipart (shop logo) or JSON — partner shop applications only. */
   register: (data: FormData | Record<string, unknown>) =>
     api.post('/admin/register', data, data instanceof FormData ? {} : undefined),
-  getMe: () => api.get('/admin/me'),
-  uploadLogo: (file: File) => {
-    const fd = new FormData();
-    fd.append('logo', file);
-    return api.post('/admin/upload-logo', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-  getProducts: () => api.get('/admin/products'),
-  getProduct: (id: string) => api.get(`/admin/products/${id}`),
-  createProduct: (body: Record<string, unknown>) => api.post('/admin/products', body),
-  updateProduct: (id: string, body: Record<string, unknown>) => api.put(`/admin/products/${id}`, body),
-  deleteProduct: (id: string) => api.delete(`/admin/products/${id}`),
-  uploadProductImages: (files: File[]) => {
-    const fd = new FormData();
-    files.forEach((f) => fd.append('images', f));
-    return api.post('/admin/products/images/upload', fd, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  },
-  getOrders: () => api.get('/admin/orders'),
-  getOrder: (id: string) => api.get(`/admin/orders/${id}`),
-  shipOrder: (id: string, body?: Record<string, unknown>) => api.post(`/admin/orders/${id}/ship`, body || {}),
-  getInvoices: () => api.get('/admin/invoices'),
 };
 
 export const catalogApi = {
@@ -187,6 +161,30 @@ export const superadminApi = {
     date_from?: string;
     date_to?: string;
   }) => api.get('/superadmin/email-logs', { params }),
+
+  /** Platform catalogue (requires `PLATFORM_CATALOG_ADMIN_ID` on the API). */
+  getCatalogProducts: () => api.get('/superadmin/products'),
+  getCatalogProduct: (id: string) => api.get(`/superadmin/products/${id}`),
+  createCatalogProduct: (body: FormData | Record<string, unknown>) =>
+    api.post('/superadmin/products', body, body instanceof FormData ? {} : undefined),
+  updateCatalogProduct: (id: string, body: FormData | Record<string, unknown>) =>
+    api.put(`/superadmin/products/${id}`, body, body instanceof FormData ? {} : undefined),
+  deleteCatalogProduct: (id: string) => api.delete(`/superadmin/products/${id}`),
+  uploadCatalogProductImages: (files: File[]) => {
+    const fd = new FormData();
+    files.forEach((f) => fd.append('images', f));
+    return api.post('/superadmin/products/images/upload', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  getCatalogOrders: () => api.get('/superadmin/orders'),
+  getCatalogOrder: (id: string) => api.get(`/superadmin/orders/${id}`),
+  shipCatalogOrder: (id: string, body?: Record<string, unknown>) =>
+    api.post(`/superadmin/orders/${id}/ship`, body || {}),
+  getCatalogInvoices: () => api.get('/superadmin/invoices'),
+  createCategory: (body: Record<string, unknown>) => api.post('/superadmin/categories', body),
+  updateCategory: (id: string, body: Record<string, unknown>) => api.put(`/superadmin/categories/${id}`, body),
+  deleteCategory: (id: string) => api.delete(`/superadmin/categories/${id}`),
 };
 
 export const electricianApi = {

@@ -17,6 +17,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { createE2eDocClient } from './mongo-e2e-doc-client';
 import { buildPayuReverseHash } from '../../src/modules/checkout/payu-hash.util';
 
+/** Must match `process.env.PLATFORM_CATALOG_ADMIN_ID` in `beforeAll` so the catalogue is restricted like production. */
+const E2E_PLATFORM_CATALOG_ADMIN_ID = 'e2e00000-0000-4000-8000-000000000001';
+
 function payuReturnBody(
   fields: Record<string, string>,
   status: string,
@@ -101,6 +104,7 @@ describe('E2E flows (local)', () => {
     process.env.SHIPROCKET_MOCK = 'true';
     process.env.SHIPROCKET_WEBHOOK_TOKEN = 'e2e-wh-token';
     process.env.SUPERADMIN_EMAIL = 'superadmin-notify@e2e.invalid';
+    process.env.PLATFORM_CATALOG_ADMIN_ID = E2E_PLATFORM_CATALOG_ADMIN_ID;
 
     process.env.AWS_EC2_METADATA_DISABLED = process.env.AWS_EC2_METADATA_DISABLED ?? 'true';
     if (!process.env.AWS_ACCESS_KEY_ID) process.env.AWS_ACCESS_KEY_ID = 'local';
@@ -198,10 +202,33 @@ describe('E2E flows (local)', () => {
     return jwt.sign({ sub: id, role: 'electrician', email, phone: '+919000000003' });
   }
 
-  it('multi-shop checkout → confirm → split sub-orders → ship → webhooks → invoice + emails', async () => {
+  async function e2eSuperadminAccessToken(): Promise<string> {
+    const saE2ePassword = 'e2e-superadmin-login-pw-12';
+    const saEmail = String(process.env.SUPERADMIN_EMAIL || 'superadmin-notify@e2e.invalid').toLowerCase();
+    await docClient.send(
+      new PutCommand({
+        TableName: 'evision_superadmin',
+        Item: {
+          id: 'SUPERADMIN',
+          name: 'E2E Superadmin',
+          email: saEmail,
+          phone: null,
+          password_hash: bcrypt.hashSync(saE2ePassword, 6),
+          role: 'superadmin',
+          created_at: new Date().toISOString(),
+        },
+      }),
+    );
+    const loginRes = await request(app.getHttpServer())
+      .post('/auth/superadmin/login')
+      .send({ email: saEmail, password: saE2ePassword })
+      .expect(200);
+    return (loginRes.body as { access_token: string }).access_token;
+  }
+
+  it('platform catalogue checkout → confirm → ship → webhooks → invoice + emails', async () => {
     const categoryId = uuidv4();
-    const adminA = uuidv4();
-    const adminB = uuidv4();
+    const platformAid = E2E_PLATFORM_CATALOG_ADMIN_ID;
     const productA = uuidv4();
     const productB = uuidv4();
     const customerId = uuidv4();
@@ -213,43 +240,13 @@ describe('E2E flows (local)', () => {
         Item: { id: categoryId, name: 'E2E Cat', parent_id: null, created_at: now },
       }),
     );
-    for (const adm of [
-      {
-        id: adminA,
-        shop_name: 'Shop A',
-        owner_name: 'Owner A',
-        email: `a-${adminA}@e2e.invalid`,
-        phone: '+919111111001',
-        status: 'approved',
-        gst_no: '22AAAAA0000A1Z5',
-        address: 'Addr',
-        city: 'Faridabad',
-        pincode: '121001',
-        created_at: now,
-      },
-      {
-        id: adminB,
-        shop_name: 'Shop B',
-        owner_name: 'Owner B',
-        email: `b-${adminB}@e2e.invalid`,
-        phone: '+919111111002',
-        status: 'approved',
-        gst_no: '22BBBBB0000B1Z5',
-        address: 'Addr',
-        city: 'Faridabad',
-        pincode: '121001',
-        created_at: now,
-      },
-    ]) {
-      await docClient.send(new PutCommand({ TableName: 'evision_admins', Item: adm }));
-    }
 
     await docClient.send(
       new PutCommand({
         TableName: 'evision_products',
         Item: {
           id: productA,
-          admin_id: adminA,
+          admin_id: platformAid,
           name: 'Widget A',
           description: 'd',
           price_customer: 100,
@@ -268,7 +265,7 @@ describe('E2E flows (local)', () => {
         TableName: 'evision_products',
         Item: {
           id: productB,
-          admin_id: adminB,
+          admin_id: platformAid,
           name: 'Widget B',
           description: 'd',
           price_customer: 250,
@@ -352,24 +349,20 @@ describe('E2E flows (local)', () => {
     const grp = (my.body as unknown[]).find((g: any) => String(g.id) === groupId) as Record<string, unknown>;
     expect(grp).toBeTruthy();
     const subs = grp.sub_orders as unknown[];
-    expect(subs.length).toBe(2);
+    expect(subs.length).toBe(1);
     const totals = subs.map((s: any) => Number(s.total_amount)).sort((a, b) => a - b);
-    expect(totals).toEqual([100, 500]);
+    expect(totals).toEqual([600]);
 
     expect(emailSpy.triggers).toContain('sendPaymentConfirmedCustomer');
-    expect(emailSpy.triggers.filter((t) => t === 'sendPaymentConfirmedAdmin').length).toBeGreaterThanOrEqual(2);
+    expect(emailSpy.triggers.filter((t) => t === 'sendPaymentConfirmedAdmin').length).toBeGreaterThanOrEqual(1);
 
-    const adminAJwt = adminToken(adminA, `a-${adminA}@e2e.invalid`);
-    const listA = await request(app.getHttpServer())
-      .get('/admin/orders')
-      .set('Authorization', `Bearer ${adminAJwt}`)
-      .expect(200);
-    const orderAId = (listA.body as any[]).find((o) => String(o.admin_id) === adminA)?.id as string;
-    expect(orderAId).toBeTruthy();
+    const saJwt = await e2eSuperadminAccessToken();
+    const orderId = String((subs[0] as { id?: unknown }).id || '');
+    expect(orderId).toMatch(/^[0-9a-f-]{36}$/i);
 
     const shipRes = await request(app.getHttpServer())
-      .post(`/admin/orders/${orderAId}/ship`)
-      .set('Authorization', `Bearer ${adminAJwt}`)
+      .post(`/superadmin/orders/${orderId}/ship`)
+      .set('Authorization', `Bearer ${saJwt}`)
       .send({ weight: 0.5 })
       .expect(201);
     const awb = String((shipRes.body as any).awb_number || '');
@@ -393,39 +386,11 @@ describe('E2E flows (local)', () => {
       new ScanCommand({
         TableName: 'evision_invoices',
         FilterExpression: 'order_id = :oid',
-        ExpressionAttributeValues: { ':oid': orderAId },
+        ExpressionAttributeValues: { ':oid': orderId },
       }),
     );
     expect((invScan.Items || []).length).toBeGreaterThanOrEqual(1);
     expect(emailSpy.triggers).toContain('sendInvoiceGenerated');
-
-    const adminBJwt = adminToken(adminB, `b-${adminB}@e2e.invalid`);
-    const listB = await request(app.getHttpServer())
-      .get('/admin/orders')
-      .set('Authorization', `Bearer ${adminBJwt}`)
-      .expect(200);
-    const orderBId = (listB.body as any[]).find((o) => String(o.admin_id) === adminB)?.id as string;
-    expect(orderBId).toBeTruthy();
-    const shipB = await request(app.getHttpServer())
-      .post(`/admin/orders/${orderBId}/ship`)
-      .set('Authorization', `Bearer ${adminBJwt}`)
-      .send({ weight: 0.5 })
-      .expect(201);
-    const awbB = String((shipB.body as any).awb_number || '');
-    expect(awbB).toMatch(/^MOCKAWB/);
-    await request(app.getHttpServer())
-      .post('/webhooks/shiprocket')
-      .set('x-api-key', 'e2e-wh-token')
-      .send({ awb: awbB, current_status: 'delivered' })
-      .expect(201);
-    const invB = await docClient.send(
-      new ScanCommand({
-        TableName: 'evision_invoices',
-        FilterExpression: 'order_id = :oid',
-        ExpressionAttributeValues: { ':oid': orderBId },
-      }),
-    );
-    expect((invB.Items || []).length).toBeGreaterThanOrEqual(1);
   });
 
   it('payment failure creates failed group without sub-orders', async () => {
@@ -445,7 +410,6 @@ describe('E2E flows (local)', () => {
       }),
     );
     const tok = customerToken(userId, `fail-${userId}@e2e.invalid`);
-    const adminF = uuidv4();
     const catF = uuidv4();
     const productF = uuidv4();
     await docClient.send(
@@ -456,28 +420,10 @@ describe('E2E flows (local)', () => {
     );
     await docClient.send(
       new PutCommand({
-        TableName: 'evision_admins',
-        Item: {
-          id: adminF,
-          shop_name: 'Shop F',
-          owner_name: 'Owner F',
-          email: `f-${adminF}@e2e.invalid`,
-          phone: '+919111111099',
-          status: 'approved',
-          gst_no: '22FFFFF0000F1Z5',
-          address: 'Addr',
-          city: 'Faridabad',
-          pincode: '121001',
-          created_at: now,
-        },
-      }),
-    );
-    await docClient.send(
-      new PutCommand({
         TableName: 'evision_products',
         Item: {
           id: productF,
-          admin_id: adminF,
+          admin_id: E2E_PLATFORM_CATALOG_ADMIN_ID,
           name: 'FailPay Item',
           description: 'd',
           price_customer: 50,
@@ -537,7 +483,6 @@ describe('E2E flows (local)', () => {
 
   it('dealer delivered order has GST invoice URLs and GST ZIP downloads', async () => {
     const categoryId = uuidv4();
-    const adminId = uuidv4();
     const productId = uuidv4();
     const dealerId = uuidv4();
     const now = new Date().toISOString();
@@ -550,28 +495,10 @@ describe('E2E flows (local)', () => {
     );
     await docClient.send(
       new PutCommand({
-        TableName: 'evision_admins',
-        Item: {
-          id: adminId,
-          shop_name: 'Shop D',
-          owner_name: 'Owner D',
-          email: `d-${adminId}@e2e.invalid`,
-          phone: '+919111111010',
-          status: 'approved',
-          gst_no: '22CCCCC0000C1Z5',
-          address: 'Addr',
-          city: 'Faridabad',
-          pincode: '121001',
-          created_at: now,
-        },
-      }),
-    );
-    await docClient.send(
-      new PutCommand({
         TableName: 'evision_products',
         Item: {
           id: productId,
-          admin_id: adminId,
+          admin_id: E2E_PLATFORM_CATALOG_ADMIN_ID,
           name: 'Dealer SKU',
           description: 'd',
           price_customer: 200,
@@ -632,15 +559,19 @@ describe('E2E flows (local)', () => {
     expect(gmD).toBeTruthy();
     const groupId = decodeURIComponent(gmD![1]);
 
-    const list = await request(app.getHttpServer())
-      .get('/admin/orders')
-      .set('Authorization', `Bearer ${adminToken(adminId, `d-${adminId}@e2e.invalid`)}`)
+    const myOrders = await request(app.getHttpServer())
+      .get('/orders/my')
+      .set('Authorization', `Bearer ${dj}`)
       .expect(200);
-    const orderId = (list.body as any[])[0].id as string;
+    const gDealer = (myOrders.body as any[]).find((x) => x.id === groupId);
+    expect(gDealer).toBeTruthy();
+    const orderId = String((gDealer.sub_orders as any[])[0]?.id || '');
+    expect(orderId).toMatch(/^[0-9a-f-]{36}$/i);
 
+    const saJwtDealer = await e2eSuperadminAccessToken();
     const shipBody = await request(app.getHttpServer())
-      .post(`/admin/orders/${orderId}/ship`)
-      .set('Authorization', `Bearer ${adminToken(adminId, `d-${adminId}@e2e.invalid`)}`)
+      .post(`/superadmin/orders/${orderId}/ship`)
+      .set('Authorization', `Bearer ${saJwtDealer}`)
       .send({})
       .expect(201);
     const awb = String((shipBody.body as any).awb_number);

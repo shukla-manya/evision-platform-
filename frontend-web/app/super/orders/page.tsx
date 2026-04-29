@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Loader2, Truck, X, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { adminApi } from '@/lib/api';
+import { superadminApi } from '@/lib/api';
 import { ADMIN_SHIPPABLE_STATUSES, orderNeedsShipment } from '@/lib/admin-orders';
-import { AdminShell } from '@/components/admin/AdminShell';
+import { SuperadminShell } from '@/components/superadmin/SuperadminShell';
 
 type OrderTab = 'to_ship' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -145,8 +145,8 @@ export default function AdminOrdersPage() {
   const load = useCallback(() => {
     setLoading(true);
     setLoadFailed(false);
-    adminApi
-      .getOrders()
+    superadminApi
+      .getCatalogOrders()
       .then((r) => setRows(Array.isArray(r.data) ? (r.data as Order[]) : []))
       .catch(() => {
         setLoadFailed(true);
@@ -187,7 +187,7 @@ export default function AdminOrdersPage() {
         delivery_pincode: form.delivery_pincode,
       };
       if (form.weight) body.weight = parseFloat(form.weight);
-      await adminApi.shipOrder(shipTarget.id, body);
+      await superadminApi.shipCatalogOrder(shipTarget.id, body);
       toast.success('Shipment created — AWB assigned');
       setShipTarget(null);
       load();
@@ -226,7 +226,7 @@ export default function AdminOrdersPage() {
   ];
 
   return (
-    <AdminShell>
+    <SuperadminShell>
       <main className="w-full min-w-0 max-w-6xl">
         <h1 className="text-2xl font-bold text-ev-text mb-1">All orders</h1>
         <p className="text-ev-muted text-sm mb-6">Filter by fulfilment stage. Ship with Shiprocket to get AWB and courier.</p>
@@ -282,7 +282,7 @@ export default function AdminOrdersPage() {
                   <tr key={row.id} className="hover:bg-ev-surface2/80 transition-colors">
                     <td className="px-4 py-3 font-mono text-xs">
                       <Link
-                        href={`/admin/orders/${row.id}`}
+                        href={`/super/orders/${row.id}`}
                         className="ev-btn-secondary text-xs py-1.5 px-2.5 inline-flex font-mono font-semibold"
                       >
                         {orderShortRef(row.id)}
@@ -343,7 +343,7 @@ export default function AdminOrdersPage() {
                           <Truck size={13} /> Generate shipment
                         </button>
                       ) : (
-                        <Link href={`/admin/orders/${row.id}`} className="ev-btn-secondary text-xs py-1.5 px-3 inline-flex">
+                        <Link href={`/super/orders/${row.id}`} className="ev-btn-secondary text-xs py-1.5 px-3 inline-flex">
                           View
                         </Link>
                       )}
@@ -399,6 +399,6 @@ export default function AdminOrdersPage() {
           </div>
         </div>
       )}
-    </AdminShell>
+    </SuperadminShell>
   );
 }

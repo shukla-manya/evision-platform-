@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-/** Public URL for the admin app (e.g. admin.example.com/signin) — form lives at /admin/login. */
+/** Legacy “admin sign-in” alias — shop catalogue is managed under superadmin. */
 export default function AdminSignInAliasPage() {
-  redirect('/admin/login');
+  redirect('/super/signin');
 }

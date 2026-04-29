@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { adminApi, catalogApi } from '@/lib/api';
+import { superadminApi, catalogApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
-import { AdminShell } from '@/components/admin/AdminShell';
+import { SuperadminShell } from '@/components/superadmin/SuperadminShell';
 
 type Category = { id: string; name: string; parent_id?: string | null };
 
@@ -47,7 +47,7 @@ export default function AdminProductNewPage() {
     try {
       let imageUrls: string[] = [];
       if (files.length > 0) {
-        const up = await adminApi.uploadProductImages(files);
+        const up = await superadminApi.uploadCatalogProductImages(files);
         imageUrls = (up.data as { urls?: string[] })?.urls || [];
       }
       const body = {
@@ -64,9 +64,9 @@ export default function AdminProductNewPage() {
         ...(form.mrp.trim() !== '' ? { mrp: Number(form.mrp) } : {}),
         ...(imageUrls.length ? { images: imageUrls } : {}),
       };
-      await adminApi.createProduct(body);
+      await superadminApi.createCatalogProduct(body);
       toast.success('Product created');
-      router.push('/admin/products');
+      router.push('/super/products');
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Could not create product'));
     } finally {
@@ -75,9 +75,9 @@ export default function AdminProductNewPage() {
   }
 
   return (
-    <AdminShell>
+    <SuperadminShell>
       <main className="w-full min-w-0 max-w-3xl">
-        <Link href="/admin/products" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-4">
+        <Link href="/super/products" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-4">
           <ArrowLeft size={14} /> Products
         </Link>
         <h1 className="text-2xl font-bold text-ev-text mb-2">Add new product</h1>
@@ -224,12 +224,12 @@ export default function AdminProductNewPage() {
               {saving ? <Loader2 size={18} className="animate-spin" /> : null}
               Save product
             </button>
-            <Link href="/admin/products" className="ev-btn-secondary py-2.5 px-4 text-sm">
+            <Link href="/super/products" className="ev-btn-secondary py-2.5 px-4 text-sm">
               Cancel
             </Link>
           </div>
         </form>
       </main>
-    </AdminShell>
+    </SuperadminShell>
   );
 }

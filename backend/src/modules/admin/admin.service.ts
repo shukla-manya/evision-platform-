@@ -129,17 +129,11 @@ export class AdminService {
     });
 
     const frontend = String(this.config.get('FRONTEND_URL') || '').replace(/\/$/, '');
-    const setupToken = this.jwt.sign(
-      { sub: id, purpose: 'admin_password_setup' },
-      { expiresIn: '7d' },
-    );
-    const setupPasswordUrl = `${frontend}/admin/setup-password?token=${encodeURIComponent(setupToken)}`;
-    const loginUrl = `${frontend}/admin/login`;
     await this.email.sendAdminApproved(admin.email, {
       ownerName: admin.owner_name,
       shopName: admin.shop_name,
-      loginUrl,
-      setupPasswordUrl,
+      storefrontUrl: `${frontend}/`,
+      contactUrl: `${frontend}/contact`,
     });
 
     this.logger.log(`Admin approved: ${admin.shop_name}`);

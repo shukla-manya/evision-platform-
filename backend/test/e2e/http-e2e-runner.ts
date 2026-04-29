@@ -21,6 +21,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { createE2eDocClient } from './mongo-e2e-doc-client';
 import { buildPayuReverseHash } from '../../src/modules/checkout/payu-hash.util';
 
+const E2E_PLATFORM_CATALOG_ADMIN_ID = 'e2e00000-0000-4000-8000-000000000001';
+
 function payuReturnBody(
   fields: Record<string, string>,
   status: string,
@@ -94,6 +96,7 @@ async function main() {
   process.env.SHIPROCKET_MOCK = 'true';
   process.env.SHIPROCKET_WEBHOOK_TOKEN = 'e2e-wh-token';
   process.env.SUPERADMIN_EMAIL = 'superadmin-notify@e2e.invalid';
+  process.env.PLATFORM_CATALOG_ADMIN_ID = E2E_PLATFORM_CATALOG_ADMIN_ID;
 
   /** Avoid long hangs from the AWS SDK default credential chain (IMDS) when .env has no keys. */
   process.env.AWS_EC2_METADATA_DISABLED = process.env.AWS_EC2_METADATA_DISABLED ?? 'true';
@@ -177,11 +180,34 @@ async function main() {
   const electricianToken = (id: string, email: string) =>
     jwt.sign({ sub: id, role: 'electrician', email, phone: '+919000000003' });
 
-  console.log('[e2e] multi-shop → payment → ship → webhook → invoice');
+  const e2eSuperadminAccessToken = async (): Promise<string> => {
+    const saE2ePassword = 'e2e-superadmin-login-pw-12';
+    const saEmail = String(process.env.SUPERADMIN_EMAIL || 'superadmin-notify@e2e.invalid').toLowerCase();
+    await docClient.send(
+      new PutCommand({
+        TableName: 'evision_superadmin',
+        Item: {
+          id: 'SUPERADMIN',
+          name: 'E2E Superadmin',
+          email: saEmail,
+          phone: null,
+          password_hash: bcrypt.hashSync(saE2ePassword, 6),
+          role: 'superadmin',
+          created_at: new Date().toISOString(),
+        },
+      }),
+    );
+    const loginRes = await request(app.getHttpServer())
+      .post('/auth/superadmin/login')
+      .send({ email: saEmail, password: saE2ePassword })
+      .expect(200);
+    return (loginRes.body as { access_token: string }).access_token;
+  };
+
+  console.log('[e2e] platform catalogue → payment → ship → webhook → invoice');
   {
     const categoryId = uuidv4();
-    const adminA = uuidv4();
-    const adminB = uuidv4();
+    const platformAid = E2E_PLATFORM_CATALOG_ADMIN_ID;
     const productA = uuidv4();
     const productB = uuidv4();
     const customerId = uuidv4();
@@ -193,46 +219,16 @@ async function main() {
         Item: { id: categoryId, name: 'E2E Cat', parent_id: null, created_at: now },
       }),
     );
-    for (const adm of [
-      {
-        id: adminA,
-        shop_name: 'Shop A',
-        owner_name: 'Owner A',
-        email: `a-${adminA}@e2e.invalid`,
-        phone: '+919111111001',
-        status: 'approved',
-        gst_no: '22AAAAA0000A1Z5',
-        address: 'Addr',
-        city: 'Faridabad',
-        pincode: '121001',
-        created_at: now,
-      },
-      {
-        id: adminB,
-        shop_name: 'Shop B',
-        owner_name: 'Owner B',
-        email: `b-${adminB}@e2e.invalid`,
-        phone: '+919111111002',
-        status: 'approved',
-        gst_no: '22BBBBB0000B1Z5',
-        address: 'Addr',
-        city: 'Faridabad',
-        pincode: '121001',
-        created_at: now,
-      },
-    ]) {
-      await docClient.send(new PutCommand({ TableName: 'evision_admins', Item: adm }));
-    }
-    for (const [pid, aid, name, pc, pd] of [
-      [productA, adminA, 'Widget A', 100, 80],
-      [productB, adminB, 'Widget B', 250, 200],
+    for (const [pid, name, pc, pd] of [
+      [productA, 'Widget A', 100, 80],
+      [productB, 'Widget B', 250, 200],
     ] as const) {
       await docClient.send(
         new PutCommand({
           TableName: 'evision_products',
           Item: {
             id: pid,
-            admin_id: aid,
+            admin_id: platformAid,
             name,
             description: 'd',
             price_customer: pc,
@@ -311,22 +307,21 @@ async function main() {
     const grp = (my.body as unknown[]).find((g: any) => String(g.id) === groupId) as Record<string, unknown>;
     assert.ok(grp);
     const subs = grp.sub_orders as unknown[];
-    assert.equal(subs.length, 2);
+    assert.equal(subs.length, 1);
     assert.deepStrictEqual(
       subs.map((s: any) => Number(s.total_amount)).sort((a, b) => a - b),
-      [100, 500],
+      [600],
     );
     assert.ok(emailSpy.triggers.includes('sendPaymentConfirmedCustomer'));
-    assert.ok(emailSpy.triggers.filter((t) => t === 'sendPaymentConfirmedAdmin').length >= 2);
+    assert.ok(emailSpy.triggers.filter((t) => t === 'sendPaymentConfirmedAdmin').length >= 1);
 
-    const adminAJwt = adminToken(adminA, `a-${adminA}@e2e.invalid`);
-    const listA = await request(app.getHttpServer()).get('/admin/orders').set('Authorization', `Bearer ${adminAJwt}`).expect(200);
-    const orderAId = (listA.body as any[]).find((o) => String(o.admin_id) === adminA)?.id as string;
-    assert.ok(orderAId);
+    const saJwt = await e2eSuperadminAccessToken();
+    const orderAId = String((subs[0] as { id?: unknown }).id || '');
+    assert.ok(/^[0-9a-f-]{36}$/i.test(orderAId));
 
     const shipRes = await request(app.getHttpServer())
-      .post(`/admin/orders/${orderAId}/ship`)
-      .set('Authorization', `Bearer ${adminAJwt}`)
+      .post(`/superadmin/orders/${orderAId}/ship`)
+      .set('Authorization', `Bearer ${saJwt}`)
       .send({ weight: 0.5 })
       .expect(201);
     const awb = String((shipRes.body as any).awb_number || '');
@@ -355,31 +350,6 @@ async function main() {
     );
     assert.ok((invScan.Items || []).length >= 1);
     assert.ok(emailSpy.triggers.includes('sendInvoiceGenerated'));
-
-    const adminBJwt = adminToken(adminB, `b-${adminB}@e2e.invalid`);
-    const listB = await request(app.getHttpServer()).get('/admin/orders').set('Authorization', `Bearer ${adminBJwt}`).expect(200);
-    const orderBId = (listB.body as any[]).find((o) => String(o.admin_id) === adminB)?.id as string;
-    assert.ok(orderBId);
-    const shipB = await request(app.getHttpServer())
-      .post(`/admin/orders/${orderBId}/ship`)
-      .set('Authorization', `Bearer ${adminBJwt}`)
-      .send({ weight: 0.5 })
-      .expect(201);
-    const awbB = String((shipB.body as any).awb_number || '');
-    assert.match(awbB, /^MOCKAWB/);
-    await request(app.getHttpServer())
-      .post('/webhooks/shiprocket')
-      .set('x-api-key', 'e2e-wh-token')
-      .send({ awb: awbB, current_status: 'delivered' })
-      .expect(201);
-    const invB = await docClient.send(
-      new ScanCommand({
-        TableName: 'evision_invoices',
-        FilterExpression: 'order_id = :oid',
-        ExpressionAttributeValues: { ':oid': orderBId },
-      }),
-    );
-    assert.ok((invB.Items || []).length >= 1);
   }
 
   console.log('[e2e] payment failure');
@@ -400,7 +370,6 @@ async function main() {
       }),
     );
     const tok = jwt.sign({ sub: userId, role: 'customer', email: `fail-${userId}@e2e.invalid`, phone: '+919000' });
-    const adminF = uuidv4();
     const catF = uuidv4();
     const productF = uuidv4();
     await docClient.send(
@@ -411,28 +380,10 @@ async function main() {
     );
     await docClient.send(
       new PutCommand({
-        TableName: 'evision_admins',
-        Item: {
-          id: adminF,
-          shop_name: 'Shop F',
-          owner_name: 'Owner F',
-          email: `f-${adminF}@e2e.invalid`,
-          phone: '+919111111099',
-          status: 'approved',
-          gst_no: '22FFFFF0000F1Z5',
-          address: 'Addr',
-          city: 'Faridabad',
-          pincode: '121001',
-          created_at: now,
-        },
-      }),
-    );
-    await docClient.send(
-      new PutCommand({
         TableName: 'evision_products',
         Item: {
           id: productF,
-          admin_id: adminF,
+          admin_id: E2E_PLATFORM_CATALOG_ADMIN_ID,
           name: 'FailPay Item',
           description: 'd',
           price_customer: 50,
@@ -492,7 +443,6 @@ async function main() {
   console.log('[e2e] dealer GST zip');
   {
     const categoryId = uuidv4();
-    const adminId = uuidv4();
     const productId = uuidv4();
     const dealerId = uuidv4();
     const now = new Date().toISOString();
@@ -504,28 +454,10 @@ async function main() {
     );
     await docClient.send(
       new PutCommand({
-        TableName: 'evision_admins',
-        Item: {
-          id: adminId,
-          shop_name: 'Shop D',
-          owner_name: 'Owner D',
-          email: `d-${adminId}@e2e.invalid`,
-          phone: '+919111111010',
-          status: 'approved',
-          gst_no: '22CCCCC0000C1Z5',
-          address: 'Addr',
-          city: 'Faridabad',
-          pincode: '121001',
-          created_at: now,
-        },
-      }),
-    );
-    await docClient.send(
-      new PutCommand({
         TableName: 'evision_products',
         Item: {
           id: productId,
-          admin_id: adminId,
+          admin_id: E2E_PLATFORM_CATALOG_ADMIN_ID,
           name: 'Dealer SKU',
           description: 'd',
           price_customer: 200,
@@ -579,12 +511,15 @@ async function main() {
     const gmD = locD.match(/group=([^&]+)/);
     assert.ok(gmD);
     const groupId = decodeURIComponent(gmD[1]);
-    const admJwt = adminToken(adminId, `d-${adminId}@e2e.invalid`);
-    const list = await request(app.getHttpServer()).get('/admin/orders').set('Authorization', `Bearer ${admJwt}`).expect(200);
-    const orderId = (list.body as any[])[0].id as string;
+    const myOrd = await request(app.getHttpServer()).get('/orders/my').set('Authorization', `Bearer ${dj}`).expect(200);
+    const gDealer = (myOrd.body as any[]).find((x) => x.id === groupId);
+    assert.ok(gDealer);
+    const orderId = String((gDealer.sub_orders as any[])[0]?.id || '');
+    assert.ok(/^[0-9a-f-]{36}$/i.test(orderId));
+    const saJwtDealer = await e2eSuperadminAccessToken();
     const shipBody = await request(app.getHttpServer())
-      .post(`/admin/orders/${orderId}/ship`)
-      .set('Authorization', `Bearer ${admJwt}`)
+      .post(`/superadmin/orders/${orderId}/ship`)
+      .set('Authorization', `Bearer ${saJwtDealer}`)
       .send({})
       .expect(201);
     const awb = String((shipBody.body as any).awb_number);

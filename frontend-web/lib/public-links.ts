@@ -7,7 +7,7 @@ export const publicRegisterPath = '/register';
  * deployed builds work without extra config. Set full URLs only if admin lives on another host.
  */
 export const publicAdminSignInUrl =
-  process.env.NEXT_PUBLIC_ADMIN_SIGNIN_URL?.trim() || '/admin/login';
+  process.env.NEXT_PUBLIC_ADMIN_SIGNIN_URL?.trim() || '/super/signin';
 
 export const publicAdminRegisterUrl =
   process.env.NEXT_PUBLIC_ADMIN_REGISTER_URL?.trim() || '/admin/register';

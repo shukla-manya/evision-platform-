@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Plus, Package, Loader2, Pencil, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { adminApi } from '@/lib/api';
+import { superadminApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
-import { AdminShell } from '@/components/admin/AdminShell';
+import { SuperadminShell } from '@/components/superadmin/SuperadminShell';
 
 type Product = {
   id: string;
@@ -29,8 +29,8 @@ export default function AdminProductsPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    adminApi
-      .getProducts()
+    superadminApi
+      .getCatalogProducts()
       .then((r) => setItems((r.data as Product[]) || []))
       .catch(() => toast.error('Failed to load products'))
       .finally(() => setLoading(false));
@@ -44,7 +44,7 @@ export default function AdminProductsPage() {
     if (!window.confirm(`Delete “${name}”? This cannot be undone.`)) return;
     setDeleting(id);
     try {
-      await adminApi.deleteProduct(id);
+      await superadminApi.deleteCatalogProduct(id);
       toast.success('Product deleted');
       load();
     } catch (e: unknown) {
@@ -55,7 +55,7 @@ export default function AdminProductsPage() {
   }
 
   return (
-    <AdminShell>
+    <SuperadminShell>
       <main className="w-full min-w-0 max-w-6xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
@@ -63,7 +63,7 @@ export default function AdminProductsPage() {
             <p className="text-ev-muted text-sm mt-0.5">Customer and dealer prices, stock, and visibility</p>
           </div>
           <Link
-            href="/admin/products/new"
+            href="/super/products/new"
             className="ev-btn-primary inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm shrink-0"
           >
             <Plus size={18} />
@@ -81,7 +81,7 @@ export default function AdminProductsPage() {
             <Package className="mx-auto mb-3 opacity-30" size={40} />
             <p className="text-ev-text font-medium mb-1">No products yet</p>
             <p className="text-sm mb-4">Create your first product with customer and dealer prices.</p>
-            <Link href="/admin/products/new" className="ev-btn-primary inline-flex items-center gap-2 py-2 px-4 text-sm">
+            <Link href="/super/products/new" className="ev-btn-primary inline-flex items-center gap-2 py-2 px-4 text-sm">
               <Plus size={16} />
               Add new product
             </Link>
@@ -140,7 +140,7 @@ export default function AdminProductsPage() {
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                       <button
                         type="button"
-                        onClick={() => router.push(`/admin/products/${p.id}/edit`)}
+                        onClick={() => router.push(`/super/products/${p.id}/edit`)}
                         className="ev-btn-secondary text-xs py-1.5 px-2.5 inline-flex items-center gap-1 mr-2"
                       >
                         <Pencil size={12} />
@@ -163,6 +163,6 @@ export default function AdminProductsPage() {
           </div>
         )}
       </main>
-    </AdminShell>
+    </SuperadminShell>
   );
 }

@@ -16,6 +16,10 @@ import {
   LogOut,
   Loader2,
   ClipboardCheck,
+  Package,
+  ShoppingCart,
+  FileText,
+  Tags,
 } from 'lucide-react';
 import { superadminApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
@@ -32,6 +36,10 @@ type NavItem = {
 
 const nav: NavItem[] = [
   { href: '/super/dashboard', label: 'Overview', icon: LayoutDashboard },
+  { href: '/super/products', label: 'Catalogue', icon: Package },
+  { href: '/super/categories', label: 'Categories', icon: Tags },
+  { href: '/super/orders', label: 'Orders', icon: ShoppingCart },
+  { href: '/super/invoices', label: 'Invoices', icon: FileText },
   { href: '/super/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/super/shop-registrations', label: 'Shop registrations', icon: Inbox, badgeKey: 'pending_shops' },
   { href: '/super/technicians', label: 'Technicians', icon: UserCog, badgeKey: 'pending_techs' },

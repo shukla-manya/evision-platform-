@@ -4,9 +4,9 @@ import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Truck, ExternalLink, FileText, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { adminApi } from '@/lib/api';
+import { superadminApi } from '@/lib/api';
 import { ADMIN_SHIPPABLE_STATUSES } from '@/lib/admin-orders';
-import { AdminShell } from '@/components/admin/AdminShell';
+import { SuperadminShell } from '@/components/superadmin/SuperadminShell';
 import { roleDisplayLabel } from '@/lib/user-roles';
 
 type OrderItem = {
@@ -91,7 +91,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await adminApi.getOrder(id);
+      const { data } = await superadminApi.getCatalogOrder(id);
       setOrder(data as AdminOrderDetail);
     } catch {
       toast.error('Failed to load order detail');
@@ -108,9 +108,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
   }, [load]);
 
   return (
-    <AdminShell>
+    <SuperadminShell>
       <main className="w-full min-w-0 max-w-3xl">
-        <Link href="/admin/orders" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-4">
+        <Link href="/super/orders" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-4">
           <ArrowLeft size={14} /> All orders
         </Link>
 
@@ -266,7 +266,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                   onClick={async () => {
                     setShipping(true);
                     try {
-                      await adminApi.shipOrder(order.id);
+                      await superadminApi.shipCatalogOrder(order.id);
                       toast.success('Shipment generated');
                       await load();
                     } catch {
@@ -339,6 +339,6 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
           </div>
         )}
       </main>
-    </AdminShell>
+    </SuperadminShell>
   );
 }

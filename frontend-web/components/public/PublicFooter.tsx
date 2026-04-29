@@ -122,8 +122,8 @@ export function PublicFooter() {
             ) : role === 'admin' ? (
               <ul className="space-y-2 text-white/80">
                 <li>
-                  <Link href="/admin/dashboard" className="hover:text-white transition-colors font-medium">
-                    Shop dashboard
+                  <Link href="/contact" className="hover:text-white transition-colors font-medium">
+                    Contact support
                   </Link>
                 </li>
               </ul>
