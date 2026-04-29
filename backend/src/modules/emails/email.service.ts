@@ -44,7 +44,7 @@ export class EmailService {
     });
   }
 
-  async send(opts: SendEmailOptions): Promise<void> {
+  async send(opts: SendEmailOptions): Promise<{ ok: boolean; error: string | null }> {
     const from = `"${this.config.get('EMAIL_FROM_NAME', 'E vision Pvt. Ltd.')}" <${this.config.get('EMAIL_FROM')}>`;
     let status: 'sent' | 'failed' = 'sent';
     let errorMessage: string | null = null;
@@ -53,6 +53,7 @@ export class EmailService {
       await this.transporter.sendMail({
         from,
         to: opts.to,
+        ...(opts.replyTo ? { replyTo: opts.replyTo } : {}),
         subject: opts.subject,
         html: opts.html,
         attachments: opts.attachments,
@@ -73,6 +74,144 @@ export class EmailService {
       status,
       error_message: errorMessage,
       sent_at: new Date().toISOString(),
+    });
+    return { ok: status === 'sent', error: errorMessage };
+  }
+
+  private escapeHtml(text: string): string {
+    return String(text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  private messageToHtmlParagraphs(message: string): string {
+    return this.escapeHtml(message)
+      .split('\n')
+      .map((line) => `<p style="margin:0 0 10px;color:#e2e8f0;font-size:14px;line-height:1.6;">${line || '&nbsp;'}</p>`)
+      .join('');
+  }
+
+  /** Staff inbox for website/app contact form (uses CONTACT_FORM_TO_EMAIL or support default). */
+  contactFormStaffInbox(): string {
+    return (
+      this.config.get<string>('CONTACT_FORM_TO_EMAIL')?.trim() ||
+      this.config.get<string>('PUBLIC_SUPPORT_EMAIL')?.trim() ||
+      'support@evisionindia.com'
+    );
+  }
+
+  newsletterInbox(): string {
+    return (
+      this.config.get<string>('CONTACT_NEWSLETTER_TO_EMAIL')?.trim() ||
+      this.config.get<string>('PUBLIC_MARKETING_EMAIL')?.trim() ||
+      'marketing@evisionindia.com'
+    );
+  }
+
+  async sendContactFormToStaff(data: {
+    staffEmail: string;
+    replyTo: string;
+    fromName: string;
+    message: string;
+  }): Promise<{ ok: boolean; error: string | null }> {
+    const message_html = this.messageToHtmlParagraphs(data.message);
+    const html = this.renderEmail(
+      'contact-form-staff',
+      {
+        from_name: this.escapeHtml(data.fromName),
+        from_email: this.escapeHtml(data.replyTo),
+        message_html,
+      },
+      {
+        email_title: 'Contact form message',
+        preheader: `New message from ${data.fromName}`,
+        header_border_color: '#10b981',
+      },
+    );
+    return this.send({
+      to: data.staffEmail,
+      to_role: 'support',
+      subject: `Contact form: ${data.fromName} <${data.replyTo}>`,
+      html,
+      trigger_event: 'contact_form_staff',
+      replyTo: data.replyTo,
+    });
+  }
+
+  async sendContactFormConfirmation(data: {
+    toEmail: string;
+    greetingName: string;
+    firstName: string;
+    lastName: string;
+    messagePreview: string;
+  }): Promise<{ ok: boolean; error: string | null }> {
+    const preview =
+      data.messagePreview.length > 400 ? `${data.messagePreview.slice(0, 400)}…` : data.messagePreview;
+    const html = this.renderEmail(
+      'contact-form-customer-confirm',
+      {
+        greeting_name: this.escapeHtml(data.greetingName),
+        first_name: this.escapeHtml(data.firstName),
+        last_name: this.escapeHtml(data.lastName),
+        email_row: this.escapeHtml(data.toEmail),
+        message_preview: this.messageToHtmlParagraphs(preview),
+      },
+      {
+        email_title: 'We received your message',
+        preheader: `Thanks ${data.greetingName} — here is what you sent.`,
+        header_border_color: '#3b82f6',
+      },
+    );
+    return this.send({
+      to: data.toEmail,
+      to_role: 'customer',
+      subject: `We received your message — ${this.brandDisplay()}`,
+      html,
+      trigger_event: 'contact_form_customer_confirm',
+    });
+  }
+
+  async sendNewsletterRequest(data: { toEmail: string; subscriberEmail: string }): Promise<{ ok: boolean; error: string | null }> {
+    const html = this.renderEmail(
+      'contact-newsletter-staff',
+      {
+        subscriber_email: this.escapeHtml(data.subscriberEmail),
+      },
+      {
+        email_title: 'Newsletter signup request',
+        preheader: `Subscribe: ${data.subscriberEmail}`,
+        header_border_color: '#8b5cf6',
+      },
+    );
+    return this.send({
+      to: data.toEmail,
+      to_role: 'marketing',
+      subject: `Newsletter signup: ${data.subscriberEmail}`,
+      html,
+      trigger_event: 'contact_newsletter_request',
+    });
+  }
+
+  async sendNewsletterConfirmation(subscriberEmail: string): Promise<{ ok: boolean; error: string | null }> {
+    const html = this.renderEmail(
+      'contact-newsletter-customer-confirm',
+      {
+        subscriber_email: this.escapeHtml(subscriberEmail),
+      },
+      {
+        email_title: 'Subscription request received',
+        preheader: 'We will add you to our list if approved.',
+        header_border_color: '#8b5cf6',
+      },
+    );
+    return this.send({
+      to: subscriberEmail,
+      to_role: 'customer',
+      subject: `Newsletter — thank you — ${this.brandDisplay()}`,
+      html,
+      trigger_event: 'contact_newsletter_customer_confirm',
     });
   }
 
