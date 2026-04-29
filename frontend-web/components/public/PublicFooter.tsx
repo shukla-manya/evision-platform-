@@ -144,35 +144,20 @@ export function PublicFooter() {
                 </li>
               </ul>
             )
-          ) : null}
-
-          {!loggedIn ? (
-            <>
-              <p className="font-semibold text-white mb-2 text-sm">Shop admin</p>
-              <ul className="space-y-2 text-white/80">
-                <li>
-                  <a
-                    href={publicAdminSignInUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-white transition-colors font-medium"
-                  >
-                    Admin sign in
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={publicAdminRegisterUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-white transition-colors font-medium"
-                  >
-                    Register your shop
-                  </a>
-                </li>
-              </ul>
-            </>
-          ) : null}
+          ) : (
+            <ul className="space-y-2 text-white/80">
+              <li>
+                <Link href={publicLoginPath} className="hover:text-white transition-colors font-medium">
+                  Sign in
+                </Link>
+              </li>
+              <li>
+                <Link href="/register" className="hover:text-white transition-colors font-medium">
+                  Create account
+                </Link>
+              </li>
+            </ul>
+          )}
         </div>
 
         <div>
