@@ -1,23 +1,21 @@
 /**
- * Local E2E: Dynalite + Nest + supertest.
+ * Local E2E: in-memory MongoDB + Nest + supertest.
  * @see docs/qa/LOCAL-E2E.md
  */
 import { createHmac } from 'crypto';
 import * as http from 'http';
 import * as net from 'net';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { MongoClient } from 'mongodb';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ensureEvisionDynamoTables } from '../../src/seeds/dynamo-tables.setup';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const dynalite = require('dynalite') as (o?: Record<string, unknown>) => net.Server;
+import { createE2eDocClient } from './mongo-e2e-doc-client';
 
 function razorpayClientSignature(orderId: string, paymentId: string, secret: string): string {
   return createHmac('sha256', secret).update(`${orderId}|${paymentId}`).digest('hex');
@@ -63,8 +61,9 @@ async function startPdfHttpServer(): Promise<{ baseUrl: string; close: () => Pro
 describe('E2E flows (local)', () => {
   jest.setTimeout(600000);
 
-  let dynServer: net.Server;
-  let docClient: DynamoDBDocumentClient;
+  let mongod: MongoMemoryServer;
+  let mongoClient: MongoClient;
+  let docClient: ReturnType<typeof createE2eDocClient>;
   let app: INestApplication;
   let moduleRef: TestingModule;
   let jwt: JwtService;
