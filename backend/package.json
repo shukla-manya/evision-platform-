@@ -19,9 +19,7 @@
     "test:e2e:http": "NODE_NO_WARNINGS=1 npx ts-node --transpile-only -r tsconfig-paths/register test/e2e/http-e2e-runner.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.540.0",
     "@aws-sdk/client-s3": "^3.540.0",
-    "@aws-sdk/lib-dynamodb": "^3.540.0",
     "@aws-sdk/s3-request-presigner": "^3.540.0",
     "@nestjs/common": "^10.3.0",
     "@nestjs/config": "^3.2.0",
@@ -45,6 +43,7 @@
     "pdfkit": "^0.18.0",
     "razorpay": "^2.9.6",
     "reflect-metadata": "^0.2.0",
+    "mongodb": "^6.12.0",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3",
     "twilio": "^5.0.0",
@@ -67,8 +66,9 @@
     "@types/pdfkit": "^0.17.6",
     "@types/supertest": "^6.0.2",
     "@types/uuid": "^9.0.8",
-    "dynalite": "^4.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.540.0",
     "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.4",
     "supertest": "^7.0.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
