@@ -90,19 +90,13 @@ export type CartResponse = {
 };
 
 export type CheckoutResponse = {
-  razorpay_order_id: string;
+  payment_provider: 'payu';
+  action: string;
+  method: string;
+  fields: Record<string, string>;
   amount: number;
-  amount_paise: number;
   currency: string;
-  key_id: string;
-};
-
-export type CheckoutConfirmRequest = {
-  status: 'success' | 'failure';
-  razorpay_order_id: string;
-  razorpay_payment_id?: string;
-  razorpay_signature?: string;
-  failure_reason?: string;
+  txnid: string;
 };
 
 export type ServiceBooking = {
@@ -197,8 +191,8 @@ export const cartApi = {
 };
 
 export const checkoutApi = {
-  create: () => api.post<CheckoutResponse>('/checkout'),
-  confirm: (payload: CheckoutConfirmRequest) => api.post('/checkout/confirm', payload),
+  create: (body?: { delivery_address_index?: number }) =>
+    api.post<CheckoutResponse>('/checkout', body ?? {}),
 };
 
 export const ordersApi = {
