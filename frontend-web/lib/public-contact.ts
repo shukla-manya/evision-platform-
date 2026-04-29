@@ -20,9 +20,5 @@ export const publicCompanyLegalName = 'E vision Pvt. Ltd.';
 export const publicRegisteredAddress =
   'E-Vision India, 9/205, Main Market, Near PNB, Old Faridabad-121002';
 
-/** Shown on Contact and aligned footers (keep in sync with mobile `publicMarketing.ts`). */
-export const publicBrandTagline =
-  'EVISION is a surveillance solutions brand delivering high-performance CCTV systems and advanced network infrastructure, including PoE and AI-based technologies for reliable security across homes, businesses, and large-scale projects.';
-
 export const publicCopyrightNotice =
   'Copyright © 2026 Evision Powered by Cybrical Tech LLP.';

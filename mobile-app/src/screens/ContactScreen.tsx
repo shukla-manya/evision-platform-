@@ -167,17 +167,8 @@ export function ContactScreen() {
 
         <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Quick Links</Text>
         {contactPageQuickLinks.map(({ path, label }) => (
-          <Pressable
-            key={path + label}
-            onPress={() => {
-              if (path === '/contact') {
-                return;
-              }
-              void Linking.openURL(publicWebUrl(path));
-            }}
-            disabled={path === '/contact'}
-          >
-            <Text style={[styles.quickLink, path === '/contact' && styles.quickLinkCurrent]}>{label}</Text>
+          <Pressable key={path + label} onPress={() => void Linking.openURL(publicWebUrl(path))}>
+            <Text style={styles.quickLink}>{label}</Text>
           </Pressable>
         ))}
 
@@ -249,6 +240,5 @@ const styles = StyleSheet.create({
   btnSecondaryText: { color: colors.brandPrimary, fontSize: 15, fontWeight: '700' },
   hint: { fontSize: 12, color: colors.textSecondary, marginTop: 8 },
   quickLink: { fontSize: 14, color: colors.brandPrimary, fontWeight: '600', paddingVertical: 8 },
-  quickLinkCurrent: { color: colors.textSecondary, fontWeight: '500' },
   copyright: { fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
 });

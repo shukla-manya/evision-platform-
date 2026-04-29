@@ -4,8 +4,8 @@ import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { Headphones, Mail, MapPin, Truck } from 'lucide-react';
 import { contactPageQuickLinks } from '@/lib/contact-quick-links';
+import { aboutBrandSummary } from '@/lib/about-company-content';
 import {
-  publicBrandTagline,
   publicCopyrightNotice,
   publicInfoEmail,
   publicMarketingEmail,
@@ -60,14 +60,12 @@ export function ContactPageContent() {
 
   return (
     <>
-      <div className="sr-only">
-        <a href="#site-navigation" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-ev-text focus:shadow-lg">
-          Skip to navigation
-        </a>
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-16 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-ev-text focus:shadow-lg">
-          Skip to main content
-        </a>
-      </div>
+      <a href="#site-navigation" className="ev-skip-link--nav">
+        Skip to navigation
+      </a>
+      <a href="#main-content" className="ev-skip-link">
+        Skip to main content
+      </a>
 
       <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-2">Get in Touch</h1>
@@ -233,7 +231,7 @@ export function ContactPageContent() {
         </div>
 
         <div className="border-t border-ev-border pt-12 space-y-10">
-          <p className="text-ev-muted text-sm leading-relaxed max-w-4xl">{publicBrandTagline}</p>
+          <p className="text-ev-muted text-sm leading-relaxed max-w-4xl">{aboutBrandSummary}</p>
 
           <div>
             <h2 className="text-lg font-bold text-ev-text mb-4">Quick Links</h2>
