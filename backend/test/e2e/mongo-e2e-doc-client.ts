@@ -23,10 +23,12 @@ export async function evisionScan(
   return { Items };
 }
 
+type E2eDocCommand = { input: PutCommandInput & ScanCommandInput };
+
 /** Minimal DynamoDB document client used by HTTP E2E fixtures (Put + Scan only). */
 export function createE2eDocClient(db: Db) {
   return {
-    send: async (cmd: PutCommand | ScanCommand): Promise<{ Items?: Record<string, unknown>[] } | Record<string, never>> => {
+    send: async (cmd: E2eDocCommand): Promise<{ Items?: Record<string, unknown>[] } | Record<string, never>> => {
       const input = cmd.input as PutCommandInput & ScanCommandInput;
       if (input.Item != null && typeof input.Item === 'object') {
         await evisionPut(db, String(input.TableName), input.Item as Record<string, unknown>);
