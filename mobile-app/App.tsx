@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -77,8 +78,20 @@ import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 import { EvisionLogo } from './src/components/EvisionLogo';
 import { screenGutter } from './src/theme/layout';
 import { publicWebUrl } from './src/config/publicWeb';
-import { publicMarketingHomeTagline, publicSupportPhoneDisplay, publicSupportTelHref } from './src/config/publicMarketing';
+import {
+  aboutBrandSummary,
+  publicMarketingEmail,
+  publicMarketingHomeTagline,
+  publicRegisteredAddress,
+  publicSalesPhoneDisplay,
+  publicSalesTelHref,
+  publicShopBrandMark,
+  publicSupportEmail,
+  publicSupportPhoneDisplay,
+  publicSupportTelHref,
+} from './src/config/publicMarketing';
 import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
+import { siteQuickLinks } from './src/lib/site-quick-links';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
@@ -147,7 +160,21 @@ type AppUser = {
 };
 
 function formatINR(amount: number) {
-  return `Rs. ${Number(amount || 0).toFixed(2)}`;
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(
+    Number(amount || 0),
+  );
+}
+
+type CatalogueSortKey = 'relevance' | 'price_asc' | 'price_desc' | 'newest' | 'rating';
+
+function priceValForRole(p: Product, role?: string) {
+  const isDealer = role === 'dealer';
+  const v = isDealer ? p.price_dealer ?? p.price_customer : p.price_customer ?? p.price_dealer;
+  return Number(v ?? 0);
+}
+
+function isHotProduct(p: Product): boolean {
+  return Number(p.rating_avg || 0) >= 4.6;
 }
 
 function getProductPriceForRole(product: Product, role?: string) {
