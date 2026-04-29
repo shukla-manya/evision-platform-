@@ -237,6 +237,10 @@ function ShopListingInner() {
     [products, safePage, pageSize],
   );
 
+  useEffect(() => {
+    setPage((p) => Math.min(p, Math.max(1, Math.ceil(totalFiltered / pageSize) || 1)));
+  }, [totalFiltered, pageSize]);
+
   const appliedMin = minPrice ? Number(minPrice) : cataloguePriceExtent.min;
   const appliedMax = maxPrice ? Number(maxPrice) : cataloguePriceExtent.max;
   const priceBandLabel =
