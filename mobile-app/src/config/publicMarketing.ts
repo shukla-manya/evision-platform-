@@ -1,9 +1,9 @@
 /** Customer-facing lines (align with web `lib/public-contact` defaults). */
 export const publicSupportPhoneDisplay =
-  process.env.EXPO_PUBLIC_SUPPORT_PHONE?.trim() || '+91 93191 83121';
+  process.env.EXPO_PUBLIC_SUPPORT_PHONE?.trim() || '+91-9319183121';
 
 export const publicSalesPhoneDisplay =
-  process.env.EXPO_PUBLIC_SALES_PHONE?.trim() || '+91 98112 50806';
+  process.env.EXPO_PUBLIC_SALES_PHONE?.trim() || '+91-9811250806';
 
 export const publicMarketingEmail =
   process.env.EXPO_PUBLIC_MARKETING_EMAIL?.trim() || 'marketing@evisionindia.com';
@@ -11,8 +11,14 @@ export const publicMarketingEmail =
 export const publicSupportEmail =
   process.env.EXPO_PUBLIC_SUPPORT_EMAIL?.trim() || 'support@evisionindia.com';
 
+export const publicInfoEmail =
+  process.env.EXPO_PUBLIC_INFO_EMAIL?.trim() || 'info@evisionindia.com';
+
 export const publicRegisteredAddress =
-  'E-Vision India, 9/205, Main Market, Near PNB, Old Faridabad — 121002';
+  'E-Vision India, 9/205, Main Market, Near PNB, Old Faridabad-121002';
+
+export const publicCopyrightNotice =
+  'Copyright © 2026 Evision Powered by Cybrical Tech LLP.';
 
 /** Lettermark above the in-app catalogue (matches web `NEXT_PUBLIC_SHOP_BRAND_MARK`). */
 export const publicShopBrandMark =
