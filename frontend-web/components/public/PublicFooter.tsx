@@ -6,6 +6,17 @@ import { getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
 import { EvisionLogo } from '@/components/brand/EvisionLogo';
 import { publicLoginPath } from '@/lib/public-links';
+import {
+  formatIndianPhoneDisplay,
+  publicMarketingEmail,
+  publicOfficeGoogleMapsOpenUrl,
+  publicOfficeMapEmbedUrl,
+  publicRegisteredAddress,
+  publicSalesPhone,
+  publicSupportEmail,
+  publicSupportPhone,
+  publicTelHref,
+} from '@/lib/public-contact';
 
 const year = 2026;
 
