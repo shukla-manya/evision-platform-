@@ -451,16 +451,12 @@ export default function HomePage() {
 
         {/* Partner strip + brand line */}
         <section className="ev-container py-10 sm:py-14 border-t border-ev-border">
-          <p className="text-center text-ev-muted text-xs uppercase tracking-widest mb-6">Trusted by teams across India</p>
-          <div className="flex flex-wrap justify-center gap-6 sm:gap-10 opacity-50 grayscale" aria-label="Partner logos">
-            {['client-3', 'client-5', 'client-6', 'client-7', 'client-9', 'client-10', 'client-11'].map((id) => (
-              <div
-                key={id}
-                className="h-12 w-28 rounded-lg bg-ev-border/80 border border-ev-border flex items-center justify-center text-[10px] font-mono text-ev-muted"
-              >
-                {id}
-              </div>
-            ))}
+          <p className="text-center text-ev-muted text-xs uppercase tracking-widest mb-2">Trusted by teams across India</p>
+          <p className="text-center text-ev-subtle text-xs mb-8 max-w-2xl mx-auto">
+            What buyers and integrators say — scrolls automatically; hover to pause.
+          </p>
+          <div className="max-w-7xl mx-auto" role="region" aria-label="Customer testimonials">
+            <TestimonialsMarquee />
           </div>
           <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">{aboutBrandSummary}</p>
           <div className="mt-8 flex flex-col sm:flex-row flex-wrap justify-center gap-4 text-sm text-ev-muted text-center">

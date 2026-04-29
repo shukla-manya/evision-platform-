@@ -19,14 +19,13 @@ import {
   premierServicesTitle,
 } from '@/lib/about-company-content';
 import { siteQuickLinks } from '@/lib/site-quick-links';
+import { TestimonialsMarquee } from '@/components/public/TestimonialsMarquee';
 
 export const metadata: Metadata = {
   title: `About us — ${publicBrandName}`,
   description:
     'E-Vision India — electronic security and safety since 2000. CCTV, access control, smart home, consulting, and ISO-minded manufacturing.',
 };
-
-const clientIds = ['client-3', 'client-5', 'client-6', 'client-7', 'client-9', 'client-10', 'client-11'];
 
 const serviceIcons = [LayoutGrid, Home, Shield, Video] as const;
 
