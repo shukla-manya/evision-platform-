@@ -66,7 +66,6 @@ import {
 } from './src/services/payu';
 import { TrackingScreen } from './src/screens/TrackingScreen';
 import { ElectricianFlow } from './src/electrician/ElectricianFlow';
-import { AdminFlow } from './src/admin/AdminFlow';
 import { colors } from './src/theme/colors';
 import { statusColor } from './src/theme/status';
 import type { ServiceFlowStackParams } from './src/screens/ServiceRequestScreen';
@@ -256,6 +255,22 @@ function SuperadminHubScreen({ onLogout }: { onLogout: () => void }) {
   );
 }
 
+function ShopPartnerPortalScreen({ onLogout }: { onLogout: () => void }) {
+  return (
+    <SafeAreaView style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.listPad}>
+        <Text style={styles.title}>Partner account</Text>
+        <Text style={[styles.subtitle, { textAlign: 'left', marginTop: 8 }]}>
+          The public catalogue and orders are managed on the platform. Use the website for storefront purchases; our team handles listing and fulfilment coordination.
+        </Text>
+        <Pressable style={[styles.buttonSecondary, { marginTop: 24 }]} onPress={() => void onLogout()}>
+          <Text style={styles.buttonSecondaryText}>Sign out</Text>
+        </Pressable>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
 function AuthWelcomeScreen({ navigation }: { navigation: any }) {
   return (
     <SafeAreaView style={styles.screen}>
@@ -281,8 +296,8 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
           <View style={styles.splashOrLine} />
         </View>
         <Pressable style={styles.splashSecondaryBtn} onPress={() => navigation.navigate('AdminSignIn')}>
-          <Text style={styles.splashSecondaryBtnText}>Admin? Sign in here</Text>
-          <Text style={styles.splashCtaSubMuted}>For shop owners</Text>
+          <Text style={styles.splashSecondaryBtnText}>Platform admin? Sign in here</Text>
+          <Text style={styles.splashCtaSubMuted}>Catalogue & approvals (web queues linked below)</Text>
         </Pressable>
         <Pressable style={[styles.buttonSecondary, { marginTop: 20 }]} onPress={() => navigation.navigate('Register', {})}>
           <Text style={styles.buttonSecondaryText}>Create an account</Text>
