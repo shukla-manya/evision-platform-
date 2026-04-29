@@ -322,7 +322,7 @@ export class CheckoutService {
     gatewayTxnId: string,
     gatewayPaymentId: string,
     deliveryAddressIndex: number,
-  ): Promise<{ order_group_id: string; duplicate?: boolean }> {
+  ): Promise<{ order_group_id: string; duplicate?: boolean; shipments?: number }> {
     const existing = await this.findOrderGroupByGatewayTxnId(gatewayTxnId);
     if (existing) {
       if (String(existing.user_id || '') !== userId) {
