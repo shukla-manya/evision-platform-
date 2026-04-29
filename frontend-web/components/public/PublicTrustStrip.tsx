@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { Truck } from 'lucide-react';
 import { publicSupportPhone } from '@/lib/public-contact';
 
@@ -9,9 +8,9 @@ export function PublicTrustStrip() {
       <div className="ev-container py-3 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 sm:gap-10 text-sm text-ev-text">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-ev-primary">24/7 Support</span>
-          <Link href={tel} className="text-ev-muted hover:text-ev-primary">
+          <a href={tel} className="text-ev-muted hover:text-ev-primary">
             {publicSupportPhone}
-          </Link>
+          </a>
         </div>
         <div className="hidden sm:block h-4 w-px bg-ev-border" aria-hidden />
         <div className="flex items-center gap-2 text-ev-muted">
