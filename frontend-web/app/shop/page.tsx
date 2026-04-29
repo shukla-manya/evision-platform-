@@ -290,40 +290,68 @@ function ShopListingInner() {
               </p>
               <div>
                 <label className="ev-label text-xs">Category</label>
-                <select
-                  className="ev-input py-2 text-sm w-full mt-1"
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                >
-                  <option value="">All</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.parent_id ? `↳ ${c.name}` : c.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="mt-2 max-h-64 overflow-y-auto rounded-xl border border-ev-border bg-ev-surface2/50 p-1.5 space-y-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setCategoryId('')}
+                    className={`w-full text-left text-sm py-2.5 px-3 rounded-lg flex items-center justify-between gap-2 transition-colors ${
+                      !categoryId
+                        ? 'bg-ev-primary/12 text-ev-text font-semibold border border-ev-primary/30'
+                        : 'text-ev-muted hover:bg-ev-surface hover:text-ev-text border border-transparent'
+                    }`}
+                  >
+                    <span>All</span>
+                    <span className="text-ev-subtle text-xs tabular-nums">{rawProducts.length}</span>
+                  </button>
+                  {categories.map((c) => {
+                    const count = categoryCounts.get(c.id) ?? 0;
+                    const active = categoryId === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setCategoryId(c.id)}
+                        className={`w-full text-left text-sm py-2.5 px-3 rounded-lg flex items-center justify-between gap-2 transition-colors ${
+                          active
+                            ? 'bg-ev-primary/12 text-ev-text font-semibold border border-ev-primary/30'
+                            : 'text-ev-muted hover:bg-ev-surface hover:text-ev-text border border-transparent'
+                        }`}
+                      >
+                        <span className="truncate">{c.parent_id ? `↳ ${c.name}` : c.name}</span>
+                        <span className="text-ev-subtle text-xs shrink-0 tabular-nums">{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="ev-label text-xs">Min ₹</label>
-                  <input
-                    className="ev-input py-2 text-sm mt-1"
-                    inputMode="numeric"
-                    value={minPrice}
-                    onChange={(e) => setMinPrice(e.target.value.replace(/\D/g, ''))}
-                    placeholder="0"
-                  />
+              <div>
+                <p className="ev-label text-xs">Filter by price</p>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <div>
+                    <label className="ev-label text-[10px] text-ev-subtle">Min price</label>
+                    <input
+                      className="ev-input py-2 text-sm mt-0.5"
+                      inputMode="numeric"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value.replace(/\D/g, ''))}
+                      placeholder={cataloguePriceExtent.min > 0 ? String(cataloguePriceExtent.min) : '0'}
+                    />
+                  </div>
+                  <div>
+                    <label className="ev-label text-[10px] text-ev-subtle">Max price</label>
+                    <input
+                      className="ev-input py-2 text-sm mt-0.5"
+                      inputMode="numeric"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value.replace(/\D/g, ''))}
+                      placeholder={cataloguePriceExtent.max > 0 ? String(cataloguePriceExtent.max) : 'Any'}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="ev-label text-xs">Max ₹</label>
-                  <input
-                    className="ev-input py-2 text-sm mt-1"
-                    inputMode="numeric"
-                    value={maxPrice}
-                    onChange={(e) => setMaxPrice(e.target.value.replace(/\D/g, ''))}
-                    placeholder="Any"
-                  />
-                </div>
+                <p className="text-ev-subtle text-[11px] mt-2">{priceBandLabel}</p>
+                <button type="button" className="ev-btn-secondary w-full text-sm py-2 mt-2" onClick={() => void load()}>
+                  Filter
+                </button>
               </div>
               <div>
                 <label className="ev-label text-xs">Brand</label>
@@ -331,7 +359,7 @@ function ShopListingInner() {
                   className="ev-input py-2 text-sm mt-1"
                   value={brand}
                   onChange={(e) => setBrand(e.target.value)}
-                  placeholder="Canon, Sony…"
+                  placeholder="Brand or range…"
                 />
               </div>
               <div>
