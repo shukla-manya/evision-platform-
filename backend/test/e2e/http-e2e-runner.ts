@@ -1,9 +1,9 @@
 /**
- * Local HTTP E2E (Dynalite + Nest TestingModule + supertest).
+ * Local HTTP E2E (in-memory MongoDB + Nest TestingModule + supertest).
  * Run: `npm run test:e2e:http` (uses ts-node --transpile-only) or:
  * `npx ts-node --transpile-only -r tsconfig-paths/register test/e2e/http-e2e-runner.ts`
  *
- * AppModule is dynamic-import() after Dynalite/env are ready (avoids eager AWS graph load).
+ * AppModule is dynamic-import() after MongoDB/env are ready (avoids eager AWS graph load).
  * Jest suite: `npm run test:e2e` — see docs/qa/E2E-BUGS.md.
  */
 import { strict as assert } from 'node:assert';
@@ -11,18 +11,16 @@ import { createHmac } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import * as http from 'http';
 import * as net from 'net';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { ValidationPipe } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { MongoClient } from 'mongodb';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ensureEvisionDynamoTables } from '../../src/seeds/dynamo-tables.setup';
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const dynalite = require('dynalite') as (o?: Record<string, unknown>) => net.Server;
+import { createE2eDocClient } from './mongo-e2e-doc-client';
 
 function razorpayClientSignature(orderId: string, paymentId: string, secret: string): string {
   return createHmac('sha256', secret).update(`${orderId}|${paymentId}`).digest('hex');
