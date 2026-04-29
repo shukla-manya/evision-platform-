@@ -441,7 +441,7 @@ function AdminSignInScreen({
     }
     try {
       setLoading(true);
-      const { data } = await authApi.adminLogin(em, password);
+      const { data } = await authApi.superadminLogin(em, password);
       const payload = parseJwt(data.access_token);
       const userId = String(payload?.sub || '');
       const role = String(payload?.role || '');
@@ -466,9 +466,9 @@ function AdminSignInScreen({
     <SafeAreaView style={styles.screen}>
       <ScrollView contentContainerStyle={[styles.listPad, styles.adminSignInScroll]}>
         <View style={styles.centerBoxNoFlex}>
-          <Text style={styles.adminEmoji}>🏪</Text>
-          <Text style={styles.title}>Admin</Text>
-          <Text style={styles.subtitle}>Sign in to manage your shop on the go</Text>
+          <Text style={styles.adminEmoji}>🛡️</Text>
+          <Text style={styles.title}>Platform admin</Text>
+          <Text style={styles.subtitle}>Sign in with your superadmin email and password</Text>
         </View>
         <View style={styles.card}>
           <TextInput
@@ -493,17 +493,13 @@ function AdminSignInScreen({
           <Pressable style={styles.button} onPress={submit} disabled={loading}>
             <Text style={styles.buttonText}>{loading ? 'Please wait...' : 'Sign in'}</Text>
           </Pressable>
-          <Pressable
-            style={[styles.ctaOutline, { marginTop: 10 }]}
-            onPress={() => navigation.navigate('PasswordReset', { role: 'admin' })}
-          >
-            <Text style={styles.ctaOutlineText}>Forgot password? Phone OTP</Text>
-          </Pressable>
         </View>
         <View style={styles.captionBlock}>
-          <Text style={styles.captionNote}>New shop? Register in the app (Create account → Shop owner), then sign in here after approval.</Text>
+          <Text style={styles.captionNote}>
+            Partner (shop) registration: use Create account → Shop owner. Approved partners do not use this screen.
+          </Text>
           <Pressable style={[styles.buttonSecondary, { marginTop: 12 }]} onPress={() => navigation.navigate('Register', { initialRole: 'shop_owner' })}>
-            <Text style={styles.buttonSecondaryText}>Register as shop owner</Text>
+            <Text style={styles.buttonSecondaryText}>Register as shop partner</Text>
           </Pressable>
         </View>
         <SuperadminWebQueueLinks />
@@ -2542,17 +2538,7 @@ function AppShell() {
     ),
     [token, logout, fcmToken, user?.role],
   );
-  const adminFlow = useMemo(
-    () => (props: any) => (
-      <AdminFlow
-        onLogout={logout}
-        onOpenPasswordReset={(phone?: string) =>
-          props.navigation.navigate('PasswordReset', { role: 'admin', phone })
-        }
-      />
-    ),
-    [logout],
-  );
+  const shopPartnerFlow = useMemo(() => () => <ShopPartnerPortalScreen onLogout={logout} />, [logout]);
   const superadminHubScreen = useMemo(() => () => <SuperadminHubScreen onLogout={logout} />, [logout]);
   const superadminFlow = useMemo(
     () =>
@@ -2587,7 +2573,7 @@ function AppShell() {
             <RootStack.Screen name="Register" options={{ title: 'Register' }}>
               {(props) => <RegisterScreen {...props} onLoggedIn={handleLoggedIn} />}
             </RootStack.Screen>
-            <RootStack.Screen name="AdminSignIn" options={{ title: 'Admin' }}>
+            <RootStack.Screen name="AdminSignIn" options={{ title: 'Platform admin' }}>
               {(props) => <AdminSignInScreen {...props} onLoggedIn={handleLoggedIn} />}
             </RootStack.Screen>
             <RootStack.Screen name="ShopPending" options={{ title: 'Shop pending' }}>
@@ -2602,7 +2588,7 @@ function AppShell() {
                 user?.role === 'electrician' || user?.role === 'electrician_pending' || user?.role === 'electrician_rejected'
                   ? electricianFlow
                   : user?.role === 'admin'
-                  ? adminFlow
+                  ? shopPartnerFlow
                   : user?.role === 'superadmin'
                   ? superadminFlow
                   : mainTabs
