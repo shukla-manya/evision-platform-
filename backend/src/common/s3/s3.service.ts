@@ -33,8 +33,8 @@ export class S3Service {
     const isLocal = Boolean(this.s3Endpoint);
     const accessKeyId = config.get<string>('AWS_ACCESS_KEY_ID');
     const secretAccessKey = config.get<string>('AWS_SECRET_ACCESS_KEY');
-    /** Same dummy pair as DynamoDB Local / e2e — must not be sent to real AWS S3. */
-    const isDynamoLocalStyleCreds =
+    /** Same dummy pair used in local e2e — must not be sent to real AWS S3. */
+    const isPlaceholderLocalCreds =
       accessKeyId === 'local' && secretAccessKey === 'local';
     const credentials =
       isLocal
