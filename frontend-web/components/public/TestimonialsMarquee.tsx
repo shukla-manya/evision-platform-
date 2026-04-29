@@ -4,17 +4,7 @@ import { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 import { marqueeTestimonials } from '@/lib/public-testimonials';
 
-function TestimonialCard({
-  quote,
-  name,
-  role,
-  suffix,
-}: {
-  quote: string;
-  name: string;
-  role: string;
-  suffix: string;
-}) {
+function TestimonialCard({ quote, name, role }: { quote: string; name: string; role: string }) {
   return (
     <figure
       className="ev-card shrink-0 w-[min(100vw-2rem,320px)] sm:w-[300px] border-ev-border p-5 shadow-ev-sm"
@@ -49,7 +39,7 @@ export function TestimonialsMarquee() {
     return (
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
         {marqueeTestimonials.map((t) => (
-          <TestimonialCard key={t.id} quote={t.quote} name={t.name} role={t.role} suffix={t.id} />
+          <TestimonialCard key={t.id} quote={t.quote} name={t.name} role={t.role} />
         ))}
       </div>
     );
