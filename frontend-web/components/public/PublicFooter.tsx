@@ -201,7 +201,7 @@ export function PublicFooter() {
 
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-          <p className="font-semibold text-white mb-4 text-sm">Visit &amp; contact</p>
+          <p className="font-semibold text-white mb-4 text-sm">Visit & contact</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
             <div className="text-sm text-white/80 space-y-4">
               <p className="text-white/60">
