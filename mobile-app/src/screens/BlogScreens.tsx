@@ -79,7 +79,6 @@ export function BlogListScreen({ navigation }: NativeStackScreenProps<RootBlogPa
           </Pressable>
         </View>
 
-        <FooterBand />
       </ScrollView>
     </SafeAreaView>
   );
@@ -133,43 +132,8 @@ export function BlogPostScreen({ route, navigation }: NativeStackScreenProps<Roo
             {para}
           </Text>
         ))}
-        <FooterBand />
       </ScrollView>
     </SafeAreaView>
-  );
-}
-
-function FooterBand() {
-  return (
-    <View style={styles.footerBand}>
-      <Text style={styles.footerBlurb}>{aboutBrandSummary}</Text>
-      <Text style={styles.sideHeading}>Quick links</Text>
-      {footerQuickNavLinks.map((l) => (
-        <Pressable key={l.path + l.label} onPress={() => void Linking.openURL(publicWebUrl(l.path))}>
-          <Text style={styles.footerLink}>{l.label}</Text>
-        </Pressable>
-      ))}
-      <Text style={[styles.sideHeading, { marginTop: 16 }]}>Policies</Text>
-      {footerPolicyLinks.map((l) => (
-        <Pressable key={l.path + l.label} onPress={() => void Linking.openURL(publicWebUrl(l.path))}>
-          <Text style={styles.footerLink}>{l.label}</Text>
-        </Pressable>
-      ))}
-      <Text style={[styles.sideHeading, { marginTop: 16 }]}>Contact information</Text>
-      <Pressable onPress={() => void Linking.openURL(publicSalesTelHref())}>
-        <Text style={styles.footerLink}>{publicSalesPhoneDisplay}</Text>
-      </Pressable>
-      <Pressable onPress={() => void Linking.openURL(publicSupportTelHref())}>
-        <Text style={styles.footerLink}>{publicSupportPhoneDisplay}</Text>
-      </Pressable>
-      <Pressable onPress={() => void Linking.openURL(`mailto:${publicMarketingEmail}`)}>
-        <Text style={styles.footerLink}>{publicMarketingEmail}</Text>
-      </Pressable>
-      <Pressable onPress={() => void Linking.openURL(`mailto:${publicSupportEmail}`)}>
-        <Text style={styles.footerLink}>{publicSupportEmail}</Text>
-      </Pressable>
-      <Text style={styles.address}>{publicRegisteredAddress}</Text>
-    </View>
   );
 }
 

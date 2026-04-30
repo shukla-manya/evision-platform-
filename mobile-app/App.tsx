@@ -81,19 +81,12 @@ import { EvisionLogo } from './src/components/EvisionLogo';
 import { screenGutter } from './src/theme/layout';
 import { publicWebUrl } from './src/config/publicWeb';
 import {
-  aboutBrandSummary,
-  publicMarketingEmail,
   publicMarketingHomeTagline,
-  publicRegisteredAddress,
-  publicSalesPhoneDisplay,
-  publicSalesTelHref,
   publicShopBrandMark,
-  publicSupportEmail,
   publicSupportPhoneDisplay,
   publicSupportTelHref,
 } from './src/config/publicMarketing';
 import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
-import { footerPolicyLinks, footerQuickNavLinks } from './src/lib/site-quick-links';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
@@ -2945,15 +2938,4 @@ const styles = StyleSheet.create({
   pageNumBtnText: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
   pageNumBtnTextActive: { color: colors.brandPrimary },
   pageOfText: { fontSize: 13, color: colors.muted, paddingHorizontal: 8 },
-  shopFooterBand: {
-    marginTop: 8,
-    paddingTop: 20,
-    paddingBottom: 24,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  shopFooterBlurb: { fontSize: 13, color: colors.textSecondary, lineHeight: 21, textAlign: 'center' },
-  shopFooterHeading: { fontSize: 12, fontWeight: '800', color: colors.textPrimary, marginTop: 14, letterSpacing: 0.6, textTransform: 'uppercase' },
-  shopFooterLink: { fontSize: 14, color: colors.brandPrimary, marginTop: 8, fontWeight: '600' },
-  shopFooterAddress: { fontSize: 13, color: colors.textSecondary, marginTop: 12, lineHeight: 20 },
 });

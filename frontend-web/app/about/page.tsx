@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Home, LayoutGrid, Shield, Truck, Video } from 'lucide-react';
 import { PublicShell } from '@/components/public/PublicShell';
 import { publicBrandName } from '@/lib/public-brand';
