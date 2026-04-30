@@ -2,20 +2,9 @@ import { useLayoutEffect } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  aboutBrandSummary,
-  publicMarketingEmail,
-  publicRegisteredAddress,
-  publicSalesPhoneDisplay,
-  publicSalesTelHref,
-  publicShopBrandMark,
-  publicSupportEmail,
-  publicSupportPhoneDisplay,
-  publicSupportTelHref,
-} from '../config/publicMarketing';
+import { publicShopBrandMark } from '../config/publicMarketing';
 import { publicWebUrl } from '../config/publicWeb';
 import { formatBlogDateLong, formatBlogDateShort, getBlogPostBySlug, getBlogPostsSorted } from '../lib/blog-posts';
-import { footerPolicyLinks, footerQuickNavLinks } from '../lib/site-quick-links';
 import { colors } from '../theme/colors';
 import { screenGutter } from '../theme/layout';
 
@@ -210,8 +199,4 @@ const styles = StyleSheet.create({
   promoBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
   articleTitle: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginTop: 12, lineHeight: 28 },
   bodyPara: { fontSize: 15, color: colors.textSecondary, marginTop: 14, lineHeight: 24 },
-  footerBand: { marginTop: 28, paddingTop: 20, borderTopWidth: 1, borderTopColor: colors.border },
-  footerBlurb: { fontSize: 13, color: colors.textSecondary, lineHeight: 21, textAlign: 'center' },
-  footerLink: { fontSize: 14, fontWeight: '600', color: colors.brandPrimary, marginTop: 8 },
-  address: { fontSize: 13, color: colors.textSecondary, marginTop: 12, lineHeight: 20 },
 });

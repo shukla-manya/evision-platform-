@@ -11,19 +11,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { footerPolicyLinks, footerQuickNavLinks } from '../lib/site-quick-links';
-import {
-  aboutBrandSummary,
-  publicCopyrightNotice,
-  publicInfoEmail,
-  publicMarketingEmail,
-  publicRegisteredAddress,
-  publicSalesPhoneDisplay,
-  publicSalesTelHref,
-  publicSupportEmail,
-  publicSupportPhoneDisplay,
-  publicSupportTelHref,
-} from '../config/publicMarketing';
 import { publicWebUrl } from '../config/publicWeb';
 import { publicContactApi, type ContactMessageResponse } from '../services/api';
 import { colors } from '../theme/colors';
@@ -106,45 +93,10 @@ export function ContactScreen() {
         <Text style={styles.lead}>
           Submit the form — our server emails the team and sends you a confirmation with what you entered.
         </Text>
+        <Pressable onPress={() => void Linking.openURL(publicWebUrl('/#site-footer-contact'))} style={{ marginBottom: 16 }}>
+          <Text style={styles.quickLink}>Policies, quick links & contact — open website footer</Text>
+        </Pressable>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>24/7 Support</Text>
-          <Pressable onPress={() => void Linking.openURL(publicSupportTelHref())}>
-            <Text style={styles.link}>{publicSupportPhoneDisplay}</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Free Shipping</Text>
-          <Text style={styles.muted}>All over India</Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Email Us</Text>
-          <Pressable onPress={() => void Linking.openURL(`mailto:${publicInfoEmail}`)}>
-            <Text style={styles.link}>{publicInfoEmail}</Text>
-          </Pressable>
-          <Pressable onPress={() => void Linking.openURL(`mailto:${publicSupportEmail}`)}>
-            <Text style={[styles.link, { marginTop: 6 }]}>{publicSupportEmail}</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Contact Number</Text>
-          <Pressable onPress={() => void Linking.openURL(publicSalesTelHref())}>
-            <Text style={styles.link}>{publicSalesPhoneDisplay}</Text>
-          </Pressable>
-          <Pressable onPress={() => void Linking.openURL(publicSupportTelHref())}>
-            <Text style={[styles.link, { marginTop: 6 }]}>{publicSupportPhoneDisplay}</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Address</Text>
-          <Text style={styles.muted}>{publicRegisteredAddress}</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>Get in Touch</Text>
         {formSuccess ? (
           <View style={[styles.card, styles.successCard]}>
             <Text style={styles.successTitle}>Thank you, {formSuccess.greeting_name}!</Text>
@@ -251,38 +203,6 @@ export function ContactScreen() {
             </>
           )}
         </View>
-
-        <Text style={[styles.muted, { marginTop: 20, lineHeight: 22 }]}>{aboutBrandSummary}</Text>
-
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Quick links</Text>
-        {footerQuickNavLinks.map(({ path, label }) => (
-          <Pressable key={path + label} onPress={() => void Linking.openURL(publicWebUrl(path))}>
-            <Text style={styles.quickLink}>{label}</Text>
-          </Pressable>
-        ))}
-        <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Policies</Text>
-        {footerPolicyLinks.map(({ path, label }) => (
-          <Pressable key={path + label} onPress={() => void Linking.openURL(publicWebUrl(path))}>
-            <Text style={styles.quickLink}>{label}</Text>
-          </Pressable>
-        ))}
-
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Contact Information</Text>
-        <Pressable onPress={() => void Linking.openURL(publicSalesTelHref())}>
-          <Text style={styles.link}>{publicSalesPhoneDisplay}</Text>
-        </Pressable>
-        <Pressable onPress={() => void Linking.openURL(publicSupportTelHref())}>
-          <Text style={[styles.link, { marginTop: 6 }]}>{publicSupportPhoneDisplay}</Text>
-        </Pressable>
-        <Pressable onPress={() => void Linking.openURL(`mailto:${publicMarketingEmail}`)}>
-          <Text style={[styles.link, { marginTop: 6 }]}>{publicMarketingEmail}</Text>
-        </Pressable>
-        <Pressable onPress={() => void Linking.openURL(`mailto:${publicSupportEmail}`)}>
-          <Text style={[styles.link, { marginTop: 6 }]}>{publicSupportEmail}</Text>
-        </Pressable>
-        <Text style={[styles.muted, { marginTop: 10 }]}>{publicRegisteredAddress}</Text>
-
-        <Text style={[styles.copyright, { marginTop: 28 }]}>{publicCopyrightNotice}</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -316,9 +236,7 @@ const styles = StyleSheet.create({
   summaryLine: { fontSize: 14, color: colors.textPrimary, marginBottom: 6 },
   summaryLabel: { fontWeight: '700', color: colors.textSecondary },
   summaryMessage: { fontSize: 14, color: colors.textPrimary, marginTop: 4, lineHeight: 22 },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, marginBottom: 6 },
   muted: { fontSize: 14, color: colors.textSecondary, lineHeight: 22 },
-  link: { fontSize: 15, color: colors.brandPrimary, fontWeight: '600' },
   label: { fontSize: 13, fontWeight: '600', color: colors.textPrimary, marginBottom: 4 },
   input: {
     borderWidth: 1,
@@ -355,5 +273,4 @@ const styles = StyleSheet.create({
   btnDisabled: { opacity: 0.55 },
   hint: { fontSize: 12, color: colors.textSecondary, marginTop: 8 },
   quickLink: { fontSize: 14, color: colors.brandPrimary, fontWeight: '600', paddingVertical: 8 },
-  copyright: { fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
 });
