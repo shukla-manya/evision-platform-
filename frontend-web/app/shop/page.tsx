@@ -350,82 +350,60 @@ function ShopListingInner() {
                 </button>
               </div>
               <div>
-                <label className="ev-label text-xs">Brand</label>
-                <input
-                  className="ev-input py-2 text-sm mt-1"
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  placeholder="Brand or range…"
-                />
-              </div>
-              <div>
-                <label className="ev-label text-xs" id="shop-filter-label">
-                  Shop / store name
-                </label>
-                <button
-                  type="button"
-                  id="shop-filter-toggle"
-                  aria-expanded={shopsPanelOpen}
-                  aria-controls="shop-filter-list"
-                  aria-labelledby="shop-filter-label shop-filter-toggle"
-                  onClick={() => setShopsPanelOpen((o) => !o)}
-                  className="ev-input py-2.5 text-sm w-full mt-1 flex items-center justify-between gap-2 text-left text-ev-text hover:border-ev-primary/40 transition-colors"
-                >
-                  <span className={shopFilter ? 'font-medium text-ev-text truncate' : 'text-ev-muted'}>
-                    {shopFilter || 'All shops'}
-                  </span>
-                  {shopsPanelOpen ? <ChevronUp size={18} className="text-ev-muted shrink-0" /> : <ChevronDown size={18} className="text-ev-muted shrink-0" />}
-                </button>
-                {shopsPanelOpen ? (
-                  <div
-                    id="shop-filter-list"
-                    role="listbox"
-                    className="mt-2 max-h-52 overflow-y-auto rounded-xl border border-ev-border bg-ev-surface2/60 p-2 space-y-1.5"
-                  >
+                <div className="flex items-center justify-between gap-2">
+                  <label className="ev-label text-xs mb-0" id="brand-filter-label">
+                    Brand
+                  </label>
+                  {brand.trim() ? (
                     <button
                       type="button"
-                      role="option"
-                      aria-selected={!shopFilter}
-                      onClick={() => {
-                        setShopFilter('');
-                        setShopsPanelOpen(false);
-                      }}
-                      className={`w-full text-left text-sm py-2.5 px-3 rounded-lg border transition-colors ${
-                        !shopFilter
-                          ? 'border-ev-primary bg-ev-primary/10 text-ev-text font-semibold'
-                          : 'border-transparent text-ev-muted hover:bg-ev-surface hover:text-ev-text'
-                      }`}
+                      className="text-[11px] font-semibold text-ev-primary hover:underline shrink-0"
+                      onClick={() => setBrand('')}
                     >
-                      All shops
+                      Clear
                     </button>
-                    {approvedShopDirectory.length === 0 ? (
-                      <p className="text-ev-subtle text-xs px-2 py-2">No approved shops in the directory yet.</p>
-                    ) : (
-                      approvedShopDirectory.map((row) => {
-                        const selected = shopFilter === row.shop_name;
-                        return (
-                          <button
-                            key={row.id}
-                            type="button"
-                            role="option"
-                            aria-selected={selected}
-                            onClick={() => {
-                              setShopFilter(row.shop_name);
-                              setShopsPanelOpen(false);
-                            }}
-                            className={`w-full text-left text-sm py-2.5 px-3 rounded-lg border transition-colors truncate ${
-                              selected
-                                ? 'border-ev-primary bg-ev-primary/10 text-ev-text font-semibold'
-                                : 'border-transparent text-ev-text hover:bg-ev-surface'
-                            }`}
-                          >
-                            {row.shop_name}
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
+                <div
+                  role="group"
+                  aria-labelledby="brand-filter-label"
+                  className="mt-2 max-h-52 overflow-y-auto rounded-xl border border-ev-border bg-ev-surface2/50 p-2 flex flex-wrap gap-1.5"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setBrand('')}
+                    className={`text-xs py-2 px-3 rounded-lg border transition-colors ${
+                      !brand.trim()
+                        ? 'border-ev-primary bg-ev-primary/10 text-ev-text font-semibold'
+                        : 'border-transparent bg-ev-surface text-ev-muted hover:text-ev-text'
+                    }`}
+                  >
+                    All brands
+                  </button>
+                  {brandOptions.length === 0 ? (
+                    <p className="text-ev-subtle text-xs w-full py-2 px-1">No brand labels on products in this view.</p>
+                  ) : (
+                    brandOptions.map((row) => {
+                      const active = brand.trim().toLowerCase() === row.name.toLowerCase();
+                      return (
+                        <button
+                          key={row.name}
+                          type="button"
+                          onClick={() => setBrand(row.name)}
+                          className={`text-xs py-2 px-3 rounded-lg border transition-colors max-w-full truncate ${
+                            active
+                              ? 'border-ev-primary bg-ev-primary/10 text-ev-text font-semibold'
+                              : 'border-transparent bg-ev-surface text-ev-muted hover:text-ev-text'
+                          }`}
+                          title={`${row.name} (${row.count})`}
+                        >
+                          {row.name}
+                          <span className="text-ev-subtle font-normal tabular-nums"> · {row.count}</span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
                 <label className="flex items-start gap-2.5 text-sm text-ev-text cursor-pointer mt-3">
                   <input
                     type="checkbox"
