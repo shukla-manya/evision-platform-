@@ -4,12 +4,14 @@ import {
   MinLength,
   IsNumber,
   Min,
+  Max,
   IsUUID,
   IsBoolean,
   IsOptional,
   IsArray,
   IsUrl,
   ValidateIf,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -99,4 +101,38 @@ export class UpdateProductDto {
   @ValidateIf((_, v) => v !== null && v !== undefined)
   @IsUrl()
   amazon_url?: string | null;
+
+  @ApiPropertyOptional({
+    description:
+      'Homepage showcase: `primary` = Advanced CCTV grid, `combos` = Security Camera Collection row. Send empty string to remove from homepage.',
+  })
+  @IsOptional()
+  @IsIn(['primary', 'combos', ''])
+  home_showcase_section?: '' | 'primary' | 'combos';
+
+  @ApiPropertyOptional({ description: 'Sort order within the section (lower first)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(9999)
+  home_showcase_order?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  home_showcase_hot?: boolean;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description: 'Homepage-only star display; set null to clear',
+  })
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @Max(5)
+  home_showcase_rating?: number | null;
 }

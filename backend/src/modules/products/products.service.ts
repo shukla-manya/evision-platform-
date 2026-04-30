@@ -150,7 +150,7 @@ export class ProductsService {
     const images = [...(dto.images || []), ...uploadedUrls];
     const id = uuidv4();
     const now = new Date().toISOString();
-    const item = {
+    const item: Record<string, unknown> = {
       id,
       admin_id: adminId,
       name: dto.name.trim(),
@@ -169,6 +169,14 @@ export class ProductsService {
       created_at: now,
       updated_at: now,
     };
+    if (dto.home_showcase_section === 'primary' || dto.home_showcase_section === 'combos') {
+      item.home_showcase_section = dto.home_showcase_section;
+      item.home_showcase_order = dto.home_showcase_order ?? 0;
+      item.home_showcase_hot = dto.home_showcase_hot === true;
+      if (dto.home_showcase_rating != null && !Number.isNaN(Number(dto.home_showcase_rating))) {
+        item.home_showcase_rating = Number(dto.home_showcase_rating);
+      }
+    }
 
     await this.dynamo.put(this.productsTable(), item);
     this.logger.log(`Product created: ${item.name} (${id}) by admin ${adminId}`);
@@ -197,9 +205,44 @@ export class ProductsService {
         : [];
 
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const removeAttrs: string[] = [];
     const assign = (k: string, v: unknown) => {
       if (v !== undefined) updates[k] = v;
     };
+
+    let clearingHomeShowcase = false;
+    if (dto.home_showcase_section !== undefined) {
+      if (dto.home_showcase_section === '') {
+        clearingHomeShowcase = true;
+        removeAttrs.push(
+          'home_showcase_section',
+          'home_showcase_order',
+          'home_showcase_hot',
+          'home_showcase_rating',
+        );
+      } else {
+        updates.home_showcase_section = dto.home_showcase_section;
+        if (dto.home_showcase_order !== undefined) {
+          updates.home_showcase_order = Number(dto.home_showcase_order);
+        } else {
+          const ex = Number((existing as { home_showcase_order?: unknown }).home_showcase_order);
+          updates.home_showcase_order = Number.isFinite(ex) ? ex : 0;
+        }
+      }
+    } else if (dto.home_showcase_order !== undefined) {
+      updates.home_showcase_order = Number(dto.home_showcase_order);
+    }
+
+    if (dto.home_showcase_hot !== undefined && !clearingHomeShowcase) {
+      updates.home_showcase_hot = dto.home_showcase_hot;
+    }
+    if (dto.home_showcase_rating !== undefined && !clearingHomeShowcase) {
+      if (dto.home_showcase_rating === null) {
+        removeAttrs.push('home_showcase_rating');
+      } else {
+        updates.home_showcase_rating = Number(dto.home_showcase_rating);
+      }
+    }
 
     assign('name', dto.name?.trim());
     assign('description', dto.description?.trim());
@@ -223,7 +266,12 @@ export class ProductsService {
       updates.images = [...(existing.images || []), ...uploadedUrls];
     }
 
-    const merged = await this.dynamo.update(this.productsTable(), { id: productId }, updates);
+    const merged = await this.dynamo.update(
+      this.productsTable(),
+      { id: productId },
+      updates,
+      removeAttrs.length ? removeAttrs : undefined,
+    );
     return this.stripForAdminResponse(merged);
   }
 
@@ -306,6 +354,79 @@ export class ProductsService {
     const catNameById = new Map(cats.map((c: { id: string; name: string }) => [c.id, c.name]));
     const category_name = catNameById.get(String(withStock.category_id || '')) || null;
     return { ...withStock, category_name };
+  }
+
+  /**
+   * Homepage showcase — platform catalogue products where superadmin set
+   * `home_showcase_section`. Guest-visible prices and no internal editorial keys.
+   */
+  async listHomeShowcaseForPublic(): Promise<{
+    primary: Record<string, unknown>[];
+    combos: Record<string, unknown>[];
+  }> {
+    const pid = this.platformCatalogAdminId();
+    if (!pid) return { primary: [], combos: [] };
+
+    const items = await this.dynamo.queryAllPages({
+      TableName: this.productsTable(),
+      IndexName: 'AdminIndex',
+      KeyConditionExpression: 'admin_id = :aid',
+      ExpressionAttributeValues: { ':aid': pid },
+    });
+
+    const candidates = items.filter(
+      (p) =>
+        p.active !== false &&
+        (p.home_showcase_section === 'primary' || p.home_showcase_section === 'combos'),
+    );
+
+    const role: PriceViewerRole = 'guest';
+    const enriched = await this.enrichShop(candidates);
+    const approved = enriched.filter(
+      (p) => String((p as Record<string, unknown>).shop_admin_status || '') === 'approved',
+    );
+
+    const cleaned = approved.map((p) => {
+      const row = { ...(p as Record<string, unknown>) };
+      delete row.shop_admin_status;
+      return row;
+    });
+
+    const serialized = serializeProductsForRole(cleaned, role) as Record<string, unknown>[];
+    const cats = await this.categories.listAll();
+    const catNameById = new Map(cats.map((c: { id: string; name: string }) => [c.id, c.name]));
+
+    const rows: { section: string; order: number; payload: Record<string, unknown> }[] = [];
+    for (let i = 0; i < serialized.length; i++) {
+      const raw = cleaned[i] as Record<string, unknown>;
+      const p = serialized[i];
+      this.applyCdnToProductPayload(p);
+      const withStock = this.withStockFlag(p, role, raw);
+      const category_name = catNameById.get(String(withStock.category_id || '')) || null;
+      const listing_rating =
+        raw.home_showcase_rating != null && !Number.isNaN(Number(raw.home_showcase_rating))
+          ? Number(raw.home_showcase_rating)
+          : null;
+      const showcase_hot = raw.home_showcase_hot === true;
+      const base = { ...withStock, category_name, listing_rating, showcase_hot } as Record<string, unknown>;
+      delete base.home_showcase_section;
+      delete base.home_showcase_order;
+      delete base.home_showcase_rating;
+      delete base.home_showcase_hot;
+      rows.push({
+        section: String(raw.home_showcase_section),
+        order: Number(raw.home_showcase_order ?? 0),
+        payload: base,
+      });
+    }
+
+    const sortFn = (a: (typeof rows)[0], b: (typeof rows)[0]) =>
+      a.order - b.order || String(a.payload.name || '').localeCompare(String(b.payload.name || ''));
+
+    return {
+      primary: rows.filter((r) => r.section === 'primary').sort(sortFn).map((r) => r.payload),
+      combos: rows.filter((r) => r.section === 'combos').sort(sortFn).map((r) => r.payload),
+    };
   }
 
   async listForRole(

@@ -4,11 +4,13 @@ import {
   MinLength,
   IsNumber,
   Min,
+  Max,
   IsUUID,
   IsBoolean,
   IsOptional,
   IsArray,
   IsUrl,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -106,4 +108,37 @@ export class CreateProductDto {
   @IsOptional()
   @IsUrl()
   amazon_url?: string;
+
+  @ApiPropertyOptional({
+    enum: ['primary', 'combos'],
+    description: 'Homepage showcase grid (Advanced CCTV section vs combos row). Omit if not featured.',
+  })
+  @IsOptional()
+  @IsIn(['primary', 'combos'])
+  home_showcase_section?: 'primary' | 'combos';
+
+  @ApiPropertyOptional({ example: 0, description: 'Sort order within the chosen homepage section (lower first)' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(9999)
+  home_showcase_order?: number;
+
+  @ApiPropertyOptional({ description: 'Show “Hot” ribbon on homepage card' })
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  home_showcase_hot?: boolean;
+
+  @ApiPropertyOptional({
+    example: 4.7,
+    description: 'Optional star rating shown only on homepage cards (not product reviews)',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @Max(5)
+  home_showcase_rating?: number;
 }

@@ -34,6 +34,18 @@ export class ProductsController {
 
   @Public()
   @UseGuards(OptionalJwtAuthGuard)
+  @Get('home-showcase')
+  @ApiOperation({
+    summary:
+      'Homepage showcase products (Advanced CCTV grid + combos row) curated via superadmin product fields `home_showcase_*` on the platform catalogue.',
+  })
+  @ApiBearerAuth()
+  async homeShowcase() {
+    return this.products.listHomeShowcaseForPublic();
+  }
+
+  @Public()
+  @UseGuards(OptionalJwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get one product by id' })
   @ApiBearerAuth()
