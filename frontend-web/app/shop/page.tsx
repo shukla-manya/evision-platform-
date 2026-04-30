@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ChevronDown, ChevronRight, ChevronUp, Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal, Star } from 'lucide-react';
+import { ChevronRight, Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
@@ -33,7 +33,7 @@ type Category = { id: string; name: string; parent_id?: string | null };
 
 type SortKey = 'relevance' | 'price_asc' | 'price_desc' | 'newest' | 'rating';
 
-type ApprovedShopRow = { id: string; shop_name: string };
+type BrandToggleRow = { name: string; count: number };
 
 function formatInr(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
@@ -88,9 +88,8 @@ function ShopListingInner() {
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [brand, setBrand] = useState('');
-  const [shopFilter, setShopFilter] = useState('');
-  const [approvedShopDirectory, setApprovedShopDirectory] = useState<ApprovedShopRow[]>([]);
-  const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
+  const [brandOptions, setBrandOptions] = useState<BrandToggleRow[]>([]);
+  const [brandsListOpen, setBrandsListOpen] = useState(false);
   const [approvedShopsOnly, setApprovedShopsOnly] = useState(true);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
