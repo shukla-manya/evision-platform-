@@ -209,7 +209,7 @@ export function PublicFooter() {
         </div>
       </div>
 
-      <div className="border-t border-white/10">
+      <div id="site-footer-contact" className="border-t border-white/10 scroll-mt-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
           <p className="font-semibold text-white mb-4 text-sm">Contact information</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">

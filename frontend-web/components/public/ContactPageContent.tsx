@@ -1,24 +1,9 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import Link from 'next/link';
-import { Headphones, Mail, MapPin, Truck } from 'lucide-react';
 import { aboutBrandSummary } from '@/lib/about-company-content';
-import {
-  publicCopyrightNotice,
-  publicInfoEmail,
-  publicRegisteredAddress,
-  publicSalesPhone,
-  publicSupportEmail,
-  publicSupportPhone,
-} from '@/lib/public-contact';
+import { publicCopyrightNotice } from '@/lib/public-contact';
 import { publicContactApi, type ContactMessageResponse } from '@/lib/api';
-
-function telHref(display: string) {
-  const d = display.replace(/\D/g, '');
-  if (d.length >= 10) return `tel:+${d.replace(/^\+?/, '')}`;
-  return `tel:${display}`;
-}
 
 function apiErrorMessage(err: unknown, fallback: string): string {
   const d = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data;
@@ -110,83 +95,19 @@ export function ContactPageContent() {
 
       <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
         <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-2">Get in Touch</h1>
-        <p className="text-ev-muted max-w-2xl mb-10">
+        <p className="text-ev-muted max-w-2xl mb-4">
           We are here for orders, accounts, dealers, technicians, and partnerships. Submit the form below — we email our
           team and send you a confirmation with everything you entered.
         </p>
+        <p className="text-ev-subtle text-sm max-w-2xl mb-10">
+          Phone numbers, marketing and support email, and our office address are in the{' '}
+          <a href="#site-footer-contact" className="text-ev-primary font-medium hover:underline">
+            site footer
+          </a>{' '}
+          on every page (scroll to the bottom or use that link).
+        </p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 mb-14">
-          <div className="space-y-6">
-            <div className="ev-card p-5 sm:p-6 flex gap-4">
-              <div className="shrink-0 w-11 h-11 rounded-full bg-ev-primary/15 flex items-center justify-center">
-                <Headphones className="text-ev-primary w-5 h-5" aria-hidden />
-              </div>
-              <div>
-                <p className="font-semibold text-ev-text">24/7 Support</p>
-                <a href={telHref(publicSupportPhone)} className="text-ev-primary hover:text-ev-primary-light font-medium">
-                  {publicSupportPhone}
-                </a>
-              </div>
-            </div>
-
-            <div className="ev-card p-5 sm:p-6 flex gap-4">
-              <div className="shrink-0 w-11 h-11 rounded-full bg-ev-primary/15 flex items-center justify-center">
-                <Truck className="text-ev-primary w-5 h-5" aria-hidden />
-              </div>
-              <div>
-                <p className="font-semibold text-ev-text">Free Shipping</p>
-                <p className="text-ev-muted text-sm">All over India</p>
-              </div>
-            </div>
-
-            <div className="ev-card p-5 sm:p-6 flex gap-4">
-              <div className="shrink-0 w-11 h-11 rounded-full bg-ev-primary/15 flex items-center justify-center">
-                <Mail className="text-ev-primary w-5 h-5" aria-hidden />
-              </div>
-              <div>
-                <p className="font-semibold text-ev-text mb-1">Email Us</p>
-                <a
-                  href={`mailto:${publicInfoEmail}`}
-                  className="block text-ev-primary hover:text-ev-primary-light text-sm font-medium break-all"
-                >
-                  {publicInfoEmail}
-                </a>
-                <a
-                  href={`mailto:${publicSupportEmail}`}
-                  className="block text-ev-primary hover:text-ev-primary-light text-sm font-medium break-all mt-1"
-                >
-                  {publicSupportEmail}
-                </a>
-              </div>
-            </div>
-
-            <div className="ev-card p-5 sm:p-6 flex gap-4">
-              <div className="shrink-0 w-11 h-11 rounded-full bg-ev-primary/15 flex items-center justify-center">
-                <Headphones className="text-ev-primary w-5 h-5" aria-hidden />
-              </div>
-              <div>
-                <p className="font-semibold text-ev-text mb-2">Contact Number</p>
-                <a href={telHref(publicSalesPhone)} className="block text-ev-primary hover:text-ev-primary-light font-medium">
-                  {publicSalesPhone}
-                </a>
-                <a href={telHref(publicSupportPhone)} className="block text-ev-primary hover:text-ev-primary-light font-medium mt-1">
-                  {publicSupportPhone}
-                </a>
-              </div>
-            </div>
-
-            <div className="ev-card p-5 sm:p-6 flex gap-4">
-              <div className="shrink-0 w-11 h-11 rounded-full bg-ev-primary/15 flex items-center justify-center">
-                <MapPin className="text-ev-primary w-5 h-5" aria-hidden />
-              </div>
-              <div>
-                <p className="font-semibold text-ev-text mb-2">Address</p>
-                <p className="text-ev-muted text-sm leading-relaxed">{publicRegisteredAddress}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-8">
+        <div className="max-w-2xl mb-14 space-y-8">
             {formSuccess ? (
               <div className="ev-card p-6 sm:p-8 border-2 border-ev-primary/30 bg-ev-primary/5">
                 <p className="text-xl font-bold text-ev-text">Thank you, {formSuccess.greeting_name}!</p>
@@ -327,7 +248,6 @@ export function ContactPageContent() {
                 </>
               )}
             </div>
-          </div>
         </div>
 
         <div className="border-t border-ev-border pt-12 space-y-6">

@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { Home, LayoutGrid, Shield, Truck, Video } from 'lucide-react';
 import { PublicShell } from '@/components/public/PublicShell';
 import { publicBrandName } from '@/lib/public-brand';
-import { publicSupportPhone } from '@/lib/public-contact';
 import {
   aboutBrandSummary,
   aboutWhatWeProvideParagraphs,
@@ -37,8 +36,8 @@ export default function AboutPage() {
           <div className="ev-container py-3 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-4 sm:gap-10 text-sm text-ev-text">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-ev-primary">24/7 Support</span>
-              <a href={`tel:${publicSupportPhone.replace(/\s/g, '')}`} className="text-ev-muted hover:text-ev-primary">
-                {publicSupportPhone}
+              <a href="#site-footer-contact" className="text-ev-muted hover:text-ev-primary">
+                Numbers in footer
               </a>
             </div>
             <div className="hidden sm:block h-4 w-px bg-ev-border" aria-hidden />
