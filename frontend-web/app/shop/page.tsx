@@ -137,19 +137,35 @@ function ShopListingInner() {
     setLoading(true);
     setLoadError(false);
     try {
-      const [catRes, prodRes] = await Promise.all([
+      const baseProductParams = {
+        search: search.trim() || undefined,
+        category_id: categoryId || undefined,
+        min_price: minPrice ? Number(minPrice) : undefined,
+        max_price: maxPrice ? Number(maxPrice) : undefined,
+        approved_shops_only: approvedShopsOnly,
+      };
+      const [catRes, prodRes, brandScopeRes] = await Promise.all([
         catalogApi.getCategories(),
         catalogApi.getProducts({
-          search: search.trim() || undefined,
-          category_id: categoryId || undefined,
+          ...baseProductParams,
           brand: brand.trim() || undefined,
-          min_price: minPrice ? Number(minPrice) : undefined,
-          max_price: maxPrice ? Number(maxPrice) : undefined,
-          approved_shops_only: approvedShopsOnly,
         }),
+        catalogApi.getProducts(baseProductParams),
       ]);
       setCategories(Array.isArray(catRes.data) ? catRes.data : []);
       setRawProducts(Array.isArray(prodRes.data) ? prodRes.data : []);
+      const scopeList = Array.isArray(brandScopeRes.data) ? (brandScopeRes.data as Product[]) : [];
+      const byBrand = new Map<string, number>();
+      for (const p of scopeList) {
+        const b = String(p.brand || '').trim();
+        if (!b) continue;
+        byBrand.set(b, (byBrand.get(b) || 0) + 1);
+      }
+      setBrandOptions(
+        [...byBrand.entries()]
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
+      );
     } catch {
       setLoadError(true);
       setCategories([]);
@@ -167,10 +183,6 @@ function ShopListingInner() {
 
   const products = useMemo(() => {
     let list = [...rawProducts];
-    if (shopFilter.trim()) {
-      const s = shopFilter.trim().toLowerCase();
-      list = list.filter((p) => String(p.shop_name || '').trim().toLowerCase() === s);
-    }
     if (inStockOnly) list = list.filter((p) => p.stock == null || Number(p.stock) > 0);
     const mr = Number(minRating);
     if (minRating && !Number.isNaN(mr)) {
@@ -181,7 +193,7 @@ function ShopListingInner() {
     if (sort === 'newest') list.sort(() => 0);
     if (sort === 'rating') list.sort((a, b) => Number(b.rating_avg || 0) - Number(a.rating_avg || 0));
     return list;
-  }, [rawProducts, shopFilter, inStockOnly, minRating, sort, priceVal]);
+  }, [rawProducts, inStockOnly, minRating, sort, priceVal]);
 
   const categoryCounts = useMemo(() => {
     const m = new Map<string, number>();
