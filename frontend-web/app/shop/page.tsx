@@ -89,7 +89,6 @@ function ShopListingInner() {
   const [categoryId, setCategoryId] = useState('');
   const [brand, setBrand] = useState('');
   const [brandOptions, setBrandOptions] = useState<BrandToggleRow[]>([]);
-  const [brandsListOpen, setBrandsListOpen] = useState(false);
   const [approvedShopsOnly, setApprovedShopsOnly] = useState(true);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
