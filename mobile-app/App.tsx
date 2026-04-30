@@ -93,7 +93,7 @@ import {
   publicSupportTelHref,
 } from './src/config/publicMarketing';
 import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
-import { siteQuickLinks } from './src/lib/site-quick-links';
+import { footerPolicyLinks, footerQuickNavLinks } from './src/lib/site-quick-links';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
@@ -1865,7 +1865,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
             <View style={styles.shopFooterBand}>
               <Text style={styles.shopFooterBlurb}>{aboutBrandSummary}</Text>
               <Text style={styles.shopFooterHeading}>Quick links</Text>
-              {siteQuickLinks.map((l) => (
+              {footerQuickNavLinks.map((l) => (
                 <Pressable
                   key={l.path + l.label}
                   onPress={() => {
@@ -1880,6 +1880,12 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                     void Linking.openURL(publicWebUrl(l.path));
                   }}
                 >
+                  <Text style={styles.shopFooterLink}>{l.label}</Text>
+                </Pressable>
+              ))}
+              <Text style={[styles.shopFooterHeading, { marginTop: 16 }]}>Policies</Text>
+              {footerPolicyLinks.map((l) => (
+                <Pressable key={l.path + l.label} onPress={() => void Linking.openURL(publicWebUrl(l.path))}>
                   <Text style={styles.shopFooterLink}>{l.label}</Text>
                 </Pressable>
               ))}

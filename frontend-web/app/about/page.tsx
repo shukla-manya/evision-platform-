@@ -3,13 +3,7 @@ import Link from 'next/link';
 import { Home, LayoutGrid, Shield, Truck, Video } from 'lucide-react';
 import { PublicShell } from '@/components/public/PublicShell';
 import { publicBrandName } from '@/lib/public-brand';
-import {
-  publicMarketingEmail,
-  publicRegisteredAddress,
-  publicSalesPhone,
-  publicSupportEmail,
-  publicSupportPhone,
-} from '@/lib/public-contact';
+import { publicSupportPhone } from '@/lib/public-contact';
 import {
   aboutBrandSummary,
   aboutWhatWeProvideParagraphs,
@@ -18,7 +12,6 @@ import {
   premierServicesIntro,
   premierServicesTitle,
 } from '@/lib/about-company-content';
-import { siteQuickLinks } from '@/lib/site-quick-links';
 import { TestimonialsMarquee } from '@/components/public/TestimonialsMarquee';
 
 export const metadata: Metadata = {
@@ -132,54 +125,6 @@ export default function AboutPage() {
               <TestimonialsMarquee />
             </div>
             <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">{aboutBrandSummary}</p>
-          </div>
-        </section>
-
-        <section className="ev-container py-12 sm:py-16 max-w-5xl">
-          <h2 className="text-xl font-bold text-ev-text mb-6 text-center sm:text-left">Quick Links</h2>
-          <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-            {siteQuickLinks.map((l) => (
-              <Link
-                key={l.label}
-                href={l.href}
-                className="text-sm font-medium px-3 py-1.5 rounded-full border border-ev-border bg-ev-surface text-ev-primary hover:border-ev-primary/40 transition-colors"
-              >
-                {l.label}
-              </Link>
-            ))}
-          </div>
-          <p className="text-ev-subtle text-xs mt-4 text-center sm:text-left">
-            Policy pages without a dedicated URL open Contact — we will route you to the right team.
-          </p>
-        </section>
-
-        <section className="border-t border-ev-border bg-ev-surface2/40 py-12 sm:py-16">
-          <div className="ev-container max-w-3xl">
-            <h2 className="text-xl font-bold text-ev-text mb-6">Contact Information</h2>
-            <ul className="space-y-3 text-ev-muted text-sm sm:text-base">
-              <li>
-                <a href={`tel:${publicSalesPhone.replace(/\s/g, '')}`} className="text-ev-primary font-semibold hover:underline">
-                  {publicSalesPhone}
-                </a>
-              </li>
-              <li>
-                <a href={`tel:${publicSupportPhone.replace(/\s/g, '')}`} className="text-ev-primary font-semibold hover:underline">
-                  {publicSupportPhone}
-                </a>
-              </li>
-              <li>
-                <a href={`mailto:${publicMarketingEmail}`} className="text-ev-primary font-semibold hover:underline">
-                  {publicMarketingEmail}
-                </a>
-              </li>
-              <li>
-                <a href={`mailto:${publicSupportEmail}`} className="text-ev-primary font-semibold hover:underline">
-                  {publicSupportEmail}
-                </a>
-              </li>
-              <li className="pt-2 leading-relaxed">{publicRegisteredAddress}</li>
-            </ul>
-            <p className="text-ev-subtle text-xs mt-6">Copyright © {new Date().getFullYear()} Evision Powered by Cybrical Tech LLP.</p>
           </div>
         </section>
 

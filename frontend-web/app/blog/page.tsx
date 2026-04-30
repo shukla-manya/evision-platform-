@@ -126,11 +126,6 @@ export default function BlogPage() {
                   </Link>
                 </div>
               </div>
-
-              <div className="rounded-xl border border-ev-border bg-ev-surface p-4 sm:p-5">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-ev-text">Recent Comments</h2>
-                <p className="mt-3 text-sm text-ev-muted">No comments yet. Share feedback from the article pages once comments are enabled.</p>
-              </div>
             </aside>
           </div>
         </div>

@@ -3,12 +3,10 @@
 import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { Headphones, Mail, MapPin, Truck } from 'lucide-react';
-import { contactPageQuickLinks } from '@/lib/contact-quick-links';
 import { aboutBrandSummary } from '@/lib/about-company-content';
 import {
   publicCopyrightNotice,
   publicInfoEmail,
-  publicMarketingEmail,
   publicRegisteredAddress,
   publicSalesPhone,
   publicSupportEmail,
@@ -332,49 +330,12 @@ export function ContactPageContent() {
           </div>
         </div>
 
-        <div className="border-t border-ev-border pt-12 space-y-10">
+        <div className="border-t border-ev-border pt-12 space-y-6">
           <p className="text-ev-muted text-sm leading-relaxed max-w-4xl">{aboutBrandSummary}</p>
-
-          <div>
-            <h2 className="text-lg font-bold text-ev-text mb-4">Quick Links</h2>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-2 text-sm">
-              {contactPageQuickLinks.map(({ href, label }) => (
-                <li key={`${href}-${label}`}>
-                  <Link href={href} className="text-ev-primary hover:text-ev-primary-light font-medium">
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h2 className="text-lg font-bold text-ev-text mb-3">Contact Information</h2>
-            <ul className="text-ev-muted text-sm space-y-2">
-              <li>
-                <a href={telHref(publicSalesPhone)} className="text-ev-primary hover:text-ev-primary-light">
-                  {publicSalesPhone}
-                </a>
-              </li>
-              <li>
-                <a href={telHref(publicSupportPhone)} className="text-ev-primary hover:text-ev-primary-light">
-                  {publicSupportPhone}
-                </a>
-              </li>
-              <li>
-                <a href={`mailto:${publicMarketingEmail}`} className="text-ev-primary hover:text-ev-primary-light">
-                  {publicMarketingEmail}
-                </a>
-              </li>
-              <li>
-                <a href={`mailto:${publicSupportEmail}`} className="text-ev-primary hover:text-ev-primary-light">
-                  {publicSupportEmail}
-                </a>
-              </li>
-              <li className="pt-1 max-w-xl leading-relaxed">{publicRegisteredAddress}</li>
-            </ul>
-          </div>
-
+          <p className="text-ev-subtle text-sm">
+            Site-wide navigation, policies, and office contact are in the <strong className="text-ev-text">footer</strong> on
+            every page.
+          </p>
           <p className="text-ev-muted text-xs pt-4 border-t border-ev-border">{publicCopyrightNotice}</p>
         </div>
       </main>

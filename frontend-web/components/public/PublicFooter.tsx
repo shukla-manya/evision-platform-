@@ -6,6 +6,7 @@ import { getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
 import { EvisionLogo } from '@/components/brand/EvisionLogo';
 import { publicLoginPath } from '@/lib/public-links';
+import { footerPolicyLinks, footerQuickNavLinks } from '@/lib/site-quick-links';
 import {
   formatIndianPhoneDisplay,
   publicMarketingEmail,
@@ -38,22 +39,39 @@ export function PublicFooter() {
 
   return (
     <footer className="mt-auto border-t border-ev-border bg-ev-navbar pb-[env(safe-area-inset-bottom)] text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 text-sm">
-        <div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-10 text-sm">
+        <div className="xl:col-span-1">
           <div className="flex items-center gap-2 mb-3">
             <EvisionLogo variant="full" wordmark={publicBrandName} height={36} tone="onDark" />
           </div>
+          <p className="text-white/55 text-xs leading-relaxed max-w-[220px]">
+            Surveillance, PoE networking, and partner shops — one checkout.
+          </p>
+        </div>
+
+        <div>
+          <p className="font-semibold text-white mb-3">Quick links</p>
           <ul className="space-y-2 text-white/70">
-            <li>
-              <Link href="/about" className="hover:text-white transition-colors">
-                About us
-              </Link>
-            </li>
-            <li>
-              <Link href="/contact" className="hover:text-white transition-colors">
-                Contact us
-              </Link>
-            </li>
+            {footerQuickNavLinks.map((item) => (
+              <li key={item.href + item.label}>
+                <Link href={item.href} className="hover:text-white transition-colors">
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <p className="font-semibold text-white mb-3">Policies</p>
+          <ul className="space-y-2 text-white/70">
+            {footerPolicyLinks.map((item) => (
+              <li key={item.href + item.label}>
+                <Link href={item.href} className="hover:text-white transition-colors">
+                  {item.label}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
@@ -169,10 +187,7 @@ export function PublicFooter() {
               </li>
             </ul>
           )}
-        </div>
-
-        <div>
-          <p className="font-semibold text-white mb-3">Help</p>
+          <p className="font-semibold text-white mb-2 mt-6">Help</p>
           <ul className="space-y-2 text-white/70">
             <li>
               <Link href="/faq" className="hover:text-white transition-colors">
@@ -190,38 +205,36 @@ export function PublicFooter() {
                 </Link>
               </li>
             ) : null}
-            <li>
-              <Link href="/privacy" className="hover:text-white transition-colors">
-                Privacy policy
-              </Link>
-            </li>
           </ul>
         </div>
       </div>
 
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-          <p className="font-semibold text-white mb-4 text-sm">Visit & contact</p>
+          <p className="font-semibold text-white mb-4 text-sm">Contact information</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
-            <div className="text-sm text-white/80 space-y-4">
-              <p className="text-white/60">
+            <ul className="text-sm text-white/80 space-y-3">
+              <li>
                 <a href={publicTelHref(publicSalesPhone)} className="text-white hover:underline">
                   {formatIndianPhoneDisplay(publicSalesPhone)}
                 </a>
-                <span className="mx-2 text-white/35">·</span>
+              </li>
+              <li>
                 <a href={publicTelHref(publicSupportPhone)} className="text-white hover:underline">
                   {formatIndianPhoneDisplay(publicSupportPhone)}
                 </a>
-                <span className="mx-2 text-white/35">·</span>
+              </li>
+              <li>
                 <a href={`mailto:${publicMarketingEmail}`} className="text-white hover:underline">
                   {publicMarketingEmail}
                 </a>
-                <span className="mx-2 text-white/35">·</span>
+              </li>
+              <li>
                 <a href={`mailto:${publicSupportEmail}`} className="text-white hover:underline">
                   {publicSupportEmail}
                 </a>
-              </p>
-              <p className="leading-relaxed text-white/75">
+              </li>
+              <li className="leading-relaxed text-white/75 pt-1">
                 <a
                   href={publicOfficeGoogleMapsOpenUrl()}
                   target="_blank"
@@ -230,8 +243,8 @@ export function PublicFooter() {
                 >
                   {publicRegisteredAddress}
                 </a>
-              </p>
-            </div>
+              </li>
+            </ul>
             <div className="rounded-xl overflow-hidden border border-white/15 bg-black/20 min-h-[220px] lg:min-h-0">
               <iframe
                 title="E-Vision India office on Google Maps"

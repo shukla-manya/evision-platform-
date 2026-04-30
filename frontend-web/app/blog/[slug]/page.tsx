@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { PublicShell } from '@/components/public/PublicShell';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
 import { PublicMarketingBand } from '@/components/public/PublicMarketingBand';
@@ -80,11 +80,12 @@ export default async function BlogPostPage({ params }: Props) {
             ))}
           </div>
 
-          <p className="mt-10">
-            <Link href="/blog" className="text-sm font-semibold text-ev-primary hover:underline">
-              ← Back to blog
+          <div className="mt-10">
+            <Link href="/blog" className="ev-btn-secondary inline-flex items-center gap-2 text-sm py-2.5 px-5">
+              <ArrowLeft size={16} aria-hidden />
+              Back to blog
             </Link>
-          </p>
+          </div>
         </div>
         <PublicMarketingBand headingId="blog-post-marketing-band" />
       </article>

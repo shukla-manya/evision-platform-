@@ -29,6 +29,10 @@ export default function AdminProductNewPage() {
     mrp: '',
     min_order_quantity: '1',
     amazon_url: '',
+    home_showcase_section: '' as '' | 'primary' | 'combos',
+    home_showcase_order: '0',
+    home_showcase_hot: false,
+    home_showcase_rating: '',
   });
 
   useEffect(() => {
@@ -65,6 +69,16 @@ export default function AdminProductNewPage() {
         ...(form.mrp.trim() !== '' ? { mrp: Number(form.mrp) } : {}),
         ...(form.amazon_url.trim() !== '' ? { amazon_url: form.amazon_url.trim() } : {}),
         ...(imageUrls.length ? { images: imageUrls } : {}),
+        ...(form.home_showcase_section === 'primary' || form.home_showcase_section === 'combos'
+          ? {
+              home_showcase_section: form.home_showcase_section,
+              home_showcase_order: Number(form.home_showcase_order) || 0,
+              home_showcase_hot: form.home_showcase_hot,
+              ...(form.home_showcase_rating.trim() !== ''
+                ? { home_showcase_rating: Number(form.home_showcase_rating) }
+                : {}),
+            }
+          : {}),
       };
       await superadminApi.createCatalogProduct(body);
       toast.success('Product created');
@@ -222,6 +236,67 @@ export default function AdminProductNewPage() {
               onChange={(e) => setForm((f) => ({ ...f, amazon_url: e.target.value }))}
               placeholder="https://www.amazon.in/…"
             />
+          </div>
+          <div className="rounded-xl border border-ev-border bg-ev-surface2/60 p-4 space-y-4">
+            <p className="text-sm text-ev-muted leading-relaxed">
+              <span className="font-semibold text-ev-text">Homepage showcase</span> — optional. Same behaviour as on the edit form.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="ev-label">Homepage section</label>
+                <select
+                  className="ev-input"
+                  value={form.home_showcase_section}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      home_showcase_section: e.target.value as '' | 'primary' | 'combos',
+                    }))
+                  }
+                >
+                  <option value="">Not on homepage</option>
+                  <option value="primary">Advanced CCTV grid</option>
+                  <option value="combos">Security Camera Collection</option>
+                </select>
+              </div>
+              <div>
+                <label className="ev-label">Sort order in section</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={9999}
+                  className="ev-input"
+                  disabled={!form.home_showcase_section}
+                  value={form.home_showcase_order}
+                  onChange={(e) => setForm((f) => ({ ...f, home_showcase_order: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4 items-end">
+              <div>
+                <label className="ev-label">Homepage star rating (optional)</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={5}
+                  step={0.05}
+                  className="ev-input"
+                  disabled={!form.home_showcase_section}
+                  value={form.home_showcase_rating}
+                  onChange={(e) => setForm((f) => ({ ...f, home_showcase_rating: e.target.value }))}
+                  placeholder="1–5"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-ev-text cursor-pointer pb-2">
+                <input
+                  type="checkbox"
+                  disabled={!form.home_showcase_section}
+                  checked={form.home_showcase_hot}
+                  onChange={(e) => setForm((f) => ({ ...f, home_showcase_hot: e.target.checked }))}
+                />
+                “Hot” on homepage
+              </label>
+            </div>
           </div>
           <label className="flex items-center gap-2 text-sm text-ev-text cursor-pointer">
             <input

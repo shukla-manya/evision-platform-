@@ -15,7 +15,7 @@ import {
 } from '../config/publicMarketing';
 import { publicWebUrl } from '../config/publicWeb';
 import { formatBlogDateLong, formatBlogDateShort, getBlogPostBySlug, getBlogPostsSorted } from '../lib/blog-posts';
-import { siteQuickLinks } from '../lib/site-quick-links';
+import { footerPolicyLinks, footerQuickNavLinks } from '../lib/site-quick-links';
 import { colors } from '../theme/colors';
 import { screenGutter } from '../theme/layout';
 
@@ -78,9 +78,6 @@ export function BlogListScreen({ navigation }: NativeStackScreenProps<RootBlogPa
             <Text style={styles.promoBtnText}>To shop</Text>
           </Pressable>
         </View>
-
-        <Text style={styles.sideHeading}>Recent comments</Text>
-        <Text style={styles.mutedSmall}>No comments yet.</Text>
 
         <FooterBand />
       </ScrollView>
@@ -147,7 +144,13 @@ function FooterBand() {
     <View style={styles.footerBand}>
       <Text style={styles.footerBlurb}>{aboutBrandSummary}</Text>
       <Text style={styles.sideHeading}>Quick links</Text>
-      {siteQuickLinks.map((l) => (
+      {footerQuickNavLinks.map((l) => (
+        <Pressable key={l.path + l.label} onPress={() => void Linking.openURL(publicWebUrl(l.path))}>
+          <Text style={styles.footerLink}>{l.label}</Text>
+        </Pressable>
+      ))}
+      <Text style={[styles.sideHeading, { marginTop: 16 }]}>Policies</Text>
+      {footerPolicyLinks.map((l) => (
         <Pressable key={l.path + l.label} onPress={() => void Linking.openURL(publicWebUrl(l.path))}>
           <Text style={styles.footerLink}>{l.label}</Text>
         </Pressable>
@@ -241,7 +244,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   promoBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
-  mutedSmall: { fontSize: 13, color: colors.muted, marginTop: 6 },
   articleTitle: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginTop: 12, lineHeight: 28 },
   bodyPara: { fontSize: 15, color: colors.textSecondary, marginTop: 14, lineHeight: 24 },
   footerBand: { marginTop: 28, paddingTop: 20, borderTopWidth: 1, borderTopColor: colors.border },

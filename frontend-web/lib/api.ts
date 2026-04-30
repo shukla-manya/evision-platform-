@@ -95,6 +95,9 @@ export const catalogApi = {
   getCategories: () => api.get('/categories'),
   getProducts: (params?: Record<string, string | number | boolean | undefined>) =>
     api.get('/products', { params }),
+  /** Curated homepage grids (superadmin `home_showcase_*` on platform catalogue). */
+  getHomeShowcase: () =>
+    api.get<{ primary: Record<string, unknown>[]; combos: Record<string, unknown>[] }>('/products/home-showcase'),
   getProduct: (id: string) => api.get(`/products/${id}`),
   getApprovedShops: () => api.get<Array<{ id: string; shop_name: string }>>('/products/shops/approved'),
 };

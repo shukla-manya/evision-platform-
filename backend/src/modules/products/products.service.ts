@@ -270,7 +270,7 @@ export class ProductsService {
       this.productsTable(),
       { id: productId },
       updates,
-      removeAttrs.length ? removeAttrs : undefined,
+      removeAttrs.length ? [...new Set(removeAttrs)] : undefined,
     );
     return this.stripForAdminResponse(merged);
   }

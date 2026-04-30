@@ -26,6 +26,10 @@ type Product = {
   mrp?: number | null;
   min_order_quantity?: number;
   amazon_url?: string | null;
+  home_showcase_section?: 'primary' | 'combos' | string;
+  home_showcase_order?: number;
+  home_showcase_hot?: boolean;
+  home_showcase_rating?: number | null;
 };
 
 export default function AdminProductEditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -49,6 +53,10 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
     min_order_quantity: '1',
     images: [] as string[],
     amazon_url: '',
+    home_showcase_section: '' as '' | 'primary' | 'combos',
+    home_showcase_order: '0',
+    home_showcase_hot: false,
+    home_showcase_rating: '',
   });
 
   useEffect(() => {
@@ -77,6 +85,16 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
           min_order_quantity: String(Math.max(1, Number(p.min_order_quantity ?? 1))),
           images: Array.isArray(p.images) ? p.images : [],
           amazon_url: typeof p.amazon_url === 'string' ? p.amazon_url : '',
+          home_showcase_section:
+            p.home_showcase_section === 'primary' || p.home_showcase_section === 'combos'
+              ? p.home_showcase_section
+              : '',
+          home_showcase_order: String(Number(p.home_showcase_order ?? 0)),
+          home_showcase_hot: p.home_showcase_hot === true,
+          home_showcase_rating:
+            p.home_showcase_rating != null && !Number.isNaN(Number(p.home_showcase_rating))
+              ? String(p.home_showcase_rating)
+              : '',
         });
       })
       .catch(() => {
@@ -96,6 +114,17 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         const urls = (up.data as { urls?: string[] })?.urls || [];
         nextImages = [...nextImages, ...urls];
       }
+      const showcase: Record<string, unknown> = {};
+      if (form.home_showcase_section === '') {
+        showcase.home_showcase_section = '';
+      } else {
+        showcase.home_showcase_section = form.home_showcase_section;
+        showcase.home_showcase_order = Number(form.home_showcase_order) || 0;
+        showcase.home_showcase_hot = form.home_showcase_hot;
+        showcase.home_showcase_rating =
+          form.home_showcase_rating.trim() === '' ? null : Number(form.home_showcase_rating);
+      }
+
       await superadminApi.updateCatalogProduct(id, {
         name: form.name.trim(),
         description: form.description.trim(),
@@ -110,6 +139,7 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         mrp: form.mrp.trim() === '' ? null : Number(form.mrp),
         images: nextImages,
         amazon_url: form.amazon_url.trim() === '' ? null : form.amazon_url.trim(),
+        ...showcase,
       });
       toast.success('Product updated');
       router.push('/super/products');
@@ -255,6 +285,69 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
                 value={form.min_order_quantity}
                 onChange={(e) => setForm((f) => ({ ...f, min_order_quantity: e.target.value }))}
               />
+            </div>
+          </div>
+          <div className="rounded-xl border border-ev-border bg-ev-surface2/60 p-4 space-y-4">
+            <p className="text-sm text-ev-muted leading-relaxed">
+              <span className="font-semibold text-ev-text">Homepage showcase</span> — pick where this SKU appears on the public home page
+              (Advanced CCTV grid vs Security Camera Collection). Leave “Not on homepage” to remove. Sort order is ascending (0 first).
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="ev-label">Homepage section</label>
+                <select
+                  className="ev-input"
+                  value={form.home_showcase_section}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      home_showcase_section: e.target.value as '' | 'primary' | 'combos',
+                    }))
+                  }
+                >
+                  <option value="">Not on homepage</option>
+                  <option value="primary">Advanced CCTV grid</option>
+                  <option value="combos">Security Camera Collection</option>
+                </select>
+              </div>
+              <div>
+                <label className="ev-label">Sort order in section</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={9999}
+                  step={1}
+                  className="ev-input"
+                  disabled={!form.home_showcase_section}
+                  value={form.home_showcase_order}
+                  onChange={(e) => setForm((f) => ({ ...f, home_showcase_order: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4 items-end">
+              <div>
+                <label className="ev-label">Homepage star rating (optional, 1–5)</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={5}
+                  step={0.05}
+                  className="ev-input"
+                  disabled={!form.home_showcase_section}
+                  value={form.home_showcase_rating}
+                  onChange={(e) => setForm((f) => ({ ...f, home_showcase_rating: e.target.value }))}
+                  placeholder="Leave empty to hide stars"
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-ev-text cursor-pointer pb-2">
+                <input
+                  type="checkbox"
+                  disabled={!form.home_showcase_section}
+                  checked={form.home_showcase_hot}
+                  onChange={(e) => setForm((f) => ({ ...f, home_showcase_hot: e.target.checked }))}
+                />
+                Show “Hot” ribbon on homepage card
+              </label>
             </div>
           </div>
           <div className="rounded-xl border border-ev-border bg-ev-surface2/60 p-4 text-sm text-ev-muted leading-relaxed">

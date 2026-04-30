@@ -23,13 +23,7 @@ import { PublicShell } from '@/components/public/PublicShell';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
 import { TestimonialsMarquee } from '@/components/public/TestimonialsMarquee';
 import { publicBrandName } from '@/lib/public-brand';
-import {
-  publicMarketingEmail,
-  publicRegisteredAddress,
-  publicSalesPhone,
-  publicSupportEmail,
-  publicSupportPhone,
-} from '@/lib/public-contact';
+import { publicSupportEmail } from '@/lib/public-contact';
 import { getRole } from '@/lib/auth';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 import {
@@ -53,6 +47,12 @@ type Product = {
   images?: string[];
   shop_name?: string | null;
   stock?: number;
+};
+
+type ShowcaseProduct = Product & {
+  category_name?: string | null;
+  listing_rating?: number | null;
+  showcase_hot?: boolean;
 };
 
 function formatInr(n: number) {
@@ -123,6 +123,95 @@ function StaticProductCard({ p, canBuy }: { p: StaticShowcaseProduct; canBuy: bo
   );
 }
 
+function HomeShowcaseProductCard({
+  p,
+  canBuy,
+  bumpWishlist,
+}: {
+  p: ShowcaseProduct;
+  canBuy: boolean;
+  bumpWishlist?: () => void;
+}) {
+  const img = p.images?.[0];
+  const price = Number(p.price_customer || 0);
+  const inStock = Number(p.stock ?? 0) > 0;
+  const wished = isInWishlist(p.id);
+  const rating = p.listing_rating;
+  return (
+    <article className="ev-card overflow-hidden flex flex-col relative group">
+      {p.showcase_hot ? (
+        <span className="absolute top-3 left-3 z-10 text-[10px] font-bold uppercase tracking-wide bg-ev-primary text-white px-2 py-0.5 rounded">
+          Hot
+        </span>
+      ) : null}
+      <Link href={`/products/${p.id}`} className="relative aspect-[4/3] bg-gradient-to-br from-ev-surface2 to-ev-surface border-b border-ev-border block">
+        {img ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-ev-muted/40 text-4xl font-light select-none">◉</div>
+        )}
+        <button
+          type="button"
+          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-ev-surface/95 border border-ev-border flex items-center justify-center shadow-ev-sm hover:border-ev-primary transition-colors z-10"
+          aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
+          onClick={(e) => {
+            e.preventDefault();
+            toggleWishlistId(p.id);
+            bumpWishlist?.();
+            window.dispatchEvent(new Event('ev-wishlist'));
+          }}
+        >
+          <Heart size={18} className={wished ? 'text-ev-primary fill-ev-primary' : 'text-ev-muted'} />
+        </button>
+      </Link>
+      <div className="p-4 sm:p-5 flex-1 flex flex-col">
+        <p className="text-ev-subtle text-[11px] uppercase tracking-wide mb-1 line-clamp-2">
+          {p.category_name || p.shop_name || 'Catalogue'}
+        </p>
+        <Link href={`/products/${p.id}`} className="text-ev-text font-semibold text-base hover:text-ev-primary transition-colors line-clamp-2">
+          {p.name}
+        </Link>
+        {rating != null && !Number.isNaN(Number(rating)) && Number(rating) >= 1 ? (
+          <div className="mt-2">
+            <StarRow rating={Number(rating)} />
+          </div>
+        ) : null}
+        <p className="text-ev-muted text-xs mt-2">{inStock ? 'In stock' : 'Out of stock'}</p>
+        <p className="text-xl font-bold text-ev-text mt-2">{price > 0 ? formatInr(price) : '—'}</p>
+        <div className="mt-auto pt-4">
+          {inStock ? (
+            canBuy ? (
+              <button
+                type="button"
+                className="ev-btn-primary w-full text-sm py-2.5 inline-flex items-center justify-center gap-1.5"
+                onClick={async () => {
+                  try {
+                    await cartApi.addItem(p.id, 1);
+                    toast.success('Added to cart');
+                  } catch {
+                    toast.error('Could not add to cart');
+                  }
+                }}
+              >
+                <Plus size={16} aria-hidden /> Add to cart
+              </button>
+            ) : (
+              <Link href="/login" className="ev-btn-primary w-full text-sm py-2.5 text-center block">
+                Sign in to buy
+              </Link>
+            )
+          ) : (
+            <Link href={`/products/${p.id}`} className="ev-btn-secondary w-full text-sm py-2.5 text-center block">
+              Read more
+            </Link>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function HomeLeadForm() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -183,6 +272,10 @@ function HomeLeadForm() {
 
 export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
+  const [showcaseFromApi, setShowcaseFromApi] = useState<{ primary: ShowcaseProduct[]; combos: ShowcaseProduct[] }>({
+    primary: [],
+    combos: [],
+  });
   const [loading, setLoading] = useState(true);
   const [, setWishBump] = useState(0);
   const role = typeof window !== 'undefined' ? getRole() : undefined;
@@ -192,10 +285,17 @@ export default function HomePage() {
     let cancelled = false;
     (async () => {
       try {
-        const prodRes = await catalogApi.getProducts({ approved_shops_only: true });
+        const [prodRes, homeRes] = await Promise.all([
+          catalogApi.getProducts({ approved_shops_only: true }),
+          catalogApi.getHomeShowcase().catch(() => ({ data: { primary: [], combos: [] } })),
+        ]);
         if (cancelled) return;
         const prods = Array.isArray(prodRes.data) ? (prodRes.data as Product[]) : [];
         setFeatured(prods.slice(0, 6));
+        const raw = homeRes.data as { primary?: unknown[]; combos?: unknown[] };
+        const primary = Array.isArray(raw?.primary) ? (raw.primary as ShowcaseProduct[]) : [];
+        const combos = Array.isArray(raw?.combos) ? (raw.combos as ShowcaseProduct[]) : [];
+        setShowcaseFromApi({ primary, combos });
       } catch {
         if (!cancelled) toast.error('Could not load featured products');
       } finally {
@@ -291,16 +391,29 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
               <div>
                 <h2 className="text-2xl sm:text-3xl font-bold text-ev-text">Advanced CCTV Surveillance Solutions</h2>
-                <p className="text-ev-muted text-sm mt-2 max-w-2xl">Rated lines and indicative pricing — open the shop to match live catalogue and stock.</p>
+                <p className="text-ev-muted text-sm mt-2 max-w-2xl">
+                  {showcaseFromApi.primary.length > 0
+                    ? 'Live listings from the catalogue — prices and stock update when superadmin changes them.'
+                    : 'Rated lines and indicative pricing — open the shop to match live catalogue and stock. Curate this grid in superadmin by setting “Homepage showcase” on each product.'}
+                </p>
               </div>
               <Link href="/shop" className="ev-btn-secondary text-sm py-2.5 px-5 self-start shrink-0">
                 More products
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {showcasePrimary.map((p) => (
-                <StaticProductCard key={p.name} p={p} canBuy={canBuy} />
-              ))}
+              {showcaseFromApi.primary.length > 0
+                ? showcaseFromApi.primary.map((p) => (
+                    <HomeShowcaseProductCard
+                      key={p.id}
+                      p={p}
+                      canBuy={canBuy}
+                      bumpWishlist={() => setWishBump((n) => n + 1)}
+                    />
+                  ))
+                : showcasePrimary.map((p) => (
+                    <StaticProductCard key={p.name} p={p} canBuy={canBuy} />
+                  ))}
             </div>
           </div>
         </section>
@@ -318,9 +431,18 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="grid sm:grid-cols-3 gap-5 max-w-5xl mx-auto">
-            {showcaseCombos.map((p) => (
-              <StaticProductCard key={p.name} p={p} canBuy={canBuy} />
-            ))}
+            {showcaseFromApi.combos.length > 0
+              ? showcaseFromApi.combos.map((p) => (
+                  <HomeShowcaseProductCard
+                    key={p.id}
+                    p={p}
+                    canBuy={canBuy}
+                    bumpWishlist={() => setWishBump((n) => n + 1)}
+                  />
+                ))
+              : showcaseCombos.map((p) => (
+                  <StaticProductCard key={p.name} p={p} canBuy={canBuy} />
+                ))}
           </div>
         </section>
 
@@ -462,30 +584,6 @@ export default function HomePage() {
             <TestimonialsMarquee />
           </div>
           <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">{aboutBrandSummary}</p>
-          <div className="mt-8 flex flex-col sm:flex-row flex-wrap justify-center gap-4 text-sm text-ev-muted text-center">
-            <a href={`tel:${publicSalesPhone.replace(/\s/g, '')}`} className="hover:text-ev-primary">
-              {publicSalesPhone}
-            </a>
-            <span className="hidden sm:inline" aria-hidden>
-              ·
-            </span>
-            <a href={`tel:${publicSupportPhone.replace(/\s/g, '')}`} className="hover:text-ev-primary">
-              {publicSupportPhone}
-            </a>
-            <span className="hidden sm:inline" aria-hidden>
-              ·
-            </span>
-            <a href={`mailto:${publicMarketingEmail}`} className="hover:text-ev-primary">
-              {publicMarketingEmail}
-            </a>
-            <span className="hidden sm:inline" aria-hidden>
-              ·
-            </span>
-            <a href={`mailto:${publicSupportEmail}`} className="hover:text-ev-primary">
-              {publicSupportEmail}
-            </a>
-          </div>
-          <p className="text-center text-ev-muted text-xs mt-4">{publicRegisteredAddress}</p>
         </section>
 
         {/* Platform features (unchanged value) */}

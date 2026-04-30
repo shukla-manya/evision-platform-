@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { contactPageQuickLinks } from '../lib/contact-quick-links';
+import { footerPolicyLinks, footerQuickNavLinks } from '../lib/site-quick-links';
 import {
   aboutBrandSummary,
   publicCopyrightNotice,
@@ -254,8 +254,14 @@ export function ContactScreen() {
 
         <Text style={[styles.muted, { marginTop: 20, lineHeight: 22 }]}>{aboutBrandSummary}</Text>
 
-        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Quick Links</Text>
-        {contactPageQuickLinks.map(({ path, label }) => (
+        <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Quick links</Text>
+        {footerQuickNavLinks.map(({ path, label }) => (
+          <Pressable key={path + label} onPress={() => void Linking.openURL(publicWebUrl(path))}>
+            <Text style={styles.quickLink}>{label}</Text>
+          </Pressable>
+        ))}
+        <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Policies</Text>
+        {footerPolicyLinks.map(({ path, label }) => (
           <Pressable key={path + label} onPress={() => void Linking.openURL(publicWebUrl(path))}>
             <Text style={styles.quickLink}>{label}</Text>
           </Pressable>
