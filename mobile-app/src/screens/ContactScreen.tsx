@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { aboutBrandSummary, publicCopyrightNotice } from '../config/publicMarketing';
 import { publicWebUrl } from '../config/publicWeb';
 import { publicContactApi, type ContactMessageResponse } from '../services/api';
 import { colors } from '../theme/colors';
@@ -91,20 +92,31 @@ export function ContactScreen() {
       <ScrollView contentContainerStyle={styles.pad} keyboardShouldPersistTaps="handled">
         <Text style={styles.h1}>Get in Touch</Text>
         <Text style={styles.lead}>
-          Submit the form — our server emails the team and sends you a confirmation with what you entered.
+          We are here for orders, accounts, dealers, technicians, and partnerships. Submit the form below — we email our
+          team and send you a confirmation with everything you entered.
         </Text>
-        <Pressable onPress={() => void Linking.openURL(publicWebUrl('/#site-footer-contact'))} style={{ marginBottom: 16 }}>
-          <Text style={styles.quickLink}>Policies, quick links & contact — open website footer</Text>
-        </Pressable>
+        <Text style={styles.leadSub}>
+          Phone numbers, marketing and support email, and our office address are in the{' '}
+          <Text
+            style={styles.footerInlineLink}
+            onPress={() => void Linking.openURL(publicWebUrl('/#site-footer-contact'))}
+          >
+            site footer
+          </Text>
+          {' '}
+          on the website (scroll to the bottom or tap the link).
+        </Text>
 
         {formSuccess ? (
           <View style={[styles.card, styles.successCard]}>
             <Text style={styles.successTitle}>Thank you, {formSuccess.greeting_name}!</Text>
             <Text style={styles.muted}>
-              Your message was delivered. We sent a confirmation to {formSuccess.email} with a copy of your details.
+              Your message was delivered to our team. We also sent a confirmation email to{' '}
+              <Text style={{ fontWeight: '700', color: colors.textPrimary }}>{formSuccess.email}</Text> with a copy of
+              what you submitted.
             </Text>
             <View style={styles.summaryBox}>
-              <Text style={styles.summaryHeading}>What you sent</Text>
+              <Text style={styles.summaryHeading}>Here is what we have on file:</Text>
               <Text style={styles.summaryLine}>
                 <Text style={styles.summaryLabel}>Name: </Text>
                 {formSuccess.first_name} {formSuccess.last_name}
@@ -122,6 +134,7 @@ export function ContactScreen() {
           </View>
         ) : (
           <View style={styles.card}>
+            <Text style={styles.formCardTitle}>Get in Touch</Text>
             <Text style={styles.label}>First name</Text>
             <TextInput
               style={styles.input}
@@ -167,7 +180,7 @@ export function ContactScreen() {
                 <Text style={styles.btnPrimaryText}>Send Message</Text>
               )}
             </Pressable>
-            <Text style={styles.hint}>Confirmation is sent from our mail server.</Text>
+            <Text style={styles.hint}>Delivered through our server; check your inbox for the confirmation.</Text>
           </View>
         )}
 
@@ -175,8 +188,9 @@ export function ContactScreen() {
         <View style={styles.card}>
           {subSuccessEmail ? (
             <Text style={styles.muted}>
-              Thank you! We received your subscription for <Text style={{ fontWeight: '700', color: colors.textPrimary }}>{subSuccessEmail}</Text>.
-              Check your inbox for a short confirmation.
+              Thank you! We received your subscription request for{' '}
+              <Text style={{ fontWeight: '700', color: colors.textPrimary }}>{subSuccessEmail}</Text>. You should get a
+              short confirmation email shortly.
             </Text>
           ) : (
             <>
@@ -199,9 +213,14 @@ export function ContactScreen() {
                   <Text style={styles.btnSecondaryText}>Subscribe</Text>
                 )}
               </Pressable>
-              <Text style={styles.hint}>Marketing is notified and you get a confirmation email.</Text>
+              <Text style={styles.hint}>We notify marketing and email you a confirmation.</Text>
             </>
           )}
+        </View>
+
+        <View style={styles.bottomBrand}>
+          <Text style={[styles.muted, styles.bottomAbout]}>{aboutBrandSummary}</Text>
+          <Text style={styles.copyright}>{publicCopyrightNotice}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -212,8 +231,18 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   pad: { paddingHorizontal: screenGutter, paddingBottom: 32 },
   h1: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, marginBottom: 8 },
-  lead: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, marginBottom: 16 },
+  lead: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, marginBottom: 8, maxWidth: 640 },
+  leadSub: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 20,
+    maxWidth: 640,
+    opacity: 0.92,
+  },
+  footerInlineLink: { color: colors.brandPrimary, fontWeight: '600' },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 10, marginTop: 8 },
+  formCardTitle: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, marginBottom: 16 },
   card: {
     backgroundColor: colors.surface,
     borderRadius: 14,
@@ -272,5 +301,19 @@ const styles = StyleSheet.create({
   btnSecondaryText: { color: colors.brandPrimary, fontSize: 15, fontWeight: '700' },
   btnDisabled: { opacity: 0.55 },
   hint: { fontSize: 12, color: colors.textSecondary, marginTop: 8 },
-  quickLink: { fontSize: 14, color: colors.brandPrimary, fontWeight: '600', paddingVertical: 8 },
+  bottomBrand: {
+    marginTop: 28,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  bottomAbout: { marginBottom: 4 },
+  copyright: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    lineHeight: 18,
+  },
 });
