@@ -252,10 +252,6 @@ export function ContactPageContent() {
 
         <div className="border-t border-ev-border pt-12 space-y-6">
           <p className="text-ev-muted text-sm leading-relaxed max-w-4xl">{aboutBrandSummary}</p>
-          <p className="text-ev-subtle text-sm">
-            Site-wide navigation, policies, and office contact are in the <strong className="text-ev-text">footer</strong> on
-            every page.
-          </p>
           <p className="text-ev-muted text-xs pt-4 border-t border-ev-border">{publicCopyrightNotice}</p>
         </div>
       </main>
