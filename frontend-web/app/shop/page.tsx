@@ -111,22 +111,6 @@ function ShopListingInner() {
   );
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await catalogApi.getApprovedShops();
-        if (cancelled) return;
-        setApprovedShopDirectory(Array.isArray(data) ? (data as ApprovedShopRow[]) : []);
-      } catch {
-        if (!cancelled) setApprovedShopDirectory([]);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
     const q = (searchParams.get('search') || searchParams.get('q') || '').trim();
     queueMicrotask(() => {
       if (q) setSearch(q);
@@ -147,7 +131,7 @@ function ShopListingInner() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, categoryId, brand, minPrice, maxPrice, shopFilter, inStockOnly, minRating, approvedShopsOnly, sort, pageSize]);
+  }, [search, categoryId, brand, minPrice, maxPrice, inStockOnly, minRating, approvedShopsOnly, sort, pageSize]);
 
   const load = useCallback(async () => {
     setLoading(true);
