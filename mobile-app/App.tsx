@@ -1862,48 +1862,6 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                 </Pressable>
               </View>
             ) : null}
-            <View style={styles.shopFooterBand}>
-              <Text style={styles.shopFooterBlurb}>{aboutBrandSummary}</Text>
-              <Text style={styles.shopFooterHeading}>Quick links</Text>
-              {footerQuickNavLinks.map((l) => (
-                <Pressable
-                  key={l.path + l.label}
-                  onPress={() => {
-                    if (l.path === '/blog') {
-                      const p = navigation.getParent();
-                      if (p && typeof (p as { navigate?: (name: string) => void }).navigate === 'function') {
-                        (p as { navigate: (name: string) => void }).navigate('Blog');
-                        return;
-                      }
-                    }
-                    if (l.path === '/contact' && tryNavigateRootContact(navigation)) return;
-                    void Linking.openURL(publicWebUrl(l.path));
-                  }}
-                >
-                  <Text style={styles.shopFooterLink}>{l.label}</Text>
-                </Pressable>
-              ))}
-              <Text style={[styles.shopFooterHeading, { marginTop: 16 }]}>Policies</Text>
-              {footerPolicyLinks.map((l) => (
-                <Pressable key={l.path + l.label} onPress={() => void Linking.openURL(publicWebUrl(l.path))}>
-                  <Text style={styles.shopFooterLink}>{l.label}</Text>
-                </Pressable>
-              ))}
-              <Text style={[styles.shopFooterHeading, { marginTop: 16 }]}>Contact information</Text>
-              <Pressable onPress={() => void Linking.openURL(publicSalesTelHref())}>
-                <Text style={styles.shopFooterLink}>{publicSalesPhoneDisplay}</Text>
-              </Pressable>
-              <Pressable onPress={() => void Linking.openURL(publicSupportTelHref())}>
-                <Text style={styles.shopFooterLink}>{publicSupportPhoneDisplay}</Text>
-              </Pressable>
-              <Pressable onPress={() => void Linking.openURL(`mailto:${publicMarketingEmail}`)}>
-                <Text style={styles.shopFooterLink}>{publicMarketingEmail}</Text>
-              </Pressable>
-              <Pressable onPress={() => void Linking.openURL(`mailto:${publicSupportEmail}`)}>
-                <Text style={styles.shopFooterLink}>{publicSupportEmail}</Text>
-              </Pressable>
-              <Text style={styles.shopFooterAddress}>{publicRegisteredAddress}</Text>
-            </View>
           </View>
         }
       />

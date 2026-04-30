@@ -127,17 +127,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="ev-container py-10 pb-16 flex flex-wrap gap-3">
-          <Link href="/shop" className="ev-btn-primary text-sm">
-            Browse shop
-          </Link>
-          <Link href="/contact" className="ev-btn-secondary text-sm">
-            Contact us
-          </Link>
-          <Link href="/faq" className="ev-btn-secondary text-sm">
-            FAQs
-          </Link>
-        </section>
       </main>
     </PublicShell>
   );
