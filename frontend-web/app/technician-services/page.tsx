@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getRole, isLoggedIn } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
+import { homeJoinTechnicianSectionImageAlt, homeJoinTechnicianSectionImageSrc } from '@/lib/home-cctv-content';
 
 function isTechnicianRole(r: string | undefined) {
   return r === 'electrician' || r === 'electrician_pending' || r === 'electrician_rejected';
@@ -26,14 +27,31 @@ export default function TechnicianServicesPage() {
 
   return (
     <PublicShell>
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
-        <h1 className="text-3xl font-bold text-ev-text mb-2">Technician Services</h1>
-        <p className="text-ev-muted mb-6">
-          Book verified electricians for AC repair, wiring, inverters, and more — after you buy your gear, we help you install and maintain it.
-        </p>
-        <p id="areas" className="text-ev-text font-medium mb-2">
-          Service areas
-        </p>
+      <main className="ev-container py-12 sm:py-14 w-full min-w-0">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 xl:gap-12 items-start max-w-6xl mx-auto">
+          <div className="relative w-full min-h-[240px] sm:min-h-[280px] lg:min-h-[320px] rounded-2xl overflow-hidden border border-ev-border bg-ev-surface2 shadow-ev-sm lg:sticky lg:top-24 self-start aspect-[5/4] sm:aspect-[4/3] lg:aspect-auto">
+            {/* eslint-disable-next-line @next/next/no-img-element -- marketing: technician install */}
+            <img
+              src={homeJoinTechnicianSectionImageSrc}
+              alt={homeJoinTechnicianSectionImageAlt}
+              className="absolute inset-0 h-full w-full object-cover object-center"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-ev-navbar/30 via-transparent to-transparent pointer-events-none"
+              aria-hidden
+            />
+          </div>
+
+          <div className="min-w-0">
+            <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-2">Technician Services</h1>
+            <p className="text-ev-muted mb-6 leading-relaxed">
+              Book verified electricians for AC repair, wiring, inverters, and more — after you buy your gear, we help you install and maintain it.
+            </p>
+            <p id="areas" className="text-ev-text font-medium mb-2">
+              Service areas
+            </p>
         {!loggedIn ? (
           <>
             <p className="text-ev-muted text-sm mb-4 leading-relaxed">
@@ -84,6 +102,8 @@ export default function TechnicianServicesPage() {
             Coverage expands with our technician network. Shoppers book from their account via Book a technician or My orders after they sign in.
           </p>
         )}
+          </div>
+        </div>
       </main>
     </PublicShell>
   );
