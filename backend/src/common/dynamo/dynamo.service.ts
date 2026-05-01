@@ -15,6 +15,7 @@ import {
   type DynamoLikeQueryInput,
   type DynamoLikeScanInput,
 } from './mongo-dynamo-query.util';
+import { resolveMongoConnectionString } from './mongo-uri.util';
 
 function stripMongoId(doc: Record<string, unknown> | null | undefined): any {
   if (!doc || typeof doc !== 'object') return doc;
@@ -48,10 +49,10 @@ export class DynamoService implements OnModuleInit, OnModuleDestroy {
   constructor(private config: ConfigService) {}
 
   async onModuleInit(): Promise<void> {
-    const uri =
-      this.config.get<string>('MONGODB_URI') ||
-      this.config.get<string>('DATABASE_URL') ||
-      'mongodb://127.0.0.1:27017/evision';
+    const uri = resolveMongoConnectionString(
+      this.config.get<string>('MONGODB_URI'),
+      this.config.get<string>('DATABASE_URL'),
+    );
     try {
       this.client = new MongoClient(uri);
       await this.client.connect();

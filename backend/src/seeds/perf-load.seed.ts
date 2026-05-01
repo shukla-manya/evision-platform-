@@ -3,11 +3,12 @@
  * Requires MongoDB and at least one approved admin shop.
  *
  * Usage: npm run seed:perf
- * Env: MONGODB_URI / DATABASE_URL, PERF_PRODUCT_COUNT (default 48), PERF_ORDER_GROUPS (default 0)
+ * Env: MONGODB_URI or DATABASE_URL (Mongo URI only), PERF_PRODUCT_COUNT (default 48), PERF_ORDER_GROUPS (default 0)
  */
 import * as dotenv from 'dotenv';
 import { MongoClient } from 'mongodb';
 import * as path from 'path';
+import { resolveMongoConnectionStringFromProcessEnv } from '../common/dynamo/mongo-uri.util';
 import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
@@ -18,8 +19,7 @@ const CAT_B = '11111111-1111-4111-8111-111111111102';
 async function main() {
   console.log('\n⚡ E vision — perf catalogue seed\n');
 
-  const uri =
-    process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/evision';
+  const uri = resolveMongoConnectionStringFromProcessEnv();
   const client = new MongoClient(uri);
   await client.connect();
   const db = client.db();

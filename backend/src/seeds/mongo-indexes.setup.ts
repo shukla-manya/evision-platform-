@@ -2,11 +2,12 @@
  * Recommended MongoDB indexes (idempotent). Collections are created implicitly on first write.
  *
  * Run: npm run setup:tables
- * Env: MONGODB_URI or DATABASE_URL (defaults to mongodb://127.0.0.1:27017/evision)
+ * Env: MONGODB_URI or DATABASE_URL if it is a Mongo URI (defaults to mongodb://127.0.0.1:27017/evision)
  */
 import { MongoClient } from 'mongodb';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
+import { resolveMongoConnectionStringFromProcessEnv } from '../common/dynamo/mongo-uri.util';
 
 const INDEX_SPECS: { collection: string; keys: Record<string, 1 | -1>; options?: { unique?: boolean } }[] = [
   { collection: 'evision_users', keys: { phone: 1 } },
@@ -52,8 +53,7 @@ export async function ensureEvisionMongoIndexes(client: MongoClient): Promise<vo
 
 async function setupCli(): Promise<void> {
   dotenv.config({ path: path.join(__dirname, '../../.env') });
-  const uri =
-    process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/evision';
+  const uri = resolveMongoConnectionStringFromProcessEnv();
 
   console.log('\n⚡ E vision — MongoDB indexes\n');
   console.log(`URI: ${uri.replace(/\/\/([^@]+@)?/, '//***@')}\n`);

@@ -2,14 +2,14 @@ import * as bcrypt from 'bcryptjs';
 import * as dotenv from 'dotenv';
 import { MongoClient } from 'mongodb';
 import * as path from 'path';
+import { resolveMongoConnectionStringFromProcessEnv } from '../common/dynamo/mongo-uri.util';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 async function seedSuperadmin() {
   console.log('\n⚡ E vision — Superadmin Seed\n');
 
-  const uri =
-    process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://127.0.0.1:27017/evision';
+  const uri = resolveMongoConnectionStringFromProcessEnv();
   const email = process.env.SUPERADMIN_EMAIL;
   const password = process.env.SUPERADMIN_PASSWORD;
   const name = process.env.SUPERADMIN_NAME || 'Super Admin';
