@@ -41,6 +41,7 @@ import {
   homeDealerSectionImageSrc,
   homeJoinTechnicianSectionImageAlt,
   homeJoinTechnicianSectionImageSrc,
+  homeCustomerReviews,
   securityCameraCollectionIntro,
   securityCameraCollectionTitle,
 } from '@/lib/home-cctv-content';
@@ -252,6 +253,68 @@ function HomeLeadForm() {
           .
         </p>
       </form>
+    </div>
+  );
+}
+
+function HomeReviewsLoop() {
+  const n = homeCustomerReviews.length;
+  const [idx, setIdx] = useState(0);
+  const [motionReduced, setMotionReduced] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setMotionReduced(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  useEffect(() => {
+    if (motionReduced || n <= 1) return;
+    const id = window.setInterval(() => setIdx((i) => (i + 1) % n), 4300);
+    return () => window.clearInterval(id);
+  }, [motionReduced, n]);
+
+  return (
+    <div className="mx-auto w-full max-w-md grid grid-rows-[1fr_auto] aspect-square rounded-2xl border border-ev-border bg-ev-surface shadow-ev-sm overflow-hidden">
+      <div className="relative min-h-0 p-6 sm:p-8 flex flex-col">
+        <p className="text-ev-primary font-bold text-[11px] uppercase tracking-[0.2em] mb-3 text-center">Customer reviews</p>
+        <div className="relative flex-1 min-h-0" aria-live={motionReduced ? 'off' : 'polite'}>
+          {homeCustomerReviews.map((r, i) => (
+            <blockquote
+              key={`${r.author}-${i}`}
+              className={`absolute inset-0 flex flex-col justify-center text-center transition-opacity duration-700 ease-in-out ${
+                i === idx ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
+              }`}
+            >
+              <div className="flex justify-center mb-3">
+                <StarRow rating={r.rating} />
+              </div>
+              <p className="text-ev-text text-base sm:text-lg leading-relaxed font-medium">&ldquo;{r.quote}&rdquo;</p>
+              <footer className="mt-4 text-ev-muted text-sm">
+                <span className="text-ev-text font-semibold">{r.author}</span>
+                <span className="text-ev-subtle"> · {r.subtitle}</span>
+              </footer>
+            </blockquote>
+          ))}
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-2 px-4 pb-4 pt-1 border-t border-ev-border/80 bg-ev-surface2/50">
+        {homeCustomerReviews.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setIdx(i)}
+            className={`h-2.5 rounded-full transition-all duration-300 ${
+              i === idx ? 'w-8 bg-ev-primary' : 'w-2.5 bg-ev-border hover:bg-ev-muted'
+            }`}
+            aria-label={`Show review ${i + 1} of ${n}`}
+            aria-current={i === idx}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -644,6 +707,19 @@ export default function HomePage() {
         <section className="bg-ev-surface2/50 py-12 sm:py-16 border-t border-ev-border">
           <div className="ev-container">
             <HomeLeadForm />
+          </div>
+        </section>
+
+        {/* Customer reviews — seven testimonials in a square panel, crossfade loop */}
+        <section className="py-12 sm:py-16 border-t border-ev-border bg-ev-bg" aria-labelledby="home-reviews-heading">
+          <div className="ev-container flex flex-col items-center">
+            <h2 id="home-reviews-heading" className="text-xl sm:text-2xl font-bold text-ev-text text-center mb-2">
+              Loved by customers across India
+            </h2>
+            <p className="text-ev-muted text-sm text-center max-w-lg mb-8">
+              Seven recent experiences — tap a dot or wait a few seconds to see the next one.
+            </p>
+            <HomeReviewsLoop />
           </div>
         </section>
 

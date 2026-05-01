@@ -145,3 +145,49 @@ export const homeDealerSectionImageAlt =
 export const homeLeadFormImageSrc = pexPhoto('430208', 1200);
 
 export const homeLeadFormImageAlt = 'CCTV camera installed for home and business security';
+
+/** Seven homepage testimonials — cycled in a square review panel after the lead form. */
+export const homeCustomerReviews = [
+  {
+    quote: 'Night vision is crystal clear. We finally feel safe leaving the shop closed over long weekends.',
+    author: 'Priya N.',
+    subtitle: 'Retail store, Pune',
+    rating: 5,
+  },
+  {
+    quote: 'PoE kit was easy for our electrician to wire. Support answered sizing questions before we ordered.',
+    author: 'Rahul K.',
+    subtitle: 'Warehouse, Ahmedabad',
+    rating: 5,
+  },
+  {
+    quote: 'Ordered on Monday, cameras were up by Thursday. Tracking and invoice were straightforward.',
+    author: 'Anita S.',
+    subtitle: 'Homeowner, Bengaluru',
+    rating: 4.5,
+  },
+  {
+    quote: 'Dealer pricing saved us a lot on a six-camera refit for our clinic waiting areas.',
+    author: 'Dr. Mehta Clinic',
+    subtitle: 'Healthcare, Hyderabad',
+    rating: 5,
+  },
+  {
+    quote: 'App alerts when motion hits our lane — false alarms dropped after we adjusted the zones.',
+    author: 'Vikram T.',
+    subtitle: 'Farm lane, Jaipur',
+    rating: 4.5,
+  },
+  {
+    quote: 'School admin wanted NDAA-friendly options; your team pointed us to the right dome models.',
+    author: 'Sunita R.',
+    subtitle: 'School IT, Chennai',
+    rating: 5,
+  },
+  {
+    quote: 'One checkout for cameras and a switch from two different sellers — that alone was worth it.',
+    author: 'Farhan M.',
+    subtitle: 'Small office, Delhi NCR',
+    rating: 5,
+  },
+] as const;
