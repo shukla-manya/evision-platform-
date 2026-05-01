@@ -181,7 +181,6 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
   const lowTh = Number(product.low_stock_threshold ?? 10);
   const stockNum = product.stock != null ? Number(product.stock) : null;
   const showUrgency = inStock && stockNum != null && stockNum > 0 && stockNum <= lowTh;
-  const categoryLabel = product.category_name || product.brand || 'Shop';
 
   const addToCart = async (thenCheckout: boolean) => {
     if (!inStock) return;
@@ -247,9 +246,6 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
   return (
     <SafeAreaView style={styles.screen} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.scrollPad} keyboardShouldPersistTaps="handled">
-        <Text style={styles.breadcrumb} numberOfLines={2}>
-          Home · {categoryLabel} · {product.name}
-        </Text>
         <Pressable onPress={() => navigation.goBack()} style={styles.backRow}>
           <MaterialCommunityIcons name="chevron-left" size={22} color={colors.brandPrimary} />
           <Text style={styles.backText}>Back to products</Text>
@@ -494,7 +490,6 @@ const g = screenGutter;
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   scrollPad: { paddingHorizontal: g, paddingTop: 8, paddingBottom: 32 },
-  breadcrumb: { fontSize: 11, color: colors.muted, marginBottom: 8 },
   backRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   backText: { fontSize: 14, fontWeight: '600', color: colors.brandPrimary },
   detailLoading: { paddingVertical: 8, alignItems: 'center' },

@@ -302,11 +302,6 @@ export default function ProductDetailPage() {
   const lowTh = Number(product.low_stock_threshold ?? 10);
   const stockNum = product.stock != null ? Number(product.stock) : null;
   const showUrgency = inStock && stockNum != null && stockNum > 0 && stockNum <= lowTh;
-  const categoryLabel = product.category_name || product.brand || 'Shop';
-  const shopHref = product.category_id
-    ? `/shop?category_id=${encodeURIComponent(product.category_id)}`
-    : '/shop';
-
   return (
     <PublicShell>
       <main className="ev-container py-6 sm:py-8 w-full min-w-0">
