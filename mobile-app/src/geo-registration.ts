@@ -1,6 +1,22 @@
 import * as Location from 'expo-location';
 import { API_BASE_URL } from './services/api';
 
+const REVERSE_GEOCODE_FETCH_MS = 8000;
+
+async function fetchWithTimeout(
+  input: string,
+  init: RequestInit | undefined,
+  timeoutMs: number,
+): Promise<Response> {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: ac.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 const NOMINATIM_HEADERS = {
   Accept: 'application/json',
   'Accept-Language': 'en',
@@ -44,8 +60,10 @@ async function reverseGeocodeViaBackend(
   const base = API_BASE_URL.replace(/\/$/, '');
   if (!base) return null;
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${base}/geo/reverse?lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(String(lng))}`,
+      undefined,
+      REVERSE_GEOCODE_FETCH_MS,
     );
     if (!res.ok) return null;
     const data = (await res.json()) as { address?: string; city?: string; pincode?: string };
@@ -67,7 +85,7 @@ async function reverseGeocodeIndiaDirect(
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}&addressdetails=1`;
   try {
-    const res = await fetch(url, { headers: { ...NOMINATIM_HEADERS } });
+    const res = await fetchWithTimeout(url, { headers: { ...NOMINATIM_HEADERS } }, REVERSE_GEOCODE_FETCH_MS);
     if (!res.ok) return null;
     const data = (await res.json()) as { display_name?: string; address?: NominatimAddress };
     const a = data.address;
@@ -153,25 +171,45 @@ export async function geocodeIndia(city: string, pincode: string): Promise<{ lat
 export async function getExpoGeolocation(): Promise<{ lat: number; lng: number } | null> {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== 'granted') return null;
+
+  const coords = (p: Location.LocationObject) => ({
+    lat: p.coords.latitude,
+    lng: p.coords.longitude,
+  });
+
+  try {
+    const last = await Location.getLastKnownPositionAsync({ maxAge: 120_000 });
+    if (last?.coords && Number.isFinite(last.coords.latitude) && Number.isFinite(last.coords.longitude)) {
+      return coords(last);
+    }
+  } catch {
+    /* fall through */
+  }
+
+  try {
+    const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
+    return coords(pos);
+  } catch {
+    /* fall through */
+  }
+
   try {
     const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-    return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    return coords(pos);
   } catch {
-    try {
-      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
-      return { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    } catch {
-      try {
-        const last = await Location.getLastKnownPositionAsync();
-        if (last?.coords && Number.isFinite(last.coords.latitude) && Number.isFinite(last.coords.longitude)) {
-          return { lat: last.coords.latitude, lng: last.coords.longitude };
-        }
-      } catch {
-        /* ignore */
-      }
-      return null;
-    }
+    /* fall through */
   }
+
+  try {
+    const last = await Location.getLastKnownPositionAsync();
+    if (last?.coords && Number.isFinite(last.coords.latitude) && Number.isFinite(last.coords.longitude)) {
+      return coords(last);
+    }
+  } catch {
+    /* ignore */
+  }
+
+  return null;
 }
 
 /** Prefer GPS; fall back to city + pincode (India) via Nominatim. */

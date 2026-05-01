@@ -38,6 +38,22 @@ function apiBaseUrl(): string {
   return (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
 }
 
+const REVERSE_GEOCODE_FETCH_MS = 8000;
+
+async function fetchWithTimeout(
+  input: string,
+  init: RequestInit | undefined,
+  timeoutMs: number,
+): Promise<Response> {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: ac.signal });
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 /** Same-origin / backend proxy — avoids browser CORS and blocked User-Agent on Nominatim. */
 async function reverseGeocodeViaBackend(
   lat: number,
@@ -46,9 +62,10 @@ async function reverseGeocodeViaBackend(
   const base = apiBaseUrl();
   if (!base) return null;
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `${base}/geo/reverse?lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(String(lng))}`,
       { credentials: 'omit' },
+      REVERSE_GEOCODE_FETCH_MS,
     );
     if (!res.ok) return null;
     const data = (await res.json()) as { address?: string; city?: string; pincode?: string };
@@ -71,7 +88,7 @@ async function reverseGeocodeIndiaDirect(
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}&addressdetails=1`;
   try {
-    const res = await fetch(url, { headers: NOMINATIM_HEADERS });
+    const res = await fetchWithTimeout(url, { headers: NOMINATIM_HEADERS }, REVERSE_GEOCODE_FETCH_MS);
     if (!res.ok) return null;
     const data = (await res.json()) as { display_name?: string; address?: NominatimAddress };
     const a = data.address;
@@ -100,34 +117,33 @@ export async function reverseGeocodeIndia(
   return reverseGeocodeIndiaDirect(lat, lng);
 }
 
-/** Browser GPS; returns null if unavailable, denied, or timeout. Tries high accuracy first, then network/Wi‑Fi fix. */
-export function getBrowserGeolocation(timeoutMs = 16000): Promise<{ lat: number; lng: number } | null> {
+/**
+ * Browser GPS; returns null if unavailable, denied, or timeout.
+ * Tries a fast network / cached fix first, then high accuracy — avoids ~2× long GPS waits.
+ */
+export function getBrowserGeolocation(): Promise<{ lat: number; lng: number } | null> {
   if (typeof window === 'undefined' || !navigator.geolocation) {
     return Promise.resolve(null);
   }
-  const once = (enableHighAccuracy: boolean) =>
+  const run = (enableHighAccuracy: boolean, maximumAge: number, timeoutMs: number) =>
     new Promise<{ lat: number; lng: number } | null>((resolve) => {
-      const t = window.setTimeout(() => resolve(null), timeoutMs);
+      const watchdog = window.setTimeout(() => resolve(null), timeoutMs);
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          window.clearTimeout(t);
+          window.clearTimeout(watchdog);
           resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         },
         () => {
-          window.clearTimeout(t);
+          window.clearTimeout(watchdog);
           resolve(null);
         },
-        {
-          enableHighAccuracy,
-          maximumAge: enableHighAccuracy ? 60_000 : 300_000,
-          timeout: timeoutMs,
-        },
+        { enableHighAccuracy, maximumAge, timeout: timeoutMs },
       );
     });
   return (async () => {
-    const hi = await once(true);
-    if (hi) return hi;
-    return once(false);
+    const fast = await run(false, 300_000, 7000);
+    if (fast) return fast;
+    return run(true, 0, 12_000);
   })();
 }
 
