@@ -2927,12 +2927,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
+  collectionTitleRow: { textAlign: 'left' },
   collectionBody: {
     fontSize: 13,
     lineHeight: 20,
     color: colors.textSecondary,
     textAlign: 'center',
   },
+  collectionBodyRow: { textAlign: 'left' },
   collectionCta: {
     marginTop: 14,
     alignSelf: 'center',
@@ -2944,6 +2946,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
   },
+  collectionCtaRow: { alignSelf: 'flex-start' },
   collectionCtaText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   collectionCards: {
     gap: 10,
