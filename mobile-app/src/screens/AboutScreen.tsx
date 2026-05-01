@@ -1,4 +1,6 @@
 import { Image, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { CustomerReviewsHeading } from '../components/CustomerReviewsHeading';
+import { homeCustomerReviews } from '../lib/home-customer-reviews';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
@@ -75,6 +77,22 @@ export function AboutScreen() {
             </View>
           ))}
         </View>
+
+        <CustomerReviewsHeading />
+        <ScrollView
+          horizontal
+          nestedScrollEnabled
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.reviewsRow}
+        >
+          {homeCustomerReviews.map((r) => (
+            <View key={r.name} style={styles.reviewCard}>
+              <Text style={styles.reviewQuote}>&ldquo;{r.quote}&rdquo;</Text>
+              <Text style={styles.reviewName}>{r.name}</Text>
+              <Text style={styles.reviewRole}>{r.role}</Text>
+            </View>
+          ))}
+        </ScrollView>
 
         <View style={styles.summaryBox}>
           <Text style={styles.summary}>{aboutBrandSummary}</Text>
@@ -156,6 +174,18 @@ const styles = StyleSheet.create({
   },
   premierCardTitle: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, marginBottom: 6 },
   premierCardBody: { fontSize: 13, lineHeight: 20, color: colors.textSecondary },
+  reviewsRow: { gap: 12, paddingVertical: 4, paddingBottom: 8 },
+  reviewCard: {
+    width: 280,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  reviewQuote: { fontSize: 13, lineHeight: 20, color: colors.textPrimary, marginBottom: 10 },
+  reviewName: { fontSize: 13, fontWeight: '800', color: colors.brandPrimary },
+  reviewRole: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
   summaryBox: {
     marginTop: 8,
     paddingTop: 20,
