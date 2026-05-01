@@ -615,40 +615,40 @@ export default function HomePage() {
             {(
               [
                 {
-                  kicker: 'Shops',
+                  kicker: 'Partners',
                   Icon: Store,
-                  title: 'A real shop name on every listing',
-                  body: 'Stores apply before they can sell. If a product is live, the shop name on the card is who stocks it and who you are buying from—not a mystery fulfilment centre.',
+                  title: 'The shop on the card is who you paid',
+                  body: 'Nobody lists until someone has looked at the signup. Corny but true: if you see a shop name next to a SKU, that shop is supposed to pick and pack it. There is no invisible middle layer we swap in later.',
                 },
                 {
-                  kicker: 'Cart',
+                  kicker: 'Basket',
                   Icon: Layers,
-                  title: 'One PayU payment, split behind the scenes',
-                  body: 'Your cart can mix SKUs from two different approved shops. You still get a single PayU payment; **My orders** lists line items by shop so you know who is shipping what.',
+                  title: 'Throw two cities in one cart if you want',
+                  body: 'Cable from one partner, NVR from another, same checkout. PayU still collects once. When you need proof of who owes you a box, **My orders** already groups rows by shop so you are not doing spreadsheet surgery.',
                 },
                 {
-                  kicker: 'Dispatch',
+                  kicker: 'Courier',
                   Icon: Truck,
-                  title: 'AWB only after the shop books courier',
-                  body: 'Tracking appears when the shop actually hands the parcel to the carrier. Carrier name and AWB land on the order row—nothing is invented earlier to look busy.',
+                  title: 'Tracking shows up when the parcel actually moves',
+                  body: 'Before pickup you will just see preparing. After the shop books AWB, carrier + number land on the line. We are allergic to fake tracking links on day zero to keep investors happy.',
                 },
                 {
-                  kicker: 'On-site',
+                  kicker: 'Help',
                   Icon: Wrench,
-                  title: 'Technicians when your pincode is covered',
-                  body: 'You can request install or service from technicians on the platform where we have coverage. It stays under your login so you are not DMing random numbers off a receipt.',
+                  title: 'Technician visits only where we opened the map',
+                  body: 'Raise a visit from the same login you ordered with if your pincode is inside the service bubble. If we have not switched your area on yet, the button will tell you straight—better than a promise we cannot keep.',
                 },
                 {
-                  kicker: 'PayU',
+                  kicker: 'Money',
                   Icon: CreditCard,
-                  title: 'Hosted checkout you have seen elsewhere',
-                  body: 'UPI, cards, and net banking are processed on PayU’s page—the redirect flow Indian shoppers already recognise. We do not hold card numbers on E vision.',
+                  title: 'PayU opens in the usual redirect tab',
+                  body: 'UPI, card, netbanking all happen on PayU’s hosted page, same pattern you have probably hit on other Indian retail sites. Card data never touches our own servers; we are fine admitting that.',
                 },
                 {
-                  kicker: 'Dealers',
+                  kicker: 'B2B',
                   Icon: Receipt,
-                  title: 'GSTIN unlocks dealer columns',
-                  body: 'Sign up as a dealer with a valid GSTIN. After verification, any shop that published a dealer price shows it in the catalogue for your account—same site, different columns.',
+                  title: 'Dealer rates need a GSTIN and a human tick',
+                  body: 'Register with your company GSTIN, send what finance asks for, wait for someone to flip you to verified. Then catalogue prices swap to dealer numbers wherever a shop bothered to maintain them. Still this domain, no secret portal.',
                 },
               ] as const
             ).map(({ kicker, Icon, title, body }) => (
