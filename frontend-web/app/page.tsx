@@ -318,7 +318,7 @@ function HomeTestimonialsMarquee() {
 
   return (
     <div
-      className="ev-home-testimonials-marquee group relative mx-auto w-full max-w-5xl overflow-hidden py-2 sm:py-3"
+      className="ev-home-testimonials-marquee group relative w-full min-w-0 overflow-hidden py-2 sm:py-3"
       role="region"
       aria-label="Customer testimonials, scrolling in a loop"
     >
@@ -332,7 +332,7 @@ function HomeTestimonialsMarquee() {
       />
 
       {motionReduced ? (
-        <div className="relative z-0 mx-auto flex max-w-sm flex-col gap-3 px-2">
+        <div className="ev-page-gutter relative z-0 mx-auto flex w-full max-w-lg flex-col gap-3">
           {homeCustomerReviews.map((r, i) => (
             <TestimonialReviewBox key={i} r={r} />
           ))}
@@ -740,14 +740,18 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Customer testimonials — card boxes in horizontal marquee (no outer frame) */}
-        <section className="py-12 sm:py-16 border-t border-ev-border bg-ev-bg" aria-labelledby="home-reviews-heading">
-          <div className="ev-container flex flex-col items-center gap-6">
-            <h2 id="home-reviews-heading" className="text-xl sm:text-2xl font-bold text-ev-text text-center">
-              Loved by customers across India
-            </h2>
-            <HomeTestimonialsMarquee />
-          </div>
+        {/* Customer testimonials — full-bleed width (edge to edge); heading uses safe-area gutters only */}
+        <section
+          className="w-full min-w-0 border-t border-ev-border bg-ev-bg py-12 sm:py-16"
+          aria-labelledby="home-reviews-heading"
+        >
+          <h2
+            id="home-reviews-heading"
+            className="ev-page-gutter mb-6 text-center text-xl font-bold text-ev-text sm:text-2xl sm:mb-8"
+          >
+            Loved by customers across India
+          </h2>
+          <HomeTestimonialsMarquee />
         </section>
 
         {/* Dealer / technician */}
