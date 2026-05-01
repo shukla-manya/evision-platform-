@@ -303,16 +303,13 @@ export function PublicFooter() {
               />
             </div>
           </div>
-        </div>
-
-        <div className="border-t border-white/10">
-          <div className="mx-auto w-full max-w-none ev-page-gutter py-5 sm:py-6">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-2.5">Payment options</p>
-            <p className="text-[12px] leading-relaxed text-white/60 max-w-3xl">
-              Checkout is processed securely through PayU. You can pay with UPI, debit and credit cards, net banking, and
-              supported wallets where enabled for your order.
-            </p>
-          </div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-2.5 border-t border-white/10 pt-8 mt-8 sm:mt-10 sm:pt-10">
+            Payment options
+          </p>
+          <p className="text-[12px] leading-relaxed text-white/60 max-w-3xl">
+            Checkout is processed securely through PayU. You can pay with UPI, debit and credit cards, net banking, and
+            supported wallets where enabled for your order.
+          </p>
         </div>
       </div>
 
