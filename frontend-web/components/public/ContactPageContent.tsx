@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { aboutBrandSummary } from '@/lib/about-company-content';
+import { homeLeadFormImageAlt, homeLeadFormImageSrc } from '@/lib/home-cctv-content';
 import { publicContactApi, type ContactMessageResponse } from '@/lib/api';
 
 function apiErrorMessage(err: unknown, fallback: string): string {
@@ -93,20 +94,38 @@ export function ContactPageContent() {
       </a>
 
       <main id="main-content" className="ev-container py-10 sm:py-14 w-full min-w-0">
-        <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-2">Get in Touch</h1>
-        <p className="text-ev-muted max-w-2xl mb-4">
-          We are here for orders, accounts, dealers, technicians, and partnerships. Submit the form below — we email our
-          team and send you a confirmation with everything you entered.
-        </p>
-        <p className="text-ev-subtle text-sm max-w-2xl mb-10">
-          Phone numbers, marketing and support email, and our office address are in the{' '}
-          <a href="#site-footer-contact" className="text-ev-primary font-medium hover:underline">
-            site footer
-          </a>{' '}
-          on every page (scroll to the bottom or use that link).
-        </p>
+        <div className="max-w-3xl mb-8 sm:mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-2">Get in Touch</h1>
+          <p className="text-ev-muted mb-4">
+            We are here for orders, accounts, dealers, technicians, and partnerships. Submit the form below — we email our
+            team and send you a confirmation with everything you entered.
+          </p>
+          <p className="text-ev-subtle text-sm">
+            Phone numbers, marketing and support email, and our office address are in the{' '}
+            <a href="#site-footer-contact" className="text-ev-primary font-medium hover:underline">
+              site footer
+            </a>{' '}
+            on every page (scroll to the bottom or use that link).
+          </p>
+        </div>
 
-        <div className="max-w-2xl mb-14 space-y-8">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 xl:gap-12 items-start max-w-6xl mx-auto w-full mb-14">
+          <div className="relative min-h-[240px] sm:min-h-[280px] lg:min-h-[320px] rounded-2xl overflow-hidden border border-ev-border bg-ev-surface2 shadow-ev-sm lg:sticky lg:top-24 self-start w-full">
+            {/* eslint-disable-next-line @next/next/no-img-element -- same marketing art as home lead strip */}
+            <img
+              src={homeLeadFormImageSrc}
+              alt={homeLeadFormImageAlt}
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-ev-navbar/35 via-transparent to-transparent pointer-events-none"
+              aria-hidden
+            />
+          </div>
+
+          <div className="space-y-8 min-w-0">
             {formSuccess ? (
               <div className="ev-card p-6 sm:p-8 border-2 border-ev-primary/30 bg-ev-primary/5">
                 <p className="text-xl font-bold text-ev-text">Thank you, {formSuccess.greeting_name}!</p>
@@ -141,7 +160,7 @@ export function ContactPageContent() {
               </div>
             ) : (
               <div className="ev-card p-6 sm:p-8">
-                <h2 className="text-xl font-bold text-ev-text mb-6">Get in Touch</h2>
+                <h2 className="text-xl font-bold text-ev-text mb-6">Send a message</h2>
                 {formError ? (
                   <p className="text-sm text-red-600 mb-4 rounded-lg bg-red-50 px-3 py-2 border border-red-100">{formError}</p>
                 ) : null}
