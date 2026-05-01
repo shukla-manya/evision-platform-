@@ -134,11 +134,12 @@ export const homeJoinTechnicianSectionImageSrc =
 export const homeJoinTechnicianSectionImageAlt =
   'Technician illustration with CCTV cameras, recorder, cabling, and install accessories';
 
-/** “Register as dealer” home card — warehouse / wholesale (Pexels). */
-export const homeDealerSectionImageSrc = pexPhoto('1267320', 1200);
+/** “Register as dealer” home card — distributor vs dealer (DifferenceBetween.net; hotlink may change). */
+export const homeDealerSectionImageSrc =
+  'https://www.differencebetween.net/wp-content/uploads/2018/04/Difference-Between-Distributor-ad-Dealer.jpg';
 
 export const homeDealerSectionImageAlt =
-  'Warehouse aisle with stocked shelves — wholesale distribution and bulk fulfilment';
+  'Concept illustration for dealer and distributor roles — wholesale and channel partners';
 
 /** Left visual beside the home lead (mailto) form — CCTV on wall (Pexels). */
 export const homeLeadFormImageSrc = pexPhoto('430208', 1200);

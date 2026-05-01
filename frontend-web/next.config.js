@@ -40,6 +40,11 @@ const nextConfig = {
         hostname: 'aquatechindia.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.differencebetween.net',
+        pathname: '/**',
+      },
     ],
   },
   env: {
