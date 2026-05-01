@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
+import { AddressBookEditor, type AddressBookEntry } from '@/components/account/AddressBookEditor';
 
 type User = {
   name?: string;
@@ -15,14 +16,7 @@ type User = {
   gst_no?: string | null;
   business_name?: string | null;
   business_address?: string | null;
-  address_book?: Array<{
-    label?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    pincode?: string;
-    is_default?: boolean;
-  }>;
+  address_book?: AddressBookEntry[];
 };
 
 export default function ProfilePage() {
@@ -154,30 +148,18 @@ export default function ProfilePage() {
               </section>
             ) : null}
 
-            <section className="ev-card p-6 space-y-3">
-              <h2 className="text-sm font-semibold text-ev-text flex items-center gap-2">
-                <MapPin size={16} className="text-ev-primary" />
-                Saved addresses
-              </h2>
-              {(user?.address_book || []).length === 0 ? (
-                <p className="text-ev-muted text-sm">No addresses yet. Add one at checkout.</p>
-              ) : (
-                <ul className="space-y-2 text-sm">
-                  {user!.address_book!.map((a, i) => (
-                    <li key={i} className="rounded-xl border border-ev-border p-3 text-ev-muted">
-                      <span className="font-medium text-ev-text">{a.label || 'Address'}</span>
-                      {a.is_default ? (
-                        <span className="ml-2 text-xs text-ev-primary">Default</span>
-                      ) : null}
-                      <p className="mt-1">
-                        {a.address}, {a.city}, {a.state} {a.pincode}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <Link href="/checkout" className="ev-btn-secondary text-sm py-2 px-4 inline-flex mt-1">
-                Manage at checkout
+            <section className="ev-card p-6 space-y-4">
+              <AddressBookEditor
+                variant="profile"
+                addresses={user?.address_book || []}
+                onSaved={(book) => setUser((u) => (u ? { ...u, address_book: book } : u))}
+              />
+              <p className="text-ev-subtle text-xs leading-relaxed">
+                Delivery addresses for orders. You can also change them during checkout. Dealer GST and registered
+                business details come from your account — use support if those need an update.
+              </p>
+              <Link href="/checkout" className="ev-btn-secondary text-sm py-2 px-4 inline-flex">
+                Go to checkout
               </Link>
             </section>
 
