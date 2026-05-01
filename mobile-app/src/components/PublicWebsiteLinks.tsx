@@ -7,6 +7,7 @@ const LINKS: { label: string; path: string }[] = [
   { label: 'Shop', path: '/shop' },
   { label: 'About', path: '/about' },
   { label: 'Contact', path: '/contact' },
+  { label: 'Newsletter', path: '/contact#contact-newsletter' },
   { label: 'FAQs', path: '/faq' },
   { label: 'Privacy', path: '/privacy' },
 ];
@@ -24,11 +25,12 @@ export function PublicWebsiteLinks({
   onOpenContact?: () => void;
 }) {
   const open = (path: string) => () => {
-    if (path === '/about' && onOpenAbout) {
+    const base = path.split('#')[0] ?? path;
+    if (base === '/about' && onOpenAbout) {
       onOpenAbout();
       return;
     }
-    if (path === '/contact' && onOpenContact) {
+    if (base === '/contact' && onOpenContact) {
       onOpenContact();
       return;
     }

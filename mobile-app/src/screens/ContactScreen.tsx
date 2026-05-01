@@ -73,7 +73,7 @@ export function ContactScreen() {
   const subscribe = useCallback(async () => {
     const em = subscribeEmail.trim();
     if (!em) {
-      Alert.alert('Email required', 'Enter your email to subscribe.');
+      Alert.alert('Email required', 'Enter your email to join the newsletter.');
       return;
     }
     try {
@@ -82,7 +82,7 @@ export function ContactScreen() {
       setSubSuccessEmail(data.email);
       setSubscribeEmail('');
     } catch (err) {
-      Alert.alert('Subscribe failed', apiErrorMessage(err, 'Please try again later.'));
+      Alert.alert('Newsletter signup failed', apiErrorMessage(err, 'Please try again later.'));
     } finally {
       setSubSubmitting(false);
     }
@@ -188,19 +188,20 @@ export function ContactScreen() {
           </View>
         )}
 
-        <Text style={styles.sectionTitle}>Subscribe us</Text>
-        <View style={styles.card}>
+        <View style={styles.card} nativeID="contact-newsletter">
+          <Text style={styles.newsletterCardTitle}>Newsletter</Text>
+          <Text style={styles.newsletterIntro}>Get updates, offers, and product news by email.</Text>
           {subSuccessEmail ? (
             <Text style={styles.muted}>
-              Thank you! We received your subscription request for{' '}
-              <Text style={{ fontWeight: '700', color: colors.textPrimary }}>{subSuccessEmail}</Text>. You should get a
-              short confirmation email shortly.
+              Thank you for subscribing! We sent a confirmation to{' '}
+              <Text style={{ fontWeight: '700', color: colors.textPrimary }}>{subSuccessEmail}</Text>. Check your inbox
+              (and spam) for our thank-you message.
             </Text>
           ) : (
             <>
               <TextInput
                 style={styles.input}
-                placeholder="Your email"
+                placeholder="Email address"
                 value={subscribeEmail}
                 onChangeText={setSubscribeEmail}
                 keyboardType="email-address"
@@ -214,10 +215,10 @@ export function ContactScreen() {
                 {subSubmitting ? (
                   <ActivityIndicator color={colors.brandPrimary} />
                 ) : (
-                  <Text style={styles.btnSecondaryText}>Subscribe</Text>
+                  <Text style={styles.btnSecondaryText}>Subscribe to newsletter</Text>
                 )}
               </Pressable>
-              <Text style={styles.hint}>We notify marketing and email you a confirmation.</Text>
+              <Text style={styles.hint}>We email you to say thanks and notify our team of your new subscription.</Text>
             </>
           )}
         </View>
@@ -271,7 +272,8 @@ const styles = StyleSheet.create({
   imageTint: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(26,26,46,0.12)' },
   formColumn: { gap: 12 },
   formColumnRow: { flex: 1, minWidth: 0, gap: 12 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 10, marginTop: 8 },
+  newsletterCardTitle: { fontSize: 18, fontWeight: '800', color: colors.textPrimary, marginBottom: 6 },
+  newsletterIntro: { fontSize: 13, color: colors.textSecondary, lineHeight: 20, marginBottom: 12 },
   formCardTitle: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, marginBottom: 16 },
   card: {
     backgroundColor: colors.surface,

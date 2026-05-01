@@ -19,7 +19,10 @@ export class ContactController {
 
   @Public()
   @Post('newsletter')
-  @ApiOperation({ summary: 'Newsletter signup — emails marketing + confirmation to the subscriber' })
+  @ApiOperation({
+    summary:
+      'Newsletter signup — emails marketing inbox, optional superadmin (if SUPERADMIN_EMAIL differs), and thank-you to the subscriber',
+  })
   subscribe(@Body() dto: SubscribeNewsletterDto) {
     return this.contact.subscribe(dto);
   }

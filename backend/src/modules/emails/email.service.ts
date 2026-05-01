@@ -94,6 +94,7 @@ export class EmailService {
     );
   }
 
+  /** Marketing / ops inbox for newsletter signups (`CONTACT_NEWSLETTER_TO_EMAIL` or `PUBLIC_MARKETING_EMAIL`). */
   newsletterInbox(): string {
     return (
       this.config.get<string>('CONTACT_NEWSLETTER_TO_EMAIL')?.trim() ||
@@ -172,17 +173,42 @@ export class EmailService {
         subscriber_email: this.escapeHtml(data.subscriberEmail),
       },
       {
-        email_title: 'Newsletter signup request',
-        preheader: `Subscribe: ${data.subscriberEmail}`,
+        email_title: 'New newsletter subscription',
+        preheader: `Newsletter: ${data.subscriberEmail}`,
         header_border_color: '#8b5cf6',
       },
     );
     return this.send({
       to: data.toEmail,
       to_role: 'marketing',
-      subject: `Newsletter signup: ${data.subscriberEmail}`,
+      subject: `New newsletter subscriber — ${data.subscriberEmail}`,
       html,
       trigger_event: 'contact_newsletter_request',
+    });
+  }
+
+  /** Superadmin copy when `SUPERADMIN_EMAIL` differs from the marketing newsletter inbox. */
+  async sendNewsletterSuperadminNotify(data: {
+    toEmail: string;
+    subscriberEmail: string;
+  }): Promise<{ ok: boolean; error: string | null }> {
+    const html = this.renderEmail(
+      'contact-newsletter-superadmin',
+      {
+        subscriber_email: this.escapeHtml(data.subscriberEmail),
+      },
+      {
+        email_title: 'Newsletter — new subscriber',
+        preheader: `Newsletter signup: ${data.subscriberEmail}`,
+        header_border_color: '#38bdf8',
+      },
+    );
+    return this.send({
+      to: data.toEmail,
+      to_role: 'superadmin',
+      subject: `[Newsletter] New subscriber — ${data.subscriberEmail}`,
+      html,
+      trigger_event: 'contact_newsletter_superadmin',
     });
   }
 
@@ -193,15 +219,15 @@ export class EmailService {
         subscriber_email: this.escapeHtml(subscriberEmail),
       },
       {
-        email_title: 'Subscription request received',
-        preheader: 'We will add you to our list if approved.',
+        email_title: 'Thank you for subscribing',
+        preheader: `You’re on the list — ${subscriberEmail}`,
         header_border_color: '#8b5cf6',
       },
     );
     return this.send({
       to: subscriberEmail,
       to_role: 'customer',
-      subject: `Newsletter — thank you — ${this.brandDisplay()}`,
+      subject: `Thank you for subscribing — ${this.brandDisplay()}`,
       html,
       trigger_event: 'contact_newsletter_customer_confirm',
     });

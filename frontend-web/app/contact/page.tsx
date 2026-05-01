@@ -5,7 +5,7 @@ import { publicBrandName } from '@/lib/public-brand';
 
 export const metadata: Metadata = {
   title: `Contact — ${publicBrandName}`,
-  description: `Contact ${publicBrandName}: support numbers, email, address, message form, and newsletter signup.`,
+  description: `Contact ${publicBrandName}: message our team, join the newsletter (thank-you + team emails), and find support details.`,
 };
 
 export default function ContactPage() {

@@ -4,6 +4,7 @@ export const footerQuickNavLinks: { label: string; path: string }[] = [
   { label: 'About', path: '/about' },
   { label: 'Shop', path: '/shop' },
   { label: 'Contact', path: '/contact' },
+  { label: 'Newsletter', path: '/contact#contact-newsletter' },
   { label: 'Support', path: '/support' },
 ];
 

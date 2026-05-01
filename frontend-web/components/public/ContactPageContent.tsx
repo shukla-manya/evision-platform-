@@ -64,7 +64,7 @@ export function ContactPageContent() {
     setSubSuccessEmail(null);
     const em = subscribeEmail.trim();
     if (!em) {
-      setSubError('Enter your email to subscribe.');
+      setSubError('Enter your email to join the newsletter.');
       return;
     }
     try {
@@ -73,7 +73,7 @@ export function ContactPageContent() {
       setSubSuccessEmail(data.email);
       setSubscribeEmail('');
     } catch (err) {
-      setSubError(apiErrorMessage(err, 'Could not subscribe right now. Please try again.'));
+      setSubError(apiErrorMessage(err, 'Could not complete newsletter signup. Please try again.'));
     } finally {
       setSubSubmitting(false);
     }
@@ -226,12 +226,13 @@ export function ContactPageContent() {
               </div>
             )}
 
-            <div className="ev-card p-6 sm:p-8">
-              <h2 className="text-lg font-bold text-ev-text mb-4">Subscribe us</h2>
+            <div id="contact-newsletter" className="ev-card p-6 sm:p-8 scroll-mt-24">
+              <h2 className="text-lg font-bold text-ev-text mb-1">Newsletter</h2>
+              <p className="text-ev-muted text-sm mb-4">Get updates, offers, and product news by email.</p>
               {subSuccessEmail ? (
                 <p className="text-sm text-ev-text leading-relaxed">
-                  Thank you! We received your subscription request for <strong>{subSuccessEmail}</strong>. You should get a
-                  short confirmation email shortly.
+                  Thank you for subscribing! We sent a confirmation to <strong>{subSuccessEmail}</strong>. Check your inbox
+                  (and spam) for our thank-you message.
                 </p>
               ) : (
                 <>
@@ -241,9 +242,10 @@ export function ContactPageContent() {
                   <div className="flex flex-col sm:flex-row gap-3">
                     <input
                       type="email"
-                      placeholder="Your email"
+                      placeholder="Email address"
                       value={subscribeEmail}
                       onChange={(e) => setSubscribeEmail(e.target.value)}
+                      autoComplete="email"
                       className="flex-1 rounded-xl border border-ev-border bg-white px-3 py-2.5 text-sm text-ev-text outline-none focus:border-ev-primary focus:ring-1 focus:ring-ev-primary/30"
                     />
                     <button
@@ -252,10 +254,12 @@ export function ContactPageContent() {
                       disabled={subSubmitting}
                       className="ev-btn-secondary px-6 py-2.5 whitespace-nowrap disabled:opacity-60"
                     >
-                      {subSubmitting ? 'Sending…' : 'Subscribe'}
+                      {subSubmitting ? 'Sending…' : 'Subscribe to newsletter'}
                     </button>
                   </div>
-                  <p className="text-ev-muted text-xs mt-2">We notify marketing and email you a confirmation.</p>
+                  <p className="text-ev-muted text-xs mt-2">
+                    We email you to say thanks and notify our team of your new subscription.
+                  </p>
                 </>
               )}
             </div>

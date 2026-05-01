@@ -1,11 +1,17 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../emails/email.service';
 import { SubmitContactMessageDto } from './dto/submit-contact-message.dto';
 import { SubscribeNewsletterDto } from './dto/subscribe-newsletter.dto';
 
 @Injectable()
 export class ContactService {
-  constructor(private readonly email: EmailService) {}
+  private readonly logger = new Logger(ContactService.name);
+
+  constructor(
+    private readonly email: EmailService,
+    private readonly config: ConfigService,
+  ) {}
 
   async submitMessage(dto: SubmitContactMessageDto) {
     const first = dto.first_name.trim();
@@ -53,20 +59,33 @@ export class ContactService {
 
   async subscribe(dto: SubscribeNewsletterDto) {
     const em = dto.email.trim().toLowerCase();
-    const inbox = this.email.newsletterInbox();
+    const marketingInbox = this.email.newsletterInbox();
 
     const staff = await this.email.sendNewsletterRequest({
-      toEmail: inbox,
+      toEmail: marketingInbox,
       subscriberEmail: em,
     });
     if (!staff.ok) {
       throw new ServiceUnavailableException('Could not submit your subscription right now. Please try again later.');
     }
 
+    const superadminEmail = this.config.get<string>('SUPERADMIN_EMAIL')?.trim().toLowerCase();
+    if (superadminEmail && superadminEmail !== marketingInbox.toLowerCase()) {
+      const sa = await this.email.sendNewsletterSuperadminNotify({
+        toEmail: superadminEmail,
+        subscriberEmail: em,
+      });
+      if (!sa.ok) {
+        this.logger.warn(
+          `Newsletter signup for ${em} was emailed to marketing, but superadmin notify failed: ${sa.error}`,
+        );
+      }
+    }
+
     const ack = await this.email.sendNewsletterConfirmation(em);
     if (!ack.ok) {
       throw new ServiceUnavailableException(
-        'Your subscription request was sent, but we could not email you a confirmation.',
+        'Your subscription was recorded, but we could not send the thank-you email. Please try again or contact support.',
       );
     }
 
