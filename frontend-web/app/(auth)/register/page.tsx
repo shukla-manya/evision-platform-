@@ -366,7 +366,7 @@ export default function RegisterPage() {
 
       <div className="relative z-10 mx-auto w-full max-w-6xl">
         <div className="flex flex-col overflow-hidden rounded-2xl border border-ev-border bg-ev-surface shadow-[0_28px_90px_-32px_rgba(15,23,42,0.18)] lg:min-h-[min(720px,calc(100dvh-7rem))] lg:flex-row lg:items-stretch">
-          <div className="relative h-44 w-full shrink-0 overflow-hidden sm:h-52 lg:h-auto lg:w-[44%] lg:min-w-0 lg:max-w-xl">
+          <div className="relative h-44 w-full shrink-0 overflow-hidden sm:h-52 lg:h-auto lg:w-[44%] lg:min-w-0">
             <img
               src={REGISTER_PANEL_IMAGE}
               alt="Colleagues welcoming customers in a modern professional workspace"
@@ -382,7 +382,7 @@ export default function RegisterPage() {
 
           <div className="flex min-h-0 min-w-0 flex-1 flex-col px-5 py-6 sm:px-8 sm:py-8 lg:overflow-y-auto lg:px-10 lg:py-10">
             <div className="mb-6 text-center lg:text-left">
-              <Link href="/" className="mb-4 inline-flex items-center gap-2.5 lg:justify-start">
+              <Link href="/" className="mb-4 inline-flex items-center justify-center gap-2.5 lg:justify-start">
                 <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
                   <Camera size={22} className="text-white" />
                 </div>
