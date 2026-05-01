@@ -133,27 +133,30 @@ export function AddressBookEditor({
       toast.error(err);
       return;
     }
-    void persist(book.map((x, j) => (j === i ? { ...normalizeBook([row])[0] } : x))));
+    const normalizedRow = normalizeBook([row])[0];
+    const next = book.map((x, j) => (j === i ? normalizedRow : x));
+    void persist(next);
   }
 
   async function setDefault(i: number) {
     const next = book.map((x, j) => ({ ...x, is_default: j === i }));
-    await persist(next);
-    onSelectedIdxChange?.(i);
+    const saved = await persist(next);
+    if (saved) onSelectedIdxChange?.(i);
   }
 
   async function removeAt(i: number) {
-    if (variant === 'checkout' && book.length <= 1) {
-      toast.error('Add another address first, or edit this one');
-      return;
-    }
     const next = book.filter((_, j) => j !== i);
     const nextNorm = ensureOneDefault(normalizeBook(next));
-    await persist(nextNorm);
-    if (variant === 'checkout' && onSelectedIdxChange) {
-      const ni = Math.min(selectedIdx >= i ? Math.max(0, selectedIdx - 1) : selectedIdx, nextNorm.length - 1);
-      onSelectedIdxChange(Math.max(0, ni));
+    const saved = await persist(nextNorm);
+    if (!saved || !onSelectedIdxChange) return;
+    if (saved.length === 0) {
+      onSelectedIdxChange(0);
+      return;
     }
+    let nextSel = selectedIdx;
+    if (i === nextSel) nextSel = 0;
+    else if (i < nextSel) nextSel = nextSel - 1;
+    onSelectedIdxChange(Math.min(Math.max(0, nextSel), saved.length - 1));
   }
 
   async function addNew() {
@@ -173,10 +176,10 @@ export function AddressBookEditor({
       return;
     }
     const next = ensureOneDefault(normalizeBook([...book, row]));
-    await persist(next);
+    const saved = await persist(next);
     setNewRow({ label: 'Home', address: '', city: '', state: '', pincode: '' });
-    if (variant === 'checkout' && onSelectedIdxChange) {
-      onSelectedIdxChange(next.length - 1);
+    if (saved && variant === 'checkout' && onSelectedIdxChange) {
+      onSelectedIdxChange(saved.length - 1);
     }
   }
 
