@@ -4,6 +4,11 @@ import { PublicShell } from '@/components/public/PublicShell';
 import { publicBrandName } from '@/lib/public-brand';
 import {
   aboutBrandSummary,
+  aboutCertificateTiles,
+  aboutPrimaryVisualAlt,
+  aboutPrimaryVisualSrc,
+  aboutSecondaryVisualAlt,
+  aboutSecondaryVisualSrc,
   aboutWhatWeProvideParagraphs,
   aboutWhatWeProvideTitle,
   premierServiceCards,
@@ -55,14 +60,29 @@ export default function AboutPage() {
 
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start w-full">
             <div className="space-y-4">
-              <div className="relative aspect-[1178/1536] max-h-[min(520px,70vh)] rounded-2xl border border-ev-border bg-gradient-to-br from-ev-surface2 to-ev-surface overflow-hidden">
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-ev-muted">
-                  <span className="text-xs font-semibold uppercase tracking-widest text-ev-subtle">Manufacturing &amp; quality</span>
-                  <span className="text-sm mt-2">Image area 1178 × 1536 — replace with your production photo</span>
-                </div>
+              <div className="relative aspect-[1178/1536] max-h-[min(520px,70vh)] rounded-2xl border border-ev-border bg-ev-surface2 overflow-hidden shadow-ev-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element -- remote marketing photography */}
+                <img
+                  src={aboutPrimaryVisualSrc}
+                  alt={aboutPrimaryVisualAlt}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
+                <div
+                  className="absolute inset-0 bg-gradient-to-t from-ev-navbar/25 via-transparent to-transparent pointer-events-none"
+                  aria-hidden
+                />
               </div>
-              <div className="relative aspect-video rounded-2xl border border-ev-border bg-ev-surface2 flex items-center justify-center text-ev-muted text-sm">
-                Secondary visual (e1) — optional hero or process image
+              <div className="relative aspect-video rounded-2xl border border-ev-border bg-ev-surface2 overflow-hidden shadow-ev-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={aboutSecondaryVisualSrc}
+                  alt={aboutSecondaryVisualAlt}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
               </div>
             </div>
             <div>
@@ -102,12 +122,19 @@ export default function AboutPage() {
         <section className="ev-container py-12 sm:py-16">
           <h2 className="text-2xl font-bold text-ev-text text-center mb-8">Our Certificates</h2>
           <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
-            {Array.from({ length: 6 }, (_, i) => (
+            {aboutCertificateTiles.map((tile, i) => (
               <div
-                key={i}
-                className="h-24 w-28 sm:h-28 sm:w-32 rounded-xl border-2 border-dashed border-ev-border bg-ev-surface2 flex items-center justify-center text-[10px] font-medium text-ev-muted uppercase tracking-wide"
+                key={`${tile.src}-${i}`}
+                className="relative h-24 w-28 sm:h-28 sm:w-32 rounded-xl border border-ev-border bg-ev-surface2 overflow-hidden shadow-ev-sm"
               >
-                Cert {i + 1}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={tile.src}
+                  alt={tile.alt}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
+                  referrerPolicy="no-referrer"
+                />
               </div>
             ))}
           </div>

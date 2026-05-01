@@ -34,3 +34,26 @@ export const premierServiceCards: { title: string; body: string }[] = [
 
 export const aboutBrandSummary =
   'EVISION is a surveillance solutions brand delivering high-performance CCTV systems and advanced network infrastructure, including PoE and AI-based technologies for reliable security across homes, businesses, and large-scale projects.';
+
+/** Pexels CDN — marketing visuals for /about (same pattern as `home-cctv-content`). */
+const pexPhoto = (id: string, w: number) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`;
+
+/** Tall hero — manufacturing / electronics quality (portrait-friendly). */
+export const aboutPrimaryVisualSrc = pexPhoto('442150', 1400);
+export const aboutPrimaryVisualAlt =
+  'Electronics assembly and quality control in a modern manufacturing environment';
+
+/** Wide secondary — operations and technology. */
+export const aboutSecondaryVisualSrc = pexPhoto('3184292', 1600);
+export const aboutSecondaryVisualAlt = 'Engineering workspace with security and network technology';
+
+/** “Our certificates” strip — representative quality / credentials imagery (illustrative). */
+export const aboutCertificateTiles: { src: string; alt: string }[] = [
+  { src: pexPhoto('7688336', 900), alt: 'Quality documentation and compliance' },
+  { src: pexPhoto('886724', 900), alt: 'Professional standards and certification' },
+  { src: pexPhoto('3861969', 900), alt: 'Enterprise systems and reliability' },
+  { src: pexPhoto('256264', 900), alt: 'Technical engineering excellence' },
+  { src: pexPhoto('442150', 900), alt: 'Precision manufacturing' },
+  { src: pexPhoto('3184292', 900), alt: 'Operations and service delivery' },
+];
