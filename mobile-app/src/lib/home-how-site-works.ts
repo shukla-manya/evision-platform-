@@ -20,7 +20,7 @@ export const HOME_HOW_SITE_CARDS = [
     icon: 'truck-outline' as const,
     title: 'Tracking shows up when the parcel actually moves',
     body:
-      'Before pickup you will just see preparing. After the shop books AWB, carrier + number land on the line. We are allergic to fake tracking links on day zero to keep investors happy.',
+      'Before pickup you will just see preparing. After the shop books AWB, carrier + number land on the line. We leave the row blank instead of pasting a dummy link to look fast.',
   },
   {
     kicker: 'Help',
