@@ -99,8 +99,6 @@ export function ContactScreen() {
           team and send you a confirmation with everything you entered.
         </Text>
 
-        <Text style={styles.brandCenter}>{aboutBrandSummary}</Text>
-
         <View style={[styles.splitWrap, twoCol ? styles.splitWrapRow : null]}>
           <View style={[styles.imageCol, twoCol ? styles.imageColRow : null]}>
             <Image
@@ -225,6 +223,10 @@ export function ContactScreen() {
         </View>
           </View>
         </View>
+
+        <View style={styles.brandSummaryFooter}>
+          <Text style={styles.brandSummaryText}>{aboutBrandSummary}</Text>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -235,15 +237,23 @@ const styles = StyleSheet.create({
   pad: { paddingHorizontal: screenGutter, paddingBottom: 32 },
   h1: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, marginBottom: 8 },
   lead: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, marginBottom: 16, maxWidth: 640 },
-  brandCenter: {
+  brandSummaryFooter: {
+    marginTop: 24,
+    paddingTop: 20,
+    paddingBottom: 4,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    backgroundColor: colors.surface,
+    marginHorizontal: -screenGutter,
+    paddingHorizontal: screenGutter,
+  },
+  brandSummaryText: {
     fontSize: 14,
     lineHeight: 22,
     color: colors.textSecondary,
     textAlign: 'center',
     maxWidth: 640,
     alignSelf: 'center',
-    marginBottom: 22,
-    paddingHorizontal: 4,
   },
   splitWrap: { marginTop: 8, gap: 16 },
   splitWrapRow: { flexDirection: 'row', alignItems: 'stretch' },
