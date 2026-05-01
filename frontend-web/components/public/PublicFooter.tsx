@@ -5,6 +5,7 @@ import { ChevronUp, Heart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
+import { aboutBrandSummary } from '@/lib/about-company-content';
 import { EvisionLogo } from '@/components/brand/EvisionLogo';
 import { publicLoginPath } from '@/lib/public-links';
 import { footerPolicyLinks, footerQuickNavLinks } from '@/lib/site-quick-links';
@@ -73,10 +74,7 @@ export function PublicFooter() {
             <div className="flex items-center gap-2 mb-3">
               <EvisionLogo variant="full" wordmark={publicBrandName} height={34} tone="onDark" />
             </div>
-            <p className="text-[13px] leading-relaxed text-white/55">
-              CCTV, PoE networking, and security accessories sold online with order tracking and PayU checkout. Dealer and
-              technician programmes available.
-            </p>
+            <p className="text-[13px] leading-relaxed text-white/55">{aboutBrandSummary}</p>
           </div>
 
           <div className="grid min-w-0 flex-1 grid-cols-2 gap-x-6 gap-y-9 sm:grid-cols-3 lg:grid-cols-5">

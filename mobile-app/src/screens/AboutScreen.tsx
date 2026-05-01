@@ -2,7 +2,6 @@ import { Image, ScrollView, StyleSheet, Text, useWindowDimensions, View } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
-  aboutBrandSummary,
   aboutPrimaryVisualAlt,
   aboutPrimaryVisualSrc,
   aboutWhatWeProvideParagraphs,
@@ -11,6 +10,7 @@ import {
   premierServicesIntro,
   premierServicesTitle,
 } from '../lib/about-company-content';
+import { GlobalBrandSummaryStrip } from '../components/GlobalBrandSummaryStrip';
 import { colors } from '../theme/colors';
 import { screenGutter } from '../theme/layout';
 
@@ -76,9 +76,7 @@ export function AboutScreen() {
           ))}
         </View>
 
-        <View style={styles.summaryBox}>
-          <Text style={styles.summary}>{aboutBrandSummary}</Text>
-        </View>
+        <GlobalBrandSummaryStrip />
       </ScrollView>
     </SafeAreaView>
   );
@@ -156,11 +154,4 @@ const styles = StyleSheet.create({
   },
   premierCardTitle: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, marginBottom: 6 },
   premierCardBody: { fontSize: 13, lineHeight: 20, color: colors.textSecondary },
-  summaryBox: {
-    marginTop: 8,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  summary: { fontSize: 14, lineHeight: 22, color: colors.textSecondary, textAlign: 'center' },
 });

@@ -30,7 +30,7 @@ import {
   useFocusEffect,
   useNavigation,
 } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { BottomTabBar, createBottomTabNavigator, type BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
@@ -90,6 +90,7 @@ import {
   publicSupportTelHref,
 } from './src/config/publicMarketing';
 import { FloatingWhatsAppFab } from './src/components/FloatingWhatsAppFab';
+import { GlobalBrandSummaryStrip } from './src/components/GlobalBrandSummaryStrip';
 import { HomeLeadFormSection } from './src/components/HomeLeadFormSection';
 import {
   HOME_COMBO_COLLECTION_BODY,
@@ -161,6 +162,12 @@ const tabScreenOptions = {
   tabBarActiveTintColor: colors.brandPrimary,
   tabBarInactiveTintColor: colors.textSecondary,
   tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+  tabBar: (props: BottomTabBarProps) => (
+    <View style={{ backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }}>
+      <GlobalBrandSummaryStrip />
+      <BottomTabBar {...props} />
+    </View>
+  ),
 };
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const SuperadminStack = createNativeStackNavigator();

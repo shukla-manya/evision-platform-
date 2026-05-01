@@ -45,11 +45,7 @@ import {
   securityCameraCollectionIntro,
   securityCameraCollectionTitle,
 } from '@/lib/home-cctv-content';
-import {
-  aboutBrandSummary,
-  aboutWhatWeProvideParagraphs,
-  aboutWhatWeProvideTitle,
-} from '@/lib/about-company-content';
+import { aboutWhatWeProvideParagraphs, aboutWhatWeProvideTitle } from '@/lib/about-company-content';
 
 type Product = {
   id: string;
@@ -753,11 +749,6 @@ export default function HomePage() {
             </p>
             <HomeReviewsLoop />
           </div>
-        </section>
-
-        {/* Brand line */}
-        <section className="ev-container py-10 sm:py-14 border-t border-ev-border">
-          <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto leading-relaxed">{aboutBrandSummary}</p>
         </section>
 
         {/* Dealer / technician */}

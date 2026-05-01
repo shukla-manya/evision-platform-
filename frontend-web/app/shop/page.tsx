@@ -9,7 +9,6 @@ import { cartApi, catalogApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
-import { PublicMarketingBand } from '@/components/public/PublicMarketingBand';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 import { publicShopBrandMark } from '@/lib/public-brand';
 
@@ -659,7 +658,6 @@ function ShopListingInner() {
           </div>
         </div>
         </div>
-        <PublicMarketingBand headingId="shop-brand-footer" />
       </main>
     </PublicShell>
   );

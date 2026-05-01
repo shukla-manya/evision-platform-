@@ -3,7 +3,6 @@ import { Home, LayoutGrid, Shield, Truck, Video } from 'lucide-react';
 import { PublicShell } from '@/components/public/PublicShell';
 import { publicBrandName } from '@/lib/public-brand';
 import {
-  aboutBrandSummary,
   aboutPrimaryVisualAlt,
   aboutPrimaryVisualSrc,
   aboutWhatWeProvideParagraphs,
@@ -102,12 +101,6 @@ export default function AboutPage() {
                 );
               })}
             </div>
-          </div>
-        </section>
-
-        <section className="border-t border-ev-border bg-ev-surface py-10 sm:py-14">
-          <div className="ev-container">
-            <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto leading-relaxed">{aboutBrandSummary}</p>
           </div>
         </section>
 

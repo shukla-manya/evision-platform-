@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicShell } from '@/components/public/PublicShell';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
-import { PublicMarketingBand } from '@/components/public/PublicMarketingBand';
 import { publicBrandName } from '@/lib/public-brand';
 import { formatBlogDateLong, formatBlogDateShort, getBlogPostsSorted } from '@/lib/blog-posts';
 
@@ -109,7 +108,6 @@ export default function BlogPage() {
             </aside>
           </div>
         </div>
-        <PublicMarketingBand headingId="blog-marketing-band" />
       </main>
     </PublicShell>
   );

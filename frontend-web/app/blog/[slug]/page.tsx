@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PublicShell } from '@/components/public/PublicShell';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
-import { PublicMarketingBand } from '@/components/public/PublicMarketingBand';
 import { publicBrandName } from '@/lib/public-brand';
 import { formatBlogDateShort, getAllBlogSlugs, getBlogPostBySlug } from '@/lib/blog-posts';
 
@@ -75,7 +74,6 @@ export default async function BlogPostPage({ params }: Props) {
             </Link>
           </div>
         </div>
-        <PublicMarketingBand headingId="blog-post-marketing-band" />
       </article>
     </PublicShell>
   );

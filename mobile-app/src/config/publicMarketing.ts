@@ -24,10 +24,6 @@ export const publicBrandName = process.env.EXPO_PUBLIC_BRAND_NAME?.trim() || 'E 
 export const publicShopBrandMark =
   process.env.EXPO_PUBLIC_SHOP_BRAND_MARK?.trim() || 'EVISION';
 
-/** Short brand blurb (matches web `aboutBrandSummary`). */
-export const aboutBrandSummary =
-  'EVISION is a surveillance solutions brand delivering high-performance CCTV systems and advanced network infrastructure, including PoE and AI-based technologies for reliable security across homes, businesses, and large-scale projects.';
-
 export function publicSupportTelHref(): string {
   const d = publicSupportPhoneDisplay.replace(/\D/g, '');
   if (d.length >= 10) return `tel:+${d.replace(/^\+?/, '')}`;

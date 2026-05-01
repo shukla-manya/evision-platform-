@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { aboutBrandSummary } from '@/lib/about-company-content';
 import { homeLeadFormImageAlt, homeLeadFormImageSrc } from '@/lib/home-cctv-content';
 import { publicContactApi, type ContactMessageResponse } from '@/lib/api';
 
@@ -265,13 +264,6 @@ export function ContactPageContent() {
             </div>
           </div>
         </div>
-
-        <section
-          className="border-t border-ev-border bg-ev-surface py-10 sm:py-14 mt-10 sm:mt-12 -mx-3 px-3 sm:-mx-4 sm:px-4 min-[1024px]:-mx-5 min-[1024px]:px-5 w-auto min-w-0"
-          aria-label="About the brand"
-        >
-          <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto leading-relaxed px-2">{aboutBrandSummary}</p>
-        </section>
       </main>
     </>
   );

@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { aboutBrandSummary } from '../config/publicMarketing';
+import { GlobalBrandSummaryStrip } from '../components/GlobalBrandSummaryStrip';
 import { HOME_LEAD_FORM_IMAGE_URI } from '../lib/home-lead-form';
 import { publicContactApi, type ContactMessageResponse } from '../services/api';
 import { colors } from '../theme/colors';
@@ -225,9 +225,7 @@ export function ContactScreen() {
           </View>
         </View>
 
-        <View style={styles.brandSummaryFooter}>
-          <Text style={styles.brandSummaryText}>{aboutBrandSummary}</Text>
-        </View>
+        <GlobalBrandSummaryStrip />
       </ScrollView>
     </SafeAreaView>
   );
