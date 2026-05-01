@@ -40,6 +40,8 @@ import {
   customQuoteSectionBody,
   customQuoteSectionCta,
   customQuoteSectionTitle,
+  homeDealerSectionImageAlt,
+  homeDealerSectionImageSrc,
   homeJoinTechnicianSectionImageAlt,
   homeJoinTechnicianSectionImageSrc,
   securityCameraCollectionIntro,
@@ -769,15 +771,26 @@ export default function HomePage() {
 
         {/* Dealer / technician */}
         <section className="ev-container pb-16 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="ev-card p-8 md:p-10 border-ev-primary/20 bg-gradient-to-br from-ev-surface to-ev-primary/5">
-            <Sparkles className="text-ev-primary mb-3" size={22} aria-hidden />
-            <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you a dealer or distributor?</h2>
-            <p className="text-ev-muted text-sm md:text-base mb-6">
-              Get exclusive wholesale pricing, GST invoices, and bulk order support. Register your business and unlock dealer prices today.
-            </p>
-            <Link href="/register?role=dealer" className="ev-btn-primary inline-flex items-center gap-2">
-              Register as Dealer <ArrowRight size={16} aria-hidden />
-            </Link>
+          <div className="ev-card overflow-hidden border-ev-primary/20 flex flex-col md:flex-row md:min-h-[min(100%,280px)]">
+            <div className="relative w-full md:w-[44%] shrink-0 aspect-[5/4] sm:aspect-[4/3] md:aspect-auto md:min-h-[220px] bg-ev-surface2 border-b md:border-b-0 md:border-r border-ev-border">
+              {/* eslint-disable-next-line @next/next/no-img-element -- external marketing CDN */}
+              <img
+                src={homeDealerSectionImageSrc}
+                alt={homeDealerSectionImageAlt}
+                className="absolute inset-0 h-full w-full object-cover object-center"
+                loading="lazy"
+              />
+            </div>
+            <div className="p-8 md:p-10 flex flex-col justify-center flex-1 min-w-0 bg-gradient-to-br from-ev-surface to-ev-primary/5">
+              <Sparkles className="text-ev-primary mb-3" size={22} aria-hidden />
+              <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you a dealer or distributor?</h2>
+              <p className="text-ev-muted text-sm md:text-base mb-6">
+                Get exclusive wholesale pricing, GST invoices, and bulk order support. Register your business and unlock dealer prices today.
+              </p>
+              <Link href="/register?role=dealer" className="ev-btn-primary inline-flex items-center gap-2 w-fit">
+                Register as Dealer <ArrowRight size={16} aria-hidden />
+              </Link>
+            </div>
           </div>
           <div className="ev-card overflow-hidden border-ev-border flex flex-col md:flex-row md:min-h-[min(100%,280px)]">
             <div className="relative w-full md:w-[44%] shrink-0 aspect-[5/4] sm:aspect-[4/3] md:aspect-auto md:min-h-[220px] bg-ev-surface2 border-b md:border-b-0 md:border-r border-ev-border">

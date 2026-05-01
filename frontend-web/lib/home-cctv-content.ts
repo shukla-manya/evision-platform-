@@ -122,6 +122,13 @@ export const homeJoinTechnicianSectionImageSrc =
 export const homeJoinTechnicianSectionImageAlt =
   'Professional technician using a power drill to install a white bullet-style security camera on a wall';
 
+/** “Register as dealer” home card — wholesale / distribution (remote marketing image). */
+export const homeDealerSectionImageSrc =
+  'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80';
+
+export const homeDealerSectionImageAlt =
+  'Warehouse aisle with stocked shelves — wholesale distribution and bulk fulfilment';
+
 /** Left visual beside the home lead (mailto) form — CCTV install. */
 export const homeLeadFormImageSrc =
   'https://images.unsplash.com/photo-1557598376-da691ed6591f?auto=format&fit=crop&w=1200&q=80';
