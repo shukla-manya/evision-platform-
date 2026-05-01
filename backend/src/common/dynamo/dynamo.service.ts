@@ -57,7 +57,9 @@ export class DynamoService implements OnModuleInit, OnModuleDestroy {
       this.client = new MongoClient(uri);
       await this.client.connect();
       this.db = this.client.db();
-      this.logger.log(`MongoDB connected (${this.logUriHint(uri)})`);
+      const mongoLine = `MongoDB connected (${this.logUriHint(uri)})`;
+      this.logger.log(mongoLine);
+      console.log(mongoLine);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       this.logger.error(`MongoDB connection failed: ${msg}`);
