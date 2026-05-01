@@ -21,6 +21,7 @@ import { cartApi, catalogApi } from '@/lib/api';
 import { PublicShell } from '@/components/public/PublicShell';
 import { BrowseBySiteAnimatedSvg } from '@/components/public/BrowseBySiteAnimatedSvg';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
+import { CustomerReviewsHeading } from '@/components/public/CustomerReviewsHeading';
 import { TestimonialsMarquee } from '@/components/public/TestimonialsMarquee';
 import { publicBrandName } from '@/lib/public-brand';
 import { publicSupportEmail } from '@/lib/public-contact';
@@ -644,8 +645,7 @@ export default function HomePage() {
 
         {/* Reviews */}
         <section className="ev-container py-12 sm:py-16 border-t border-ev-border">
-          <h2 className="text-2xl sm:text-3xl font-bold text-ev-text text-center mb-2">Customer Review</h2>
-          <p className="text-ev-muted text-center text-sm mb-10">What our customers say about us?</p>
+          <CustomerReviewsHeading />
           <div className="grid md:grid-cols-2 gap-5 w-full">
             {customerReviews.map((r) => (
               <blockquote key={r.name} className="ev-card p-5 sm:p-6 border-ev-border">
@@ -667,9 +667,9 @@ export default function HomePage() {
 
         {/* Partner strip + brand line */}
         <section className="ev-container py-10 sm:py-14 border-t border-ev-border">
-          <p className="text-center text-ev-muted text-xs uppercase tracking-widest mb-2">Trusted by teams across India</p>
-          <p className="text-center text-ev-subtle text-xs mb-8 max-w-2xl mx-auto">
-            What buyers and integrators say — scrolls automatically; hover to pause.
+          <CustomerReviewsHeading className="mb-8" />
+          <p className="text-center text-ev-subtle text-xs mb-6 max-w-2xl mx-auto">
+            Scrolls automatically — hover the strip to pause.
           </p>
           <div className="w-full min-w-0" role="region" aria-label="Customer testimonials">
             <TestimonialsMarquee />

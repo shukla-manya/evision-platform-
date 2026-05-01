@@ -12,6 +12,7 @@ import {
   premierServicesIntro,
   premierServicesTitle,
 } from '@/lib/about-company-content';
+import { CustomerReviewsHeading } from '@/components/public/CustomerReviewsHeading';
 import { TestimonialsMarquee } from '@/components/public/TestimonialsMarquee';
 
 export const metadata: Metadata = {
@@ -109,9 +110,9 @@ export default function AboutPage() {
 
         <section className="border-t border-ev-border bg-ev-surface py-10 sm:py-14">
           <div className="ev-container">
-            <p className="text-center text-ev-muted text-xs uppercase tracking-widest mb-2">Trusted by teams across India</p>
-            <p className="text-center text-ev-subtle text-xs mb-8 max-w-2xl mx-auto">
-              Representative feedback from integrators, facility teams, and partners — hover the strip to pause.
+            <CustomerReviewsHeading className="mb-8" />
+            <p className="text-center text-ev-subtle text-xs mb-6 max-w-2xl mx-auto">
+              Representative feedback — hover the strip to pause.
             </p>
             <div className="w-full min-w-0" role="region" aria-label="Customer testimonials">
               <TestimonialsMarquee />
