@@ -525,6 +525,9 @@ export default function RegisterPage() {
                             required
                           />
                         </div>
+                        <p className="text-ev-subtle text-xs mt-1.5 leading-relaxed">
+                          Sign-up verification code is sent to your email above, not by SMS to this number.
+                        </p>
                       </div>
 
                       {accountTab === 'customer' ? (
@@ -660,14 +663,9 @@ export default function RegisterPage() {
                             <Loader2 size={16} className="animate-spin" />
                             Sending…
                           </>
-                        ) : accountTab === 'dealer' ? (
-                          <>
-                            Send OTP to verify mobile
-                            <ArrowRight size={16} />
-                          </>
                         ) : (
                           <>
-                            Send OTP to +91 {phoneLast10.length === 10 ? phoneLast10 : '__________'}
+                            Send OTP to {emailMasked}
                             <ArrowRight size={16} />
                           </>
                         )}

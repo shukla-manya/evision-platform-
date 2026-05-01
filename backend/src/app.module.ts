@@ -18,6 +18,7 @@ import { ElectricianModule } from './modules/electrician/electrician.module';
 import { ServiceModule } from './modules/service/service.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { LocationModule } from './modules/location/location.module';
+import { GeoModule } from './modules/geo/geo.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { AppController } from './app.controller';
 import { AdminService } from './modules/admin/admin.service';
@@ -44,6 +45,7 @@ import { AdminService } from './modules/admin/admin.service';
     ServiceModule,
     ReviewsModule,
     LocationModule,
+    GeoModule,
     ContactModule,
   ],
 })

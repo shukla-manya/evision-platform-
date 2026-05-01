@@ -664,7 +664,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         const coords = deliveryCachedGpsRef.current ?? await resolveRegistrationCoordinates(deliveryCity, pin6);
         const otpDigits = otp.replace(/\D/g, '');
         if (otpDigits.length !== 6) {
-          Alert.alert('OTP required', 'Enter the 6-digit code sent to your phone, or tap Send OTP first.');
+          Alert.alert('OTP required', 'Enter the 6-digit code sent to your email, or tap Send OTP first.');
           return;
         }
         const fd = new FormData();

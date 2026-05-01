@@ -34,8 +34,37 @@ function line1FromNominatim(a: NominatimAddress): string {
   return parts.join(', ').trim();
 }
 
-/** Reverse-geocode coordinates to shop-style fields (India-friendly via OSM). */
-export async function reverseGeocodeIndia(
+function apiBaseUrl(): string {
+  return (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '');
+}
+
+/** Same-origin / backend proxy — avoids browser CORS and blocked User-Agent on Nominatim. */
+async function reverseGeocodeViaBackend(
+  lat: number,
+  lng: number,
+): Promise<{ address: string; city: string; pincode: string } | null> {
+  const base = apiBaseUrl();
+  if (!base) return null;
+  try {
+    const res = await fetch(
+      `${base}/geo/reverse?lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(String(lng))}`,
+      { credentials: 'omit' },
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { address?: string; city?: string; pincode?: string };
+    const address = String(data.address ?? '').trim();
+    const city = String(data.city ?? '').trim();
+    const pinRaw = String(data.pincode ?? '').replace(/\D/g, '').slice(0, 6);
+    const pincode = pinRaw.length === 6 ? pinRaw : '';
+    if (!address && !city) return null;
+    return { address, city, pincode };
+  } catch {
+    return null;
+  }
+}
+
+/** Direct Nominatim (fallback; may fail in some browsers due to CORS / UA policy). */
+async function reverseGeocodeIndiaDirect(
   lat: number,
   lng: number,
 ): Promise<{ address: string; city: string; pincode: string } | null> {
@@ -61,25 +90,51 @@ export async function reverseGeocodeIndia(
   }
 }
 
-/** Browser GPS; returns null if unavailable, denied, or timeout. */
-export function getBrowserGeolocation(timeoutMs = 12000): Promise<{ lat: number; lng: number } | null> {
+/** Reverse-geocode coordinates to shop-style fields (India-friendly via OSM). */
+export async function reverseGeocodeIndia(
+  lat: number,
+  lng: number,
+): Promise<{ address: string; city: string; pincode: string } | null> {
+  const viaApi = await reverseGeocodeViaBackend(lat, lng);
+  if (viaApi) return viaApi;
+  return reverseGeocodeIndiaDirect(lat, lng);
+}
+
+/** Browser GPS; returns null if unavailable, denied, or timeout. Tries high accuracy first, then network/Wi‑Fi fix. */
+export function getBrowserGeolocation(timeoutMs = 16000): Promise<{ lat: number; lng: number } | null> {
   if (typeof window === 'undefined' || !navigator.geolocation) {
     return Promise.resolve(null);
   }
-  return new Promise((resolve) => {
-    const t = window.setTimeout(() => resolve(null), timeoutMs);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        window.clearTimeout(t);
-        resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-      },
-      () => {
-        window.clearTimeout(t);
-        resolve(null);
-      },
-      { enableHighAccuracy: true, maximumAge: 60000, timeout: timeoutMs },
-    );
-  });
+  const once = (enableHighAccuracy: boolean) =>
+    new Promise<{ lat: number; lng: number } | null>((resolve) => {
+      const t = window.setTimeout(() => resolve(null), timeoutMs);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          window.clearTimeout(t);
+          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        () => {
+          window.clearTimeout(t);
+          resolve(null);
+        },
+        {
+          enableHighAccuracy,
+          maximumAge: enableHighAccuracy ? 60_000 : 300_000,
+          timeout: timeoutMs,
+        },
+      );
+    });
+  return (async () => {
+    const hi = await once(true);
+    if (hi) return hi;
+    return once(false);
+  })();
+}
+
+/** True when Geolocation API is restricted (e.g. non-HTTPS except localhost). */
+export function isBrowserGeolocationContextBlocked(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.isSecureContext === false;
 }
 
 export async function geocodeIndia(city: string, pincode: string): Promise<{ lat: number; lng: number }> {
@@ -98,7 +153,9 @@ export async function geocodeIndia(city: string, pincode: string): Promise<{ lat
         const hit = data?.[0];
         if (hit?.lat && hit?.lon) return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
       }
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
 
   // Free-text city + pincode
@@ -113,7 +170,9 @@ export async function geocodeIndia(city: string, pincode: string): Promise<{ lat
       const hit = data?.[0];
       if (hit?.lat && hit?.lon) return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
     }
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
 
   // City-only fallback
   if (cty) {
@@ -127,7 +186,9 @@ export async function geocodeIndia(city: string, pincode: string): Promise<{ lat
         const hit = data?.[0];
         if (hit?.lat && hit?.lon) return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
       }
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
 
   throw new Error('Could not resolve location from city and pincode');
