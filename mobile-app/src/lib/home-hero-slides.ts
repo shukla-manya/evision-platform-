@@ -1,10 +1,9 @@
 /** Home tab hero carousel — image URLs match web `homeHeroSlides` in `frontend-web/lib/home-cctv-content.ts`. */
-const heroIndoorPhone =
-  'https://www.gensecurity.com/hs-fs/hubfs/Blog/White%20male%20adjusting%20smart%20camera%20and%20monitoring%20camera%20on%20his%20phone%20on%20the%20couch.jpg?width=1000&name=White%20male%20adjusting%20smart%20camera%20and%20monitoring%20camera%20on%20his%20phone%20on%20the%20couch.jpg';
-const heroOutdoorPtz =
-  'https://media.wired.com/photos/688d807935e373d3f8979fcf/4:3/w_1920,c_limit/Reolink%20Altas%20PT%20Ultra%201%20SOURCE%20Simon%20Hill.png';
-const heroHomeWide =
-  'https://cdn.sanity.io/images/bg7k3vu8/production/41fd29e8197050e4291660561d3487f05f067aa9-1000x500.jpg?w=1000&h=500&auto=format';
+const heroWifiCctv = 'https://cdn.mos.cms.futurecdn.net/tMajjm2ZCo3a5ZyGVgt2JG.jpg';
+const heroPoeSetup =
+  'https://upload.wikimedia.org/wikipedia/commons/f/f1/ZyXEL_ZyAIR_G-1000_and_D-Link_DWL-P50_20060829_2.jpg';
+const heroSmartSecurityKit =
+  'https://images.ctfassets.net/n58cc9djl3c5/3yGoaL5yznxTszN9bg53g5/715e0584582269d9d71060eda3083886/HSS_Cameras.webp';
 
 export type HomeHeroSlide = {
   title: string;
@@ -23,21 +22,21 @@ export const HOME_HERO_SLIDES: HomeHeroSlide[] = [
     subtitle: 'All-new and loveable — wireless indoor and outdoor lines.',
     cta: 'Browse Wi-Fi CCTV',
     href: '/shop?search=Wi-Fi%20CCTV',
-    imageUri: heroIndoorPhone,
+    imageUri: heroWifiCctv,
   },
   {
     title: 'Power Over Ethernet',
     subtitle: 'Reliable power and data in one cable for pro installs.',
     cta: 'Browse PoE gear',
     href: '/shop?search=PoE',
-    imageUri: heroOutdoorPtz,
+    imageUri: heroPoeSetup,
   },
   {
     title: 'Smart Security Kits',
     subtitle: 'Everything you need to get started with multi-camera coverage.',
     cta: 'Shop kits',
     href: '/shop?search=security%20kit',
-    imageUri: heroHomeWide,
+    imageUri: heroSmartSecurityKit,
   },
 ];
 

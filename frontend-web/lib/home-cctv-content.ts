@@ -1,13 +1,12 @@
 /** Static marketing copy for the storefront home (CCTV / security focus). */
 
-/** Home hero carousel — external marketing URLs (GenSecurity, Wired, Sanity CDN). */
-const heroIndoorPhone =
-  'https://www.gensecurity.com/hs-fs/hubfs/Blog/White%20male%20adjusting%20smart%20camera%20and%20monitoring%20camera%20on%20his%20phone%20on%20the%20couch.jpg?width=1000&name=White%20male%20adjusting%20smart%20camera%20and%20monitoring%20camera%20on%20his%20phone%20on%20the%20couch.jpg';
-/** Same Wired asset as user link; path uses single-encoded spaces (works reliably in `<img>`). */
-const heroOutdoorPtz =
-  'https://media.wired.com/photos/688d807935e373d3f8979fcf/4:3/w_1920,c_limit/Reolink%20Altas%20PT%20Ultra%201%20SOURCE%20Simon%20Hill.png';
-const heroHomeWide =
-  'https://cdn.sanity.io/images/bg7k3vu8/production/41fd29e8197050e4291660561d3487f05f067aa9-1000x500.jpg?w=1000&h=500&auto=format';
+/** Home hero + promo tiles — Wi‑Fi CCTV, PoE, smart kits (Future CDN, Wikimedia Commons, Contentful). */
+const heroWifiCctv =
+  'https://cdn.mos.cms.futurecdn.net/tMajjm2ZCo3a5ZyGVgt2JG.jpg';
+const heroPoeSetup =
+  'https://upload.wikimedia.org/wikipedia/commons/f/f1/ZyXEL_ZyAIR_G-1000_and_D-Link_DWL-P50_20060829_2.jpg';
+const heroSmartSecurityKit =
+  'https://images.ctfassets.net/n58cc9djl3c5/3yGoaL5yznxTszN9bg53g5/715e0584582269d9d71060eda3083886/HSS_Cameras.webp';
 
 /** Pexels CDN — reliable hotlinking for hero / cards (some legacy Unsplash photo IDs now return 404). */
 const pexPhoto = (id: string, w: number) =>
@@ -34,24 +33,24 @@ export const homeHeroSlides = [
     subtitle: 'All-new and loveable — wireless indoor and outdoor lines.',
     cta: 'Browse Wi-Fi CCTV',
     href: '/shop?search=Wi-Fi%20CCTV',
-    imageSrc: heroIndoorPhone,
-    imageAlt: 'Person on a sofa using a phone near an indoor smart security camera',
+    imageSrc: heroWifiCctv,
+    imageAlt: 'Outdoor Wi-Fi security camera mounted under an eave',
   },
   {
     title: 'Power Over Ethernet',
     subtitle: 'Reliable power and data in one cable for pro installs.',
     cta: 'Browse PoE gear',
     href: '/shop?search=PoE',
-    imageSrc: heroOutdoorPtz,
-    imageAlt: 'Outdoor pan-tilt security camera mounted on a fence',
+    imageSrc: heroPoeSetup,
+    imageAlt: 'ZyXEL access point and D-Link PoE adapter wired to a wall jack',
   },
   {
     title: 'Smart Security Kits',
     subtitle: 'Everything you need to get started with multi-camera coverage.',
     cta: 'Shop kits',
     href: '/shop?search=security%20kit',
-    imageSrc: heroHomeWide,
-    imageAlt: 'Home security camera with a house and garage in the background',
+    imageSrc: heroSmartSecurityKit,
+    imageAlt: 'Smart home security cameras and video doorbell on a table',
   },
 ] as const;
 
@@ -128,11 +127,12 @@ export const customQuoteSectionCta = 'Get a Custom Quote';
 
 export const customQuoteSectionBackgroundSrc = unsplashPhoto('1504384308090-c894fdcc538d', 1920);
 
-/** “Join as technician” home card — field install / service (Pexels). */
-export const homeJoinTechnicianSectionImageSrc = pexPhoto('8006614', 1200);
+/** “Join as technician” home card + technician services page hero (Aquatech India marketing asset). */
+export const homeJoinTechnicianSectionImageSrc =
+  'https://aquatechindia.com/wp-content/uploads/2023/08/17.webp';
 
 export const homeJoinTechnicianSectionImageAlt =
-  'Technician working on wiring and equipment for a professional security install';
+  'Technician illustration with CCTV cameras, recorder, cabling, and install accessories';
 
 /** “Register as dealer” home card — warehouse / wholesale (Pexels). */
 export const homeDealerSectionImageSrc = pexPhoto('1267320', 1200);

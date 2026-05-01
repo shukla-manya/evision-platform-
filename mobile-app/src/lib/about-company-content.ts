@@ -45,14 +45,3 @@ export const aboutPrimaryVisualSrc = pexPhoto('442150', 1400);
 export const aboutPrimaryVisualAlt =
   'Electronics assembly and quality control in a modern manufacturing environment';
 
-export const aboutSecondaryVisualSrc = pexPhoto('3184292', 1600);
-export const aboutSecondaryVisualAlt = 'Engineering workspace with security and network technology';
-
-export const aboutCertificateTiles: { src: string; alt: string }[] = [
-  { src: pexPhoto('7688336', 900), alt: 'Quality documentation and compliance' },
-  { src: pexPhoto('886724', 900), alt: 'Professional standards and certification' },
-  { src: pexPhoto('3861969', 900), alt: 'Enterprise systems and reliability' },
-  { src: pexPhoto('256264', 900), alt: 'Technical engineering excellence' },
-  { src: pexPhoto('442150', 900), alt: 'Precision manufacturing' },
-  { src: pexPhoto('3184292', 900), alt: 'Operations and service delivery' },
-];

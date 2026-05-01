@@ -3,11 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   aboutBrandSummary,
-  aboutCertificateTiles,
   aboutPrimaryVisualAlt,
   aboutPrimaryVisualSrc,
-  aboutSecondaryVisualAlt,
-  aboutSecondaryVisualSrc,
   aboutWhatWeProvideParagraphs,
   aboutWhatWeProvideTitle,
   premierServiceCards,
@@ -21,7 +18,8 @@ const PREMIER_ICONS = ['view-grid-outline', 'home-variant-outline', 'shield-chec
 
 export function AboutScreen() {
   const { width: winW } = useWindowDimensions();
-  const twoCol = winW >= 720;
+  /** Match web `md` breakpoint — image left, copy right from here up. */
+  const twoCol = winW >= 768;
 
   return (
     <SafeAreaView style={styles.screen} edges={['bottom']}>
@@ -37,6 +35,7 @@ export function AboutScreen() {
         <Text style={styles.kicker}>Company</Text>
         <Text style={styles.h1}>About E-Vision India</Text>
 
+        {/* Narrow: image then copy stacked · Wide: image left, copy right */}
         <View style={[styles.split, twoCol ? styles.splitRow : null]}>
           <View style={[styles.visualCol, twoCol ? styles.visualColRow : null]}>
             <View style={styles.primaryImgWrap}>
@@ -47,14 +46,6 @@ export function AboutScreen() {
                 accessibilityLabel={aboutPrimaryVisualAlt}
               />
               <View style={styles.imgTint} />
-            </View>
-            <View style={styles.secondaryImgWrap}>
-              <Image
-                source={{ uri: aboutSecondaryVisualSrc }}
-                style={styles.secondaryImg}
-                resizeMode="cover"
-                accessibilityLabel={aboutSecondaryVisualAlt}
-              />
             </View>
           </View>
           <View style={[styles.copyCol, twoCol ? styles.copyColRow : null]}>
@@ -81,15 +72,6 @@ export function AboutScreen() {
               </View>
               <Text style={styles.premierCardTitle}>{card.title}</Text>
               <Text style={styles.premierCardBody}>{card.body}</Text>
-            </View>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitleCenter}>Our Certificates</Text>
-        <View style={styles.certRow}>
-          {aboutCertificateTiles.map((tile, i) => (
-            <View key={`${tile.src}-${i}`} style={styles.certTile}>
-              <Image source={{ uri: tile.src }} style={styles.certImg} resizeMode="cover" accessibilityLabel={tile.alt} />
             </View>
           ))}
         </View>
@@ -126,7 +108,7 @@ const styles = StyleSheet.create({
   split: { gap: 16, marginBottom: 28 },
   splitRow: { flexDirection: 'row', alignItems: 'flex-start' },
   visualCol: { gap: 12 },
-  visualColRow: { flex: 1, minWidth: 0 },
+  visualColRow: { flex: 1, minWidth: 0, alignSelf: 'flex-start' },
   primaryImgWrap: {
     position: 'relative',
     borderRadius: 16,
@@ -139,20 +121,10 @@ const styles = StyleSheet.create({
   },
   primaryImg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   imgTint: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(26,26,46,0.15)' },
-  secondaryImgWrap: {
-    position: 'relative',
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
-    aspectRatio: 16 / 9,
-    backgroundColor: colors.softPanel,
-  },
-  secondaryImg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   copyCol: { gap: 12 },
-  copyColRow: { flex: 1, minWidth: 0, paddingLeft: 8 },
-  h2: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
-  para: { fontSize: 14, lineHeight: 22, color: colors.textSecondary },
+  copyColRow: { flex: 1, minWidth: 0, flexBasis: 0, paddingLeft: 16 },
+  h2: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, textAlign: 'left' },
+  para: { fontSize: 14, lineHeight: 22, color: colors.textSecondary, textAlign: 'left' },
   sectionTitleCenter: {
     fontSize: 21,
     fontWeight: '800',
@@ -184,17 +156,6 @@ const styles = StyleSheet.create({
   },
   premierCardTitle: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, marginBottom: 6 },
   premierCardBody: { fontSize: 13, lineHeight: 20, color: colors.textSecondary },
-  certRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, marginBottom: 24 },
-  certTile: {
-    width: 112,
-    height: 96,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.softPanel,
-  },
-  certImg: { width: '100%', height: '100%' },
   summaryBox: {
     marginTop: 8,
     paddingTop: 20,

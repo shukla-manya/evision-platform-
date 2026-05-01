@@ -22,17 +22,22 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'www.gensecurity.com',
+        hostname: 'cdn.mos.cms.futurecdn.net',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'media.wired.com',
+        hostname: 'upload.wikimedia.org',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'cdn.sanity.io',
+        hostname: 'images.ctfassets.net',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'aquatechindia.com',
         pathname: '/**',
       },
     ],

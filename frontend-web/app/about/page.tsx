@@ -4,11 +4,8 @@ import { PublicShell } from '@/components/public/PublicShell';
 import { publicBrandName } from '@/lib/public-brand';
 import {
   aboutBrandSummary,
-  aboutCertificateTiles,
   aboutPrimaryVisualAlt,
   aboutPrimaryVisualSrc,
-  aboutSecondaryVisualAlt,
-  aboutSecondaryVisualSrc,
   aboutWhatWeProvideParagraphs,
   aboutWhatWeProvideTitle,
   premierServiceCards,
@@ -58,8 +55,9 @@ export default function AboutPage() {
           <p className="text-ev-muted text-sm font-medium uppercase tracking-wide mb-2">Company</p>
           <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-8 max-w-3xl">About E-Vision India</h1>
 
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start w-full">
-            <div className="space-y-4">
+          {/* Left: single image · Right: What we provide (stacks image-first on small screens) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start w-full">
+            <aside className="order-1 w-full max-w-xl md:max-w-none mx-auto md:mx-0 shrink-0" aria-label="Company photograph">
               <div className="relative aspect-[1178/1536] max-h-[min(520px,70vh)] rounded-2xl border border-ev-border bg-ev-surface2 overflow-hidden shadow-ev-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element -- remote marketing photography */}
                 <img
@@ -74,20 +72,10 @@ export default function AboutPage() {
                   aria-hidden
                 />
               </div>
-              <div className="relative aspect-video rounded-2xl border border-ev-border bg-ev-surface2 overflow-hidden shadow-ev-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={aboutSecondaryVisualSrc}
-                  alt={aboutSecondaryVisualAlt}
-                  className="absolute inset-0 h-full w-full object-cover"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-ev-text mb-4">{aboutWhatWeProvideTitle}</h2>
-              <div className="text-ev-muted text-sm sm:text-base leading-relaxed space-y-4">
+            </aside>
+            <div className="order-2 min-w-0">
+              <h2 className="text-2xl font-bold text-ev-text mb-4 text-left">{aboutWhatWeProvideTitle}</h2>
+              <div className="text-ev-muted text-sm sm:text-base leading-relaxed space-y-4 text-left">
                 {aboutWhatWeProvideParagraphs.map((p) => (
                   <p key={p.slice(0, 40)}>{p}</p>
                 ))}
@@ -116,27 +104,6 @@ export default function AboutPage() {
                 );
               })}
             </div>
-          </div>
-        </section>
-
-        <section className="ev-container py-12 sm:py-16">
-          <h2 className="text-2xl font-bold text-ev-text text-center mb-8">Our Certificates</h2>
-          <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
-            {aboutCertificateTiles.map((tile, i) => (
-              <div
-                key={`${tile.src}-${i}`}
-                className="relative h-24 w-28 sm:h-28 sm:w-32 rounded-xl border border-ev-border bg-ev-surface2 overflow-hidden shadow-ev-sm"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={tile.src}
-                  alt={tile.alt}
-                  className="absolute inset-0 h-full w-full object-cover"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-            ))}
           </div>
         </section>
 

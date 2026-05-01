@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,7 +13,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { aboutBrandSummary } from '../config/publicMarketing';
-import { publicWebUrl } from '../config/publicWeb';
 import { HOME_LEAD_FORM_IMAGE_URI } from '../lib/home-lead-form';
 import { publicContactApi, type ContactMessageResponse } from '../services/api';
 import { colors } from '../theme/colors';
@@ -99,17 +97,6 @@ export function ContactScreen() {
         <Text style={styles.lead}>
           We are here for orders, accounts, dealers, technicians, and partnerships. Submit the form below — we email our
           team and send you a confirmation with everything you entered.
-        </Text>
-        <Text style={styles.leadSub}>
-          Phone numbers, marketing and support email, and our office address are in the{' '}
-          <Text
-            style={styles.footerInlineLink}
-            onPress={() => void Linking.openURL(publicWebUrl('/#site-footer-contact'))}
-          >
-            site footer
-          </Text>
-          {' '}
-          on the website (scroll to the bottom or tap the link).
         </Text>
 
         <Text style={styles.brandCenter}>{aboutBrandSummary}</Text>
@@ -247,15 +234,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   pad: { paddingHorizontal: screenGutter, paddingBottom: 32 },
   h1: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, marginBottom: 8 },
-  lead: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, marginBottom: 8, maxWidth: 640 },
-  leadSub: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 16,
-    maxWidth: 640,
-    opacity: 0.92,
-  },
+  lead: { fontSize: 14, color: colors.textSecondary, lineHeight: 22, marginBottom: 16, maxWidth: 640 },
   brandCenter: {
     fontSize: 14,
     lineHeight: 22,
@@ -266,7 +245,6 @@ const styles = StyleSheet.create({
     marginBottom: 22,
     paddingHorizontal: 4,
   },
-  footerInlineLink: { color: colors.brandPrimary, fontWeight: '600' },
   splitWrap: { marginTop: 8, gap: 16 },
   splitWrapRow: { flexDirection: 'row', alignItems: 'stretch' },
   imageCol: {

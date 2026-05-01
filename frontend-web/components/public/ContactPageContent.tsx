@@ -100,13 +100,6 @@ export function ContactPageContent() {
             We are here for orders, accounts, dealers, technicians, and partnerships. Submit the form below — we email our
             team and send you a confirmation with everything you entered.
           </p>
-          <p className="text-ev-subtle text-sm">
-            Phone numbers, marketing and support email, and our office address are in the{' '}
-            <a href="#site-footer-contact" className="text-ev-primary font-medium hover:underline">
-              site footer
-            </a>{' '}
-            on every page (scroll to the bottom or use that link).
-          </p>
         </div>
 
         <p className="text-ev-muted text-sm sm:text-base leading-relaxed text-center max-w-3xl mx-auto mb-10 sm:mb-12 px-2">
