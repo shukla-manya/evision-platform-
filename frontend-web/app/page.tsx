@@ -8,7 +8,6 @@ import {
   CreditCard,
   Heart,
   Layers,
-  Loader2,
   Plus,
   Receipt,
   Sparkles,
@@ -260,12 +259,10 @@ function HomeLeadForm() {
 }
 
 export default function HomePage() {
-  const [featured, setFeatured] = useState<Product[]>([]);
   const [showcaseFromApi, setShowcaseFromApi] = useState<{ primary: ShowcaseProduct[]; combos: ShowcaseProduct[] }>({
     primary: [],
     combos: [],
   });
-  const [loading, setLoading] = useState(true);
   const [, setWishBump] = useState(0);
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroCarouselPaused, setHeroCarouselPaused] = useState(false);
@@ -302,21 +299,14 @@ export default function HomePage() {
     let cancelled = false;
     (async () => {
       try {
-        const [prodRes, homeRes] = await Promise.all([
-          catalogApi.getProducts({ approved_shops_only: true }),
-          catalogApi.getHomeShowcase().catch(() => ({ data: { primary: [], combos: [] } })),
-        ]);
+        const homeRes = await catalogApi.getHomeShowcase().catch(() => ({ data: { primary: [], combos: [] } }));
         if (cancelled) return;
-        const prods = Array.isArray(prodRes.data) ? (prodRes.data as Product[]) : [];
-        setFeatured(prods.slice(0, 6));
         const raw = homeRes.data as { primary?: unknown[]; combos?: unknown[] };
         const primary = Array.isArray(raw?.primary) ? (raw.primary as ShowcaseProduct[]) : [];
         const combos = Array.isArray(raw?.combos) ? (raw.combos as ShowcaseProduct[]) : [];
         setShowcaseFromApi({ primary, combos });
       } catch {
-        if (!cancelled) toast.error('Could not load featured products');
-      } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) toast.error('Could not load homepage showcase');
       }
     })();
     return () => {
@@ -649,92 +639,6 @@ export default function HomePage() {
             >
               {customQuoteSectionCta} <ArrowRight size={16} aria-hidden />
             </Link>
-          </div>
-        </section>
-
-        {/* Live catalogue */}
-        <section className="border-t border-ev-border bg-ev-surface py-12 sm:py-16" id="live-catalogue">
-          <div className="ev-container">
-            <h2 className="text-2xl md:text-3xl font-bold text-ev-text text-center mb-2">Live from our partner shops</h2>
-            <p className="text-ev-muted text-sm text-center max-w-xl mx-auto mb-10">
-              Real listings from approved stores on {publicBrandName}. Same cart, checkout, and order tracking as the rest of the site.
-            </p>
-            {loading ? (
-              <div className="flex justify-center py-16 text-ev-muted gap-2">
-                <Loader2 className="animate-spin text-ev-primary" size={24} aria-hidden /> Loading products…
-              </div>
-            ) : featured.length === 0 ? (
-              <p className="text-center text-ev-muted py-12">
-                No products yet — <Link href="/shop" className="text-ev-primary font-medium hover:underline">open the shop</Link>.
-              </p>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featured.map((p) => {
-                  const img = p.images?.[0];
-                  const price = Number(p.price_customer || 0);
-                  const wished = isInWishlist(p.id);
-                  return (
-                    <article key={p.id} className="ev-card overflow-hidden flex flex-col group">
-                      <Link href={`/products/${p.id}`} className="relative aspect-[4/3] bg-ev-surface2 border-b border-ev-border block">
-                        {img ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center text-ev-muted text-sm">No image</div>
-                        )}
-                        <button
-                          type="button"
-                          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-ev-surface/95 border border-ev-border flex items-center justify-center shadow-ev-sm hover:border-ev-primary transition-colors"
-                          aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleWishlistId(p.id);
-                            setWishBump((n) => n + 1);
-                            window.dispatchEvent(new Event('ev-wishlist'));
-                          }}
-                        >
-                          <Heart size={18} className={wished ? 'text-ev-primary fill-ev-primary' : 'text-ev-muted'} />
-                        </button>
-                      </Link>
-                      <div className="p-5 flex-1 flex flex-col">
-                        <p className="text-ev-subtle text-xs uppercase tracking-wide mb-1 truncate">{p.shop_name || 'Partner shop'}</p>
-                        <Link href={`/products/${p.id}`} className="text-ev-text font-semibold text-lg hover:text-ev-primary transition-colors line-clamp-2">
-                          {p.name}
-                        </Link>
-                        <p className="text-2xl font-bold text-ev-text mt-3">{price > 0 ? formatInr(price) : '—'}</p>
-                        <div className="mt-auto pt-4 flex items-center gap-2">
-                          {canBuy ? (
-                            <button
-                              type="button"
-                              className="ev-btn-primary flex-1 text-sm py-2.5 inline-flex items-center justify-center gap-1.5"
-                              onClick={async () => {
-                                try {
-                                  await cartApi.addItem(p.id, 1);
-                                  toast.success('Added to cart');
-                                } catch {
-                                  toast.error('Sign in to add to cart');
-                                }
-                              }}
-                            >
-                              <Plus size={16} aria-hidden /> Add to cart
-                            </button>
-                          ) : (
-                            <Link href="/login" className="ev-btn-primary flex-1 text-sm py-2.5 text-center">
-                              Sign in to buy
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-            <div className="text-center mt-10">
-              <Link href="/shop" className="ev-btn-secondary inline-flex items-center gap-2 text-sm py-2.5 px-6">
-                See all in shop <ArrowRight size={16} aria-hidden />
-              </Link>
-            </div>
           </div>
         </section>
 
