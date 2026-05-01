@@ -12,9 +12,6 @@ import {
   premierServicesIntro,
   premierServicesTitle,
 } from '@/lib/about-company-content';
-import { CustomerReviewsHeading } from '@/components/public/CustomerReviewsHeading';
-import { TestimonialsMarquee } from '@/components/public/TestimonialsMarquee';
-
 export const metadata: Metadata = {
   title: `About us — ${publicBrandName}`,
   description:

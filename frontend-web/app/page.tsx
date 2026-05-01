@@ -21,8 +21,6 @@ import { cartApi, catalogApi } from '@/lib/api';
 import { PublicShell } from '@/components/public/PublicShell';
 import { BrowseBySiteAnimatedSvg } from '@/components/public/BrowseBySiteAnimatedSvg';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
-import { CustomerReviewsHeading } from '@/components/public/CustomerReviewsHeading';
-import { TestimonialsMarquee } from '@/components/public/TestimonialsMarquee';
 import { publicBrandName } from '@/lib/public-brand';
 import { publicSupportEmail } from '@/lib/public-contact';
 import { getRole } from '@/lib/auth';
@@ -30,7 +28,6 @@ import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 import {
   businessSegments,
   businessSegmentsSectionTitle,
-  customerReviews,
   homeHeroSlides,
   homeLeadFormImageAlt,
   homeLeadFormImageSrc,
@@ -643,21 +640,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Reviews */}
-        <section className="ev-container py-12 sm:py-16 border-t border-ev-border">
-          <CustomerReviewsHeading />
-          <div className="grid md:grid-cols-2 gap-5 w-full">
-            {customerReviews.map((r) => (
-              <blockquote key={r.name} className="ev-card p-5 sm:p-6 border-ev-border">
-                <p className="text-ev-text text-sm leading-relaxed">&ldquo;{r.quote}&rdquo;</p>
-                <footer className="mt-4 text-sm font-semibold text-ev-primary">
-                  {r.name} — <span className="text-ev-muted font-normal">{r.role}</span>
-                </footer>
-              </blockquote>
-            ))}
-          </div>
-        </section>
-
         {/* Lead form */}
         <section className="bg-ev-surface2/50 py-12 sm:py-16 border-t border-ev-border">
           <div className="ev-container">
@@ -665,16 +647,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Partner strip + brand line */}
+        {/* Brand line */}
         <section className="ev-container py-10 sm:py-14 border-t border-ev-border">
-          <CustomerReviewsHeading className="mb-8" />
-          <p className="text-center text-ev-subtle text-xs mb-6 max-w-2xl mx-auto">
-            Scrolls automatically — hover the strip to pause.
-          </p>
-          <div className="w-full min-w-0" role="region" aria-label="Customer testimonials">
-            <TestimonialsMarquee />
-          </div>
-          <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">{aboutBrandSummary}</p>
+          <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto leading-relaxed">{aboutBrandSummary}</p>
         </section>
 
         {/* Dealer / technician */}
