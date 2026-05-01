@@ -21,6 +21,10 @@ type RegisterStep = 'details' | 'otp';
 
 const OTP_ATTEMPTS = 5;
 
+/** Side panel art for split register layout (desktop left / mobile top). */
+const REGISTER_PANEL_IMAGE =
+  'https://www-cms.pipedriveassets.com/cdn-cgi/image/quality=70,format=auto/https://www-cms.pipedriveassets.com/Delight-the-Customer.jpg';
+
 function formatPhoneE164(digits: string) {
   const d = digits.replace(/\D/g, '').slice(-10);
   return `+91${d}`;
