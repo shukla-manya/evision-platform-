@@ -105,7 +105,6 @@ import {
   HOME_CUSTOM_QUOTE_IMAGE_URI,
   HOME_CUSTOM_QUOTE_TITLE,
 } from './src/lib/home-custom-quote';
-import { HOME_INNOVATION_BODY, HOME_INNOVATION_PHOTOS, HOME_INNOVATION_TITLE } from './src/lib/home-innovation';
 import { HOME_HERO_SLIDES, HOME_PROMO_STRIP_CARDS, HOME_PROMO_STRIP_KICKER } from './src/lib/home-hero-slides';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
@@ -1734,24 +1733,6 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
               </View>
             </View>
 
-            <View style={styles.innovationSection}>
-              <Text style={styles.innovationTitle}>{HOME_INNOVATION_TITLE}</Text>
-              <Text style={styles.innovationBody}>{HOME_INNOVATION_BODY}</Text>
-              <View style={styles.innovationPhotosRow}>
-                {HOME_INNOVATION_PHOTOS.map((ph) => (
-                  <View key={ph.caption} style={styles.innovationPhotoCard}>
-                    <Image
-                      source={{ uri: ph.uri }}
-                      style={styles.innovationPhoto}
-                      resizeMode="cover"
-                      accessibilityLabel={ph.accessibilityLabel}
-                    />
-                    <Text style={styles.innovationCaption}>{ph.caption}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-
             <HomeLeadFormSection />
 
             <View style={styles.shopPageTitleBlock}>
@@ -3141,56 +3122,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   customQuoteCtaText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-  innovationSection: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  innovationTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    textAlign: 'center',
-    letterSpacing: -0.2,
-  },
-  innovationBody: {
-    marginTop: 10,
-    fontSize: 13,
-    lineHeight: 20,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  innovationPhotosRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 14,
-  },
-  innovationPhotoCard: {
-    flex: 1,
-    minWidth: 148,
-    borderRadius: 14,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  innovationPhoto: {
-    width: '100%',
-    aspectRatio: 4 / 3,
-    backgroundColor: colors.softPanel,
-  },
-  innovationCaption: {
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    textAlign: 'center',
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
   homeMarketingHero: {
     paddingVertical: 16,
     paddingHorizontal: 14,
