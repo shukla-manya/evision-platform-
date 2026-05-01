@@ -146,7 +146,7 @@ export const homeLeadFormImageSrc = pexPhoto('430208', 1200);
 
 export const homeLeadFormImageAlt = 'CCTV camera installed for home and business security';
 
-/** Seven homepage testimonials — one card div per review, horizontal box-after-box marquee in the home square panel. */
+/** Seven homepage testimonials — one card div per review, horizontal box-after-box marquee (no outer shell). */
 export const homeCustomerReviews = [
   {
     quote: 'Night vision is crystal clear. We finally feel safe leaving the shop closed over long weekends.',

@@ -740,7 +740,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Customer testimonials — square panel, single-line marquee loop */}
+        {/* Customer testimonials — card boxes in horizontal marquee (no outer frame) */}
         <section className="py-12 sm:py-16 border-t border-ev-border bg-ev-bg" aria-labelledby="home-reviews-heading">
           <div className="ev-container flex flex-col items-center gap-6">
             <h2 id="home-reviews-heading" className="text-xl sm:text-2xl font-bold text-ev-text text-center">
