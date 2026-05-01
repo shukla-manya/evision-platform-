@@ -34,6 +34,10 @@ import {
   homeHeroSlides,
   homePromoStripCards,
   homePromoStripKicker,
+  customQuoteSectionBackgroundSrc,
+  customQuoteSectionBody,
+  customQuoteSectionCta,
+  customQuoteSectionTitle,
   securityCameraCollectionIntro,
   securityCameraCollectionTitle,
   showcaseCombos,
@@ -554,13 +558,28 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Custom quote */}
-        <section className="bg-gradient-to-r from-ev-primary/10 via-ev-bg to-ev-accent/10 py-12 sm:py-16 border-y border-ev-border">
-          <div className="ev-container text-center max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold text-ev-text mb-3">Customized Security Solutions</h2>
-            <p className="text-ev-muted mb-6">Get CCTV systems designed specifically for your home or business security needs.</p>
-            <Link href="/contact" className="ev-btn-primary inline-flex items-center gap-2">
-              Get a Custom Quote <ArrowRight size={16} aria-hidden />
+        {/* Custom quote — surveillance image + slow motion, copy on top */}
+        <section className="relative overflow-hidden border-y border-ev-border min-h-[260px] sm:min-h-[300px] md:min-h-[340px] flex items-center">
+          <div className="pointer-events-none absolute inset-0" aria-hidden>
+            {/* eslint-disable-next-line @next/next/no-img-element -- full-bleed marketing background */}
+            <img
+              src={customQuoteSectionBackgroundSrc}
+              alt=""
+              className="ev-custom-quote-bg__img absolute max-w-none"
+            />
+          </div>
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-br from-ev-navbar/92 via-ev-navbar/78 to-ev-primary/35"
+            aria-hidden
+          />
+          <div className="relative z-10 ev-container py-14 sm:py-16 md:py-20 text-center max-w-2xl mx-auto w-full">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3 drop-shadow-sm">{customQuoteSectionTitle}</h2>
+            <p className="text-white/88 text-sm sm:text-base leading-relaxed mb-8 drop-shadow-sm">{customQuoteSectionBody}</p>
+            <Link
+              href="/contact"
+              className="ev-btn-primary inline-flex items-center gap-2 shadow-lg shadow-black/20"
+            >
+              {customQuoteSectionCta} <ArrowRight size={16} aria-hidden />
             </Link>
           </div>
         </section>

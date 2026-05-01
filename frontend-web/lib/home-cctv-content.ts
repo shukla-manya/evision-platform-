@@ -104,6 +104,17 @@ export const securityCameraCollectionTitle = 'Security Camera Collection';
 export const securityCameraCollectionIntro =
   'Discover high-performance Evision surveillance cameras and recording systems engineered for clear visuals, smart monitoring, and long-lasting security protection for residential and commercial properties.';
 
+/** Home “custom quote” band — full-bleed image + overlay (web + mobile use same art direction). */
+export const customQuoteSectionTitle = 'Customized Security Solutions';
+
+export const customQuoteSectionBody =
+  'Get CCTV systems designed specifically for your home or business security needs.';
+
+export const customQuoteSectionCta = 'Get a Custom Quote';
+
+export const customQuoteSectionBackgroundSrc =
+  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1920&q=80';
+
 export const customerReviews = [
   {
     quote:

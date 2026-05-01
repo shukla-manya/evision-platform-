@@ -78,6 +78,35 @@
   animation: evBrowseSitePulse 2s ease-in-out infinite;
 }
 
+/* Home “custom quote” — slow pan / zoom on background still */
+@keyframes evCustomQuoteKenBurns {
+  0% {
+    transform: scale(1.06) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.14) translate3d(-2.5%, -1%, 0);
+  }
+}
+
+.ev-custom-quote-bg__img {
+  width: 115%;
+  height: 115%;
+  max-width: none;
+  left: -7%;
+  top: -7%;
+  object-fit: cover;
+  animation: evCustomQuoteKenBurns 22s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev-custom-quote-bg__img {
+    animation: none;
+    transform: scale(1.08);
+    left: -4%;
+    top: -3%;
+  }
+}
+
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
 
