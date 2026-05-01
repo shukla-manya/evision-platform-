@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, Heart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
@@ -314,14 +314,38 @@ export function PublicFooter() {
       </div>
 
       <div className="border-t border-white/10 bg-ev-navbar/95">
-        <div className="mx-auto w-full max-w-none ev-page-gutter py-5 sm:py-6 space-y-3 text-center sm:text-left">
-          <p className="text-[12px] text-white/55">
-            © {year} {publicCompanyLegalName}. All rights reserved.
-          </p>
-          <p className="text-[11px] leading-relaxed text-white/40 max-w-4xl">
-            <span className="text-white/50 font-medium">Registered office: </span>
-            {publicRegisteredAddress}
-          </p>
+        <div className="mx-auto w-full max-w-none ev-page-gutter py-5 sm:py-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+            <div className="space-y-3 text-center sm:text-left min-w-0 flex-1">
+              <p className="text-[12px] text-white/55">
+                © {year} {publicCompanyLegalName}. All rights reserved.
+              </p>
+              <p className="text-[11px] leading-relaxed text-white/40 max-w-4xl">
+                <span className="text-white/50 font-medium">Registered office: </span>
+                {publicRegisteredAddress}
+              </p>
+            </div>
+            <p className="text-[11px] text-white/40 text-center sm:text-right shrink-0 inline-flex sm:inline-flex items-center justify-center sm:justify-end gap-1 flex-wrap">
+              <span className="inline-flex items-center gap-1">
+                Made with
+                <Heart
+                  className="size-3.5 text-ev-primary shrink-0"
+                  fill="currentColor"
+                  strokeWidth={0}
+                  aria-hidden
+                />
+                by
+              </span>{' '}
+              <a
+                href="https://wa.me/918005586588"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/65 hover:text-white hover:underline font-medium"
+              >
+                Manya Shukla
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </footer>
