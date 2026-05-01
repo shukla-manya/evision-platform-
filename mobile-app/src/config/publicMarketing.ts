@@ -17,6 +17,9 @@ export const publicInfoEmail =
 export const publicRegisteredAddress =
   'E-Vision India, 9/205, Main Market, Near PNB, Old Faridabad — 121002';
 
+/** Marketing display name (matches web `NEXT_PUBLIC_BRAND_NAME` / `lib/public-brand`). */
+export const publicBrandName = process.env.EXPO_PUBLIC_BRAND_NAME?.trim() || 'E vision';
+
 /** Lettermark above the in-app catalogue (matches web `NEXT_PUBLIC_SHOP_BRAND_MARK`). */
 export const publicShopBrandMark =
   process.env.EXPO_PUBLIC_SHOP_BRAND_MARK?.trim() || 'EVISION';
