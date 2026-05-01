@@ -32,6 +32,8 @@ import {
   businessSegmentsSectionTitle,
   customerReviews,
   homeHeroSlides,
+  homeLeadFormImageAlt,
+  homeLeadFormImageSrc,
   homePromoStripCards,
   homePromoStripKicker,
   customQuoteSectionBackgroundSrc,

@@ -121,6 +121,12 @@ export const innovationSectionTitle = 'Standing at the Forefront of Innovation';
 export const innovationSectionBody =
   'As we explore new technology, we push the capabilities of what is possible, driving progress through continuous innovation.';
 
+/** Left visual beside the home lead (mailto) form — CCTV install. */
+export const homeLeadFormImageSrc =
+  'https://images.unsplash.com/photo-1557598376-da691ed6591f?auto=format&fit=crop&w=1200&q=80';
+
+export const homeLeadFormImageAlt = 'CCTV camera installed for home and business security';
+
 export const innovationInstallImages = [
   {
     src: 'https://images.unsplash.com/photo-1557598376-da691ed6591f?auto=format&fit=crop&w=1200&q=80',
