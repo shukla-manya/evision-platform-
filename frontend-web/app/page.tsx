@@ -96,50 +96,6 @@ function StarRow({ rating }: { rating: number }) {
   );
 }
 
-function StaticProductCard({ p, canBuy }: { p: StaticShowcaseProduct; canBuy: boolean }) {
-  const shopHref = `/shop?search=${encodeURIComponent(p.searchQuery)}`;
-  return (
-    <article className="ev-card overflow-hidden flex flex-col relative">
-      {p.hot ? (
-        <span className="absolute top-3 left-3 z-10 text-[10px] font-bold uppercase tracking-wide bg-ev-primary text-white px-2 py-0.5 rounded">
-          Hot
-        </span>
-      ) : null}
-      <Link href={shopHref} className="relative aspect-[4/3] bg-gradient-to-br from-ev-surface2 to-ev-surface border-b border-ev-border block">
-        <div className="absolute inset-0 flex items-center justify-center text-ev-muted/40 text-4xl font-light select-none">◉</div>
-      </Link>
-      <div className="p-4 sm:p-5 flex-1 flex flex-col">
-        <p className="text-ev-subtle text-[11px] uppercase tracking-wide mb-1 line-clamp-2">{p.categoryLine}</p>
-        <Link href={shopHref} className="text-ev-text font-semibold text-base hover:text-ev-primary transition-colors line-clamp-2">
-          {p.name}
-        </Link>
-        <div className="mt-2">
-          <StarRow rating={p.rating} />
-        </div>
-        <p className="text-ev-muted text-xs mt-2">{p.inStock ? 'In stock' : 'Out of stock'}</p>
-        <p className="text-xl font-bold text-ev-text mt-2">{formatInr(p.priceInr)}</p>
-        <div className="mt-auto pt-4">
-          {p.inStock ? (
-            canBuy ? (
-              <Link href={shopHref} className="ev-btn-primary w-full text-sm py-2.5 text-center inline-flex items-center justify-center gap-1.5">
-                <Plus size={16} aria-hidden /> Add to cart
-              </Link>
-            ) : (
-              <Link href="/login" className="ev-btn-primary w-full text-sm py-2.5 text-center">
-                Sign in to buy
-              </Link>
-            )
-          ) : (
-            <Link href={shopHref} className="ev-btn-secondary w-full text-sm py-2.5 text-center">
-              Read more
-            </Link>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
-
 function HomeShowcaseProductCard({
   p,
   canBuy,
@@ -516,7 +472,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Showcase grid */}
+        {/* Showcase grid — superadmin only (Homepage showcase → Advanced CCTV); no static fallback */}
         <section className="border-y border-ev-border bg-ev-surface2/40 py-12 sm:py-16">
           <div className="ev-container">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
@@ -524,28 +480,32 @@ export default function HomePage() {
                 <h2 className="text-2xl sm:text-3xl font-bold text-ev-text">Advanced CCTV Surveillance Solutions</h2>
                 <p className="text-ev-muted text-sm mt-2 max-w-2xl">
                   {showcaseFromApi.primary.length > 0
-                    ? 'Live listings from the catalogue — prices and stock update when superadmin changes them.'
-                    : 'Rated lines and indicative pricing — open the shop to match live catalogue and stock. Curate this grid in superadmin by setting “Homepage showcase” on each product.'}
+                    ? `Up to ${HOME_SHOWCASE_PRIMARY_MAX} live catalogue picks chosen in superadmin (Homepage showcase → Advanced CCTV). Prices and stock match the shop.`
+                    : 'This grid shows only products superadmin marks for the homepage (Homepage showcase → Advanced CCTV). None are set yet — browse the shop for everything in stock.'}
                 </p>
               </div>
               <Link href="/shop" className="ev-btn-secondary text-sm py-2.5 px-5 self-start shrink-0">
                 More products
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {showcaseFromApi.primary.length > 0
-                ? showcaseFromApi.primary.map((p) => (
-                    <HomeShowcaseProductCard
-                      key={p.id}
-                      p={p}
-                      canBuy={canBuy}
-                      bumpWishlist={() => setWishBump((n) => n + 1)}
-                    />
-                  ))
-                : showcasePrimary.map((p) => (
-                    <StaticProductCard key={p.name} p={p} canBuy={canBuy} />
-                  ))}
-            </div>
+            {showcaseFromApi.primary.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {showcaseFromApi.primary.slice(0, HOME_SHOWCASE_PRIMARY_MAX).map((p) => (
+                  <HomeShowcaseProductCard
+                    key={p.id}
+                    p={p}
+                    canBuy={canBuy}
+                    bumpWishlist={() => setWishBump((n) => n + 1)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-ev-muted text-sm rounded-lg border border-dashed border-ev-border bg-ev-surface px-4 py-6 text-center max-w-xl mx-auto">
+                No homepage showcase products yet. In superadmin, edit a platform catalogue product and set Homepage showcase to{' '}
+                <span className="text-ev-text font-medium">Advanced CCTV</span> (and order). Up to {HOME_SHOWCASE_PRIMARY_MAX}{' '}
+                appear here.
+              </p>
+            )}
           </div>
         </section>
 
