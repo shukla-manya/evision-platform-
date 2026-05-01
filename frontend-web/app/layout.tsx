@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
+import { FloatingWhatsAppChat } from '@/components/public/FloatingWhatsAppChat';
 
 export const metadata: Metadata = {
   title: 'E vision — Camera & Gear Marketplace',
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
+        <FloatingWhatsAppChat />
         <Toaster
           position="top-right"
           containerStyle={{

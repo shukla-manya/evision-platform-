@@ -91,6 +91,7 @@ import {
   publicSupportTelHref,
 } from './src/config/publicMarketing';
 import { BrowseBySiteAnimatedSvg } from './src/components/BrowseBySiteAnimatedSvg';
+import { FloatingWhatsAppFab } from './src/components/FloatingWhatsAppFab';
 import { HomeLeadFormSection } from './src/components/HomeLeadFormSection';
 import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
 import {
@@ -2796,7 +2797,10 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <AppShell />
+        <View style={{ flex: 1 }}>
+          <AppShell />
+          <FloatingWhatsAppFab />
+        </View>
       </QueryClientProvider>
     </SafeAreaProvider>
   );
