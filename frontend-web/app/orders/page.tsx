@@ -338,7 +338,7 @@ export default function MyOrdersPage() {
 
   return (
     <PublicShell>
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">{inner}</main>
+      <main className="ev-container py-8 w-full min-w-0">{inner}</main>
     </PublicShell>
   );
 }

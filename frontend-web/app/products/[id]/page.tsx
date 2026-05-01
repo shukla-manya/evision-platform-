@@ -281,7 +281,7 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <PublicShell>
-        <div className="max-w-6xl mx-auto px-4 py-20 flex flex-col items-center gap-4 text-ev-muted">
+        <div className="ev-container py-20 flex flex-col items-center gap-4 text-ev-muted w-full min-w-0">
           <Package size={48} className="opacity-30" />
           <p className="text-ev-text font-medium">Product not found</p>
           <Link href="/shop" className="ev-btn-secondary py-2 px-4 text-sm">
@@ -309,7 +309,7 @@ export default function ProductDetailPage() {
 
   return (
     <PublicShell>
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <main className="ev-container py-6 sm:py-8 w-full min-w-0">
         <nav className="text-xs sm:text-sm text-ev-muted flex flex-wrap items-center gap-1.5 mb-4" aria-label="Breadcrumb">
           <Link href="/home" className="hover:text-ev-primary transition-colors">
             Home
