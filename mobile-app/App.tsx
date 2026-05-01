@@ -545,6 +545,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   const [deliveryGeoLoading, setDeliveryGeoLoading] = useState(false);
   /** After OTP is sent (customer / dealer / technician), lock identity & address fields — same policy as web. */
   const [registerDetailsLocked, setRegisterDetailsLocked] = useState(false);
+  const insets = useSafeAreaInsets();
+  const registerFieldStyle = [styles.input, styles.registerField];
 
   const deliveryCachedGpsRef = useRef<{ lat: number; lng: number } | null>(null);
   const deliveryPinSuggestSeq = useRef(0);
@@ -747,35 +749,46 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[styles.listPad, { paddingBottom: 32 }]}
+          contentContainerStyle={[
+            styles.listPad,
+            { paddingBottom: Math.max(32, insets.bottom + 24), flexGrow: 1 },
+          ]}
         >
-        <View style={styles.card}>
+        <View style={[styles.card, styles.registerCard]}>
           <Text style={styles.cardTitle}>Create account</Text>
           <Text style={styles.subtitle}>
             {ACCOUNT_ROLES_SUMMARY} — same app; your dashboard matches your role after sign-in. Superadmin accounts are
             provisioned separately.
           </Text>
-          <View style={styles.roleRow}>
-            {REGISTER_ROLE_TABS.map(({ value, label }) => (
+          <View style={styles.registerRoleBar} accessibilityRole="tablist">
+            {REGISTER_ROLE_TABS.map(({ value, label }, index) => (
               <Pressable
                 key={value}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: role === value }}
                 onPress={() => setRole(value)}
-                style={[styles.roleChip, role === value && styles.roleChipActive]}
+                style={[
+                  styles.registerRoleSegment,
+                  index > 0 && styles.registerRoleSegmentDivider,
+                  role === value && styles.registerRoleSegmentActive,
+                ]}
               >
-                <Text style={[styles.roleChipText, role === value && styles.roleChipTextActive]}>{label}</Text>
+                <Text style={[styles.registerRoleSegmentText, role === value && styles.registerRoleSegmentTextActive]}>
+                  {label}
+                </Text>
               </Pressable>
             ))}
           </View>
           <>
               <TextInput
-                style={styles.input}
+                style={registerFieldStyle}
                 placeholder="Full name"
                 value={name}
                 onChangeText={setName}
                 editable={!lockReg}
               />
               <TextInput
-                style={styles.input}
+                style={registerFieldStyle}
                 placeholder="Email"
                 keyboardType="email-address"
                 value={email}
@@ -784,7 +797,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 editable={!lockReg}
               />
               <TextInput
-                style={styles.input}
+                style={registerFieldStyle}
                 placeholder="Mobile (10 digits)"
                 keyboardType="phone-pad"
                 value={phone}
@@ -794,7 +807,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
               />
               {role === 'dealer' && (
                 <TextInput
-                  style={styles.input}
+                  style={registerFieldStyle}
                   placeholder="GST number"
                   value={gstNo}
                   onChangeText={setGstNo}
@@ -805,14 +818,14 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
               {role === 'electrician' && (
                 <>
                   <TextInput
-                    style={styles.input}
+                    style={registerFieldStyle}
                     placeholder="Skills (comma-separated)"
                     value={skills}
                     onChangeText={setSkills}
                     editable={!lockReg}
                   />
                   <Pressable
-                    style={styles.buttonSecondary}
+                    style={[styles.buttonSecondary, styles.registerTouchSecondary]}
                     disabled={lockReg}
                     onPress={async () => setAadharAsset(await pickImageAsset('Aadhar document'))}
                   >
@@ -821,7 +834,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                     </Text>
                   </Pressable>
                   <Pressable
-                    style={styles.buttonSecondary}
+                    style={[styles.buttonSecondary, styles.registerTouchSecondary]}
                     disabled={lockReg}
                     onPress={async () => setPhotoAsset(await pickImageAsset('profile photo'))}
                   >
@@ -834,7 +847,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
               {(role === 'customer' || role === 'dealer' || role === 'electrician') && (
                 <>
                   <Pressable
-                    style={[styles.buttonSecondary, deliveryGeoLoading && { opacity: 0.7 }]}
+                    style={[styles.buttonSecondary, styles.registerTouchSecondary, deliveryGeoLoading && { opacity: 0.7 }]}
                     disabled={deliveryGeoLoading || lockReg}
                     onPress={async () => {
                       setDeliveryGeoLoading(true);
