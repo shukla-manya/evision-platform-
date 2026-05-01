@@ -275,6 +275,24 @@ function MarqueeStarStrip({ rating }: { rating: number }) {
   );
 }
 
+type HomeReview = (typeof homeCustomerReviews)[number];
+
+/** One testimonial = one card box; repeated in the horizontal marquee loop. */
+function TestimonialReviewBox({ r }: { r: HomeReview }) {
+  return (
+    <div className="flex w-[min(15.25rem,calc(100vw-3.5rem))] shrink-0 flex-col gap-2 rounded-xl border border-ev-border bg-ev-surface2/95 p-3 shadow-ev-sm sm:w-[15.5rem] sm:p-3.5">
+      <MarqueeStarStrip rating={r.rating} />
+      <p className="line-clamp-4 text-left text-xs font-medium leading-snug text-ev-text sm:line-clamp-3 sm:text-[13px]">
+        &ldquo;{r.quote}&rdquo;
+      </p>
+      <p className="text-left text-[11px] leading-snug text-ev-muted sm:text-xs">
+        <span className="font-semibold text-ev-text">{r.author}</span>
+        <span className="text-ev-subtle"> · {r.subtitle}</span>
+      </p>
+    </div>
+  );
+}
+
 function HomeTestimonialsMarquee() {
   const [motionReduced, setMotionReduced] = useState(false);
 
@@ -289,19 +307,11 @@ function HomeTestimonialsMarquee() {
 
   const segment = (suffix: string) => (
     <div
-      className="flex shrink-0 items-center gap-x-8 sm:gap-x-12 md:gap-x-16 pr-8 sm:pr-12 md:pr-16"
+      className="flex shrink-0 items-stretch gap-4 pr-6 sm:gap-5 sm:pr-8"
       aria-hidden={suffix === 'b'}
     >
       {homeCustomerReviews.map((r, i) => (
-        <span
-          key={`${suffix}-${i}`}
-          className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs text-ev-text sm:text-sm sm:gap-2"
-        >
-          <MarqueeStarStrip rating={r.rating} />
-          <span className="font-medium">&ldquo;{r.quote}&rdquo;</span>
-          <span className="text-ev-muted font-medium">— {r.author}</span>
-          <span className="text-ev-subtle hidden sm:inline">· {r.subtitle}</span>
-        </span>
+        <TestimonialReviewBox key={`${suffix}-${i}`} r={r} />
       ))}
     </div>
   );
@@ -328,12 +338,9 @@ function HomeTestimonialsMarquee() {
 
         {motionReduced ? (
           <div className="relative z-0 min-h-0 flex-1 overflow-y-auto px-3 py-3 sm:px-4">
-            <div className="flex flex-col gap-3 text-center text-xs text-ev-text sm:text-sm">
+            <div className="mx-auto flex max-w-sm flex-col gap-3">
               {homeCustomerReviews.map((r, i) => (
-                <p key={i} className="text-ev-muted">
-                  <span className="font-medium text-ev-text">&ldquo;{r.quote}&rdquo;</span>
-                  <span className="text-ev-subtle"> — {r.author}</span>
-                </p>
+                <TestimonialReviewBox key={i} r={r} />
               ))}
             </div>
           </div>

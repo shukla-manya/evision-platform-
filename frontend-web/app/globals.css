@@ -111,7 +111,7 @@
 .ev-home-testimonials-marquee__track {
   display: flex;
   width: max-content;
-  animation: evHomeTestimonialsMarquee 70s linear infinite;
+  animation: evHomeTestimonialsMarquee 90s linear infinite;
 }
 
 .ev-home-testimonials-marquee:hover .ev-home-testimonials-marquee__track {
