@@ -103,6 +103,7 @@ import {
   HOME_CUSTOM_QUOTE_IMAGE_URI,
   HOME_CUSTOM_QUOTE_TITLE,
 } from './src/lib/home-custom-quote';
+import { HOME_INNOVATION_BODY, HOME_INNOVATION_PHOTOS, HOME_INNOVATION_TITLE } from './src/lib/home-innovation';
 import { HOME_HERO_SLIDES, HOME_PROMO_STRIP_CARDS, HOME_PROMO_STRIP_KICKER } from './src/lib/home-hero-slides';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
@@ -1728,6 +1729,24 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                     <MaterialCommunityIcons name="chevron-right" size={18} color="#fff" />
                   </Pressable>
                 </View>
+              </View>
+            </View>
+
+            <View style={styles.innovationSection}>
+              <Text style={styles.innovationTitle}>{HOME_INNOVATION_TITLE}</Text>
+              <Text style={styles.innovationBody}>{HOME_INNOVATION_BODY}</Text>
+              <View style={styles.innovationPhotosRow}>
+                {HOME_INNOVATION_PHOTOS.map((ph) => (
+                  <View key={ph.caption} style={styles.innovationPhotoCard}>
+                    <Image
+                      source={{ uri: ph.uri }}
+                      style={styles.innovationPhoto}
+                      resizeMode="cover"
+                      accessibilityLabel={ph.accessibilityLabel}
+                    />
+                    <Text style={styles.innovationCaption}>{ph.caption}</Text>
+                  </View>
+                ))}
               </View>
             </View>
 
