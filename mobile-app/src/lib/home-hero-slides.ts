@@ -10,13 +10,6 @@ export type HomeHeroSlide = {
 /** Shown under the home hero carousel — same imagery, “Buy Now” CTAs. */
 export const HOME_PROMO_STRIP_KICKER = 'All-new and loveable.';
 
-export const HOME_PROMO_STRIP_CARDS = HOME_HERO_SLIDES.map((s) => ({
-  title: s.title,
-  cta: 'Buy Now' as const,
-  href: s.href,
-  imageUri: s.imageUri,
-}));
-
 export const HOME_HERO_SLIDES: HomeHeroSlide[] = [
   {
     title: 'Wi-Fi CCTV Cameras',
@@ -43,3 +36,10 @@ export const HOME_HERO_SLIDES: HomeHeroSlide[] = [
       'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=1200&q=80',
   },
 ];
+
+export const HOME_PROMO_STRIP_CARDS = HOME_HERO_SLIDES.map((s) => ({
+  title: s.title,
+  cta: 'Buy Now' as const,
+  href: s.href,
+  imageUri: s.imageUri,
+}));
