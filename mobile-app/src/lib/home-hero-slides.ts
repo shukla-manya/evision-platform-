@@ -17,7 +17,7 @@ export const HOME_HERO_SLIDES: HomeHeroSlide[] = [
     cta: 'Browse Wi-Fi CCTV',
     href: '/shop?search=Wi-Fi%20CCTV',
     imageUri:
-      'https://images.unsplash.com/photo-1557598376-da691ed6591f?auto=format&fit=crop&w=1200&q=80',
+      'https://images.pexels.com/photos/430208/pexels-photo-430208.jpeg?auto=compress&cs=tinysrgb&w=1200',
   },
   {
     title: 'Power Over Ethernet',
@@ -25,7 +25,7 @@ export const HOME_HERO_SLIDES: HomeHeroSlide[] = [
     cta: 'Browse PoE gear',
     href: '/shop?search=PoE',
     imageUri:
-      'https://images.unsplash.com/photo-1616410738646-a66a3169768f?auto=format&fit=crop&w=1200&q=80',
+      'https://images.pexels.com/photos/7514838/pexels-photo-7514838.jpeg?auto=compress&cs=tinysrgb&w=1200',
   },
   {
     title: 'Smart Security Kits',
@@ -33,7 +33,7 @@ export const HOME_HERO_SLIDES: HomeHeroSlide[] = [
     cta: 'Shop kits',
     href: '/shop?search=security%20kit',
     imageUri:
-      'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=1200&q=80',
+      'https://images.pexels.com/photos/96612/pexels-photo-96612.jpeg?auto=compress&cs=tinysrgb&w=1200',
   },
 ];
 

@@ -7,4 +7,4 @@ export const HOME_CUSTOM_QUOTE_BODY =
 export const HOME_CUSTOM_QUOTE_CTA = 'Get a Custom Quote';
 
 export const HOME_CUSTOM_QUOTE_IMAGE_URI =
-  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80';
+  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';

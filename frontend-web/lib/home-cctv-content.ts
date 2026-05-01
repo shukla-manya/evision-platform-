@@ -1,5 +1,13 @@
 /** Static marketing copy for the storefront home (CCTV / security focus). */
 
+/** Pexels CDN — reliable hotlinking for hero / cards (some legacy Unsplash photo IDs now return 404). */
+const pexPhoto = (id: string, w: number) =>
+  `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`;
+
+/** Unsplash via imgix — include `ixlib` for stable responses. */
+const unsplashPhoto = (id: string, w: number) =>
+  `https://images.unsplash.com/photo-${id}?ixlib=rb-4.0.3&auto=format&fit=crop&w=${w}&q=80`;
+
 export type StaticShowcaseProduct = {
   name: string;
   categoryLine: string;
@@ -17,17 +25,15 @@ export const homeHeroSlides = [
     subtitle: 'All-new and loveable — wireless indoor and outdoor lines.',
     cta: 'Browse Wi-Fi CCTV',
     href: '/shop?search=Wi-Fi%20CCTV',
-    imageSrc:
-      'https://images.unsplash.com/photo-1557598376-da691ed6591f?auto=format&fit=crop&w=1920&q=80',
-    imageAlt: 'Security camera mounted near a doorway',
+    imageSrc: pexPhoto('430208', 1920),
+    imageAlt: 'Security camera mounted on a white wall',
   },
   {
     title: 'Power Over Ethernet',
     subtitle: 'Reliable power and data in one cable for pro installs.',
     cta: 'Browse PoE gear',
     href: '/shop?search=PoE',
-    imageSrc:
-      'https://images.unsplash.com/photo-1616410738646-a66a3169768f?auto=format&fit=crop&w=1920&q=80',
+    imageSrc: pexPhoto('7514838', 1920),
     imageAlt: 'Dome CCTV camera on a ceiling',
   },
   {
@@ -35,9 +41,8 @@ export const homeHeroSlides = [
     subtitle: 'Everything you need to get started with multi-camera coverage.',
     cta: 'Shop kits',
     href: '/shop?search=security%20kit',
-    imageSrc:
-      'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=1920&q=80',
-    imageAlt: 'Modern workspace with laptop and accessories',
+    imageSrc: pexPhoto('96612', 1920),
+    imageAlt: 'Security camera and monitoring equipment',
   },
 ] as const;
 
@@ -112,26 +117,22 @@ export const customQuoteSectionBody =
 
 export const customQuoteSectionCta = 'Get a Custom Quote';
 
-export const customQuoteSectionBackgroundSrc =
-  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1920&q=80';
+export const customQuoteSectionBackgroundSrc = unsplashPhoto('1504384308090-c894fdcc538d', 1920);
 
-/** “Join as technician” home card — technician installing a bullet CCTV (online catalogue image). */
-export const homeJoinTechnicianSectionImageSrc =
-  'https://5.imimg.com/data5/SELLER/Default/2022/10/WG/WF/IB/150612412/cctv-camera-installation-service.jpg';
+/** “Join as technician” home card — field install / service (Pexels). */
+export const homeJoinTechnicianSectionImageSrc = pexPhoto('8006614', 1200);
 
 export const homeJoinTechnicianSectionImageAlt =
-  'Professional technician using a power drill to install a white bullet-style security camera on a wall';
+  'Technician working on wiring and equipment for a professional security install';
 
-/** “Register as dealer” home card — wholesale / distribution (remote marketing image). */
-export const homeDealerSectionImageSrc =
-  'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80';
+/** “Register as dealer” home card — warehouse / wholesale (Pexels). */
+export const homeDealerSectionImageSrc = pexPhoto('1267320', 1200);
 
 export const homeDealerSectionImageAlt =
   'Warehouse aisle with stocked shelves — wholesale distribution and bulk fulfilment';
 
-/** Left visual beside the home lead (mailto) form — CCTV install. */
-export const homeLeadFormImageSrc =
-  'https://images.unsplash.com/photo-1557598376-da691ed6591f?auto=format&fit=crop&w=1200&q=80';
+/** Left visual beside the home lead (mailto) form — CCTV on wall (Pexels). */
+export const homeLeadFormImageSrc = pexPhoto('430208', 1200);
 
 export const homeLeadFormImageAlt = 'CCTV camera installed for home and business security';
 

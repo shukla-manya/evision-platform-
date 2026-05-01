@@ -210,6 +210,7 @@ function HomeLeadForm() {
           alt={homeLeadFormImageAlt}
           className="absolute inset-0 h-full w-full object-cover"
           loading="lazy"
+          referrerPolicy="no-referrer"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-ev-navbar/35 via-transparent to-transparent pointer-events-none" aria-hidden />
       </div>
@@ -360,6 +361,7 @@ export default function HomePage() {
                   className="absolute inset-0 h-full w-full object-cover"
                   fetchPriority={i === 0 ? 'high' : 'low'}
                   decoding={i === 0 ? 'sync' : 'async'}
+                  referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/45 to-black/25" aria-hidden />
                 <div className="relative z-10 ev-container pb-14 sm:pb-16 pt-24 sm:pt-28 text-white">
@@ -417,6 +419,7 @@ export default function HomePage() {
                     src={card.imageSrc}
                     alt=""
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    referrerPolicy="no-referrer"
                   />
                   <div
                     className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/40 to-black/15"
@@ -551,6 +554,7 @@ export default function HomePage() {
               src={customQuoteSectionBackgroundSrc}
               alt=""
               className="ev-custom-quote-bg__img absolute max-w-none"
+              referrerPolicy="no-referrer"
             />
           </div>
           <div
@@ -595,7 +599,7 @@ export default function HomePage() {
                       <Link href={`/products/${p.id}`} className="relative aspect-[4/3] bg-ev-surface2 border-b border-ev-border block">
                         {img ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                          <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center text-ev-muted text-sm">No image</div>
                         )}
@@ -779,6 +783,7 @@ export default function HomePage() {
                 alt={homeDealerSectionImageAlt}
                 className="absolute inset-0 h-full w-full object-cover object-center"
                 loading="lazy"
+                referrerPolicy="no-referrer"
               />
             </div>
             <div className="p-8 md:p-10 flex flex-col justify-center flex-1 min-w-0 bg-gradient-to-br from-ev-surface to-ev-primary/5">
@@ -800,6 +805,7 @@ export default function HomePage() {
                 alt={homeJoinTechnicianSectionImageAlt}
                 className="absolute inset-0 h-full w-full object-cover object-center"
                 loading="lazy"
+                referrerPolicy="no-referrer"
               />
             </div>
             <div className="p-8 md:p-10 flex flex-col justify-center flex-1 min-w-0">
