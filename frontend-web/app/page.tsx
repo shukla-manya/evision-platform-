@@ -253,35 +253,12 @@ function HomeLeadForm() {
   );
 }
 
-function MarqueeStarStrip({ rating }: { rating: number }) {
-  const full = Math.floor(rating);
-  const partial = rating - full >= 0.5;
-  return (
-    <span className="inline-flex shrink-0 items-center gap-0.5 text-amber-500" aria-hidden>
-      {Array.from({ length: 5 }, (_, i) => (
-        <Star
-          key={i}
-          size={12}
-          className={
-            i < full
-              ? 'fill-amber-400 text-amber-500'
-              : i === full && partial
-                ? 'fill-amber-400/60 text-amber-500'
-                : 'fill-none text-ev-border'
-          }
-        />
-      ))}
-    </span>
-  );
-}
-
 type HomeReview = (typeof homeCustomerReviews)[number];
 
 /** One testimonial = one card box; repeated in the horizontal marquee loop. */
 function TestimonialReviewBox({ r }: { r: HomeReview }) {
   return (
     <div className="flex w-[min(15.25rem,calc(100vw-3.5rem))] shrink-0 flex-col gap-2 rounded-xl border border-ev-border bg-ev-surface2/95 p-3 shadow-ev-sm sm:w-[15.5rem] sm:p-3.5">
-      <MarqueeStarStrip rating={r.rating} />
       <p className="line-clamp-4 text-left text-xs font-medium leading-snug text-ev-text sm:line-clamp-3 sm:text-[13px]">
         &ldquo;{r.quote}&rdquo;
       </p>
