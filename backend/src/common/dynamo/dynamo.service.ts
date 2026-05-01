@@ -45,6 +45,7 @@ export class DynamoService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(DynamoService.name);
   private client: MongoClient | null = null;
   private db: Db | null = null;
+  private mongoConnectionSummary: string | null = null;
 
   constructor(private config: ConfigService) {}
 
@@ -58,8 +59,8 @@ export class DynamoService implements OnModuleInit, OnModuleDestroy {
       await this.client.connect();
       this.db = this.client.db();
       const mongoLine = `MongoDB connected (${this.logUriHint(uri)})`;
+      this.mongoConnectionSummary = mongoLine;
       this.logger.log(mongoLine);
-      console.log(mongoLine);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       this.logger.error(`MongoDB connection failed: ${msg}`);
@@ -73,6 +74,12 @@ export class DynamoService implements OnModuleInit, OnModuleDestroy {
     await this.client?.close();
     this.client = null;
     this.db = null;
+    this.mongoConnectionSummary = null;
+  }
+
+  /** Human-readable line for console banner after `listen` (null if never connected). */
+  getMongoConnectionSummary(): string | null {
+    return this.mongoConnectionSummary;
   }
 
   private logUriHint(uri: string): string {
