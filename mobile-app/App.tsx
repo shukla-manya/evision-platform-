@@ -18,7 +18,7 @@ import {
   View,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   CommonActions,
   DefaultTheme,
@@ -1290,6 +1290,11 @@ function resolveCatalogBrowseParams(
 }
 
 function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: string }) {
+  const insets = useSafeAreaInsets();
+  const { width: winW } = useWindowDimensions();
+  const padL = Math.max(screenGutter, insets.left);
+  const padR = Math.max(screenGutter, insets.right);
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [catalogueReady, setCatalogueReady] = useState(false);
@@ -1309,8 +1314,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
   const [cartBusyId, setCartBusyId] = useState<string | null>(null);
   const heroScrollRef = useRef<ScrollView>(null);
   const [heroIdx, setHeroIdx] = useState(0);
-  const { width: winW } = useWindowDimensions();
-  const heroSlideW = Math.max(1, winW - 2 * screenGutter);
+  const heroSlideW = Math.max(1, winW - padL - padR);
 
   const canAddToCart = userRole === 'customer' || userRole === 'dealer';
 
@@ -1479,9 +1483,9 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
   if (loading && !catalogueReady) return <Loader text="Loading catalogue..." />;
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={styles.screen} edges={['top']}>
       <FlatList
-        contentContainerStyle={styles.listPad}
+        contentContainerStyle={[styles.listPad, { paddingLeft: padL, paddingRight: padR }]}
         data={pageSlice}
         keyExtractor={(item) => item.id}
         refreshing={loading && catalogueReady}
@@ -1495,7 +1499,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
               showsHorizontalScrollIndicator={false}
               nestedScrollEnabled
               keyboardShouldPersistTaps="handled"
-              style={{ width: heroSlideW, alignSelf: 'center' }}
+              style={{ width: heroSlideW, alignSelf: 'stretch' }}
               onMomentumScrollEnd={(e) => {
                 const x = e.nativeEvent.contentOffset.x;
                 const idx = Math.round(x / heroSlideW);

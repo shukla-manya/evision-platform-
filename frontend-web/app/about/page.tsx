@@ -53,7 +53,7 @@ export default function AboutPage() {
           <p className="text-ev-muted text-sm font-medium uppercase tracking-wide mb-2">Company</p>
           <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-8 max-w-3xl">About E-Vision India</h1>
 
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start w-full">
             <div className="space-y-4">
               <div className="relative aspect-[1178/1536] max-h-[min(520px,70vh)] rounded-2xl border border-ev-border bg-gradient-to-br from-ev-surface2 to-ev-surface overflow-hidden">
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-ev-muted">
@@ -77,7 +77,7 @@ export default function AboutPage() {
         </section>
 
         <section className="border-y border-ev-border bg-ev-surface2/50 py-12 sm:py-16">
-          <div className="ev-container max-w-6xl">
+          <div className="ev-container">
             <h2 className="text-2xl sm:text-3xl font-bold text-ev-text text-center mb-4">{premierServicesTitle}</h2>
             <p className="text-ev-muted text-sm sm:text-base leading-relaxed text-center max-w-4xl mx-auto mb-12">
               {premierServicesIntro}
@@ -119,7 +119,7 @@ export default function AboutPage() {
             <p className="text-center text-ev-subtle text-xs mb-8 max-w-2xl mx-auto">
               Representative feedback from integrators, facility teams, and partners — hover the strip to pause.
             </p>
-            <div className="max-w-7xl mx-auto" role="region" aria-label="Customer testimonials">
+            <div className="w-full min-w-0" role="region" aria-label="Customer testimonials">
               <TestimonialsMarquee />
             </div>
             <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">{aboutBrandSummary}</p>

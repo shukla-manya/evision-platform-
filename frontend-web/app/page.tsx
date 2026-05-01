@@ -430,20 +430,22 @@ export default function HomePage() {
         </section>
 
         {/* What we provide — same copy as /about */}
-        <section className="ev-container py-12 sm:py-16 max-w-4xl">
-          <h2 className="text-2xl sm:text-3xl font-bold text-ev-text text-center mb-6">{aboutWhatWeProvideTitle}</h2>
-          <div className="text-ev-muted text-sm sm:text-base leading-relaxed space-y-4 text-center sm:text-left">
-            {aboutWhatWeProvideParagraphs.map((p) => (
-              <p key={p.slice(0, 48)}>{p}</p>
-            ))}
-          </div>
-          <div className="flex justify-center mt-8">
-            <Link
-              href="/about"
-              className="ev-btn-primary inline-flex items-center gap-2 text-sm py-2.5 px-6"
-            >
-              Full company story, services & certificates <ArrowRight size={16} aria-hidden />
-            </Link>
+        <section className="py-12 sm:py-16">
+          <div className="ev-container max-w-4xl">
+            <h2 className="text-2xl sm:text-3xl font-bold text-ev-text text-center mb-6">{aboutWhatWeProvideTitle}</h2>
+            <div className="text-ev-muted text-sm sm:text-base leading-relaxed space-y-4 text-center sm:text-left">
+              {aboutWhatWeProvideParagraphs.map((p) => (
+                <p key={p.slice(0, 48)}>{p}</p>
+              ))}
+            </div>
+            <div className="flex justify-center mt-8">
+              <Link
+                href="/about"
+                className="ev-btn-primary inline-flex items-center gap-2 text-sm py-2.5 px-6"
+              >
+                Full company story, services & certificates <ArrowRight size={16} aria-hidden />
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -482,7 +484,7 @@ export default function HomePage() {
 
         {/* Combos + collection copy */}
         <section className="ev-container py-12 sm:py-16">
-          <div className="max-w-3xl mx-auto text-center mb-10">
+          <div className="max-w-3xl mx-auto w-full text-center mb-10">
             <h2 className="text-2xl sm:text-3xl font-bold text-ev-text mb-4">Security Camera Collection</h2>
             <p className="text-ev-muted text-sm sm:text-base leading-relaxed">
               Discover high-performance Evision surveillance cameras and recording systems engineered for clear visuals, smart monitoring,
@@ -492,7 +494,7 @@ export default function HomePage() {
               More combos <ArrowRight size={16} aria-hidden />
             </Link>
           </div>
-          <div className="grid sm:grid-cols-3 gap-5 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-3 gap-5 w-full">
             {showcaseFromApi.combos.length > 0
               ? showcaseFromApi.combos.map((p) => (
                   <HomeShowcaseProductCard
@@ -617,7 +619,7 @@ export default function HomePage() {
         <section className="ev-container py-12 sm:py-16 border-t border-ev-border">
           <h2 className="text-2xl sm:text-3xl font-bold text-ev-text text-center mb-2">Customer Review</h2>
           <p className="text-ev-muted text-center text-sm mb-10">What our customers say about us?</p>
-          <div className="grid md:grid-cols-2 gap-5 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-5 w-full">
             {customerReviews.map((r) => (
               <blockquote key={r.name} className="ev-card p-5 sm:p-6 border-ev-border">
                 <p className="text-ev-text text-sm leading-relaxed">&ldquo;{r.quote}&rdquo;</p>
@@ -642,15 +644,16 @@ export default function HomePage() {
           <p className="text-center text-ev-subtle text-xs mb-8 max-w-2xl mx-auto">
             What buyers and integrators say — scrolls automatically; hover to pause.
           </p>
-          <div className="max-w-7xl mx-auto" role="region" aria-label="Customer testimonials">
+          <div className="w-full min-w-0" role="region" aria-label="Customer testimonials">
             <TestimonialsMarquee />
           </div>
           <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">{aboutBrandSummary}</p>
         </section>
 
         {/* Platform features (unchanged value) */}
-        <section className="py-16 sm:py-20 px-4 sm:px-6 max-w-6xl mx-auto border-t border-ev-border">
-          <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
+        <section className="py-16 sm:py-20 border-t border-ev-border">
+          <div className="ev-container">
+          <div className="text-center max-w-2xl mx-auto w-full mb-12 sm:mb-14">
             <p className="text-ev-primary font-bold text-[11px] sm:text-xs uppercase tracking-[0.22em] mb-3">How this site works</p>
             <h2 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight mb-4">Why {publicBrandName}?</h2>
             <p className="text-ev-muted text-sm sm:text-base leading-relaxed">
@@ -723,10 +726,11 @@ export default function HomePage() {
               </article>
             ))}
           </div>
+          </div>
         </section>
 
         {/* Dealer / technician */}
-        <section className="px-4 sm:px-6 pb-16 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+        <section className="ev-container pb-16 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="ev-card p-8 md:p-10 border-ev-primary/20 bg-gradient-to-br from-ev-surface to-ev-primary/5">
             <Sparkles className="text-ev-primary mb-3" size={22} aria-hidden />
             <h2 className="text-xl md:text-2xl font-bold text-ev-text mb-2">Are you a dealer or distributor?</h2>

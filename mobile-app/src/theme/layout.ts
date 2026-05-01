@@ -2,5 +2,6 @@
  * Shared layout tokens so list/scroll screens align like a production app.
  * Use with ScrollView `contentContainerStyle` (not for full-bleed hero UIs).
  */
-export const screenGutter = 20;
-export const screenGutterCompact = 16;
+/** Horizontal inset for scroll screens — kept modest so content uses more of the screen width. */
+export const screenGutter = 12;
+export const screenGutterCompact = 10;

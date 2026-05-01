@@ -6,7 +6,7 @@ import { marqueeTestimonials } from '@/lib/public-testimonials';
 
 function TestimonialCard({ quote, name, role }: { quote: string; name: string; role: string }) {
   return (
-    <figure className="ev-card shrink-0 w-[min(100vw-2rem,320px)] sm:w-[300px] border-ev-border p-5 shadow-ev-sm">
+    <figure className="ev-card shrink-0 w-[min(100%,300px)] min-w-[260px] max-w-[300px] border-ev-border p-5 shadow-ev-sm">
       <div className="flex gap-0.5 text-amber-500 mb-3" aria-hidden>
         {Array.from({ length: 5 }, (_, i) => (
           <Star key={i} size={14} className="fill-amber-400 text-amber-500" />
@@ -34,7 +34,7 @@ export function TestimonialsMarquee() {
 
   if (reduceMotion) {
     return (
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
         {marqueeTestimonials.map((t) => (
           <TestimonialCard key={t.id} quote={t.quote} name={t.name} role={t.role} />
         ))}
@@ -45,7 +45,7 @@ export function TestimonialsMarquee() {
   const loop = [...marqueeTestimonials, ...marqueeTestimonials];
 
   return (
-    <div className="ev-marquee-outer overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 px-0">
+    <div className="ev-marquee-outer w-screen max-w-[100dvw] relative left-1/2 -translate-x-1/2 overflow-x-hidden overflow-y-visible">
       <div className="ev-marquee-track py-1">
         {loop.map((t, i) => (
           <TestimonialCard key={`${t.id}-${i}`} quote={t.quote} name={t.name} role={t.role} />
