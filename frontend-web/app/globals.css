@@ -98,6 +98,26 @@
   }
 }
 
+/* Home reviews — outer ring runs in a continuous circle */
+@keyframes evHomeReviewsRingSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ev-home-reviews-ring {
+  animation: evHomeReviewsRingSpin 18s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev-home-reviews-ring {
+    animation: none;
+  }
+}
+
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
 
