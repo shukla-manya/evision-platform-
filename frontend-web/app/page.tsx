@@ -243,45 +243,59 @@ function HomeLeadForm() {
   }
 
   return (
-    <form onSubmit={submit} className="ev-card p-6 sm:p-8 space-y-4 max-w-xl mx-auto">
-      <h2 className="text-xl font-bold text-ev-text text-center sm:text-left">Secure Your Space with EVISION CCTV Camera</h2>
-      <div className="grid sm:grid-cols-2 gap-3">
-        <div>
-          <label className="ev-label" htmlFor="home-fn">
-            First name
-          </label>
-          <input id="home-fn" className="ev-input" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" />
+    <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 xl:gap-12 items-stretch max-w-6xl mx-auto w-full">
+      <div className="relative min-h-[240px] sm:min-h-[280px] lg:min-h-[320px] rounded-2xl overflow-hidden border border-ev-border bg-ev-surface2 shadow-ev-sm">
+        {/* eslint-disable-next-line @next/next/no-img-element -- marketing panel beside lead form */}
+        <img
+          src={homeLeadFormImageSrc}
+          alt={homeLeadFormImageAlt}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-ev-navbar/35 via-transparent to-transparent pointer-events-none" aria-hidden />
+      </div>
+      <form onSubmit={submit} className="ev-card p-6 sm:p-8 space-y-4 flex flex-col justify-center">
+        <h2 className="text-xl sm:text-2xl font-bold text-ev-text text-center sm:text-left">
+          Secure Your Space with EVISION CCTV Camera
+        </h2>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label className="ev-label" htmlFor="home-fn">
+              First name
+            </label>
+            <input id="home-fn" className="ev-input" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" />
+          </div>
+          <div>
+            <label className="ev-label" htmlFor="home-ln">
+              Last name
+            </label>
+            <input id="home-ln" className="ev-input" value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" />
+          </div>
         </div>
         <div>
-          <label className="ev-label" htmlFor="home-ln">
-            Last name
+          <label className="ev-label" htmlFor="home-em">
+            Email
           </label>
-          <input id="home-ln" className="ev-input" value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" />
+          <input id="home-em" type="email" className="ev-input" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
         </div>
-      </div>
-      <div>
-        <label className="ev-label" htmlFor="home-em">
-          Email
-        </label>
-        <input id="home-em" type="email" className="ev-input" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-      </div>
-      <div>
-        <label className="ev-label" htmlFor="home-msg">
-          Your message
-        </label>
-        <textarea id="home-msg" className="ev-input min-h-[120px] py-3 resize-y" value={message} onChange={(e) => setMessage(e.target.value)} />
-      </div>
-      <button type="submit" className="ev-btn-primary w-full sm:w-auto">
-        Submit
-      </button>
-      <p className="text-ev-muted text-xs">
-        Opens your email app to send to <span className="text-ev-text font-medium">{publicSupportEmail}</span>. Or{' '}
-        <Link href="/contact" className="text-ev-primary font-medium hover:underline">
-          contact page
-        </Link>
-        .
-      </p>
-    </form>
+        <div>
+          <label className="ev-label" htmlFor="home-msg">
+            Your message
+          </label>
+          <textarea id="home-msg" className="ev-input min-h-[120px] py-3 resize-y" value={message} onChange={(e) => setMessage(e.target.value)} />
+        </div>
+        <button type="submit" className="ev-btn-primary w-full sm:w-auto">
+          Submit
+        </button>
+        <p className="text-ev-muted text-xs">
+          Opens your email app to send to <span className="text-ev-text font-medium">{publicSupportEmail}</span>. Or{' '}
+          <Link href="/contact" className="text-ev-primary font-medium hover:underline">
+            contact page
+          </Link>
+          .
+        </p>
+      </form>
+    </div>
   );
 }
 
