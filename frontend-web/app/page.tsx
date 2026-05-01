@@ -32,6 +32,8 @@ import {
   businessSegmentsSectionTitle,
   customerReviews,
   homeHeroSlides,
+  homePromoStripCards,
+  homePromoStripKicker,
   showcaseCombos,
   showcasePrimary,
   type StaticShowcaseProduct,
@@ -410,6 +412,44 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Image promos — same three lines as hero, “Buy Now”, under carousel */}
+        <section className="border-b border-ev-border bg-ev-bg py-8 sm:py-10" aria-labelledby="home-promo-strip-heading">
+          <div className="ev-container">
+            <p
+              id="home-promo-strip-heading"
+              className="text-center text-ev-primary font-semibold text-xs uppercase tracking-[0.2em] mb-6"
+            >
+              {homePromoStripKicker}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-5">
+              {homePromoStripCards.map((card) => (
+                <Link
+                  key={card.title}
+                  href={card.href}
+                  className="group relative overflow-hidden rounded-2xl border border-ev-border min-h-[200px] sm:min-h-[220px] flex flex-col justify-end p-6 sm:p-7 text-white shadow-ev-md hover:shadow-ev-lg transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-ev-primary focus-visible:ring-offset-2"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element -- marketing tile backgrounds */}
+                  <img
+                    src={card.imageSrc}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                  <div
+                    className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/40 to-black/15"
+                    aria-hidden
+                  />
+                  <div className="relative z-10">
+                    <p className="text-lg sm:text-xl font-bold leading-snug drop-shadow-sm">{card.title}</p>
+                    <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold bg-white/20 group-hover:bg-white/30 px-4 py-2 rounded-xl border border-white/25 w-fit transition-colors">
+                      {card.cta} <ArrowRight size={16} aria-hidden />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Install-type shortcuts */}
         <section className="bg-gradient-to-b from-[#eef2f6] to-ev-bg py-10 sm:py-12 border-b border-ev-border">
           <div className="ev-container">
@@ -653,14 +693,14 @@ export default function HomePage() {
         {/* Platform features (unchanged value) */}
         <section className="py-16 sm:py-20 border-t border-ev-border">
           <div className="ev-container">
-          <div className="text-center max-w-2xl mx-auto w-full mb-12 sm:mb-14">
-            <p className="text-ev-primary font-bold text-[11px] sm:text-xs uppercase tracking-[0.22em] mb-3">How this site works</p>
-            <h2 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight mb-4">Why {publicBrandName}?</h2>
-            <p className="text-ev-muted text-sm sm:text-base leading-relaxed">
-              The marketplace is built around real checkout, orders, and fulfilment. Below is what you can rely on today.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div className="text-center max-w-2xl mx-auto w-full mb-12 sm:mb-14">
+              <p className="text-ev-primary font-bold text-[11px] sm:text-xs uppercase tracking-[0.22em] mb-3">How this site works</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight mb-4">Why {publicBrandName}?</h2>
+              <p className="text-ev-muted text-sm sm:text-base leading-relaxed">
+                The marketplace is built around real checkout, orders, and fulfilment. Below is what you can rely on today.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {(
               [
                 {
@@ -725,7 +765,7 @@ export default function HomePage() {
                 </p>
               </article>
             ))}
-          </div>
+            </div>
           </div>
         </section>
 

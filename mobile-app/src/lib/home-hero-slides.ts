@@ -7,6 +7,16 @@ export type HomeHeroSlide = {
   imageUri: string;
 };
 
+/** Shown under the home hero carousel — same imagery, “Buy Now” CTAs. */
+export const HOME_PROMO_STRIP_KICKER = 'All-new and loveable.';
+
+export const HOME_PROMO_STRIP_CARDS = HOME_HERO_SLIDES.map((s) => ({
+  title: s.title,
+  cta: 'Buy Now' as const,
+  href: s.href,
+  imageUri: s.imageUri,
+}));
+
 export const HOME_HERO_SLIDES: HomeHeroSlide[] = [
   {
     title: 'Wi-Fi CCTV Cameras',

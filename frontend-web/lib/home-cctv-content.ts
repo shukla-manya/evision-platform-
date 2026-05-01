@@ -41,6 +41,33 @@ export const homeHeroSlides = [
   },
 ] as const;
 
+/** Kicker + three image tiles directly under the home hero (matches carousel topics; CTA copy “Buy Now”). */
+export const homePromoStripKicker = 'All-new and loveable.';
+
+export const homePromoStripCards = [
+  {
+    title: 'Wi-Fi CCTV Cameras',
+    cta: 'Buy Now',
+    href: '/shop?search=Wi-Fi%20CCTV',
+    imageSrc: homeHeroSlides[0].imageSrc,
+    imageAlt: homeHeroSlides[0].imageAlt,
+  },
+  {
+    title: 'Power Over Ethernet',
+    cta: 'Buy Now',
+    href: '/shop?search=PoE',
+    imageSrc: homeHeroSlides[1].imageSrc,
+    imageAlt: homeHeroSlides[1].imageAlt,
+  },
+  {
+    title: 'Smart Security Kits',
+    cta: 'Buy Now',
+    href: '/shop?search=security%20kit',
+    imageSrc: homeHeroSlides[2].imageSrc,
+    imageAlt: homeHeroSlides[2].imageAlt,
+  },
+] as const;
+
 /** Home “where are you installing?” row — labels read like store category chips, not keyword spam. */
 export const businessSegmentsSectionTitle = 'Browse by site';
 

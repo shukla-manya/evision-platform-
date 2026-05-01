@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen min-w-0 flex-col overflow-x-hidden bg-ev-bg">
+    <div className="flex min-h-screen w-full min-w-0 max-w-[100vw] flex-col overflow-x-hidden bg-ev-bg">
       <Suspense fallback={<div className="h-16 ev-header" />}>
         <PublicNavbar />
       </Suspense>
