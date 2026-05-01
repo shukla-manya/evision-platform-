@@ -35,10 +35,13 @@ export class ProductsSuperadminController {
     private config: ConfigService,
   ) {}
 
-  private platformAdminId(): string {
+  /** Mutations require a fixed platform catalogue admin UUID in env. */
+  private requirePlatformAdminId(): string {
     const id = this.config.get<string>('PLATFORM_CATALOG_ADMIN_ID')?.trim();
     if (!id) {
-      throw new BadRequestException('PLATFORM_CATALOG_ADMIN_ID must be set in server environment');
+      throw new BadRequestException(
+        'PLATFORM_CATALOG_ADMIN_ID must be set in server environment (approved admin UUID for the platform catalogue)',
+      );
     }
     return id;
   }
@@ -46,13 +49,15 @@ export class ProductsSuperadminController {
   @Get()
   @ApiOperation({ summary: 'List platform catalogue products (customer + dealer prices)' })
   list() {
-    return this.products.listMine(this.platformAdminId());
+    const id = this.config.get<string>('PLATFORM_CATALOG_ADMIN_ID')?.trim();
+    if (!id) return Promise.resolve([]);
+    return this.products.listMine(id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get one platform catalogue product by id' })
   getOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.products.getMineById(this.platformAdminId(), id);
+    return this.products.getMineById(this.requirePlatformAdminId(), id);
   }
 
   @Post()
@@ -60,7 +65,7 @@ export class ProductsSuperadminController {
   @ApiConsumes('multipart/form-data', 'application/json')
   @ApiOperation({ summary: 'Create catalogue product (multipart field `images` optional)' })
   create(@Body() dto: CreateProductDto, @UploadedFiles() files?: Express.Multer.File[]) {
-    return this.products.create(this.platformAdminId(), dto, files);
+    return this.products.create(this.requirePlatformAdminId(), dto, files);
   }
 
   @Put(':id')
@@ -72,13 +77,13 @@ export class ProductsSuperadminController {
     @Body() dto: UpdateProductDto,
     @UploadedFiles() files?: Express.Multer.File[],
   ) {
-    return this.products.update(this.platformAdminId(), id, dto, files);
+    return this.products.update(this.requirePlatformAdminId(), id, dto, files);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete catalogue product and its images' })
   remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.products.remove(this.platformAdminId(), id).then(() => ({ deleted: true, id }));
+    return this.products.remove(this.requirePlatformAdminId(), id).then(() => ({ deleted: true, id }));
   }
 
   @Post('images/upload')
