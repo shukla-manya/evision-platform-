@@ -359,21 +359,37 @@ export default function RegisterPage() {
   })();
 
   return (
-    <div className="relative min-h-[100dvh] w-full ev-page-gutter">
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-ev-primary/6 rounded-full blur-3xl" />
+    <div className="relative min-h-[100dvh] w-full ev-page-gutter pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:py-8">
+      <div className="pointer-events-none fixed inset-0">
+        <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-ev-primary/5 blur-3xl" />
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-xl pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:py-8">
-            <div className="mb-6 text-center">
-              <Link href="/" className="mb-4 inline-flex items-center gap-2.5">
+      <div className="relative z-10 mx-auto w-full max-w-6xl">
+        <div className="flex flex-col overflow-hidden rounded-2xl border border-ev-border bg-ev-surface shadow-[0_28px_90px_-32px_rgba(15,23,42,0.18)] lg:min-h-[min(720px,calc(100dvh-7rem))] lg:flex-row lg:items-stretch">
+          <div className="relative h-44 w-full shrink-0 overflow-hidden sm:h-52 lg:h-auto lg:w-[44%] lg:min-w-0 lg:max-w-xl">
+            <img
+              src={REGISTER_PANEL_IMAGE}
+              alt="Colleagues welcoming customers in a modern professional workspace"
+              className="h-full w-full object-cover object-[center_22%] lg:absolute lg:inset-0 lg:h-full lg:w-full"
+              loading="eager"
+              fetchPriority="high"
+            />
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-ev-surface via-transparent to-transparent lg:hidden"
+              aria-hidden
+            />
+          </div>
+
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col px-5 py-6 sm:px-8 sm:py-8 lg:overflow-y-auto lg:px-10 lg:py-10">
+            <div className="mb-6 text-center lg:text-left">
+              <Link href="/" className="mb-4 inline-flex items-center gap-2.5 lg:justify-start">
                 <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
                   <Camera size={22} className="text-white" />
                 </div>
                 <span className="text-xl font-bold text-ev-text">{publicBrandName}</span>
               </Link>
               <h1 className="text-2xl font-bold text-ev-text sm:text-3xl">Create your account</h1>
-              <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-ev-muted">
+              <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-ev-muted lg:mx-0">
                 Choose your account type to get started
               </p>
             </div>
@@ -404,8 +420,8 @@ export default function RegisterPage() {
         ) : (
           <>
             {registerStep === 'details' ? (
-              <div className="mb-6 text-center">
-                <p className="mx-auto max-w-md text-sm leading-relaxed text-ev-muted">
+              <div className="mb-6 text-center lg:text-left">
+                <p className="mx-auto max-w-md text-sm leading-relaxed text-ev-muted lg:mx-0">
                   {accountTab === 'dealer' ? (
                     <>
                       Get wholesale pricing, bulk order support and GST invoices. Your GST number will be verified
@@ -417,10 +433,10 @@ export default function RegisterPage() {
                 </p>
               </div>
             ) : (
-              <div className="mb-6 space-y-2 text-center">
+              <div className="mb-6 space-y-2 text-center lg:text-left">
                 <p className="text-xs font-semibold uppercase tracking-wider text-ev-subtle">Step 2 of 2</p>
                 <h2 className="text-2xl font-bold text-ev-text">Verify your email</h2>
-                <p className="mx-auto max-w-md text-sm leading-relaxed text-ev-muted">
+                <p className="mx-auto max-w-md text-sm leading-relaxed text-ev-muted lg:mx-0">
                   We sent a 6-digit code to {emailMasked}. It expires in 10 minutes.
                 </p>
               </div>
@@ -712,6 +728,8 @@ export default function RegisterPage() {
                 )}
           </>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );
