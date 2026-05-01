@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Bell, Loader2, LogOut, MapPin, User } from 'lucide-react';
+import { Bell, Loader2, LogOut, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';

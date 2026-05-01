@@ -8,18 +8,7 @@ import toast from 'react-hot-toast';
 import { authApi, cartApi, checkoutApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
-
-type Addr = {
-  id?: string;
-  label?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  pincode?: string;
-  lat?: number;
-  lng?: number;
-  is_default?: boolean;
-};
+import { AddressBookEditor, type AddressBookEntry } from '@/components/account/AddressBookEditor';
 
 type CartResponse = {
   shops: Array<{
@@ -59,16 +48,8 @@ export default function CheckoutPage() {
     grand_total: 0,
     currency: 'INR',
   });
-  const [addresses, setAddresses] = useState<Addr[]>([]);
+  const [addresses, setAddresses] = useState<AddressBookEntry[]>([]);
   const [selectedIdx, setSelectedIdx] = useState(0);
-  const [newAddr, setNewAddr] = useState({
-    label: 'Home',
-    address: '',
-    city: '',
-    state: '',
-    pincode: '',
-  });
-  const [savingAddr, setSavingAddr] = useState(false);
 
   const loadCart = useCallback(async () => {
     setLoading(true);
@@ -78,7 +59,7 @@ export default function CheckoutPage() {
         authApi.me().catch(() => ({ data: {} })),
       ]);
       setCart(cartData as CartResponse);
-      const u = (meRes.data as { user?: { address_book?: Addr[] } })?.user;
+      const u = (meRes.data as { user?: { address_book?: AddressBookEntry[] } })?.user;
       const book = Array.isArray(u?.address_book) ? u!.address_book! : [];
       setAddresses(book);
       const def = book.findIndex((a) => a.is_default);
