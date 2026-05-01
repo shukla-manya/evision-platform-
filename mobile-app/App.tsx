@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  Easing,
   FlatList,
   Image,
   ImageBackground,
@@ -95,6 +97,12 @@ import {
   HOME_COMBO_COLLECTION_TITLE,
   HOME_COMBO_PREVIEW_ITEMS,
 } from './src/lib/home-combo-collection';
+import {
+  HOME_CUSTOM_QUOTE_BODY,
+  HOME_CUSTOM_QUOTE_CTA,
+  HOME_CUSTOM_QUOTE_IMAGE_URI,
+  HOME_CUSTOM_QUOTE_TITLE,
+} from './src/lib/home-custom-quote';
 import { HOME_HERO_SLIDES, HOME_PROMO_STRIP_CARDS, HOME_PROMO_STRIP_KICKER } from './src/lib/home-hero-slides';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
@@ -1321,6 +1329,33 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
   const [heroIdx, setHeroIdx] = useState(0);
   const heroSlideW = Math.max(1, winW - padL - padR);
   const collectionTwoColumn = winW >= 720;
+  const quoteImgW = Math.ceil(winW * 1.2);
+  const quoteImgH = 288;
+  const customQuoteMotion = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(customQuoteMotion, {
+          toValue: 1,
+          duration: 14000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(customQuoteMotion, {
+          toValue: 0,
+          duration: 14000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [customQuoteMotion]);
+
+  const customQuoteTx = customQuoteMotion.interpolate({ inputRange: [0, 1], outputRange: [0, -12] });
+  const customQuoteScale = customQuoteMotion.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
 
   const canAddToCart = userRole === 'customer' || userRole === 'dealer';
 
@@ -1651,6 +1686,42 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                     </View>
                   </Pressable>
                 ))}
+              </View>
+            </View>
+
+            <View style={[styles.customQuoteOuter, { marginLeft: -padL, marginRight: -padR, width: winW }]}>
+              <View style={[styles.customQuoteClip, { width: winW }]}>
+                <Animated.View
+                  style={{
+                    position: 'absolute',
+                    left: (winW - quoteImgW) / 2,
+                    top: -24,
+                    width: quoteImgW,
+                    height: quoteImgH,
+                    transform: [{ translateX: customQuoteTx }, { scale: customQuoteScale }],
+                  }}
+                >
+                  <Image
+                    source={{ uri: HOME_CUSTOM_QUOTE_IMAGE_URI }}
+                    style={{ width: quoteImgW, height: quoteImgH }}
+                    resizeMode="cover"
+                    accessibilityIgnoresInvertColors
+                  />
+                </Animated.View>
+                <View style={[styles.customQuoteOverlay, StyleSheet.absoluteFillObject]} />
+                <View style={styles.customQuoteInner}>
+                  <Text style={styles.customQuoteTitle}>{HOME_CUSTOM_QUOTE_TITLE}</Text>
+                  <Text style={styles.customQuoteBody}>{HOME_CUSTOM_QUOTE_BODY}</Text>
+                  <Pressable
+                    style={styles.customQuoteCta}
+                    onPress={() => void Linking.openURL(publicWebUrl('/contact'))}
+                    accessibilityRole="link"
+                    accessibilityLabel={`${HOME_CUSTOM_QUOTE_CTA}, open contact on web`}
+                  >
+                    <Text style={styles.customQuoteCtaText}>{HOME_CUSTOM_QUOTE_CTA}</Text>
+                    <MaterialCommunityIcons name="chevron-right" size={18} color="#fff" />
+                  </Pressable>
+                </View>
               </View>
             </View>
 
@@ -2987,6 +3058,57 @@ const styles = StyleSheet.create({
   collectionCardName: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, marginTop: 2 },
   collectionCardPrice: { fontSize: 17, fontWeight: '800', color: colors.textPrimary, marginTop: 6 },
   collectionCardStock: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+  customQuoteOuter: { marginTop: 18, marginBottom: 6 },
+  customQuoteClip: {
+    minHeight: 252,
+    overflow: 'hidden',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  customQuoteOverlay: {
+    backgroundColor: 'rgba(26,26,46,0.82)',
+    zIndex: 1,
+  },
+  customQuoteInner: {
+    zIndex: 2,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    maxWidth: 420,
+    width: '100%',
+  },
+  customQuoteTitle: {
+    fontSize: 21,
+    fontWeight: '800',
+    color: '#fff',
+    textAlign: 'center',
+    letterSpacing: -0.3,
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  customQuoteBody: {
+    marginTop: 10,
+    fontSize: 13,
+    lineHeight: 20,
+    color: 'rgba(255,255,255,0.9)',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0,0,0,0.25)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  customQuoteCta: {
+    marginTop: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.brandPrimary,
+    paddingVertical: 11,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+  },
+  customQuoteCtaText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   homeMarketingHero: {
     paddingVertical: 16,
     paddingHorizontal: 14,
