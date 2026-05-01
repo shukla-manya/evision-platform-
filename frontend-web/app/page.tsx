@@ -747,7 +747,7 @@ export default function HomePage() {
         >
           <h2
             id="home-reviews-heading"
-            className="ev-page-gutter mb-6 text-center text-xl font-bold text-ev-text sm:text-2xl sm:mb-8"
+            className="mb-6 w-full pl-[max(0px,env(safe-area-inset-left,0px))] pr-[max(0px,env(safe-area-inset-right,0px))] text-center text-xl font-bold text-ev-text sm:mb-8 sm:text-2xl"
           >
             Loved by customers across India
           </h2>
