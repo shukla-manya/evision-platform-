@@ -39,7 +39,7 @@ export function PublicFooter() {
 
   return (
     <footer className="mt-auto border-t border-ev-border bg-ev-navbar pb-[env(safe-area-inset-bottom)] text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-10 text-sm">
+      <div className="mx-auto w-full max-w-none ev-page-gutter py-12 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-10 text-sm">
         <div className="xl:col-span-1">
           <div className="flex items-center gap-2 mb-3">
             <EvisionLogo variant="full" wordmark={publicBrandName} height={36} tone="onDark" />
@@ -210,7 +210,7 @@ export function PublicFooter() {
       </div>
 
       <div id="site-footer-contact" className="border-t border-white/10 scroll-mt-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <div className="mx-auto w-full max-w-none ev-page-gutter py-10">
           <p className="font-semibold text-white mb-4 text-sm">Contact information</p>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
             <ul className="text-sm text-white/80 space-y-3">
@@ -260,7 +260,7 @@ export function PublicFooter() {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/50 text-center sm:text-left">
+        <div className="mx-auto w-full max-w-none ev-page-gutter py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/50 text-center sm:text-left">
           <span>
             © {year} Evision · E vision Pvt. Ltd. Payments secured by PayU.
           </span>

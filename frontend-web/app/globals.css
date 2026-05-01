@@ -244,9 +244,37 @@
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
   }
 
-  /** Marketing & shop pages: centered column + horizontal rhythm */
+  /**
+   * Horizontal rhythm for marketing & shop — full usable width (no capped column),
+   * with safe-area insets on notched devices.
+   */
+  .ev-page-gutter,
   .ev-container {
-    @apply mx-auto w-full min-w-0 max-w-7xl px-4 sm:px-6 lg:px-8;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
+  @media (min-width: 640px) {
+    .ev-page-gutter,
+    .ev-container {
+      padding-left: max(1rem, env(safe-area-inset-left, 0px));
+      padding-right: max(1rem, env(safe-area-inset-right, 0px));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .ev-page-gutter,
+    .ev-container {
+      padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
+      padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
+    }
+  }
+
+  .ev-container {
+    @apply mx-auto min-w-0;
   }
 
   /** Visible only when focused — WCAG skip links */

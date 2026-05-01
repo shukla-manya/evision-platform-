@@ -88,7 +88,7 @@ export function PublicNavbar() {
       id="site-navigation"
       className="sticky top-0 z-50 ev-header border-b border-white/10 pt-[env(safe-area-inset-top)]"
     >
-      <div className="mx-auto flex min-h-14 max-w-7xl min-w-0 items-center gap-2 px-4 py-2 sm:min-h-16 sm:gap-3 sm:px-6">
+      <div className="mx-auto flex min-h-14 w-full min-w-0 max-w-none items-center gap-2 py-2 ev-page-gutter sm:min-h-16 sm:gap-3">
         <Link href="/" className="flex shrink-0 items-center gap-2 min-w-0" aria-label={publicBrandName}>
           <EvisionLogo variant="full" wordmark={publicBrandName} height={32} tone="onDark" className="shrink-0" />
         </Link>
@@ -230,7 +230,7 @@ export function PublicNavbar() {
         </div>
       </div>
 
-      <form onSubmit={submitSearch} className="md:hidden px-4 pb-3">
+      <form onSubmit={submitSearch} className="md:hidden ev-page-gutter pb-3">
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
           <input
@@ -244,7 +244,7 @@ export function PublicNavbar() {
       </form>
 
       {mobileOpen ? (
-        <div className="lg:hidden border-t border-white/10 bg-ev-navbar px-4 py-4 space-y-1">
+        <div className="lg:hidden border-t border-white/10 bg-ev-navbar ev-page-gutter py-4 space-y-1">
           {NAV_LINKS.map(({ href, label }) => (
             <Link key={href} href={href} className="block py-2.5 text-white/85 hover:text-white font-medium">
               {label}
