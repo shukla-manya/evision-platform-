@@ -19,27 +19,34 @@ export class OrdersSuperadminController {
     private config: ConfigService,
   ) {}
 
-  private platformAdminId(): string {
+  /** Detail and ship need a configured platform catalogue admin UUID. */
+  private requirePlatformAdminId(): string {
     const id = this.config.get<string>('PLATFORM_CATALOG_ADMIN_ID')?.trim();
-    if (!id) throw new BadRequestException('PLATFORM_CATALOG_ADMIN_ID must be set');
+    if (!id) {
+      throw new BadRequestException(
+        'PLATFORM_CATALOG_ADMIN_ID must be set in server environment (approved admin UUID for the platform catalogue)',
+      );
+    }
     return id;
   }
 
   @Get()
   @ApiOperation({ summary: 'List orders for the platform catalogue shop' })
   list() {
-    return this.orders.listForAdmin(this.platformAdminId());
+    const id = this.config.get<string>('PLATFORM_CATALOG_ADMIN_ID')?.trim();
+    if (!id) return Promise.resolve([]);
+    return this.orders.listForAdmin(id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get one order for the platform catalogue shop' })
   getOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.orders.getAdminOrderById(this.platformAdminId(), id);
+    return this.orders.getAdminOrderById(this.requirePlatformAdminId(), id);
   }
 
   @Post(':id/ship')
   @ApiOperation({ summary: 'Ship order (Shiprocket)' })
   ship(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ShipOrderDto) {
-    return this.orders.shipOrderForAdmin(this.platformAdminId(), id, dto);
+    return this.orders.shipOrderForAdmin(this.requirePlatformAdminId(), id, dto);
   }
 }
