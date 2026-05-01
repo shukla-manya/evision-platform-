@@ -91,7 +91,6 @@ import {
   publicSupportTelHref,
 } from './src/config/publicMarketing';
 import { FloatingWhatsAppFab } from './src/components/FloatingWhatsAppFab';
-import { CustomerReviewsHeading } from './src/components/CustomerReviewsHeading';
 import { HomeLeadFormSection } from './src/components/HomeLeadFormSection';
 import { homeCustomerReviews } from './src/lib/home-customer-reviews';
 import {

@@ -107,14 +107,7 @@ export default function AboutPage() {
 
         <section className="border-t border-ev-border bg-ev-surface py-10 sm:py-14">
           <div className="ev-container">
-            <CustomerReviewsHeading className="mb-8" />
-            <p className="text-center text-ev-subtle text-xs mb-6 max-w-2xl mx-auto">
-              Representative feedback — hover the strip to pause.
-            </p>
-            <div className="w-full min-w-0" role="region" aria-label="Customer testimonials">
-              <TestimonialsMarquee />
-            </div>
-            <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">{aboutBrandSummary}</p>
+            <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto leading-relaxed">{aboutBrandSummary}</p>
           </div>
         </section>
 

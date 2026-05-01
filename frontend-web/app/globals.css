@@ -24,15 +24,6 @@
   }
 }
 
-@keyframes evMarquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
 /* Home “browse by site” strip — animated illustration above segment chips */
 @keyframes evBrowseSiteWire {
   to {
@@ -317,25 +308,4 @@
            focus:rounded-lg focus:bg-ev-primary focus:px-4 focus:py-2 focus:text-white focus:shadow-lg;
   }
 
-  /** Infinite horizontal testimonial strip (duplicated row; animates -50%). */
-  .ev-marquee-outer {
-    mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
-  }
-
-  .ev-marquee-track {
-    display: flex;
-    width: max-content;
-    gap: 1.25rem;
-    animation: evMarquee 48s linear infinite;
-  }
-
-  .ev-marquee-track:hover {
-    animation-play-state: paused;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .ev-marquee-track {
-      animation: none;
-    }
-  }
 }
