@@ -325,14 +325,14 @@ export function PublicFooter() {
                 {publicRegisteredAddress}
               </p>
             </div>
-            <p className="text-[11px] text-white/40 text-center sm:text-right shrink-0 inline-flex sm:inline-flex items-center justify-center sm:justify-end gap-1 flex-wrap">
+            <p className="text-[11px] text-white/40 shrink-0 flex flex-wrap items-center justify-center sm:justify-end gap-x-1 gap-y-0.5 sm:text-right">
               <span className="inline-flex items-center gap-1">
                 Made with
                 <Heart
                   className="size-3.5 text-ev-primary shrink-0"
                   fill="currentColor"
                   strokeWidth={0}
-                  aria-hidden
+                  aria-label="love"
                 />
                 by
               </span>{' '}
