@@ -35,8 +35,6 @@ export default function SuperadminAnalyticsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const revenueByShop = analytics?.revenue_by_shop?.length ? analytics.revenue_by_shop : [];
-  const maxShopRev = revenueByShop.length > 0 ? Math.max(...revenueByShop.map((s) => s.amount), 1) : 1;
   const recentOrders = analytics?.recent_orders ?? [];
   const recentEmails = analytics?.recent_emails ?? [];
   const platformRevenue = analytics?.orders?.platform_revenue ?? 0;
@@ -95,11 +93,6 @@ export default function SuperadminAnalyticsPage() {
                 <p className="text-ev-subtle text-xs mt-2">Approved technician profiles</p>
               </div>
               <div className="ev-card p-5 border-ev-border">
-                <p className="text-ev-muted text-sm font-medium">Approved shops</p>
-                <p className="text-2xl font-bold text-ev-text mt-2">{analytics.admins.approved}</p>
-                <p className="text-ev-muted text-sm mt-1">Of {analytics.admins.total} total registrations</p>
-              </div>
-              <div className="ev-card p-5 border-ev-border">
                 <p className="text-ev-muted text-sm font-medium">Total users</p>
                 <p className="text-2xl font-bold text-ev-text mt-2">{analytics.users.total}</p>
                 <p className="text-ev-muted text-sm mt-1">
@@ -108,10 +101,8 @@ export default function SuperadminAnalyticsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-4 mb-10">
               {[
-                { label: 'Shop records', value: analytics.admins.total, icon: Store, color: 'text-ev-primary', bg: 'bg-ev-primary/10' },
-                { label: 'Pending shops', value: analytics.admins.pending, icon: Store, color: 'text-ev-warning', bg: 'bg-ev-warning/10' },
                 { label: 'Emails sent', value: analytics.emails.sent, icon: Mail, color: 'text-ev-success', bg: 'bg-ev-success/10' },
                 {
                   label: 'Email failures',
@@ -131,28 +122,8 @@ export default function SuperadminAnalyticsPage() {
               ))}
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4 mb-10">
-              <div className="ev-card p-6">
-                <h3 className="text-ev-text font-semibold mb-4 flex items-center gap-2">
-                  <Store size={16} className="text-ev-primary" />
-                  Shop admins
-                </h3>
-                {[
-                  { label: 'Approved', val: analytics.admins.approved, color: 'bg-ev-success' },
-                  { label: 'Pending', val: analytics.admins.pending, color: 'bg-ev-warning' },
-                  { label: 'Rejected', val: analytics.admins.rejected, color: 'bg-ev-error' },
-                  { label: 'Suspended', val: analytics.admins.suspended, color: 'bg-ev-subtle' },
-                ].map(({ label, val, color }) => (
-                  <div key={label} className="flex items-center justify-between py-2 border-b border-ev-border last:border-0">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${color}`} />
-                      <span className="text-ev-muted text-sm">{label}</span>
-                    </div>
-                    <span className="text-ev-text font-semibold">{val}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="ev-card p-6">
+            <div className="mb-10">
+              <div className="ev-card p-6 max-w-xl">
                 <h3 className="text-ev-text font-semibold mb-4 flex items-center gap-2">
                   <Users size={16} className="text-ev-primary" />
                   Users & email
@@ -176,39 +147,7 @@ export default function SuperadminAnalyticsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-              <section>
-                <h2 className="text-lg font-bold text-ev-text mb-4 flex items-center gap-2">
-                  <IndianRupee size={18} className="text-ev-primary" />
-                  Revenue by shop
-                </h2>
-                <div className="ev-card p-5 space-y-4 border-ev-border">
-                  {revenueByShop.length === 0 ? (
-                    <p className="text-ev-muted text-sm">No order revenue recorded yet.</p>
-                  ) : (
-                    revenueByShop.map((s) => (
-                      <div key={s.admin_id}>
-                        <div className="flex justify-between text-sm mb-1.5 gap-2">
-                          <span className="font-medium text-ev-text truncate">{s.shop_name}</span>
-                          <span className="text-ev-muted font-semibold shrink-0">
-                            {formatSuperadminCompactINR(s.amount)}
-                            {typeof s.order_count === 'number' ? (
-                              <span className="text-ev-subtle font-normal text-xs ml-1">({s.order_count} orders)</span>
-                            ) : null}
-                          </span>
-                        </div>
-                        <div className="h-2 rounded-full bg-ev-surface2 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-primary"
-                            style={{ width: `${Math.round((s.amount / maxShopRev) * 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </section>
-
+            <div className="mb-10">
               <section>
                 <h2 className="text-lg font-bold text-ev-text flex items-center gap-2 mb-4">
                   <ShoppingBag size={18} className="text-ev-primary" />
@@ -322,9 +261,6 @@ export default function SuperadminAnalyticsPage() {
             </section>
 
             <div className="flex flex-wrap gap-3">
-              <Link href="/super/shops" className="ev-btn-secondary text-sm py-2.5 px-4">
-                All shops & commission
-              </Link>
               <Link href="/super/settlements" className="ev-btn-secondary text-sm py-2.5 px-4">
                 Settlements
               </Link>

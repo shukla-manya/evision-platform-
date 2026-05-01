@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-  Store,
   ShoppingBag,
   Mail,
   Loader2,
@@ -343,38 +342,10 @@ export default function SuperDashboardPage() {
               </div>
             ) : null}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-              <section>
-                <h2 className="text-lg font-bold text-ev-text mb-4 flex items-center gap-2">
-                  <Store size={18} className="text-ev-primary" />
-                  Revenue by shop
-                </h2>
-                <div className="ev-card p-5 space-y-4 border-ev-border">
-                  {revenueByShop.length === 0 ? (
-                    <p className="text-ev-muted text-sm">No order revenue recorded yet.</p>
-                  ) : (
-                    revenueByShop.map((s) => (
-                      <div key={s.admin_id}>
-                        <div className="flex justify-between text-sm mb-1.5">
-                          <span className="font-medium text-ev-text">{s.shop_name}</span>
-                          <span className="text-ev-muted font-semibold">{formatSuperadminCompactINR(s.amount)}</span>
-                        </div>
-                        <div className="h-2 rounded-full bg-ev-surface2 overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-primary"
-                            style={{ width: `${Math.round((s.amount / maxShopRev) * 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </section>
-
-              <section>
+            <section className="mb-10">
                 <h2 className="text-lg font-bold text-ev-text flex items-center gap-2 mb-4">
                   <ShoppingBag size={18} className="text-ev-primary" />
-                  Recent orders — all shops
+                  Recent orders
                 </h2>
                 <div className="ev-card overflow-hidden border-ev-border">
                   <div className="overflow-x-auto">
@@ -427,8 +398,7 @@ export default function SuperDashboardPage() {
                     </table>
                   </div>
                 </div>
-              </section>
-            </div>
+            </section>
 
             <section className="mb-10">
               <h2 className="text-lg font-bold text-ev-text mb-4 flex items-center gap-2">
@@ -482,9 +452,6 @@ export default function SuperDashboardPage() {
             </section>
 
             <div className="flex flex-wrap gap-3">
-              <Link href="/super/shops" className="ev-btn-secondary text-sm py-2.5 px-4">
-                All shops
-              </Link>
               <Link href="/super/settlements" className="ev-btn-secondary text-sm py-2.5 px-4">
                 Settlements
               </Link>
