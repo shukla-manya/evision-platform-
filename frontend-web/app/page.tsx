@@ -523,18 +523,21 @@ export default function HomePage() {
               </Link>
             </div>
             <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {showcaseFromApi.combos.length > 0
-                ? showcaseFromApi.combos.slice(0, 2).map((p) => (
-                    <HomeShowcaseProductCard
-                      key={p.id}
-                      p={p}
-                      canBuy={canBuy}
-                      bumpWishlist={() => setWishBump((n) => n + 1)}
-                    />
-                  ))
-                : showcaseCombos.slice(0, 2).map((p) => (
-                    <StaticProductCard key={p.name} p={p} canBuy={canBuy} />
-                  ))}
+              {showcaseFromApi.combos.length > 0 ? (
+                showcaseFromApi.combos.slice(0, HOME_SHOWCASE_COMBOS_MAX).map((p) => (
+                  <HomeShowcaseProductCard
+                    key={p.id}
+                    p={p}
+                    canBuy={canBuy}
+                    bumpWishlist={() => setWishBump((n) => n + 1)}
+                  />
+                ))
+              ) : (
+                <p className="text-ev-muted text-sm rounded-lg border border-dashed border-ev-border bg-ev-surface px-4 py-6 text-center sm:col-span-2">
+                  No combo picks on the homepage yet. In superadmin, set Homepage showcase to{' '}
+                  <span className="text-ev-text font-medium">Combos</span> on up to {HOME_SHOWCASE_COMBOS_MAX} products.
+                </p>
+              )}
             </div>
           </div>
         </section>

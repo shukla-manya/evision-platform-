@@ -423,9 +423,12 @@ export class ProductsService {
     const sortFn = (a: (typeof rows)[0], b: (typeof rows)[0]) =>
       a.order - b.order || String(a.payload.name || '').localeCompare(String(b.payload.name || ''));
 
+    const primary = rows.filter((r) => r.section === 'primary').sort(sortFn).map((r) => r.payload);
+    const combos = rows.filter((r) => r.section === 'combos').sort(sortFn).map((r) => r.payload);
+
     return {
-      primary: rows.filter((r) => r.section === 'primary').sort(sortFn).map((r) => r.payload),
-      combos: rows.filter((r) => r.section === 'combos').sort(sortFn).map((r) => r.payload),
+      primary: primary.slice(0, 6),
+      combos: combos.slice(0, 2),
     };
   }
 
