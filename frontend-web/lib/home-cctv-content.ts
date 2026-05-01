@@ -121,6 +121,13 @@ export const innovationSectionTitle = 'Standing at the Forefront of Innovation';
 export const innovationSectionBody =
   'As we explore new technology, we push the capabilities of what is possible, driving progress through continuous innovation.';
 
+/** “Join as technician” home card — technician installing a bullet CCTV (online catalogue image). */
+export const homeJoinTechnicianSectionImageSrc =
+  'https://5.imimg.com/data5/SELLER/Default/2023/8/333285548/DN/UV/EL/57488744/cctv-camera-installation-500x500.jpeg';
+
+export const homeJoinTechnicianSectionImageAlt =
+  'Professional technician in a blue shirt installing a white CCTV security camera on an exterior wall';
+
 /** Left visual beside the home lead (mailto) form — CCTV install. */
 export const homeLeadFormImageSrc =
   'https://images.unsplash.com/photo-1557598376-da691ed6591f?auto=format&fit=crop&w=1200&q=80';
