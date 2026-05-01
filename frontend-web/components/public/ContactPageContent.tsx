@@ -92,7 +92,7 @@ export function ContactPageContent() {
         Skip to main content
       </a>
 
-      <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+      <main id="main-content" className="ev-container py-10 sm:py-14 w-full min-w-0">
         <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-2">Get in Touch</h1>
         <p className="text-ev-muted max-w-2xl mb-4">
           We are here for orders, accounts, dealers, technicians, and partnerships. Submit the form below — we email our
