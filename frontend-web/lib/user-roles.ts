@@ -10,13 +10,10 @@ const ROLE_LABELS: Record<string, string> = {
   electrician_rejected: 'Technician (rejected)',
   admin: 'Admin',
   superadmin: 'Superadmin',
-  /** Mobile-only registration tab value → shop admin */
-  shop_owner: 'Admin',
 };
 
 /** Bulleted line for marketing / register screens */
-export const ACCOUNT_ROLES_SUMMARY =
-  'Customer · Dealer · Technician · Admin · Superadmin';
+export const ACCOUNT_ROLES_SUMMARY = 'Customer · Dealer · Technician · Superadmin';
 
 export function roleDisplayLabel(role: string | undefined | null): string {
   const key = String(role || '').toLowerCase().trim();

@@ -3,13 +3,12 @@ import { publicWebUrl } from '../config/publicWeb';
 import { colors } from '../theme/colors';
 
 const QUEUES: { label: string; path: string }[] = [
-  { label: 'Shop queue', path: '/super/shop-registrations' },
   { label: 'Technicians', path: '/super/technicians' },
   { label: 'Dealer GST', path: '/super/dealers' },
 ];
 
 type Props = {
-  /** When false, only the three queue buttons are shown (e.g. signed-in superadmin hub already has a page title). */
+  /** When false, only the queue buttons are shown (e.g. signed-in superadmin hub already has a page title). */
   showHeader?: boolean;
 };
 

@@ -9,7 +9,6 @@ import {
   Eye,
   ShieldAlert,
   RefreshCw,
-  IndianRupee,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { superadminApi } from '@/lib/api';
@@ -266,10 +265,6 @@ export default function RegisteredShopsPage() {
                   <p className="text-ev-muted">
                     <span className="text-ev-text">Address:</span> {a.address || '—'}
                   </p>
-                  <Link href="/super/settlements" className="inline-flex items-center gap-1 text-ev-primary text-sm font-semibold mt-2">
-                    <IndianRupee size={14} />
-                    View settlements
-                  </Link>
                 </>
               );
             })()}

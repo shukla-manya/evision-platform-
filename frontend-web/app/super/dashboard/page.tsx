@@ -6,7 +6,6 @@ import {
   ShoppingBag,
   Mail,
   Loader2,
-  Inbox,
   UserCog,
   ClipboardCheck,
   Users,
@@ -25,7 +24,6 @@ import {
 } from '@/lib/superadmin-analytics';
 import { personalizedTimeGreetingIst } from '@/lib/time-greeting';
 
-type AdminRow = { id: string; shop_name?: string; owner_name?: string; email?: string; created_at?: string };
 type ElectricianRow = { id: string; name?: string; email?: string; created_at?: string };
 
 function displayNameFromEmail(email: string) {
@@ -48,11 +46,10 @@ function initialsFromEmail(email: string) {
 
 export default function SuperDashboardPage() {
   const [analytics, setAnalytics] = useState<SuperadminAnalyticsSnapshot | null>(null);
-  const [pendingAdmins, setPendingAdmins] = useState<AdminRow[]>([]);
   const [pendingElectricians, setPendingElectricians] = useState<ElectricianRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
-  const [rejecting, setRejecting] = useState<{ id: string; type: 'Admin' | 'Technician' } | null>(null);
+  const [rejecting, setRejecting] = useState<{ id: string } | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
   const token = typeof window !== 'undefined' ? getToken() : undefined;
@@ -75,13 +72,11 @@ export default function SuperDashboardPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [anRes, paRes, peRes] = await Promise.all([
+      const [anRes, peRes] = await Promise.all([
         superadminApi.getAnalytics(),
-        superadminApi.getPendingAdmins(),
         superadminApi.getPendingElectricians(),
       ]);
       setAnalytics(anRes.data as SuperadminAnalyticsSnapshot);
-      setPendingAdmins(Array.isArray(paRes.data) ? (paRes.data as AdminRow[]) : []);
       setPendingElectricians(Array.isArray(peRes.data) ? (peRes.data as ElectricianRow[]) : []);
     } catch {
       toast.error('Could not load overview');
@@ -94,39 +89,23 @@ export default function SuperDashboardPage() {
     void load();
   }, [load]);
 
-  const pendingTotal = pendingAdmins.length + pendingElectricians.length;
+  const pendingTotal = pendingElectricians.length;
 
   const approvalPreview = useMemo(() => {
-    const rows: { id: string; name: string; type: 'Admin' | 'Technician'; submitted: string }[] = [];
-    pendingAdmins.forEach((a) =>
-      rows.push({
-        id: a.id,
-        name: String(a.shop_name || a.owner_name || a.email || 'Shop'),
-        type: 'Admin',
-        submitted: a.created_at ? new Date(a.created_at).toLocaleDateString('en-IN') : '—',
-      }),
-    );
-    pendingElectricians.forEach((e) =>
-      rows.push({
+    return pendingElectricians
+      .map((e) => ({
         id: e.id,
         name: String(e.name || e.email || 'Technician'),
-        type: 'Technician',
         submitted: e.created_at ? new Date(e.created_at).toLocaleDateString('en-IN') : '—',
-      }),
-    );
-    return rows.slice(0, 8);
-  }, [pendingAdmins, pendingElectricians]);
+      }))
+      .slice(0, 8);
+  }, [pendingElectricians]);
 
-  async function approveRow(row: { id: string; type: 'Admin' | 'Technician' }) {
+  async function approveRow(row: { id: string }) {
     setActionId(row.id);
     try {
-      if (row.type === 'Admin') {
-        await superadminApi.approveAdmin(row.id);
-        toast.success('Shop admin approved');
-      } else {
-        await superadminApi.reviewElectrician(row.id, { action: 'approve' });
-        toast.success('Technician approved');
-      }
+      await superadminApi.reviewElectrician(row.id, { action: 'approve' });
+      toast.success('Technician approved');
       await load();
     } catch (e: unknown) {
       toast.error(getApiErrorMessage(e, 'Action failed'));
@@ -142,13 +121,8 @@ export default function SuperDashboardPage() {
     }
     setActionId(rejecting.id);
     try {
-      if (rejecting.type === 'Admin') {
-        await superadminApi.rejectAdmin(rejecting.id, rejectReason.trim());
-        toast.success('Registration rejected');
-      } else {
-        await superadminApi.reviewElectrician(rejecting.id, { action: 'reject', reason: rejectReason.trim() });
-        toast.success('Registration rejected');
-      }
+      await superadminApi.reviewElectrician(rejecting.id, { action: 'reject', reason: rejectReason.trim() });
+      toast.success('Registration rejected');
       setRejecting(null);
       setRejectReason('');
       await load();
@@ -205,9 +179,7 @@ export default function SuperDashboardPage() {
               <div className="ev-card p-5 border-ev-border border-ev-warning/25 bg-ev-warning/5">
                 <p className="text-ev-muted text-sm font-medium">Pending approvals</p>
                 <p className="text-2xl font-bold text-ev-text mt-2">{pendingTotal}</p>
-                <p className="text-ev-muted text-sm mt-1">
-                  {pendingAdmins.length} shop · {pendingElectricians.length} technician
-                </p>
+                <p className="text-ev-muted text-sm mt-1">Technician registrations awaiting review</p>
               </div>
               <div className="ev-card p-5 border-ev-border">
                 <p className="text-ev-muted text-sm font-medium">Active technicians</p>
@@ -232,14 +204,7 @@ export default function SuperDashboardPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-10">
-              <Link
-                href="/super/shop-registrations"
-                className="ev-btn-secondary text-sm py-3 px-4 inline-flex items-center justify-center gap-2 font-semibold w-full"
-              >
-                <Inbox size={18} className="text-ev-primary shrink-0" aria-hidden />
-                Shop queue
-              </Link>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
               <Link
                 href="/super/technicians"
                 className="ev-btn-secondary text-sm py-3 px-4 inline-flex items-center justify-center gap-2 font-semibold w-full"
@@ -258,7 +223,7 @@ export default function SuperDashboardPage() {
 
             <section className="mb-10">
               <div className="mb-4">
-                <h2 className="text-lg font-bold text-ev-text">Pending approvals</h2>
+                <h2 className="text-lg font-bold text-ev-text">Pending technician approvals</h2>
               </div>
               <div className="ev-card overflow-hidden border-ev-border">
                 <div className="overflow-x-auto">
@@ -266,7 +231,6 @@ export default function SuperDashboardPage() {
                     <thead>
                       <tr className="border-b border-ev-border bg-ev-surface2 text-left text-ev-muted">
                         <th className="px-4 py-3 font-semibold">Name</th>
-                        <th className="px-4 py-3 font-semibold">Type</th>
                         <th className="px-4 py-3 font-semibold">Submitted</th>
                         <th className="px-4 py-3 font-semibold text-right">Actions</th>
                       </tr>
@@ -274,15 +238,14 @@ export default function SuperDashboardPage() {
                     <tbody>
                       {approvalPreview.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="px-4 py-10 text-center text-ev-muted">
-                            No pending approvals
+                          <td colSpan={3} className="px-4 py-10 text-center text-ev-muted">
+                            No pending technician registrations
                           </td>
                         </tr>
                       ) : (
                         approvalPreview.map((row) => (
-                          <tr key={`${row.type}-${row.id}`} className="border-b border-ev-border last:border-0">
+                          <tr key={row.id} className="border-b border-ev-border last:border-0">
                             <td className="px-4 py-3 font-medium text-ev-text">{row.name}</td>
-                            <td className="px-4 py-3 text-ev-muted">{row.type}</td>
                             <td className="px-4 py-3 text-ev-muted">{row.submitted}</td>
                             <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                               <button
@@ -297,7 +260,7 @@ export default function SuperDashboardPage() {
                                 type="button"
                                 disabled={actionId === row.id}
                                 onClick={() => {
-                                  setRejecting({ id: row.id, type: row.type });
+                                  setRejecting({ id: row.id });
                                   setRejectReason('');
                                 }}
                                 className="text-sm font-semibold text-red-600 hover:text-red-500 disabled:opacity-50"
@@ -317,13 +280,13 @@ export default function SuperDashboardPage() {
             {rejecting ? (
               <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/50">
                 <div className="ev-card max-w-md w-full p-6 space-y-4">
-                  <h3 className="font-bold text-ev-text">Reject {rejecting.type === 'Admin' ? 'shop admin' : 'technician'}</h3>
+                  <h3 className="font-bold text-ev-text">Reject technician</h3>
                   <label className="block text-sm text-ev-muted">Reason for rejection</label>
                   <textarea
                     className="ev-input min-h-[100px] py-3"
                     value={rejectReason}
                     onChange={(e) => setRejectReason(e.target.value)}
-                    placeholder="e.g. GST document unreadable — please resubmit"
+                    placeholder="e.g. incomplete documents — please reapply with clearer attachments"
                   />
                   <div className="flex gap-2 justify-end">
                     <button type="button" className="ev-btn-secondary text-sm py-2 px-4" onClick={() => setRejecting(null)}>
@@ -452,9 +415,6 @@ export default function SuperDashboardPage() {
             </section>
 
             <div className="flex flex-wrap gap-3">
-              <Link href="/super/settlements" className="ev-btn-secondary text-sm py-2.5 px-4">
-                Settlements
-              </Link>
               <Link href="/super/analytics" className="ev-btn-secondary text-sm py-2.5 px-4">
                 Full analytics
               </Link>

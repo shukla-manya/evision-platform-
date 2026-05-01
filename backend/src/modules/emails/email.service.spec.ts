@@ -62,7 +62,7 @@ describe('EmailService', () => {
     });
     const html = lastHtml();
     expect(html).toContain('ACME');
-    expect(html).toContain('super/shop-registrations');
+    expect(html).toContain('super/dashboard');
     expect(html).toContain('<!DOCTYPE html>');
     expect(lastTrigger()).toBe('admin_registered');
   });

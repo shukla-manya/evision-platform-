@@ -259,9 +259,6 @@ export default function SuperadminAnalyticsPage() {
             </section>
 
             <div className="flex flex-wrap gap-3">
-              <Link href="/super/settlements" className="ev-btn-secondary text-sm py-2.5 px-4">
-                Settlements
-              </Link>
               <Link href="/super/email-logs" className="ev-btn-secondary text-sm py-2.5 px-4">
                 Email logs
               </Link>

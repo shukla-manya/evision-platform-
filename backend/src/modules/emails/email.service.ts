@@ -384,7 +384,7 @@ export class EmailService {
         owner_name: adminData.ownerName,
         admin_email: adminData.email,
         admin_phone: adminData.phone,
-        dashboard_url: `${this.frontendUrl()}/super/shop-registrations`,
+        dashboard_url: `${this.frontendUrl()}/super/dashboard`,
       },
       {
         email_title: 'New shop registration',

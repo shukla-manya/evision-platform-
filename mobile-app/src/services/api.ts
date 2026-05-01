@@ -280,14 +280,6 @@ export const electricianRegisterApi = {
     }),
 };
 
-export const adminApi = {
-  /** Public: partner shop registration (multipart, optional logo). No in-app shop console. */
-  registerShop: (formData: FormData) =>
-    api.post('/admin/register', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-};
-
 export const catalogApi = {
   getCategories: () => api.get<any[]>('/categories'),
 };

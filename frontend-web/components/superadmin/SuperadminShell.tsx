@@ -7,10 +7,8 @@ import {
   type LucideIcon,
   LayoutDashboard,
   BarChart3,
-  Inbox,
   Store,
   UserCog,
-  Wallet,
   Star,
   Mail,
   LogOut,
@@ -31,7 +29,7 @@ type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
-  badgeKey?: 'pending_shops' | 'pending_techs' | 'pending_dealer_gst';
+  badgeKey?: 'pending_techs' | 'pending_dealer_gst';
 };
 
 const nav: NavItem[] = [
@@ -41,11 +39,9 @@ const nav: NavItem[] = [
   { href: '/super/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/super/invoices', label: 'Invoices', icon: FileText },
   { href: '/super/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/super/shop-registrations', label: 'Shop registrations', icon: Inbox, badgeKey: 'pending_shops' },
   { href: '/super/technicians', label: 'Technicians', icon: UserCog, badgeKey: 'pending_techs' },
   { href: '/super/dealers', label: 'Dealer GST', icon: ClipboardCheck, badgeKey: 'pending_dealer_gst' },
   { href: '/super/shops', label: 'All shops', icon: Store },
-  { href: '/super/settlements', label: 'Settlements', icon: Wallet },
   { href: '/super/reviews', label: 'Reviews', icon: Star },
   { href: '/super/email-logs', label: 'Email logs', icon: Mail },
 ];
@@ -53,7 +49,6 @@ const nav: NavItem[] = [
 export function SuperadminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [pendingAdminCount, setPendingAdminCount] = useState(0);
   const [pendingElectricianCount, setPendingElectricianCount] = useState(0);
   const [pendingDealerGstCount, setPendingDealerGstCount] = useState(0);
   /** null = auth not checked yet (brief); true = show shell; false = redirecting away */
@@ -71,7 +66,6 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (authorized !== true) return;
     void Promise.all([
-      superadminApi.getPendingAdmins().then((r) => setPendingAdminCount(Array.isArray(r.data) ? r.data.length : 0)),
       superadminApi
         .getPendingElectricians()
         .then((r) => setPendingElectricianCount(Array.isArray(r.data) ? r.data.length : 0)),
@@ -108,13 +102,11 @@ export function SuperadminShell({ children }: { children: React.ReactNode }) {
               ? pathname === href
               : pathname === href || pathname.startsWith(`${href}/`);
           const count =
-            badgeKey === 'pending_shops'
-              ? pendingAdminCount
-              : badgeKey === 'pending_techs'
-                ? pendingElectricianCount
-                : badgeKey === 'pending_dealer_gst'
-                  ? pendingDealerGstCount
-                  : 0;
+            badgeKey === 'pending_techs'
+              ? pendingElectricianCount
+              : badgeKey === 'pending_dealer_gst'
+                ? pendingDealerGstCount
+                : 0;
           return (
             <Link
               key={href}

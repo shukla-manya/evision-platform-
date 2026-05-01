@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  GoneException,
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -24,51 +25,8 @@ export class AdminService {
     private s3: S3Service,
   ) {}
 
-  async register(dto: RegisterAdminDto, logoFile?: Express.Multer.File): Promise<{ message: string }> {
-    // Check duplicate email
-    const existing = await this.findByEmail(dto.email);
-    if (existing) throw new ConflictException('Email already registered');
-
-    const id = uuidv4();
-
-    let logo_url = dto.logo_url || null;
-    if (logoFile?.buffer?.length) {
-      logo_url = await this.s3.upload(logoFile.buffer, logoFile.mimetype, 'logos');
-    }
-
-    const admin = {
-      id,
-      shop_name: dto.shop_name,
-      owner_name: dto.owner_name,
-      email: dto.email,
-      phone: dto.phone,
-      gst_no: dto.gst_no,
-      address: dto.address,
-      city: dto.city,
-      pincode: dto.pincode,
-      logo_url,
-      password_hash: null,
-      status: 'pending',
-      reject_reason: null,
-      created_at: new Date().toISOString(),
-    };
-
-    await this.dynamo.put(this.dynamo.tableName('admins'), admin);
-    this.logger.log(`New admin registration: ${dto.shop_name} (${dto.email})`);
-
-    // Notify superadmin
-    const superadminEmail = this.config.get('SUPERADMIN_EMAIL');
-    await this.email.sendAdminRegistered(superadminEmail, {
-      shopName: dto.shop_name,
-      ownerName: dto.owner_name,
-      email: dto.email,
-      phone: dto.phone,
-    });
-
-    return {
-      message:
-        "Your shop registration has been submitted. You'll receive an email once our team approves your account.",
-    };
+  async register(_dto: RegisterAdminDto, _logoFile?: Express.Multer.File): Promise<{ message: string }> {
+    throw new GoneException('Shop partner self-registration is no longer available.');
   }
 
   async getById(id: string): Promise<any> {

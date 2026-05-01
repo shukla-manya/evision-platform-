@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { getRole, isLoggedIn } from '@/lib/auth';
-import { publicAdminRegisterUrl, publicAdminSignInUrl } from '@/lib/public-links';
+import { publicAdminSignInUrl } from '@/lib/public-links';
 
 export function FaqShopAdminSigninAnswer() {
   const [guest, setGuest] = useState(true);
@@ -22,7 +22,7 @@ export function FaqShopAdminSigninAnswer() {
         <Link href="/super/dashboard" className="text-ev-primary hover:text-ev-primary-light font-medium">
           platform dashboard
         </Link>{' '}
-        to manage the catalogue, orders, and registrations.
+        to manage the catalogue, orders, and platform workflows.
       </>
     );
   }
@@ -38,15 +38,11 @@ export function FaqShopAdminSigninAnswer() {
 
   return (
     <>
-      Partner shop applications (optional) use{' '}
-      <a href={publicAdminRegisterUrl} className="text-ev-primary hover:text-ev-primary-light font-medium">
-        shop registration
-      </a>
-      . The product catalogue is maintained by{' '}
+      The product catalogue is maintained through{' '}
       <a href={publicAdminSignInUrl} className="text-ev-primary hover:text-ev-primary-light font-medium">
         superadmin sign-in
       </a>
-      .
+      . Partner shop self-registration is not available; storefront fulfilment is coordinated by the platform team.
     </>
   );
 }

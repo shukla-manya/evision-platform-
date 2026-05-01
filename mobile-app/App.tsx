@@ -48,7 +48,6 @@ import {
   checkoutApi,
   ordersApi,
   electricianRegisterApi,
-  adminApi,
   PasswordResetRole,
   Product,
   CartResponse,
@@ -107,14 +106,13 @@ import { HOME_HERO_SLIDES, HOME_PROMO_STRIP_CARDS, HOME_PROMO_STRIP_KICKER } fro
 import { HOME_HOW_SITE_CARDS, HOME_HOW_SITE_INTRO, HOME_HOW_SITE_KICKER } from './src/lib/home-how-site-works';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
-type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
+type RegisterInitialRole = 'customer' | 'dealer' | 'electrician';
 
 type RootStackParamList = {
   Auth: undefined;
   OtpSignIn: undefined;
   AdminSignIn: undefined;
   Register: { email?: string; phone?: string; initialRole?: RegisterInitialRole };
-  ShopPending: { shopName: string; email: string };
   PasswordReset: { role?: PasswordResetRole; email?: string };
   Main: undefined;
   Blog: undefined;
@@ -226,16 +224,6 @@ function normalizePhone(phone: string) {
   const trimmed = phone.trim();
   if (trimmed.startsWith('+')) return trimmed;
   return `+91${trimmed}`;
-}
-
-/** E.164 for public shop registration (matches web admin/register). */
-function toAdminRegisterPhone(phone: string) {
-  const raw = phone.trim();
-  if (raw.startsWith('+')) return raw.replace(/\s/g, '');
-  const digits = raw.replace(/\D/g, '');
-  const last10 = digits.replace(/^91/, '').slice(-10);
-  if (last10.length !== 10) return raw;
-  return `+91${last10}`;
 }
 
 async function pickImageAsset(label: string) {
@@ -511,49 +499,7 @@ function AdminSignInScreen({
             <Text style={styles.buttonText}>{loading ? 'Please wait...' : 'Sign in'}</Text>
           </Pressable>
         </View>
-        <View style={styles.captionBlock}>
-          <Text style={styles.captionNote}>
-            Partner (shop) registration: use Create account → Shop owner. Approved partners do not use this screen.
-          </Text>
-          <Pressable style={[styles.buttonSecondary, { marginTop: 12 }]} onPress={() => navigation.navigate('Register', { initialRole: 'shop_owner' })}>
-            <Text style={styles.buttonSecondaryText}>Register as shop partner</Text>
-          </Pressable>
-        </View>
         <SuperadminWebQueueLinks />
-        <PublicWebsiteLinks audience="signed_out" />
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-function ShopPendingScreen({
-  route,
-  navigation,
-}: {
-  route: RouteProp<RootStackParamList, 'ShopPending'>;
-  navigation: any;
-}) {
-  const { shopName, email } = route.params;
-  return (
-    <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.listPad}>
-        <View style={[styles.card, { paddingVertical: 18 }]}>
-          <Text style={styles.cardTitle}>We received your application</Text>
-          <Text style={[styles.subtitle, { marginTop: 10, textAlign: 'left' }]}>
-            <Text style={styles.subtitleEm}>Pending review</Text>
-            {'\n\n'}
-            Shop <Text style={styles.subtitleEm}>{shopName}</Text> is in the queue. We will email{' '}
-            <Text style={styles.subtitleEm}>{email}</Text> when a platform admin approves your store.
-            {'\n\n'}
-            When you get that email, use the link to set your password. Then open this app and choose Admin sign in.
-          </Text>
-        </View>
-        <Pressable
-          style={styles.button}
-          onPress={() => navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Auth' }] }))}
-        >
-          <Text style={styles.buttonText}>Back to sign in</Text>
-        </Pressable>
         <PublicWebsiteLinks audience="signed_out" />
       </ScrollView>
     </SafeAreaView>
@@ -564,21 +510,16 @@ const REGISTER_ROLE_TABS: { value: RegisterInitialRole; label: string }[] = [
   { value: 'customer', label: 'Customer' },
   { value: 'dealer', label: 'Dealer' },
   { value: 'electrician', label: 'Technician' },
-  { value: 'shop_owner', label: 'Admin' },
 ];
 
 function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<RootStackParamList, 'Register'>; navigation: any; onLoggedIn: (token: string, user: AppUser) => void }) {
   const [name, setName] = useState('');
-  const [shopName, setShopName] = useState('');
   const [email, setEmail] = useState(route.params?.email || '');
   const [phone, setPhone] = useState(() => {
     const raw = route.params?.phone || '';
     const d = raw.replace(/\D/g, '');
     return d.length >= 10 ? d.slice(-10) : '';
   });
-  const [city, setCity] = useState('');
-  const [pincode, setPincode] = useState('');
-  const [logoAsset, setLogoAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [otp, setOtp] = useState('');
   const [address, setAddress] = useState('');
   const [gstNo, setGstNo] = useState('');
@@ -589,12 +530,11 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   const [photoAsset, setPhotoAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [role, setRole] = useState<RegisterInitialRole>(() => {
     const r = route.params?.initialRole;
-    if (r === 'shop_owner' || r === 'customer' || r === 'dealer' || r === 'electrician') return r;
+    if (r === 'customer' || r === 'dealer' || r === 'electrician') return r;
     return 'customer';
   });
   const [sendingOtp, setSendingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [shopGeoLoading, setShopGeoLoading] = useState(false);
   const [deliveryGeoLoading, setDeliveryGeoLoading] = useState(false);
   /** After OTP is sent (customer / dealer / technician), lock identity & address fields — same policy as web. */
   const [registerDetailsLocked, setRegisterDetailsLocked] = useState(false);
@@ -615,27 +555,11 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     return () => clearTimeout(timer);
   }, [deliveryCity, role]);
 
-  const shopPinSuggestSeq = useRef(0);
-  useEffect(() => {
-    if (role !== 'shop_owner') return;
-    const c = city.trim();
-    if (c.length < 3) return;
-    const timer = setTimeout(() => {
-      const seq = ++shopPinSuggestSeq.current;
-      void suggestPincodeForIndianCity(c).then((pin) => {
-        if (seq !== shopPinSuggestSeq.current || !pin) return;
-        setPincode(pin);
-      });
-    }, 450);
-    return () => clearTimeout(timer);
-  }, [city, role]);
-
   useEffect(() => {
     setRegisterDetailsLocked(false);
   }, [role]);
 
   const getRegisterOtpError = useCallback((): string | null => {
-    if (role === 'shop_owner') return null;
     const phoneOk = phone.replace(/\D/g, '').length === 10;
     if (!name.trim() || !email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) || !phoneOk) {
       return 'Enter your full name, a valid email, and a 10-digit mobile number.';
@@ -677,38 +601,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'Auth' }] }));
   };
 
-  const setLogoFromPickerResult = (result: ImagePicker.ImagePickerResult) => {
-    if (result.canceled || !result.assets?.[0]) return;
-    setLogoAsset(result.assets[0]);
-  };
-
-  const pickShopLogo = () => {
-    Alert.alert('Shop logo', 'Use your camera or photo library', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Take photo',
-        onPress: async () => {
-          const { status } = await ImagePicker.requestCameraPermissionsAsync();
-          if (status !== 'granted') {
-            Alert.alert('Permission needed', 'Allow camera access to take a photo of your shop or logo.');
-            return;
-          }
-          const r = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.85, allowsEditing: false });
-          setLogoFromPickerResult(r);
-        },
-      },
-      {
-        text: 'Photo library',
-        onPress: async () => {
-          const a = await pickImageAsset('shop logo');
-          if (a) setLogoAsset(a);
-        },
-      },
-    ]);
-  };
-
   const sendOtp = async () => {
-    if (role === 'shop_owner') return;
     const otpErr = getRegisterOtpError();
     if (otpErr) {
       Alert.alert('Required', otpErr);
@@ -728,61 +621,9 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
     }
   };
 
-  const lockReg = registerDetailsLocked && role !== 'shop_owner';
+  const lockReg = registerDetailsLocked;
 
   const submit = async () => {
-    if (role === 'shop_owner') {
-      if (!shopName.trim() || !name.trim()) {
-        Alert.alert('Required', 'Enter shop name and owner name.');
-        return;
-      }
-      if (!email.trim() || !phone.trim() || !gstNo.trim() || !address.trim() || !city.trim() || !/^\d{6}$/.test(pincode.trim())) {
-        Alert.alert('Required', 'Fill email, phone, GST, full address, city, and a 6-digit pincode.');
-        return;
-      }
-      const e164 = toAdminRegisterPhone(phone);
-      if (!/^\+[1-9]\d{9,14}$/.test(e164)) {
-        Alert.alert('Invalid phone', 'Enter a valid 10-digit mobile number.');
-        return;
-      }
-      try {
-        setLoading(true);
-        const fd = new FormData();
-        fd.append('shop_name', shopName.trim());
-        fd.append('owner_name', name.trim());
-        fd.append('email', email.trim().toLowerCase());
-        fd.append('phone', e164);
-        fd.append('gst_no', gstNo.trim());
-        fd.append('address', address.trim());
-        fd.append('city', city.trim());
-        fd.append('pincode', pincode.trim());
-        if (logoAsset) {
-          fd.append('logo', {
-            uri: logoAsset.uri,
-            name: logoAsset.fileName || `shop-logo-${Date.now()}.jpg`,
-            type: logoAsset.mimeType || 'image/jpeg',
-          } as never);
-        }
-        await adminApi.registerShop(fd);
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [
-              {
-                name: 'ShopPending',
-                params: { shopName: shopName.trim(), email: email.trim().toLowerCase() },
-              },
-            ],
-          }),
-        );
-      } catch (err) {
-        Alert.alert('Error', asApiError(err, 'Could not submit shop registration.'));
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
     if (role === 'dealer' && !gstNo.trim()) {
       Alert.alert('GST required', 'GST number is required for dealer accounts.');
       return;
@@ -904,8 +745,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Create account</Text>
           <Text style={styles.subtitle}>
-            {ACCOUNT_ROLES_SUMMARY} — same app; your dashboard matches your role after sign-in. Admin tab is shop
-            registration; Superadmin is provisioned separately.
+            {ACCOUNT_ROLES_SUMMARY} — same app; your dashboard matches your role after sign-in. Superadmin accounts are
+            provisioned separately.
           </Text>
           <View style={styles.roleRow}>
             {REGISTER_ROLE_TABS.map(({ value, label }) => (
@@ -918,95 +759,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
               </Pressable>
             ))}
           </View>
-          {role === 'shop_owner' ? (
-            <>
-              <TextInput style={styles.input} placeholder="Shop name" value={shopName} onChangeText={setShopName} />
-              <TextInput style={styles.input} placeholder="Owner full name" value={name} onChangeText={setName} />
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Mobile (10 digits)"
-                keyboardType="phone-pad"
-                value={phone}
-                onChangeText={(t) => setPhone(t.replace(/\D/g, '').slice(0, 10))}
-                maxLength={10}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="GST number"
-                value={gstNo}
-                onChangeText={setGstNo}
-                autoCapitalize="characters"
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Shop address (street / area)"
-                value={address}
-                onChangeText={setAddress}
-              />
-              <Pressable
-                style={[styles.buttonSecondary, shopGeoLoading && { opacity: 0.7 }]}
-                disabled={shopGeoLoading}
-                onPress={async () => {
-                  setShopGeoLoading(true);
-                  try {
-                    const pos = await getExpoGeolocation();
-                    if (!pos) {
-                      Alert.alert(
-                        'Location',
-                        'Allow location access in Settings, or type your shop address, city, and pincode manually.',
-                      );
-                      return;
-                    }
-                    const parsed = await reverseGeocodeIndia(pos.lat, pos.lng);
-                    if (!parsed) {
-                      Alert.alert('Location', 'Could not resolve an address from GPS. Please enter details manually.');
-                      return;
-                    }
-                    if (parsed.address) setAddress(parsed.address);
-                    if (parsed.city) setCity(parsed.city);
-                    if (parsed.pincode) setPincode(parsed.pincode);
-                    Alert.alert(
-                      'Address updated',
-                      parsed.pincode
-                        ? 'Street, city, and pincode were filled from your location. Review and edit if needed.'
-                        : 'Street and city were filled. Add or confirm pincode if needed.',
-                    );
-                  } finally {
-                    setShopGeoLoading(false);
-                  }
-                }}
-              >
-                <Text style={styles.buttonSecondaryText}>
-                  {shopGeoLoading ? 'Getting location…' : 'Use current location for shop address'}
-                </Text>
-              </Pressable>
-              <Text style={styles.captionNote}>Or enter address, city, and pincode manually.</Text>
-              <TextInput style={styles.input} placeholder="City" value={city} onChangeText={setCity} />
-              <TextInput
-                style={styles.input}
-                placeholder="Pincode (6 digits)"
-                keyboardType="number-pad"
-                maxLength={6}
-                value={pincode}
-                onChangeText={(t) => setPincode(t.replace(/\D/g, '').slice(0, 6))}
-              />
-              <Text style={styles.captionNote}>Pincode fills from city when available — change if needed.</Text>
-              <Pressable style={styles.buttonSecondary} onPress={pickShopLogo}>
-                <Text style={styles.buttonSecondaryText}>
-                  {logoAsset ? `Change logo (${logoAsset.fileName || 'selected'})` : 'Add shop logo (camera or gallery)'}
-                </Text>
-              </Pressable>
-            </>
-          ) : (
-            <>
+          <>
               <TextInput
                 style={styles.input}
                 placeholder="Full name"
@@ -1148,10 +901,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 onChangeText={setAddress}
                 editable={!lockReg}
               />
-            </>
-          )}
-          {role !== 'shop_owner' && (
-            <>
+          </>
+          <>
               <TextInput
                 style={styles.input}
                 placeholder="6-digit OTP"
@@ -1163,16 +914,13 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
               <Pressable style={styles.buttonSecondary} onPress={sendOtp} disabled={sendingOtp || !registrationOtpReady}>
                 <Text style={styles.buttonSecondaryText}>{sendingOtp ? 'Sending OTP...' : 'Send OTP'}</Text>
               </Pressable>
-            </>
-          )}
+          </>
           <Pressable style={styles.button} onPress={submit} disabled={loading}>
             <Text style={styles.buttonText}>
               {loading
                 ? 'Please wait...'
                 : role === 'electrician'
                 ? 'Submit technician registration'
-                : role === 'shop_owner'
-                ? 'Submit for approval'
                 : 'Register'}
             </Text>
           </Pressable>
@@ -2188,9 +1936,6 @@ function AppShell() {
             </RootStack.Screen>
             <RootStack.Screen name="AdminSignIn" options={{ title: 'Platform admin' }}>
               {(props) => <AdminSignInScreen {...props} onLoggedIn={handleLoggedIn} />}
-            </RootStack.Screen>
-            <RootStack.Screen name="ShopPending" options={{ title: 'Shop pending' }}>
-              {(props) => <ShopPendingScreen {...props} />}
             </RootStack.Screen>
           </>
         ) : (

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
 export default function SuperRevenueRedirectPage() {
-  redirect('/super/settlements');
+  redirect('/super/dashboard');
 }

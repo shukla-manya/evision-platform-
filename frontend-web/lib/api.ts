@@ -84,13 +84,6 @@ export async function registerElectricianFormData(formData: FormData) {
   return api.post<{ message: string; electrician_id: string }>('/electrician/register', formData);
 }
 
-// ── Public shop registration (no shop-admin console; catalogue is superadmin-managed) ──
-export const adminApi = {
-  /** Multipart (shop logo) or JSON — partner shop applications only. */
-  register: (data: FormData | Record<string, unknown>) =>
-    api.post('/admin/register', data, data instanceof FormData ? {} : undefined),
-};
-
 export const catalogApi = {
   getCategories: () => api.get('/categories'),
   getProducts: (params?: Record<string, string | number | boolean | undefined>) =>
@@ -165,19 +158,14 @@ export const ordersApi = {
 export const superadminApi = {
   verifyDealerGst: (userId: string) => api.put(`/superadmin/users/${userId}/verify-dealer-gst`),
   getPendingDealerGst: () => api.get('/superadmin/pending-dealer-gst'),
-  getPendingAdmins: () => api.get('/superadmin/pending-admins'),
   getAllAdmins: () => api.get('/superadmin/all-admins'),
-  approveAdmin: (id: string) => api.put(`/superadmin/admin/${id}/approve`),
-  rejectAdmin: (id: string, reason: string) => api.put(`/superadmin/admin/${id}/reject`, { reason }),
   suspendAdmin: (id: string) => api.put(`/superadmin/admin/${id}/suspend`),
   setPlatformCommission: (id: string, platform_commission_pct: number) =>
     api.put(`/superadmin/admin/${id}/commission`, { platform_commission_pct }),
-  markShopSettled: (id: string) => api.put(`/superadmin/admin/${id}/mark-settled`),
   getPendingElectricians: () => api.get('/superadmin/pending-electricians'),
   reviewElectrician: (id: string, body: { action: 'approve' | 'reject'; reason?: string }) =>
     api.put(`/superadmin/electrician/${id}/approve`, body),
   getAnalytics: () => api.get('/superadmin/analytics'),
-  getSettlements: () => api.get('/superadmin/settlements'),
   getReviews: () => api.get('/superadmin/reviews'),
   deleteReview: (id: string) => api.delete(`/superadmin/reviews/${id}`),
   getEmailLogs: (params?: {
