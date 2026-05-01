@@ -58,7 +58,7 @@ export default function AboutPage() {
           {/* Left: single image · Right: What we provide (stacks image-first on small screens) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start w-full">
             <aside className="order-1 w-full max-w-xl md:max-w-none mx-auto md:mx-0 shrink-0" aria-label="Company photograph">
-              <div className="relative aspect-[1178/1536] max-h-[min(520px,70vh)] rounded-2xl border border-ev-border bg-ev-surface2 overflow-hidden shadow-ev-sm">
+              <div className="relative aspect-video max-h-[min(420px,50vh)] w-full rounded-2xl border border-ev-border bg-ev-surface2 overflow-hidden shadow-ev-sm">
                 {/* eslint-disable-next-line @next/next/no-img-element -- remote marketing photography */}
                 <img
                   src={aboutPrimaryVisualSrc}
