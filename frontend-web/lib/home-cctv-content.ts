@@ -3,8 +3,9 @@
 /** Home hero carousel — external marketing URLs (GenSecurity, Wired, Sanity CDN). */
 const heroIndoorPhone =
   'https://www.gensecurity.com/hs-fs/hubfs/Blog/White%20male%20adjusting%20smart%20camera%20and%20monitoring%20camera%20on%20his%20phone%20on%20the%20couch.jpg?width=1000&name=White%20male%20adjusting%20smart%20camera%20and%20monitoring%20camera%20on%20his%20phone%20on%20the%20couch.jpg';
+/** Same Wired asset as user link; path uses single-encoded spaces (works reliably in `<img>`). */
 const heroOutdoorPtz =
-  'https://media.wired.com/photos/688d807935e373d3f8979fcf/4:3/w_640%2Cc_limit/Reolink%2520Altas%2520PT%2520Ultra%25201%2520SOURCE%2520Simon%2520Hill.png';
+  'https://media.wired.com/photos/688d807935e373d3f8979fcf/4:3/w_1920,c_limit/Reolink%20Altas%20PT%20Ultra%201%20SOURCE%20Simon%20Hill.png';
 const heroHomeWide =
   'https://cdn.sanity.io/images/bg7k3vu8/production/41fd29e8197050e4291660561d3487f05f067aa9-1000x500.jpg?w=1000&h=500&auto=format';
 

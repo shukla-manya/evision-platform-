@@ -20,6 +20,21 @@ const nextConfig = {
         hostname: 'images.pexels.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.gensecurity.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.wired.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+        pathname: '/**',
+      },
     ],
   },
   env: {
