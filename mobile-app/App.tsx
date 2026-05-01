@@ -86,6 +86,7 @@ import { EvisionLogo } from './src/components/EvisionLogo';
 import { screenGutter } from './src/theme/layout';
 import { publicWebUrl } from './src/config/publicWeb';
 import {
+  publicBrandName,
   publicMarketingHomeTagline,
   publicShopBrandMark,
   publicSupportPhoneDisplay,
@@ -107,6 +108,7 @@ import {
   HOME_CUSTOM_QUOTE_TITLE,
 } from './src/lib/home-custom-quote';
 import { HOME_HERO_SLIDES, HOME_PROMO_STRIP_CARDS, HOME_PROMO_STRIP_KICKER } from './src/lib/home-hero-slides';
+import { HOME_HOW_SITE_CARDS, HOME_HOW_SITE_INTRO, HOME_HOW_SITE_KICKER } from './src/lib/home-how-site-works';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
@@ -1703,6 +1705,38 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
               </View>
             </View>
 
+            <View style={styles.homeHowSiteBand}>
+              <View style={styles.homeHowSiteHeader}>
+                <Text style={styles.homeHowSiteKicker}>{HOME_HOW_SITE_KICKER}</Text>
+                <Text style={styles.homeHowSiteTitle}>Why {publicBrandName}?</Text>
+                <Text style={styles.homeHowSiteIntro}>{HOME_HOW_SITE_INTRO}</Text>
+              </View>
+              <View style={styles.homeHowSiteCards}>
+                {HOME_HOW_SITE_CARDS.map((card) => (
+                  <View key={card.title} style={styles.homeHowSiteCard}>
+                    <View style={styles.homeHowSiteCardTop}>
+                      <View style={styles.homeHowSiteCardIconWrap}>
+                        <MaterialCommunityIcons name={card.icon} size={22} color={colors.brandPrimary} />
+                      </View>
+                      <Text style={styles.homeHowSiteCardKicker}>{card.kicker}</Text>
+                    </View>
+                    <Text style={styles.homeHowSiteCardTitle}>{card.title}</Text>
+                    <Text style={styles.homeHowSiteCardBody}>
+                      {card.body.split('**').map((part, i) =>
+                        i % 2 === 1 ? (
+                          <Text key={i} style={styles.homeHowSiteCardBodyStrong}>
+                            {part}
+                          </Text>
+                        ) : (
+                          part
+                        ),
+                      )}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
             <View style={[styles.customQuoteOuter, { marginLeft: -padL, marginRight: -padR, width: winW }]}>
               <View style={[styles.customQuoteClip, { width: winW }]}>
                 <Animated.View
@@ -3076,7 +3110,88 @@ const styles = StyleSheet.create({
   collectionCardName: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, marginTop: 2 },
   collectionCardPrice: { fontSize: 17, fontWeight: '800', color: colors.textPrimary, marginTop: 6 },
   collectionCardStock: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
-  customQuoteOuter: { marginTop: 18, marginBottom: 6 },
+  homeHowSiteBand: {
+    marginTop: 12,
+    paddingTop: 20,
+    paddingBottom: 2,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    gap: 14,
+  },
+  homeHowSiteHeader: { alignItems: 'center', paddingHorizontal: 4 },
+  homeHowSiteKicker: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.brandPrimary,
+    textTransform: 'uppercase',
+    letterSpacing: 1.1,
+    marginBottom: 10,
+  },
+  homeHowSiteTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.3,
+    textAlign: 'center',
+  },
+  homeHowSiteIntro: {
+    marginTop: 10,
+    fontSize: 13,
+    lineHeight: 20,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 400,
+    alignSelf: 'center',
+  },
+  homeHowSiteCards: { gap: 10, marginTop: 4 },
+  homeHowSiteCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    padding: 16,
+  },
+  homeHowSiteCardTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  homeHowSiteCardIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: colors.softPanel,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  homeHowSiteCardKicker: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+    marginTop: 4,
+  },
+  homeHowSiteCardTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  homeHowSiteCardBody: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: colors.textSecondary,
+  },
+  homeHowSiteCardBodyStrong: {
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  customQuoteOuter: { marginTop: 14, marginBottom: 6 },
   customQuoteClip: {
     minHeight: 252,
     overflow: 'hidden',
