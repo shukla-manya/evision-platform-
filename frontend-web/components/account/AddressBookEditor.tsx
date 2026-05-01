@@ -83,7 +83,7 @@ export function AddressBookEditor({
   }, [syncKey]);
 
   const persist = useCallback(
-    async (next: AddressBookEntry[]) => {
+    async (next: AddressBookEntry[]): Promise<AddressBookEntry[] | null> => {
       const payload = ensureOneDefault(normalizeBook(next));
       setSaving(true);
       try {
@@ -95,8 +95,10 @@ export function AddressBookEditor({
         toast.success('Addresses saved');
         setEditingIdx(null);
         snapshotRef.current = null;
+        return normalized;
       } catch {
         toast.error('Could not save addresses');
+        return null;
       } finally {
         setSaving(false);
       }
