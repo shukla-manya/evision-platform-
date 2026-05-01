@@ -1738,13 +1738,6 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
             <View style={styles.shopPageTitleBlock}>
               <Text style={styles.shopBrandMark}>{publicShopBrandMark}</Text>
               <Text style={styles.shopHeading}>Shop</Text>
-              <View style={styles.shopBreadcrumbRow}>
-                <Pressable onPress={() => void Linking.openURL(publicWebUrl('/'))}>
-                  <Text style={styles.shopBreadcrumbLink}>Home</Text>
-                </Pressable>
-                <Text style={styles.shopBreadcrumbSep}> · </Text>
-                <Text style={styles.shopBreadcrumbCurrent}>Shop</Text>
-              </View>
             </View>
 
             <View style={styles.categorySection}>
@@ -3303,10 +3296,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   shopHeading: { fontSize: 22, fontWeight: '800', color: colors.textPrimary, marginTop: 6, letterSpacing: -0.3 },
-  shopBreadcrumbRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 6 },
-  shopBreadcrumbLink: { fontSize: 13, color: colors.brandPrimary, fontWeight: '600' },
-  shopBreadcrumbSep: { fontSize: 13, color: colors.muted },
-  shopBreadcrumbCurrent: { fontSize: 13, color: colors.textSecondary, fontWeight: '600' },
   categoryCountScroll: { maxHeight: 200, marginTop: 10 },
   catCountRow: {
     flexDirection: 'row',

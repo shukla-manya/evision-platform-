@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ChevronRight, Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal, Star } from 'lucide-react';
+import { Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
@@ -261,13 +261,6 @@ function ShopListingInner() {
       <PublicTrustStrip />
       <main id="shop-main" className="min-w-0">
         <div className="ev-container py-6 sm:py-8">
-        <nav className="text-sm text-ev-muted mb-3 flex items-center gap-1.5 flex-wrap" aria-label="Breadcrumb">
-          <Link href="/" className="hover:text-ev-primary">
-            Home
-          </Link>
-          <ChevronRight size={14} className="text-ev-subtle shrink-0" aria-hidden />
-          <span className="text-ev-text font-medium">Shop</span>
-        </nav>
         <div className="mb-8 border-b border-ev-border pb-8">
           <p className="text-ev-primary font-bold text-xs sm:text-sm tracking-[0.28em] uppercase mb-2">{publicShopBrandMark}</p>
           <h1 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight">Shop</h1>
