@@ -151,7 +151,7 @@ export function ContactScreen() {
           </View>
         ) : (
           <View style={styles.card}>
-            <Text style={styles.formCardTitle}>Get in Touch</Text>
+            <Text style={styles.formCardTitle}>Send a message</Text>
             <Text style={styles.label}>First name</Text>
             <TextInput
               style={styles.input}
@@ -234,6 +234,8 @@ export function ContactScreen() {
             </>
           )}
         </View>
+          </View>
+        </View>
 
         <View style={styles.bottomBrand}>
           <Text style={styles.muted}>{aboutBrandSummary}</Text>
@@ -257,6 +259,22 @@ const styles = StyleSheet.create({
     opacity: 0.92,
   },
   footerInlineLink: { color: colors.brandPrimary, fontWeight: '600' },
+  splitWrap: { marginTop: 8, gap: 16 },
+  splitWrapRow: { flexDirection: 'row', alignItems: 'stretch' },
+  imageCol: {
+    position: 'relative',
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.softPanel,
+    minHeight: 200,
+  },
+  imageColRow: { flex: 1, minWidth: 0, minHeight: 280 },
+  heroImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+  imageTint: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(26,26,46,0.12)' },
+  formColumn: { gap: 12 },
+  formColumnRow: { flex: 1, minWidth: 0, gap: 12 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 10, marginTop: 8 },
   formCardTitle: { fontSize: 20, fontWeight: '800', color: colors.textPrimary, marginBottom: 16 },
   card: {
