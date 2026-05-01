@@ -45,9 +45,6 @@ import {
   innovationSectionTitle,
   securityCameraCollectionIntro,
   securityCameraCollectionTitle,
-  showcaseCombos,
-  showcasePrimary,
-  type StaticShowcaseProduct,
 } from '@/lib/home-cctv-content';
 import {
   aboutBrandSummary,
@@ -69,6 +66,11 @@ type ShowcaseProduct = Product & {
   listing_rating?: number | null;
   showcase_hot?: boolean;
 };
+
+/** Max items in “Advanced CCTV Surveillance Solutions” (superadmin Homepage showcase → primary). */
+const HOME_SHOWCASE_PRIMARY_MAX = 6;
+/** Max items in “Security Camera Collection” row (Homepage showcase → combos). */
+const HOME_SHOWCASE_COMBOS_MAX = 2;
 
 function formatInr(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
