@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { aboutBrandSummary } from '../config/publicMarketing';
 import { publicWebUrl } from '../config/publicWeb';
+import { HOME_LEAD_FORM_IMAGE_URI } from '../lib/home-lead-form';
 import { publicContactApi, type ContactMessageResponse } from '../services/api';
 import { colors } from '../theme/colors';
 import { screenGutter } from '../theme/layout';
@@ -28,6 +29,8 @@ function apiErrorMessage(err: unknown, fallback: string): string {
 }
 
 export function ContactScreen() {
+  const { width: winW } = useWindowDimensions();
+  const twoCol = winW >= 720;
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -109,6 +112,18 @@ export function ContactScreen() {
           on the website (scroll to the bottom or tap the link).
         </Text>
 
+        <View style={[styles.splitWrap, twoCol ? styles.splitWrapRow : null]}>
+          <View style={[styles.imageCol, twoCol ? styles.imageColRow : null]}>
+            <Image
+              source={{ uri: HOME_LEAD_FORM_IMAGE_URI }}
+              style={styles.heroImage}
+              resizeMode="cover"
+              accessibilityLabel="CCTV camera installed for home and business security"
+            />
+            <View style={styles.imageTint} />
+          </View>
+
+          <View style={[styles.formColumn, twoCol ? styles.formColumnRow : null]}>
         {formSuccess ? (
           <View style={[styles.card, styles.successCard]}>
             <Text style={styles.successTitle}>Thank you, {formSuccess.greeting_name}!</Text>
