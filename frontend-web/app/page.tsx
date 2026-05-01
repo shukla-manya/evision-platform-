@@ -318,41 +318,33 @@ function HomeTestimonialsMarquee() {
 
   return (
     <div
-      className="ev-home-testimonials-marquee group relative mx-auto flex aspect-square w-full max-w-md flex-col overflow-hidden rounded-2xl border border-ev-border bg-ev-surface shadow-ev-sm"
+      className="ev-home-testimonials-marquee group relative mx-auto w-full max-w-5xl overflow-hidden py-2 sm:py-3"
       role="region"
-      aria-label="Customer testimonials, scrolling in a loop inside a square panel"
+      aria-label="Customer testimonials, scrolling in a loop"
     >
-      <p className="shrink-0 border-b border-ev-border/80 bg-ev-surface2/50 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-ev-primary sm:py-3">
-        Customer reviews
-      </p>
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-ev-bg to-transparent sm:w-12"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-ev-bg to-transparent sm:w-12"
+        aria-hidden
+      />
 
-      <div className="relative flex min-h-0 flex-1 flex-col justify-center">
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-ev-surface to-transparent sm:w-10"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-ev-surface to-transparent sm:w-10"
-          aria-hidden
-        />
-
-        {motionReduced ? (
-          <div className="relative z-0 min-h-0 flex-1 overflow-y-auto px-3 py-3 sm:px-4">
-            <div className="mx-auto flex max-w-sm flex-col gap-3">
-              {homeCustomerReviews.map((r, i) => (
-                <TestimonialReviewBox key={i} r={r} />
-              ))}
-            </div>
+      {motionReduced ? (
+        <div className="relative z-0 mx-auto flex max-w-sm flex-col gap-3 px-2">
+          {homeCustomerReviews.map((r, i) => (
+            <TestimonialReviewBox key={i} r={r} />
+          ))}
+        </div>
+      ) : (
+        <div className="relative z-0 flex w-full items-center overflow-hidden">
+          <div className="ev-home-testimonials-marquee__track">
+            {segment('a')}
+            {segment('b')}
           </div>
-        ) : (
-          <div className="relative z-0 flex min-h-0 w-full flex-1 items-center overflow-hidden">
-            <div className="ev-home-testimonials-marquee__track">
-              {segment('a')}
-              {segment('b')}
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
