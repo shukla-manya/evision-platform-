@@ -1,7 +1,13 @@
+'use client';
+
+import { usePathname } from 'next/navigation';
 import { publicWhatsAppChatUrl } from '@/lib/public-contact';
 
-/** Fixed WhatsApp entry point on every page — opens `wa.me` (number not shown in UI). */
+/** Fixed WhatsApp entry point on public pages — opens `wa.me` (number not shown in UI). Hidden on superadmin console. */
 export function FloatingWhatsAppChat() {
+  const pathname = usePathname();
+  if (pathname?.startsWith('/super')) return null;
+
   const href = publicWhatsAppChatUrl();
   const label = 'Chat on WhatsApp';
 
