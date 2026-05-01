@@ -1321,8 +1321,6 @@ function HomeScreen() {
   const customQuoteTx = customQuoteMotion.interpolate({ inputRange: [0, 1], outputRange: [0, -12] });
   const customQuoteScale = customQuoteMotion.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
 
-  const canAddToCart = userRole === 'customer' || userRole === 'dealer';
-
   useEffect(() => {
     heroScrollRef.current?.scrollTo({ x: heroIdx * heroSlideW, animated: true });
   }, [heroIdx, heroSlideW]);
@@ -1334,169 +1332,13 @@ function HomeScreen() {
     return () => clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    void catalogApi
-      .getCategories()
-      .then((r) => {
-        if (!cancelled && Array.isArray(r.data)) {
-          setApiCategories(r.data as Array<{ id: string; name: string; parent_id?: string | null }>);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setApiCategories([]);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data } = await productApi.list({
-        approved_shops_only: approvedShopsOnly,
-        ...(browseCategoryId ? { category_id: browseCategoryId } : {}),
-        ...(browseSearch && !browseCategoryId ? { search: browseSearch } : {}),
-        ...(minPrice.trim() ? { min_price: Number(minPrice.replace(/\D/g, '')) } : {}),
-        ...(maxPrice.trim() ? { max_price: Number(maxPrice.replace(/\D/g, '')) } : {}),
-      });
-      setProducts(data || []);
-    } catch (err) {
-      Alert.alert('Error', asApiError(err, 'Failed to load products.'));
-    } finally {
-      setLoading(false);
-      setCatalogueReady(true);
-    }
-  }, [approvedShopsOnly, browseCategoryId, browseSearch, minPrice, maxPrice]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await productApi.listApprovedShops();
-        if (cancelled) return;
-        setApprovedShopList(Array.isArray(data) ? data : []);
-      } catch {
-        if (!cancelled) setApprovedShopList([]);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
-
-  useEffect(() => {
-    setPage(1);
-  }, [shopFilter, browseCategoryId, browseSearch, minPrice, maxPrice, approvedShopsOnly, sort, pageSize]);
-
-  const visibleProducts = useMemo(() => {
-    if (!shopFilter.trim()) return products;
-    const t = shopFilter.trim().toLowerCase();
-    return products.filter((p) => String(p.shop_name || '').trim().toLowerCase() === t);
-  }, [products, shopFilter]);
-
-  const categoryCounts = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const p of products) {
-      const id = String(p.category_id || '');
-      if (!id) continue;
-      m.set(id, (m.get(id) || 0) + 1);
-    }
-    return m;
-  }, [products]);
-
-  const cataloguePriceExtent = useMemo(() => {
-    let min = Infinity;
-    let max = -Infinity;
-    for (const p of products) {
-      const v = priceValForRole(p, userRole);
-      if (v > 0) {
-        min = Math.min(min, v);
-        max = Math.max(max, v);
-      }
-    }
-    if (!Number.isFinite(min)) return { min: 0, max: 0 };
-    return { min: Math.floor(min), max: Math.ceil(max) };
-  }, [products, userRole]);
-
-  const appliedMin = minPrice.trim() ? Number(minPrice.replace(/\D/g, '')) : cataloguePriceExtent.min;
-  const appliedMax = maxPrice.trim() ? Number(maxPrice.replace(/\D/g, '')) : cataloguePriceExtent.max;
-  const priceBandLabel =
-    cataloguePriceExtent.max > 0
-      ? `Price: ${formatINR(appliedMin || cataloguePriceExtent.min)} — ${formatINR(appliedMax || cataloguePriceExtent.max)}`
-      : 'Price: —';
-
-  const sortedProducts = useMemo(() => {
-    const list = [...visibleProducts];
-    if (sort === 'price_asc') list.sort((a, b) => priceValForRole(a, userRole) - priceValForRole(b, userRole));
-    else if (sort === 'price_desc') list.sort((a, b) => priceValForRole(b, userRole) - priceValForRole(a, userRole));
-    else if (sort === 'rating') list.sort((a, b) => Number(b.rating_avg || 0) - Number(a.rating_avg || 0));
-    return list;
-  }, [visibleProducts, sort, userRole]);
-
-  const totalFiltered = sortedProducts.length;
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
-  const safePage = Math.min(page, totalPages);
-  const pageStart = totalFiltered === 0 ? 0 : (safePage - 1) * pageSize + 1;
-  const pageEnd = Math.min(safePage * pageSize, totalFiltered);
-  const pageSlice = useMemo(
-    () => sortedProducts.slice((safePage - 1) * pageSize, safePage * pageSize),
-    [sortedProducts, safePage, pageSize],
-  );
-
-  useEffect(() => {
-    setPage((p) => Math.min(p, totalPages));
-  }, [totalPages]);
-
-  const sortHuman =
-    sort === 'price_asc'
-      ? 'Sorted by price: low to high'
-      : sort === 'price_desc'
-        ? 'Sorted by price: high to low'
-        : sort === 'newest'
-          ? 'Sorted by newest'
-          : sort === 'rating'
-            ? 'Sorted by rating'
-            : 'Sorted by relevance';
-
-  const sortOptions: { key: CatalogueSortKey; label: string }[] = [
-    { key: 'price_asc', label: 'Low' },
-    { key: 'price_desc', label: 'High' },
-    { key: 'rating', label: 'Rated' },
-    { key: 'relevance', label: 'Default' },
-  ];
-
-  const addProductToCart = async (p: Product) => {
-    try {
-      setCartBusyId(p.id);
-      const n = userRole === 'dealer' ? Math.max(1, Number(p.min_order_quantity || 1)) : 1;
-      await cartApi.add(p.id, n);
-      Alert.alert('Added', n > 1 ? `Added ${n} to cart (minimum order).` : 'Product added to cart.', [
-        { text: 'OK', onPress: () => navigation.navigate('Main', { screen: 'Cart' }) },
-        { text: 'Stay', style: 'cancel' },
-      ]);
-    } catch (err) {
-      Alert.alert('Error', asApiError(err, 'Could not add to cart.'));
-    } finally {
-      setCartBusyId(null);
-    }
-  };
-
-  if (loading && !catalogueReady) return <Loader text="Loading catalogue..." />;
-
   return (
     <SafeAreaView style={styles.screen} edges={['top']}>
-      <FlatList
-        contentContainerStyle={[styles.listPad, { paddingLeft: padL, paddingRight: padR }]}
-        data={pageSlice}
-        keyExtractor={(item) => item.id}
-        refreshing={loading && catalogueReady}
-        onRefresh={() => void load()}
-        ListHeaderComponent={
-          <View style={{ marginBottom: 14, gap: 12 }}>
+      <ScrollView
+        contentContainerStyle={[styles.listPad, { paddingLeft: padL, paddingRight: padR, paddingBottom: 28 }]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={{ marginBottom: 14, gap: 12 }}>
             <ScrollView
               ref={heroScrollRef}
               horizontal
