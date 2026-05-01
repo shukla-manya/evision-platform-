@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CheckCircle2, Loader2, MapPin, Wallet, AlertCircle } from 'lucide-react';
+import { CheckCircle2, Loader2, Wallet, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi, cartApi, checkoutApi } from '@/lib/api';
 import { getRole } from '@/lib/auth';
