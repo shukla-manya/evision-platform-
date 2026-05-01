@@ -163,82 +163,18 @@ export default function CheckoutPage() {
         ) : (
           <>
             {step === 1 ? (
-              <section className="ev-card p-6 space-y-4">
-                <h2 className="text-lg font-semibold text-ev-text flex items-center gap-2">
-                  <MapPin size={18} className="text-ev-primary" />
-                  Select delivery address
-                </h2>
-                {addresses.length === 0 ? (
-                  <p className="text-ev-muted text-sm">No saved addresses yet. Add one below.</p>
-                ) : (
-                  <ul className="space-y-2">
-                    {addresses.map((a, i) => (
-                      <li key={i}>
-                        <label className="flex gap-3 p-4 rounded-xl border border-ev-border cursor-pointer hover:bg-ev-surface2/60 has-[:checked]:border-ev-primary has-[:checked]:bg-ev-primary/5">
-                          <input
-                            type="radio"
-                            name="addr"
-                            checked={selectedIdx === i}
-                            onChange={() => setSelectedIdx(i)}
-                            className="mt-1"
-                          />
-                          <div className="text-sm">
-                            <p className="font-semibold text-ev-text">{a.label || 'Address'}</p>
-                            <p className="text-ev-muted mt-1">
-                              {a.address}, {a.city}, {a.state} {a.pincode}
-                            </p>
-                          </div>
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <div className="border-t border-ev-border pt-4 space-y-3">
-                  <p className="text-sm font-medium text-ev-text">Add new address</p>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <input
-                      className="ev-input"
-                      placeholder="Label (e.g. Home)"
-                      value={newAddr.label}
-                      onChange={(e) => setNewAddr((x) => ({ ...x, label: e.target.value }))}
-                    />
-                    <input
-                      className="ev-input"
-                      placeholder="Pincode"
-                      value={newAddr.pincode}
-                      onChange={(e) => setNewAddr((x) => ({ ...x, pincode: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                    />
-                  </div>
-                  <input
-                    className="ev-input"
-                    placeholder="Street address"
-                    value={newAddr.address}
-                    onChange={(e) => setNewAddr((x) => ({ ...x, address: e.target.value }))}
-                  />
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    <input
-                      className="ev-input"
-                      placeholder="City"
-                      value={newAddr.city}
-                      onChange={(e) => setNewAddr((x) => ({ ...x, city: e.target.value }))}
-                    />
-                    <input
-                      className="ev-input"
-                      placeholder="State"
-                      value={newAddr.state}
-                      onChange={(e) => setNewAddr((x) => ({ ...x, state: e.target.value }))}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    disabled={savingAddr}
-                    onClick={() => void saveNewAddress()}
-                    className="ev-btn-secondary text-sm py-2 px-4"
-                  >
-                    {savingAddr ? <Loader2 size={14} className="animate-spin inline" /> : null}
-                    Save address
-                  </button>
-                </div>
+              <section className="ev-card p-6 space-y-6">
+                <p className="text-sm text-ev-muted">
+                  Select where we should deliver this order. Edit or add addresses anytime — they stay on your
+                  account for next time too.
+                </p>
+                <AddressBookEditor
+                  variant="checkout"
+                  addresses={addresses}
+                  selectedIdx={selectedIdx}
+                  onSelectedIdxChange={setSelectedIdx}
+                  onSaved={setAddresses}
+                />
                 <button type="button" className="ev-btn-primary w-full py-2.5" onClick={() => setStep(2)}>
                   Continue to review
                 </button>
