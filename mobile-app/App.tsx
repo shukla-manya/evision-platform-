@@ -2539,18 +2539,6 @@ const styles = StyleSheet.create({
   collectionCardName: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, marginTop: 2 },
   collectionCardPrice: { fontSize: 17, fontWeight: '800', color: colors.textPrimary, marginTop: 6 },
   collectionCardStock: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
-  homeReviewsRow: { gap: 12, paddingVertical: 4, paddingBottom: 12 },
-  homeReviewCard: {
-    width: 280,
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  homeReviewQuote: { fontSize: 13, lineHeight: 20, color: colors.textPrimary, marginBottom: 10 },
-  homeReviewName: { fontSize: 13, fontWeight: '800', color: colors.brandPrimary },
-  homeReviewRole: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
   homeHowSiteBand: {
     marginTop: 12,
     paddingTop: 20,
