@@ -228,14 +228,14 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
 
   const inner = (
     <>
-      <div className="ev-card p-8">
+      <div className="ev-card p-4 sm:p-6 lg:p-8">
         {step === 'details' ? (
           <form
             onSubmit={(e: FormEvent) => {
               e.preventDefault();
               void sendTechOtp();
             }}
-            className="space-y-6"
+            className="space-y-6 [&_input.ev-input]:text-base [&_input.ev-input]:sm:text-sm [&_textarea.ev-input]:text-base [&_textarea.ev-input]:sm:text-sm"
           >
             <div>
               <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider mb-3">Personal</p>
@@ -416,7 +416,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
 
             <button
               type="submit"
-              className="ev-btn-primary w-full flex items-center justify-center gap-2"
+              className="ev-btn-primary flex min-h-[48px] w-full items-center justify-center gap-2 text-base"
               disabled={otpSending || !canSendTechnicianOtp}
             >
               {otpSending ? (
@@ -456,7 +456,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
             />
             <button
               type="submit"
-              className="ev-btn-primary w-full flex items-center justify-center gap-2"
+              className="ev-btn-primary flex min-h-[48px] w-full items-center justify-center gap-2 text-base"
               disabled={loading || otpCells.join('').length !== 6}
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : (
@@ -494,11 +494,11 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
   );
 
   if (embedded) {
-    return <div className="w-full max-w-lg mx-auto animate-slide-up">{inner}</div>;
+    return <div className="mx-auto w-full min-w-0 max-w-xl animate-slide-up">{inner}</div>;
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto animate-slide-up">
+    <div className="mx-auto w-full min-w-0 max-w-xl animate-slide-up">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-ev-text">Join our technician network</h1>
         <p className="text-ev-muted text-sm mt-1 max-w-md mx-auto leading-relaxed">

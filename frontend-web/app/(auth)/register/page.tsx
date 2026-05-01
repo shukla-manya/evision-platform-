@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
-import { Camera, User, Mail, MapPin, ArrowRight, Loader2, Navigation } from 'lucide-react';
+import { Camera, User, Mail, MapPin, ArrowRight, Loader2, Navigation, Shield, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
@@ -355,53 +355,78 @@ export default function RegisterPage() {
   })();
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-4 py-12">
+    <div className="relative min-h-[100dvh] w-full ev-page-gutter">
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-ev-primary/6 rounded-full blur-3xl" />
       </div>
 
-      <div className="w-full max-w-lg relative z-10">
-        <div className="text-center mb-6">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
-            <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
-              <Camera size={22} className="text-white" />
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:gap-8 sm:py-8 lg:flex-row lg:items-start lg:gap-12 lg:py-10 xl:gap-16">
+        <aside className="hidden shrink-0 lg:block lg:w-[min(100%,20rem)] xl:w-72">
+          <div className="sticky top-8 space-y-6 pr-2 pt-1">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-ev-subtle">New account</p>
+              <h2 className="mt-2 text-2xl font-bold leading-tight text-ev-text">Shop and book installs in one place</h2>
+              <p className="mt-3 text-sm leading-relaxed text-ev-muted">
+                One sign-up flow for customers, dealers, and technicians — verify with email OTP, same as major shopping
+                apps.
+              </p>
             </div>
-            <span className="text-ev-text font-bold text-xl">{publicBrandName}</span>
-          </Link>
-          <h1 className="text-2xl font-bold text-ev-text">Create your account</h1>
-          <p className="text-ev-muted text-sm mt-1 max-w-md mx-auto leading-relaxed">
-            Choose your account type to get started
-          </p>
-        </div>
+            <ul className="space-y-4 text-sm leading-snug text-ev-muted">
+              <li className="flex gap-3">
+                <Shield className="mt-0.5 h-5 w-5 shrink-0 text-ev-primary" aria-hidden />
+                <span>Email OTP verification — no password to remember for everyday sign-in.</span>
+              </li>
+              <li className="flex gap-3">
+                <Lock className="mt-0.5 h-5 w-5 shrink-0 text-ev-primary" aria-hidden />
+                <span>Your details are used for delivery, GST checks (dealers), and technician approvals only.</span>
+              </li>
+            </ul>
+          </div>
+        </aside>
 
-        <div className="ev-card p-1 flex flex-col sm:flex-row gap-1 mb-6">
-          {REGISTER_SELF_SERVE_TABS.map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => {
-                setAccountTab(key);
-                setRegisterStep('details');
-                setRegisterOtpCells(['', '', '', '', '', '']);
-                setResendSeconds(0);
-                setOtpAttemptsLeft(OTP_ATTEMPTS);
-              }}
-              className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-medium transition-all ${
-                accountTab === key ? 'bg-ev-primary text-white shadow-ev-glow' : 'text-ev-muted hover:text-ev-text'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <div className="flex min-w-0 flex-1 flex-col lg:pt-1">
+          <div className="mx-auto w-full max-w-xl lg:mx-0">
+            <div className="mb-6 text-center lg:text-left">
+              <Link href="/" className="mb-4 inline-flex items-center gap-2.5 lg:mb-5">
+                <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
+                  <Camera size={22} className="text-white" />
+                </div>
+                <span className="text-xl font-bold text-ev-text">{publicBrandName}</span>
+              </Link>
+              <h1 className="text-2xl font-bold text-ev-text sm:text-3xl">Create your account</h1>
+              <p className="mx-auto mt-1 max-w-md text-sm leading-relaxed text-ev-muted lg:mx-0">
+                Choose your account type to get started
+              </p>
+            </div>
+
+            <div className="ev-card mb-6 grid grid-cols-3 gap-0.5 p-1 sm:flex sm:flex-row sm:gap-1">
+              {REGISTER_SELF_SERVE_TABS.map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    setAccountTab(key);
+                    setRegisterStep('details');
+                    setRegisterOtpCells(['', '', '', '', '', '']);
+                    setResendSeconds(0);
+                    setOtpAttemptsLeft(OTP_ATTEMPTS);
+                  }}
+                  className={`flex min-h-[48px] items-center justify-center rounded-lg px-1.5 text-center text-xs font-medium transition-all sm:flex-1 sm:rounded-xl sm:px-3 sm:text-sm ${
+                    accountTab === key ? 'bg-ev-primary text-white shadow-ev-glow' : 'text-ev-muted hover:text-ev-text'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
         {accountTab === 'technician' ? (
           <TechnicianApplicationForm embedded />
         ) : (
           <>
             {registerStep === 'details' ? (
-              <div className="text-center mb-6">
-                <p className="text-ev-muted text-sm max-w-md mx-auto leading-relaxed">
+              <div className="mb-6 text-center lg:text-left">
+                <p className="mx-auto max-w-md text-sm leading-relaxed text-ev-muted lg:mx-0">
                   {accountTab === 'dealer' ? (
                     <>
                       Get wholesale pricing, bulk order support and GST invoices. Your GST number will be verified
@@ -413,23 +438,23 @@ export default function RegisterPage() {
                 </p>
               </div>
             ) : (
-              <div className="text-center mb-6 space-y-2">
-                <p className="text-ev-subtle text-xs font-semibold uppercase tracking-wider">Step 2 of 2</p>
+              <div className="mb-6 space-y-2 text-center lg:text-left">
+                <p className="text-xs font-semibold uppercase tracking-wider text-ev-subtle">Step 2 of 2</p>
                 <h2 className="text-2xl font-bold text-ev-text">Verify your email</h2>
-                <p className="text-ev-muted text-sm max-w-md mx-auto leading-relaxed">
+                <p className="mx-auto max-w-md text-sm leading-relaxed text-ev-muted lg:mx-0">
                   We sent a 6-digit code to {emailMasked}. It expires in 10 minutes.
                 </p>
               </div>
             )}
 
             {registerStep === 'details' ? (
-                  <div className="ev-card p-8">
+                  <div className="ev-card p-4 sm:p-6 lg:p-8">
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();
                         void sendShopperOtp();
                       }}
-                      className="space-y-5"
+                      className="space-y-5 [&_input.ev-input]:text-base [&_input.ev-input]:sm:text-sm [&_textarea.ev-input]:text-base [&_textarea.ev-input]:sm:text-sm"
                     >
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -631,7 +656,7 @@ export default function RegisterPage() {
 
                       <button
                         type="submit"
-                        className="ev-btn-primary w-full flex items-center justify-center gap-2"
+                        className="ev-btn-primary flex min-h-[48px] w-full items-center justify-center gap-2 text-base"
                         disabled={otpSending || !canSendShopperOtp}
                       >
                         {otpSending ? (
@@ -661,7 +686,7 @@ export default function RegisterPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="ev-card p-8">
+                  <div className="ev-card p-4 sm:p-6 lg:p-8">
                     <form onSubmit={submitShopper} className="space-y-6">
                       <OtpCells
                         key={registerOtpKey}
@@ -672,7 +697,7 @@ export default function RegisterPage() {
                       />
                       <button
                         type="submit"
-                        className="ev-btn-primary w-full flex items-center justify-center gap-2"
+                        className="ev-btn-primary flex min-h-[48px] w-full items-center justify-center gap-2 text-base"
                         disabled={loading || registerOtpCells.join('').length !== 6}
                       >
                         {loading ? <Loader2 size={16} className="animate-spin" /> : (
@@ -708,6 +733,8 @@ export default function RegisterPage() {
                 )}
           </>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );
