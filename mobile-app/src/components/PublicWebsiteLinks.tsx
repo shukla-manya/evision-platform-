@@ -14,13 +14,20 @@ const LINKS: { label: string; path: string }[] = [
 /** Signed-out: “Returns” opens storefront sign-in; signed-in: Returns row hidden (matches web footer). */
 export function PublicWebsiteLinks({
   audience,
+  onOpenAbout,
   onOpenContact,
 }: {
   audience: 'signed_in' | 'signed_out';
+  /** When set, “About” opens in-app instead of the browser. */
+  onOpenAbout?: () => void;
   /** When set, “Contact” opens in-app instead of the browser. */
   onOpenContact?: () => void;
 }) {
   const open = (path: string) => () => {
+    if (path === '/about' && onOpenAbout) {
+      onOpenAbout();
+      return;
+    }
     if (path === '/contact' && onOpenContact) {
       onOpenContact();
       return;

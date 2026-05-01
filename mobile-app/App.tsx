@@ -60,6 +60,7 @@ import { clearSession, getToken, setElectricianProfile, setToken } from './src/s
 import { PasswordInputWithToggle } from './src/components/PasswordInputWithToggle';
 import { PublicWebsiteLinks } from './src/components/PublicWebsiteLinks';
 import { BlogListScreen, BlogPostScreen } from './src/screens/BlogScreens';
+import { AboutScreen } from './src/screens/AboutScreen';
 import { ContactScreen } from './src/screens/ContactScreen';
 import { ProductDetailScreen } from './src/screens/ProductDetailScreen';
 import { SuperadminWebQueueLinks } from './src/components/SuperadminWebQueueLinks';
@@ -120,6 +121,7 @@ type RootStackParamList = {
   Main: undefined;
   Blog: undefined;
   BlogPost: { slug: string };
+  About: undefined;
   Contact: undefined;
   ProductDetail: { product: Product };
   Checkout: undefined;
@@ -207,6 +209,16 @@ function tryNavigateRootContact(navigation: { getParent?: () => any } | undefine
   const stack = tab?.getParent?.();
   if (stack && typeof stack.navigate === 'function') {
     stack.navigate('Contact');
+    return true;
+  }
+  return false;
+}
+
+function tryNavigateRootAbout(navigation: { getParent?: () => any } | undefined): boolean {
+  const tab = navigation?.getParent?.();
+  const stack = tab?.getParent?.();
+  if (stack && typeof stack.navigate === 'function') {
+    stack.navigate('About');
     return true;
   }
   return false;
@@ -2494,6 +2506,9 @@ function ProfileScreen({
         ) : null}
         <PublicWebsiteLinks
           audience="signed_in"
+          onOpenAbout={() => {
+            if (!tryNavigateRootAbout(navigation)) void Linking.openURL(publicWebUrl('/about'));
+          }}
           onOpenContact={() => {
             if (!tryNavigateRootContact(navigation)) void Linking.openURL(publicWebUrl('/contact'));
           }}
@@ -2757,6 +2772,7 @@ function AppShell() {
         <RootStack.Screen name="PasswordReset" component={PasswordResetScreen} options={{ title: 'Password Reset' }} />
         <RootStack.Screen name="Blog" component={BlogListScreen} options={{ title: 'Blog' }} />
         <RootStack.Screen name="BlogPost" component={BlogPostScreen} options={{ title: 'Article' }} />
+        <RootStack.Screen name="About" component={AboutScreen} options={{ title: 'About us' }} />
         <RootStack.Screen name="Contact" component={ContactScreen} options={{ title: 'Contact' }} />
       </RootStack.Navigator>
     </NavigationContainer>
