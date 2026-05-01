@@ -13,7 +13,6 @@ import { wishlistCount } from '@/lib/wishlist';
 const NAV_LINKS = [
   { href: '/about', label: 'About' },
   { href: '/shop', label: 'Shop' },
-  { href: '/blog', label: 'Blog' },
   { href: '/contact', label: 'Contact' },
   { href: '/technician-services', label: 'Services' },
 ] as const;

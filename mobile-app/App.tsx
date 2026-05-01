@@ -2494,10 +2494,6 @@ function ProfileScreen({
         ) : null}
         <PublicWebsiteLinks
           audience="signed_in"
-          onOpenBlog={() => {
-            const p = navigation?.getParent?.();
-            if (p && typeof p.navigate === 'function') p.navigate('Blog');
-          }}
           onOpenContact={() => {
             if (!tryNavigateRootContact(navigation)) void Linking.openURL(publicWebUrl('/contact'));
           }}

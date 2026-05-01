@@ -6,7 +6,6 @@ const LINKS: { label: string; path: string }[] = [
   { label: 'Store home', path: '/' },
   { label: 'Shop', path: '/shop' },
   { label: 'About', path: '/about' },
-  { label: 'Blog', path: '/blog' },
   { label: 'Contact', path: '/contact' },
   { label: 'FAQs', path: '/faq' },
   { label: 'Privacy', path: '/privacy' },
@@ -15,20 +14,13 @@ const LINKS: { label: string; path: string }[] = [
 /** Signed-out: “Returns” opens storefront sign-in; signed-in: Returns row hidden (matches web footer). */
 export function PublicWebsiteLinks({
   audience,
-  onOpenBlog,
   onOpenContact,
 }: {
   audience: 'signed_in' | 'signed_out';
-  /** When set, “Blog” opens in-app instead of the browser (customer / dealer stack). */
-  onOpenBlog?: () => void;
   /** When set, “Contact” opens in-app instead of the browser. */
   onOpenContact?: () => void;
 }) {
   const open = (path: string) => () => {
-    if (path === '/blog' && onOpenBlog) {
-      onOpenBlog();
-      return;
-    }
     if (path === '/contact' && onOpenContact) {
       onOpenContact();
       return;

@@ -77,17 +77,6 @@ export default function BlogPage() {
 
             <aside className="space-y-8 lg:pt-2">
               <div className="rounded-xl border border-ev-border bg-ev-surface p-4 sm:p-5">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-ev-text">Categories</h2>
-                <ul className="mt-3 space-y-2 text-sm">
-                  <li>
-                    <Link href="/blog" className="text-ev-primary font-medium">
-                      Blog
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="rounded-xl border border-ev-border bg-ev-surface p-4 sm:p-5">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-ev-text">Recent Posts</h2>
                 <ul className="mt-3 space-y-4 text-sm">
                   {posts.map((p) => (

@@ -3,7 +3,6 @@ export const footerQuickNavLinks: { label: string; href: string }[] = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },
   { label: 'Shop', href: '/shop' },
-  { label: 'Blog', href: '/blog' },
   { label: 'Contact', href: '/contact' },
   { label: 'Support', href: '/support' },
 ];
