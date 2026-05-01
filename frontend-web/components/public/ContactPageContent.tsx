@@ -266,6 +266,7 @@ export function ContactPageContent() {
                 </>
               )}
             </div>
+          </div>
         </div>
 
         <div className="border-t border-ev-border pt-12 space-y-6">
