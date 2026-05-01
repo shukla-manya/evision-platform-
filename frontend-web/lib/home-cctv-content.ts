@@ -1,5 +1,13 @@
 /** Static marketing copy for the storefront home (CCTV / security focus). */
 
+/** Home hero carousel — external marketing URLs (GenSecurity, Wired, Sanity CDN). */
+const heroIndoorPhone =
+  'https://www.gensecurity.com/hs-fs/hubfs/Blog/White%20male%20adjusting%20smart%20camera%20and%20monitoring%20camera%20on%20his%20phone%20on%20the%20couch.jpg?width=1000&name=White%20male%20adjusting%20smart%20camera%20and%20monitoring%20camera%20on%20his%20phone%20on%20the%20couch.jpg';
+const heroOutdoorPtz =
+  'https://media.wired.com/photos/688d807935e373d3f8979fcf/4:3/w_640%2Cc_limit/Reolink%2520Altas%2520PT%2520Ultra%25201%2520SOURCE%2520Simon%2520Hill.png';
+const heroHomeWide =
+  'https://cdn.sanity.io/images/bg7k3vu8/production/41fd29e8197050e4291660561d3487f05f067aa9-1000x500.jpg?w=1000&h=500&auto=format';
+
 /** Pexels CDN — reliable hotlinking for hero / cards (some legacy Unsplash photo IDs now return 404). */
 const pexPhoto = (id: string, w: number) =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`;
@@ -25,24 +33,24 @@ export const homeHeroSlides = [
     subtitle: 'All-new and loveable — wireless indoor and outdoor lines.',
     cta: 'Browse Wi-Fi CCTV',
     href: '/shop?search=Wi-Fi%20CCTV',
-    imageSrc: pexPhoto('430208', 1920),
-    imageAlt: 'Security camera mounted on a white wall',
+    imageSrc: heroIndoorPhone,
+    imageAlt: 'Person on a sofa using a phone near an indoor smart security camera',
   },
   {
     title: 'Power Over Ethernet',
     subtitle: 'Reliable power and data in one cable for pro installs.',
     cta: 'Browse PoE gear',
     href: '/shop?search=PoE',
-    imageSrc: pexPhoto('7514838', 1920),
-    imageAlt: 'Dome CCTV camera on a ceiling',
+    imageSrc: heroOutdoorPtz,
+    imageAlt: 'Outdoor pan-tilt security camera mounted on a fence',
   },
   {
     title: 'Smart Security Kits',
     subtitle: 'Everything you need to get started with multi-camera coverage.',
     cta: 'Shop kits',
     href: '/shop?search=security%20kit',
-    imageSrc: pexPhoto('96612', 1920),
-    imageAlt: 'Security camera and monitoring equipment',
+    imageSrc: heroHomeWide,
+    imageAlt: 'Home security camera with a house and garage in the background',
   },
 ] as const;
 
