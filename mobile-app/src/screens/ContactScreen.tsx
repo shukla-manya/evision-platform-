@@ -112,6 +112,8 @@ export function ContactScreen() {
           on the website (scroll to the bottom or tap the link).
         </Text>
 
+        <Text style={styles.brandCenter}>{aboutBrandSummary}</Text>
+
         <View style={[styles.splitWrap, twoCol ? styles.splitWrapRow : null]}>
           <View style={[styles.imageCol, twoCol ? styles.imageColRow : null]}>
             <Image
@@ -236,10 +238,6 @@ export function ContactScreen() {
         </View>
           </View>
         </View>
-
-        <View style={styles.bottomBrand}>
-          <Text style={styles.muted}>{aboutBrandSummary}</Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -254,9 +252,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     lineHeight: 20,
-    marginBottom: 20,
+    marginBottom: 16,
     maxWidth: 640,
     opacity: 0.92,
+  },
+  brandCenter: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 640,
+    alignSelf: 'center',
+    marginBottom: 22,
+    paddingHorizontal: 4,
   },
   footerInlineLink: { color: colors.brandPrimary, fontWeight: '600' },
   splitWrap: { marginTop: 8, gap: 16 },
@@ -335,10 +343,4 @@ const styles = StyleSheet.create({
   btnSecondaryText: { color: colors.brandPrimary, fontSize: 15, fontWeight: '700' },
   btnDisabled: { opacity: 0.55 },
   hint: { fontSize: 12, color: colors.textSecondary, marginTop: 8 },
-  bottomBrand: {
-    marginTop: 28,
-    paddingTop: 24,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
 });

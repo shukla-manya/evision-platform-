@@ -109,6 +109,10 @@ export function ContactPageContent() {
           </p>
         </div>
 
+        <p className="text-ev-muted text-sm sm:text-base leading-relaxed text-center max-w-3xl mx-auto mb-10 sm:mb-12 px-2">
+          {aboutBrandSummary}
+        </p>
+
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-10 xl:gap-12 items-start max-w-6xl mx-auto w-full mb-14">
           <div className="relative min-h-[240px] sm:min-h-[280px] lg:min-h-[320px] rounded-2xl overflow-hidden border border-ev-border bg-ev-surface2 shadow-ev-sm lg:sticky lg:top-24 self-start w-full">
             {/* eslint-disable-next-line @next/next/no-img-element -- same marketing art as home lead strip */}
@@ -267,10 +271,6 @@ export function ContactPageContent() {
               )}
             </div>
           </div>
-        </div>
-
-        <div className="border-t border-ev-border pt-12 space-y-6">
-          <p className="text-ev-muted text-sm leading-relaxed max-w-4xl">{aboutBrandSummary}</p>
         </div>
       </main>
     </>
