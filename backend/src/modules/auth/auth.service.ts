@@ -71,19 +71,15 @@ export class AuthService {
       expires_at: expiresAt,
     });
 
-    const raw = this.config.get<string | boolean>('OTP_CONSOLE_ONLY');
-    const flag = String(raw ?? '')
+    // Only skip SMTP when explicitly enabled (local dev). Previously `unset` behaved like
+    // console-only, so production often returned "OTP sent" while never emailing.
+    const flag = String(this.config.get<string | boolean>('OTP_CONSOLE_ONLY') ?? '')
       .trim()
       .toLowerCase();
-    const consoleOnly =
-      raw === undefined ||
-      raw === '' ||
-      flag === '1' ||
-      flag === 'true' ||
-      flag === 'yes';
+    const consoleOnly = flag === '1' || flag === 'true' || flag === 'yes';
 
     if (consoleOnly) {
-      this.logger.log(`[OTP email] ${email} → ${otp} (valid 10 minutes, OTP_CONSOLE_ONLY)`);
+      this.logger.log(`[OTP email] ${email} → ${otp} (valid 10 minutes, OTP_CONSOLE_ONLY=true)`);
       return { message: 'OTP sent successfully' };
     }
 
