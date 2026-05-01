@@ -91,6 +91,7 @@ import {
   publicSupportTelHref,
 } from './src/config/publicMarketing';
 import { BrowseBySiteAnimatedSvg } from './src/components/BrowseBySiteAnimatedSvg';
+import { HomeLeadFormSection } from './src/components/HomeLeadFormSection';
 import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
 import {
   HOME_COMBO_COLLECTION_BODY,
@@ -1749,6 +1750,8 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                 ))}
               </View>
             </View>
+
+            <HomeLeadFormSection />
 
             <View style={styles.shopPageTitleBlock}>
               <Text style={styles.shopBrandMark}>{publicShopBrandMark}</Text>

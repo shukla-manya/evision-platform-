@@ -57,3 +57,11 @@ export function publicTelHref(phone: string): string {
   if (!d) return '#';
   return d.startsWith('91') ? `tel:+${d}` : `tel:+91${d}`;
 }
+
+/** WhatsApp chat link (`wa.me`) — digits only with country code, no `+`. */
+export function publicWhatsAppChatUrl(phone: string = publicSupportPhone): string {
+  const d = phone.replace(/\D/g, '');
+  if (!d) return 'https://wa.me/';
+  const wa = d.length === 10 ? `91${d}` : d.startsWith('91') ? d : `91${d}`;
+  return `https://wa.me/${wa}`;
+}
