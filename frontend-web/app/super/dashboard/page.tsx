@@ -160,8 +160,6 @@ export default function SuperDashboardPage() {
     }
   }
 
-  const revenueByShop = analytics?.revenue_by_shop?.length ? analytics.revenue_by_shop : [];
-  const maxShopRev = revenueByShop.length > 0 ? Math.max(...revenueByShop.map((s) => s.amount), 1) : 1;
   const recentOrders = analytics?.recent_orders ?? [];
   const recentEmails = analytics?.recent_emails ?? [];
   const platformRevenue = analytics?.orders?.platform_revenue ?? 0;
@@ -204,11 +202,6 @@ export default function SuperDashboardPage() {
                 <p className="text-ev-muted text-sm font-medium">Orders today</p>
                 <p className="text-2xl font-bold text-ev-text mt-2">{ordersToday}</p>
                 <p className="text-ev-subtle text-xs mt-2">Shop order rows created today</p>
-              </div>
-              <div className="ev-card p-5 border-ev-border">
-                <p className="text-ev-muted text-sm font-medium">Active shops</p>
-                <p className="text-2xl font-bold text-ev-text mt-2">{analytics?.admins.approved ?? '—'}</p>
-                <p className="text-ev-muted text-sm mt-1">Approved registrations</p>
               </div>
               <div className="ev-card p-5 border-ev-border border-ev-warning/25 bg-ev-warning/5">
                 <p className="text-ev-muted text-sm font-medium">Pending approvals</p>
