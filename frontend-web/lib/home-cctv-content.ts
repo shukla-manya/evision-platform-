@@ -45,11 +45,11 @@ export const homeHeroSlides = [
 export const businessSegmentsSectionTitle = 'Browse by site';
 
 export const businessSegments = [
-  { label: 'Offices & retail', href: '/shop?search=business%20CCTV' },
-  { label: 'Farmhouses & land', href: '/shop?search=farm%20CCTV' },
-  { label: 'Healthcare', href: '/shop?search=hospital%20CCTV' },
-  { label: 'Homes', href: '/shop?search=home%20CCTV' },
-  { label: 'Schools & colleges', href: '/shop?search=school%20CCTV' },
+  { label: 'Business Security', href: '/shop?search=business%20CCTV' },
+  { label: 'Farm House Security', href: '/shop?search=farm%20CCTV' },
+  { label: 'Hospital Security', href: '/shop?search=hospital%20CCTV' },
+  { label: 'House Security', href: '/shop?search=home%20CCTV' },
+  { label: 'School Security', href: '/shop?search=school%20CCTV' },
 ] as const;
 
 export const showcasePrimary: StaticShowcaseProduct[] = [

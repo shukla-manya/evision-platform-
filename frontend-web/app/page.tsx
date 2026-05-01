@@ -20,6 +20,7 @@ import {
 import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
 import { PublicShell } from '@/components/public/PublicShell';
+import { BrowseBySiteAnimatedSvg } from '@/components/public/BrowseBySiteAnimatedSvg';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
 import { TestimonialsMarquee } from '@/components/public/TestimonialsMarquee';
 import { publicBrandName } from '@/lib/public-brand';
@@ -375,7 +376,7 @@ export default function HomePage() {
                   decoding={i === 0 ? 'sync' : 'async'}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/45 to-black/25" aria-hidden />
-                <div className="relative z-10 ev-container pb-10 sm:pb-12 pt-24 sm:pt-28 text-white">
+                <div className="relative z-10 ev-container pb-14 sm:pb-16 pt-24 sm:pt-28 text-white">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/85 mb-2">All-new and loveable</p>
                   <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-3xl drop-shadow-sm">
                     {slide.title}
@@ -387,20 +388,20 @@ export default function HomePage() {
                 </div>
               </Link>
             ))}
-          </div>
-          <div className="absolute bottom-4 left-0 right-0 z-[3] flex justify-center gap-2 pointer-events-auto">
-            {homeHeroSlides.map((slide, i) => (
-              <button
-                key={slide.title}
-                type="button"
-                onClick={() => setHeroIndex(i)}
-                className={`h-2.5 rounded-full transition-all pointer-events-auto ${
-                  i === heroIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/45 hover:bg-white/70'
-                }`}
-                aria-label={`Show slide ${i + 1}: ${slide.title}`}
-                aria-current={i === heroIndex}
-              />
-            ))}
+            <div className="absolute bottom-5 left-0 right-0 z-[3] flex justify-center gap-2 pointer-events-auto">
+              {homeHeroSlides.map((slide, i) => (
+                <button
+                  key={slide.title}
+                  type="button"
+                  onClick={() => setHeroIndex(i)}
+                  className={`h-2.5 rounded-full transition-all pointer-events-auto ${
+                    i === heroIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/45 hover:bg-white/70'
+                  }`}
+                  aria-label={`Show slide ${i + 1}: ${slide.title}`}
+                  aria-current={i === heroIndex}
+                />
+              ))}
+            </div>
           </div>
           <div className="relative z-[3] flex justify-center py-4 bg-ev-bg/95 backdrop-blur-sm border-t border-white/10">
             <Link href="/shop" className="ev-btn-primary inline-flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 px-6 sm:px-8">
@@ -412,7 +413,8 @@ export default function HomePage() {
         {/* Install-type shortcuts */}
         <section className="bg-gradient-to-b from-[#eef2f6] to-ev-bg py-10 sm:py-12 border-b border-ev-border">
           <div className="ev-container">
-            <h2 className="text-xl sm:text-2xl font-bold text-ev-text text-center mb-8">{businessSegmentsSectionTitle}</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-ev-text text-center mb-5">{businessSegmentsSectionTitle}</h2>
+            <BrowseBySiteAnimatedSvg className="mb-7" />
             <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
               {businessSegments.map((b) => (
                 <Link

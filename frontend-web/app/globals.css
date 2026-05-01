@@ -33,6 +33,51 @@
   }
 }
 
+/* Home “browse by site” strip — animated illustration above segment chips */
+@keyframes evBrowseSiteWire {
+  to {
+    stroke-dashoffset: -72;
+  }
+}
+
+@keyframes evBrowseSiteFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes evBrowseSitePulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.12);
+  }
+}
+
+.ev-browse-site-svg .ev-browse-site-svg__wire {
+  stroke-dasharray: 10 14;
+  animation: evBrowseSiteWire 2.4s linear infinite;
+}
+
+.ev-browse-site-svg .ev-browse-site-svg__icon {
+  animation: evBrowseSiteFloat 2.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 85%;
+}
+
+.ev-browse-site-svg .ev-browse-site-svg__pulse {
+  transform-origin: center;
+  animation: evBrowseSitePulse 2s ease-in-out infinite;
+}
+
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
 
