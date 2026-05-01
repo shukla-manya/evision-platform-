@@ -42,7 +42,6 @@ import { Buffer } from 'buffer';
 import {
   setApiTokenGetter,
   authApi,
-  catalogApi,
   electricianApi,
   productApi,
   cartApi,
@@ -88,14 +87,11 @@ import { publicWebUrl } from './src/config/publicWeb';
 import {
   publicBrandName,
   publicMarketingHomeTagline,
-  publicShopBrandMark,
   publicSupportPhoneDisplay,
   publicSupportTelHref,
 } from './src/config/publicMarketing';
-import { BrowseBySiteAnimatedSvg } from './src/components/BrowseBySiteAnimatedSvg';
 import { FloatingWhatsAppFab } from './src/components/FloatingWhatsAppFab';
 import { HomeLeadFormSection } from './src/components/HomeLeadFormSection';
-import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
 import {
   HOME_COMBO_COLLECTION_BODY,
   HOME_COMBO_COLLECTION_TITLE,
@@ -184,25 +180,6 @@ function formatINR(amount: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(
     Number(amount || 0),
   );
-}
-
-type CatalogueSortKey = 'relevance' | 'price_asc' | 'price_desc' | 'newest' | 'rating';
-
-function priceValForRole(p: Product, role?: string) {
-  const isDealer = role === 'dealer';
-  const v = isDealer ? p.price_dealer ?? p.price_customer : p.price_customer ?? p.price_dealer;
-  return Number(v ?? 0);
-}
-
-function isHotProduct(p: Product): boolean {
-  return Number(p.rating_avg || 0) >= 4.6;
-}
-
-function getProductPriceForRole(product: Product, role?: string) {
-  const isDealer = role === 'dealer';
-  const preferred = isDealer ? product.price_dealer : product.price_customer;
-  const fallback = isDealer ? product.price_customer : product.price_dealer;
-  return Number(preferred ?? fallback ?? 0);
 }
 
 /** Open in-app Contact when nested under root stack + tabs; otherwise false. */
@@ -1306,19 +1283,7 @@ function PasswordResetScreen({
   );
 }
 
-function resolveCatalogBrowseParams(
-  tile: { label: string; catalogSearch?: string },
-  _index: number,
-  categories: Array<{ id: string; name: string }>,
-): { category_id?: string; search?: string } {
-  const query = tile.catalogSearch ?? tile.label;
-  const token = query.split(/\s+/)[0]?.toLowerCase() ?? '';
-  const match = categories.find((c) => c.name.toLowerCase().includes(token));
-  if (match?.id) return { category_id: match.id };
-  return { search: query };
-}
-
-function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: string }) {
+function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { width: winW } = useWindowDimensions();
   const padL = Math.max(screenGutter, insets.left);
