@@ -146,7 +146,7 @@ export const homeLeadFormImageSrc = pexPhoto('430208', 1200);
 
 export const homeLeadFormImageAlt = 'CCTV camera installed for home and business security';
 
-/** Seven homepage testimonials — home page marquee (single animated line). */
+/** Seven homepage testimonials — home page square panel with horizontal marquee loop. */
 export const homeCustomerReviews = [
   {
     quote: 'Night vision is crystal clear. We finally feel safe leaving the shop closed over long weekends.',

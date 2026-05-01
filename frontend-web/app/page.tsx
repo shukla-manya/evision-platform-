@@ -295,7 +295,7 @@ function HomeTestimonialsMarquee() {
       {homeCustomerReviews.map((r, i) => (
         <span
           key={`${suffix}-${i}`}
-          className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-sm text-ev-text sm:text-[15px]"
+          className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs text-ev-text sm:text-sm sm:gap-2"
         >
           <MarqueeStarStrip rating={r.rating} />
           <span className="font-medium">&ldquo;{r.quote}&rdquo;</span>
@@ -308,35 +308,44 @@ function HomeTestimonialsMarquee() {
 
   return (
     <div
-      className="ev-home-testimonials-marquee group relative w-full overflow-hidden rounded-xl border border-ev-border bg-ev-surface py-3 shadow-ev-sm sm:py-3.5"
+      className="ev-home-testimonials-marquee group relative mx-auto flex aspect-square w-full max-w-md flex-col overflow-hidden rounded-2xl border border-ev-border bg-ev-surface shadow-ev-sm"
       role="region"
-      aria-label="Customer testimonials, scrolling in a loop"
+      aria-label="Customer testimonials, scrolling in a loop inside a square panel"
     >
-      <div
-        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-ev-bg to-transparent sm:w-14"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-ev-bg to-transparent sm:w-14"
-        aria-hidden
-      />
-      {motionReduced ? (
-        <div className="relative z-0 flex flex-wrap justify-center gap-x-4 gap-y-3 px-4 py-1 text-center text-sm text-ev-text">
-          {homeCustomerReviews.map((r, i) => (
-            <span key={i} className="max-w-md text-ev-muted">
-              <span className="font-medium text-ev-text">&ldquo;{r.quote}&rdquo;</span>
-              <span className="text-ev-subtle"> — {r.author}</span>
-            </span>
-          ))}
-        </div>
-      ) : (
-        <div className="relative z-0 overflow-hidden">
-          <div className="ev-home-testimonials-marquee__track">
-            {segment('a')}
-            {segment('b')}
+      <p className="shrink-0 border-b border-ev-border/80 bg-ev-surface2/50 py-2.5 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-ev-primary sm:py-3">
+        Customer reviews
+      </p>
+
+      <div className="relative flex min-h-0 flex-1 flex-col justify-center">
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-ev-surface to-transparent sm:w-10"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-ev-surface to-transparent sm:w-10"
+          aria-hidden
+        />
+
+        {motionReduced ? (
+          <div className="relative z-0 min-h-0 flex-1 overflow-y-auto px-3 py-3 sm:px-4">
+            <div className="flex flex-col gap-3 text-center text-xs text-ev-text sm:text-sm">
+              {homeCustomerReviews.map((r, i) => (
+                <p key={i} className="text-ev-muted">
+                  <span className="font-medium text-ev-text">&ldquo;{r.quote}&rdquo;</span>
+                  <span className="text-ev-subtle"> — {r.author}</span>
+                </p>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="relative z-0 flex min-h-0 w-full flex-1 items-center overflow-hidden">
+            <div className="ev-home-testimonials-marquee__track">
+              {segment('a')}
+              {segment('b')}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -732,9 +741,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Customer testimonials — single-line infinite marquee */}
+        {/* Customer testimonials — square panel, single-line marquee loop */}
         <section className="py-12 sm:py-16 border-t border-ev-border bg-ev-bg" aria-labelledby="home-reviews-heading">
-          <div className="ev-container flex flex-col items-stretch gap-6">
+          <div className="ev-container flex flex-col items-center gap-6">
             <h2 id="home-reviews-heading" className="text-xl sm:text-2xl font-bold text-ev-text text-center">
               Loved by customers across India
             </h2>
