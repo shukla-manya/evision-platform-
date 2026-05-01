@@ -291,6 +291,13 @@ export function PublicFooter() {
                   </dd>
                 </div>
               </dl>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-2.5 mt-6 pt-6 border-t border-white/10">
+                Payment options
+              </p>
+              <p className="text-[12px] leading-relaxed text-white/60 max-w-xl">
+                Checkout is processed securely through PayU. You can pay with UPI, debit and credit cards, net banking, and
+                supported wallets where enabled for your order.
+              </p>
             </div>
             <div className="rounded-lg overflow-hidden border border-white/15 bg-black/25 min-h-[220px] lg:min-h-0 shadow-inner">
               <iframe
@@ -303,13 +310,6 @@ export function PublicFooter() {
               />
             </div>
           </div>
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-2.5 border-t border-white/10 pt-8 mt-8 sm:mt-10 sm:pt-10">
-            Payment options
-          </p>
-          <p className="text-[12px] leading-relaxed text-white/60 max-w-3xl">
-            Checkout is processed securely through PayU. You can pay with UPI, debit and credit cards, net banking, and
-            supported wallets where enabled for your order.
-          </p>
         </div>
       </div>
 
