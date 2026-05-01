@@ -1,13 +1,11 @@
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { formatIndianPhoneDisplay, publicSupportPhoneDisplay, publicWhatsAppChatUrl } from '../config/publicMarketing';
-import { colors } from '../theme/colors';
+import { publicWhatsAppChatUrl } from '../config/publicMarketing';
 
-/** Floating WhatsApp — same support line as web; opens `wa.me`. */
+/** Floating WhatsApp — opens `wa.me` (number not shown in UI). */
 export function FloatingWhatsAppFab() {
   const insets = useSafeAreaInsets();
-  const display = formatIndianPhoneDisplay(publicSupportPhoneDisplay);
   const href = publicWhatsAppChatUrl();
 
   return (
@@ -25,14 +23,11 @@ export function FloatingWhatsAppFab() {
         style={({ pressed }) => [styles.pill, pressed && styles.pillPressed]}
         onPress={() => void Linking.openURL(href)}
         accessibilityRole="link"
-        accessibilityLabel={`Chat on WhatsApp, ${display}`}
+        accessibilityLabel="Chat on WhatsApp"
       >
         <View style={styles.iconWrap}>
           <MaterialCommunityIcons name="whatsapp" size={30} color="#fff" />
         </View>
-        <Text style={styles.phone} numberOfLines={1}>
-          {display}
-        </Text>
       </Pressable>
     </View>
   );
@@ -45,9 +40,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   pill: {
-    flexDirection: 'row-reverse',
     alignItems: 'center',
-    maxWidth: 280,
+    justifyContent: 'center',
     borderRadius: 999,
     overflow: 'hidden',
     backgroundColor: '#25D366',
@@ -65,14 +59,5 @@ const styles = StyleSheet.create({
     height: 54,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  phone: {
-    flexShrink: 1,
-    paddingLeft: 10,
-    paddingRight: 4,
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#fff',
-    maxWidth: 200,
   },
 });
