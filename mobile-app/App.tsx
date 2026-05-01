@@ -1289,23 +1289,6 @@ function HomeScreen() {
   const padL = Math.max(screenGutter, insets.left);
   const padR = Math.max(screenGutter, insets.right);
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [catalogueReady, setCatalogueReady] = useState(false);
-  const [approvedShopsOnly, setApprovedShopsOnly] = useState(true);
-  const [approvedShopList, setApprovedShopList] = useState<Array<{ id: string; shop_name: string }>>([]);
-  const [shopFilter, setShopFilter] = useState('');
-  const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
-  const [apiCategories, setApiCategories] = useState<Array<{ id: string; name: string; parent_id?: string | null }>>([]);
-  const [browseCategoryId, setBrowseCategoryId] = useState<string | undefined>();
-  const [browseSearch, setBrowseSearch] = useState<string | undefined>();
-  const [browseLabel, setBrowseLabel] = useState<string | null>(null);
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [sort, setSort] = useState<CatalogueSortKey>('price_asc');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
-  const [cartBusyId, setCartBusyId] = useState<string | null>(null);
   const heroScrollRef = useRef<ScrollView>(null);
   const [heroIdx, setHeroIdx] = useState(0);
   const heroSlideW = Math.max(1, winW - padL - padR);
