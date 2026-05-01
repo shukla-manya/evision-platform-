@@ -1,6 +1,4 @@
 import { Image, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { CustomerReviewsHeading } from '../components/CustomerReviewsHeading';
-import { homeCustomerReviews } from '../lib/home-customer-reviews';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {

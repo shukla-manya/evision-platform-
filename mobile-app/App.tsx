@@ -92,7 +92,6 @@ import {
 } from './src/config/publicMarketing';
 import { FloatingWhatsAppFab } from './src/components/FloatingWhatsAppFab';
 import { HomeLeadFormSection } from './src/components/HomeLeadFormSection';
-import { homeCustomerReviews } from './src/lib/home-customer-reviews';
 import {
   HOME_COMBO_COLLECTION_BODY,
   HOME_COMBO_COLLECTION_TITLE,
@@ -1566,22 +1565,6 @@ function HomeScreen() {
                 </View>
               </View>
             </View>
-
-            <CustomerReviewsHeading />
-            <ScrollView
-              horizontal
-              nestedScrollEnabled
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.homeReviewsRow}
-            >
-              {homeCustomerReviews.map((r) => (
-                <View key={r.name} style={styles.homeReviewCard}>
-                  <Text style={styles.homeReviewQuote}>&ldquo;{r.quote}&rdquo;</Text>
-                  <Text style={styles.homeReviewName}>{r.name}</Text>
-                  <Text style={styles.homeReviewRole}>{r.role}</Text>
-                </View>
-              ))}
-            </ScrollView>
 
             <HomeLeadFormSection />
         </View>
