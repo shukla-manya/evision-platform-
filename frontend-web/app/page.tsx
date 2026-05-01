@@ -547,7 +547,7 @@ export default function HomePage() {
         </section>
 
         {/* Platform features — above custom quote */}
-        <section className="py-16 sm:py-20 border-t border-ev-border bg-ev-bg">
+        <section className="py-16 sm:py-20 border-t border-ev-border">
           <div className="ev-container">
             <div className="text-center max-w-2xl mx-auto w-full mb-12 sm:mb-14">
               <p className="text-ev-primary font-bold text-[11px] sm:text-xs uppercase tracking-[0.22em] mb-3">How this site works</p>
@@ -771,85 +771,6 @@ export default function HomePage() {
             <TestimonialsMarquee />
           </div>
           <p className="text-center text-ev-muted text-sm max-w-3xl mx-auto mt-10 leading-relaxed">{aboutBrandSummary}</p>
-        </section>
-
-        {/* Platform features (unchanged value) */}
-        <section className="py-16 sm:py-20 border-t border-ev-border">
-          <div className="ev-container">
-            <div className="text-center max-w-2xl mx-auto w-full mb-12 sm:mb-14">
-              <p className="text-ev-primary font-bold text-[11px] sm:text-xs uppercase tracking-[0.22em] mb-3">How this site works</p>
-              <h2 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight mb-4">Why {publicBrandName}?</h2>
-              <p className="text-ev-muted text-sm sm:text-base leading-relaxed">
-                The marketplace is built around real checkout, orders, and fulfilment. Below is what you can rely on today.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-            {(
-              [
-                {
-                  kicker: 'Sellers',
-                  Icon: Store,
-                  title: 'Shops are vetted before they sell',
-                  body: 'Partner stores go through onboarding and approval. When a listing is live, the shop name on the product is the same shop that fulfils your line item.',
-                },
-                {
-                  kicker: 'Checkout',
-                  Icon: Layers,
-                  title: 'One payment, multiple sellers',
-                  body: 'Your bag can include items from more than one approved shop. You pay once at checkout; **My orders** keeps per-shop splits readable afterward.',
-                },
-                {
-                  kicker: 'Fulfilment',
-                  Icon: Truck,
-                  title: 'Tracking shows up on the order',
-                  body: 'When a shop books dispatch, AWB and carrier details are written back to **My orders**.',
-                },
-                {
-                  kicker: 'Service',
-                  Icon: Wrench,
-                  title: 'Technicians tied to what you bought',
-                  body: 'After delivery, book install or help from the same account flows linked to your purchase.',
-                },
-                {
-                  kicker: 'Payments',
-                  Icon: CreditCard,
-                  title: 'PayU at checkout',
-                  body: 'UPI, cards, and netbanking run through PayU on the hosted checkout you already know.',
-                },
-                {
-                  kicker: 'B2B',
-                  Icon: Receipt,
-                  title: 'Dealer pricing in the same login',
-                  body: 'Register with a GSTIN to unlock dealer columns where shops publish them.',
-                },
-              ] as const
-            ).map(({ kicker, Icon, title, body }) => (
-              <article
-                key={title}
-                className="group relative flex flex-col rounded-2xl border border-ev-border bg-ev-surface p-5 sm:p-6 shadow-[0_1px_0_rgba(0,0,0,0.04)] transition-all duration-300 hover:border-ev-primary/30 hover:shadow-ev-md"
-              >
-                <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-ev-primary/12 to-ev-primary/5 ring-1 ring-ev-primary/15 group-hover:from-ev-primary/18 group-hover:to-ev-primary/8 transition-colors">
-                    <Icon className="text-ev-primary" size={22} strokeWidth={2} />
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-ev-subtle tabular-nums">{kicker}</span>
-                </div>
-                <h3 className="text-base sm:text-[1.05rem] font-bold text-ev-text leading-snug mb-2">{title}</h3>
-                <p className="text-ev-muted text-sm leading-relaxed mt-auto">
-                  {body.split('**').map((part, i) =>
-                    i % 2 === 1 ? (
-                      <strong key={i} className="font-semibold text-ev-text">
-                        {part}
-                      </strong>
-                    ) : (
-                      <span key={i}>{part}</span>
-                    ),
-                  )}
-                </p>
-              </article>
-            ))}
-            </div>
-          </div>
         </section>
 
         {/* Dealer / technician */}
