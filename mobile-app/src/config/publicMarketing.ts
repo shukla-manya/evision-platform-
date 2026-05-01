@@ -37,5 +37,25 @@ export function publicSalesTelHref(): string {
   return 'tel:+919811250806';
 }
 
+/** Match web `formatIndianPhoneDisplay` in `frontend-web/lib/public-contact.ts`. */
+export function formatIndianPhoneDisplay(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return `+91 ${digits.slice(2, 7)} ${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`;
+  }
+  return phone.replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/** WhatsApp chat (`wa.me`) — same rules as web `publicWhatsAppChatUrl`. */
+export function publicWhatsAppChatUrl(phone: string = publicSupportPhoneDisplay): string {
+  const d = phone.replace(/\D/g, '');
+  if (!d) return 'https://wa.me/';
+  const wa = d.length === 10 ? `91${d}` : d.startsWith('91') ? d : `91${d}`;
+  return `https://wa.me/${wa}`;
+}
+
 export const publicMarketingHomeTagline =
   'CCTV, PoE networking, and smart security — browse approved stores, pay with PayU, and track orders in one place.';
