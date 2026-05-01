@@ -13,7 +13,6 @@ import {
   publicCompanyLegalName,
   publicInfoEmail,
   publicMarketingEmail,
-  publicOfficeGoogleMapsOpenUrl,
   publicOfficeMapEmbedUrl,
   publicRegisteredAddress,
   publicSalesPhone,
@@ -292,19 +291,6 @@ export function PublicFooter() {
                   </dd>
                 </div>
               </dl>
-              <p className="text-[12px] leading-relaxed text-white/55 pt-1 border-t border-white/10">
-                <span className="text-white/45 font-medium uppercase text-[10px] tracking-wide block mb-1.5">
-                  Address
-                </span>
-                <a
-                  href={publicOfficeGoogleMapsOpenUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-white hover:underline"
-                >
-                  {publicRegisteredAddress}
-                </a>
-              </p>
             </div>
             <div className="rounded-lg overflow-hidden border border-white/15 bg-black/25 min-h-[220px] lg:min-h-0 shadow-inner">
               <iframe
