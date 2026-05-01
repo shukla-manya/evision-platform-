@@ -104,7 +104,7 @@ import {
   HOME_CUSTOM_QUOTE_TITLE,
 } from './src/lib/home-custom-quote';
 import { HOME_HERO_SLIDES, HOME_PROMO_STRIP_CARDS, HOME_PROMO_STRIP_KICKER } from './src/lib/home-hero-slides';
-import { HOME_HOW_SITE_CARDS, HOME_HOW_SITE_INTRO, HOME_HOW_SITE_KICKER } from './src/lib/home-how-site-works';
+import { HOME_HOW_SITE_CARDS, HOME_HOW_SITE_KICKER } from './src/lib/home-how-site-works';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician';
@@ -1251,7 +1251,6 @@ function HomeScreen() {
               <View style={styles.homeHowSiteHeader}>
                 <Text style={styles.homeHowSiteKicker}>{HOME_HOW_SITE_KICKER}</Text>
                 <Text style={styles.homeHowSiteTitle}>Why {publicBrandName}?</Text>
-                <Text style={styles.homeHowSiteIntro}>{HOME_HOW_SITE_INTRO}</Text>
               </View>
               <View style={styles.homeHowSiteCards}>
                 {HOME_HOW_SITE_CARDS.map((card) => (
@@ -2315,16 +2314,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
     textAlign: 'center',
   },
-  homeHowSiteIntro: {
-    marginTop: 10,
-    fontSize: 13,
-    lineHeight: 20,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    maxWidth: 400,
-    alignSelf: 'center',
-  },
-  homeHowSiteCards: { gap: 10, marginTop: 4 },
+  homeHowSiteCards: { gap: 10, marginTop: 16 },
   homeHowSiteCard: {
     borderRadius: 14,
     borderWidth: 1,

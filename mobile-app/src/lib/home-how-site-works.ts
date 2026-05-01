@@ -1,8 +1,5 @@
 export const HOME_HOW_SITE_KICKER = 'How this site works';
 
-export const HOME_HOW_SITE_INTRO =
-  'You are browsing and buying from partner shops we onboard—not a closed warehouse pretending to be many brands. Prices and stock on a product page are what that shop entered; checkout is PayU; after you pay, **My orders** is where you chase dispatch, AWB, and invoices. The cards below are the behaviour we ship today, not a roadmap slide.';
-
 export const HOME_HOW_SITE_CARDS = [
   {
     kicker: 'Shops',

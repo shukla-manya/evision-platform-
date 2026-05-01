@@ -609,13 +609,7 @@ export default function HomePage() {
           <div className="ev-container">
             <div className="text-center max-w-2xl mx-auto w-full mb-12 sm:mb-14">
               <p className="text-ev-primary font-bold text-[11px] sm:text-xs uppercase tracking-[0.22em] mb-3">How this site works</p>
-              <h2 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight mb-4">Why {publicBrandName}?</h2>
-              <p className="text-ev-muted text-sm sm:text-base leading-relaxed">
-                You are browsing and buying from partner shops we onboard—not a closed warehouse pretending to be many brands.
-                Prices and stock on a product page are what that shop entered; checkout is PayU; after you pay, **My orders** is
-                where you chase dispatch, AWB, and invoices. The cards below are the behaviour we ship today, not a roadmap
-                slide.
-              </p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-ev-text tracking-tight">Why {publicBrandName}?</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {(
