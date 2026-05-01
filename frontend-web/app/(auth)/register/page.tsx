@@ -364,8 +364,8 @@ export default function RegisterPage() {
         <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-ev-primary/5 blur-3xl" />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
-        <div className="flex w-full shrink-0 flex-col justify-center lg:w-[44%] lg:min-w-0 lg:max-w-xl lg:pt-1">
+      <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-6 lg:flex-row lg:items-center lg:gap-8">
+        <div className="flex w-full shrink-0 flex-col justify-center lg:w-[44%] lg:min-w-0 lg:max-w-xl">
           <div className="relative aspect-[5/3] w-full overflow-hidden sm:aspect-[2/1] lg:aspect-[4/3] lg:max-h-[min(420px,48vh)] lg:rounded-xl lg:border lg:border-ev-border/90 lg:shadow-md">
             <img
               src={REGISTER_PANEL_IMAGE}
