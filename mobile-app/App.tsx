@@ -90,7 +90,7 @@ import {
 } from './src/config/publicMarketing';
 import { BrowseBySiteAnimatedSvg } from './src/components/BrowseBySiteAnimatedSvg';
 import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
-import { HOME_HERO_SLIDES } from './src/lib/home-hero-slides';
+import { HOME_HERO_SLIDES, HOME_PROMO_STRIP_CARDS, HOME_PROMO_STRIP_KICKER } from './src/lib/home-hero-slides';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
@@ -1547,6 +1547,32 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                 </Pressable>
               ))}
             </View>
+            <Text style={styles.homePromoStripKicker}>{HOME_PROMO_STRIP_KICKER}</Text>
+            <View style={styles.homePromoStripList}>
+              {HOME_PROMO_STRIP_CARDS.map((c) => (
+                <Pressable
+                  key={c.title}
+                  onPress={() => void Linking.openURL(publicWebUrl(c.href))}
+                  accessibilityRole="link"
+                  accessibilityLabel={`${c.title}, ${c.cta}`}
+                >
+                  <ImageBackground
+                    source={{ uri: c.imageUri }}
+                    style={styles.homePromoStripCard}
+                    imageStyle={styles.homeHeroSlideImage}
+                  >
+                    <View style={styles.homePromoStripOverlay} />
+                    <View style={styles.homePromoStripTextWrap}>
+                      <Text style={styles.homePromoStripTitle}>{c.title}</Text>
+                      <View style={styles.homePromoStripBuyRow}>
+                        <Text style={styles.homePromoStripBuyText}>{c.cta}</Text>
+                        <MaterialCommunityIcons name="chevron-right" size={16} color="#fff" />
+                      </View>
+                    </View>
+                  </ImageBackground>
+                </Pressable>
+              ))}
+            </View>
             <View style={styles.homeMarketingHero}>
               <Text style={styles.homeMarketingKicker}>24/7 support · Free shipping, all over India</Text>
               <Pressable onPress={() => void Linking.openURL(publicSupportTelHref())} accessibilityRole="link">
@@ -2783,6 +2809,41 @@ const styles = StyleSheet.create({
   homeHeroDots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 10 },
   homeHeroDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.border },
   homeHeroDotActive: { backgroundColor: colors.brandPrimary, width: 22 },
+  homePromoStripKicker: {
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.brandPrimary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  homePromoStripList: { gap: 10 },
+  homePromoStripCard: {
+    height: 152,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: 'flex-end',
+  },
+  homePromoStripOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.52)',
+    borderRadius: 16,
+  },
+  homePromoStripTextWrap: { padding: 14, zIndex: 1 },
+  homePromoStripTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#fff',
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 5,
+  },
+  homePromoStripBuyRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
+  homePromoStripBuyText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   homeMarketingHero: {
     paddingVertical: 16,
     paddingHorizontal: 14,
