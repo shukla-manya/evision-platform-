@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import { API_BASE_URL } from './services/api';
 
 const NOMINATIM_HEADERS = {
   Accept: 'application/json',
@@ -36,8 +37,30 @@ function line1FromNominatim(a: NominatimAddress): string {
   return parts.join(', ').trim();
 }
 
-/** Reverse-geocode GPS to street / city / pin (OSM Nominatim). */
-export async function reverseGeocodeIndia(
+async function reverseGeocodeViaBackend(
+  lat: number,
+  lng: number,
+): Promise<{ address: string; city: string; pincode: string } | null> {
+  const base = API_BASE_URL.replace(/\/$/, '');
+  if (!base) return null;
+  try {
+    const res = await fetch(
+      `${base}/geo/reverse?lat=${encodeURIComponent(String(lat))}&lng=${encodeURIComponent(String(lng))}`,
+    );
+    if (!res.ok) return null;
+    const data = (await res.json()) as { address?: string; city?: string; pincode?: string };
+    const address = String(data.address ?? '').trim();
+    const city = String(data.city ?? '').trim();
+    const pinRaw = String(data.pincode ?? '').replace(/\D/g, '').slice(0, 6);
+    const pincode = pinRaw.length === 6 ? pinRaw : '';
+    if (!address && !city) return null;
+    return { address, city, pincode };
+  } catch {
+    return null;
+  }
+}
+
+async function reverseGeocodeIndiaDirect(
   lat: number,
   lng: number,
 ): Promise<{ address: string; city: string; pincode: string } | null> {
@@ -63,11 +86,20 @@ export async function reverseGeocodeIndia(
   }
 }
 
+/** Reverse-geocode GPS to street / city / pin (OSM Nominatim via backend when possible). */
+export async function reverseGeocodeIndia(
+  lat: number,
+  lng: number,
+): Promise<{ address: string; city: string; pincode: string } | null> {
+  const viaApi = await reverseGeocodeViaBackend(lat, lng);
+  if (viaApi) return viaApi;
+  return reverseGeocodeIndiaDirect(lat, lng);
+}
+
 export async function geocodeIndia(city: string, pincode: string): Promise<{ lat: number; lng: number }> {
   const pin = pincode.trim();
   const cty = city.trim();
 
-  // Structured pincode lookup — Nominatim indexes Indian pincodes well with this param
   if (/^\d{6}$/.test(pin)) {
     try {
       const res = await fetch(
@@ -79,10 +111,11 @@ export async function geocodeIndia(city: string, pincode: string): Promise<{ lat
         const hit = data?.[0];
         if (hit?.lat && hit?.lon) return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
       }
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
 
-  // Free-text city + pincode
   try {
     const q = [pin, cty, 'India'].filter(Boolean).join(' ');
     const res = await fetch(
@@ -94,9 +127,10 @@ export async function geocodeIndia(city: string, pincode: string): Promise<{ lat
       const hit = data?.[0];
       if (hit?.lat && hit?.lon) return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
     }
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
 
-  // City-only fallback
   if (cty) {
     try {
       const res = await fetch(
@@ -108,7 +142,9 @@ export async function geocodeIndia(city: string, pincode: string): Promise<{ lat
         const hit = data?.[0];
         if (hit?.lat && hit?.lon) return { lat: parseFloat(hit.lat), lng: parseFloat(hit.lon) };
       }
-    } catch { /* fall through */ }
+    } catch {
+      /* fall through */
+    }
   }
 
   throw new Error('Could not resolve location from city and pincode');
@@ -117,8 +153,25 @@ export async function geocodeIndia(city: string, pincode: string): Promise<{ lat
 export async function getExpoGeolocation(): Promise<{ lat: number; lng: number } | null> {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== 'granted') return null;
-  const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-  return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  try {
+    const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  } catch {
+    try {
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Lowest });
+      return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    } catch {
+      try {
+        const last = await Location.getLastKnownPositionAsync();
+        if (last?.coords && Number.isFinite(last.coords.latitude) && Number.isFinite(last.coords.longitude)) {
+          return { lat: last.coords.latitude, lng: last.coords.longitude };
+        }
+      } catch {
+        /* ignore */
+      }
+      return null;
+    }
+  }
 }
 
 /** Prefer GPS; fall back to city + pincode (India) via Nominatim. */
