@@ -433,7 +433,7 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
             </button>
           </form>
         ) : (
-          <form onSubmit={submitTechnician} className="space-y-6">
+          <form onSubmit={submitTechnician} className="space-y-6 [&_input]:text-base [&_input]:sm:text-sm">
             <div className="text-center space-y-2">
               <button
                 type="button"

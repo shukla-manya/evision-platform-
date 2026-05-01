@@ -886,14 +886,14 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                   </Pressable>
                   <Text style={styles.captionNote}>Or enter city, pincode, and street address manually below.</Text>
                   <TextInput
-                    style={styles.input}
+                    style={registerFieldStyle}
                     placeholder="City"
                     value={deliveryCity}
                     onChangeText={setDeliveryCity}
                     editable={!lockReg}
                   />
                   <TextInput
-                    style={styles.input}
+                    style={registerFieldStyle}
                     placeholder="Pincode (6 digits)"
                     keyboardType="number-pad"
                     maxLength={6}
@@ -909,7 +909,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 </>
               )}
               <TextInput
-                style={styles.input}
+                style={registerFieldStyle}
                 placeholder={
                   role === 'dealer'
                     ? 'Business / delivery address (required)'
@@ -924,18 +924,22 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
           </>
           <>
               <TextInput
-                style={styles.input}
+                style={registerFieldStyle}
                 placeholder="6-digit OTP"
                 keyboardType="number-pad"
                 maxLength={6}
                 value={otp}
                 onChangeText={(t) => setOtp(t.replace(/\D/g, ''))}
               />
-              <Pressable style={styles.buttonSecondary} onPress={sendOtp} disabled={sendingOtp || !registrationOtpReady}>
+              <Pressable
+                style={[styles.buttonSecondary, styles.registerTouchSecondary]}
+                onPress={sendOtp}
+                disabled={sendingOtp || !registrationOtpReady}
+              >
                 <Text style={styles.buttonSecondaryText}>{sendingOtp ? 'Sending OTP...' : 'Send OTP'}</Text>
               </Pressable>
           </>
-          <Pressable style={styles.button} onPress={submit} disabled={loading}>
+          <Pressable style={[styles.button, styles.registerTouchPrimary]} onPress={submit} disabled={loading}>
             <Text style={styles.buttonText}>
               {loading
                 ? 'Please wait...'
@@ -2539,7 +2543,64 @@ const styles = StyleSheet.create({
   },
   categoryClearChipText: { fontSize: 13, fontWeight: '700', color: colors.brandPrimary },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
-  roleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  registerCard: {
+    padding: 16,
+    borderRadius: 16,
+    gap: 10,
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 520,
+  },
+  registerField: {
+    minHeight: 48,
+    fontSize: 16,
+    paddingVertical: 14,
+  },
+  registerRoleBar: {
+    flexDirection: 'row',
+    marginTop: 10,
+    marginBottom: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+    backgroundColor: colors.softPanel,
+  },
+  registerRoleSegment: {
+    flex: 1,
+    minHeight: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    backgroundColor: colors.surface,
+  },
+  registerRoleSegmentDivider: {
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderLeftColor: colors.border,
+  },
+  registerRoleSegmentActive: {
+    backgroundColor: colors.brandSoft,
+  },
+  registerRoleSegmentText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  registerRoleSegmentTextActive: {
+    color: colors.brandPrimary,
+    fontWeight: '700',
+  },
+  registerTouchPrimary: {
+    minHeight: 48,
+    paddingVertical: 14,
+    justifyContent: 'center',
+  },
+  registerTouchSecondary: {
+    minHeight: 48,
+    paddingVertical: 14,
+    justifyContent: 'center',
+  },
   splashContent: {
     paddingHorizontal: screenGutter,
     paddingVertical: 28,
@@ -2585,17 +2646,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   ctaOutlineText: { color: colors.brandPrimary, fontWeight: '700', fontSize: 15 },
-  roleChip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: colors.surface,
-  },
-  roleChipActive: { borderColor: colors.brandPrimary, backgroundColor: colors.softPanel },
-  roleChipText: { color: colors.textSecondary, fontSize: 12, textTransform: 'capitalize' },
-  roleChipTextActive: { color: colors.brandPrimary, fontWeight: '600' },
   remove: { color: colors.error, fontWeight: '600' },
   shopTotal: { marginTop: 8, fontWeight: '700', color: colors.textPrimary },
   shopPageTitleBlock: { marginBottom: 2, paddingBottom: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
