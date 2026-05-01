@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { PublicShell } from '@/components/public/PublicShell';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
 import { PublicMarketingBand } from '@/components/public/PublicMarketingBand';
@@ -40,18 +40,6 @@ export default async function BlogPostPage({ params }: Props) {
       <PublicTrustStrip />
       <article id="blog-article" className="min-w-0">
         <div className="ev-container max-w-3xl py-6 sm:py-10">
-          <nav className="mb-6 flex flex-wrap items-center gap-1.5 text-sm text-ev-muted" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-ev-primary">
-              Home
-            </Link>
-            <ChevronRight size={14} className="text-ev-subtle shrink-0" aria-hidden />
-            <Link href="/blog" className="hover:text-ev-primary">
-              Blog
-            </Link>
-            <ChevronRight size={14} className="text-ev-subtle shrink-0" aria-hidden />
-            <span className="line-clamp-1 font-medium text-ev-text">{post.title}</span>
-          </nav>
-
           <header className="border-b border-ev-border pb-8">
             <div className="flex items-center gap-3">
               <div

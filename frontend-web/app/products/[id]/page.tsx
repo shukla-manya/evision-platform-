@@ -310,18 +310,6 @@ export default function ProductDetailPage() {
   return (
     <PublicShell>
       <main className="ev-container py-6 sm:py-8 w-full min-w-0">
-        <nav className="text-xs sm:text-sm text-ev-muted flex flex-wrap items-center gap-1.5 mb-4" aria-label="Breadcrumb">
-          <Link href="/home" className="hover:text-ev-primary transition-colors">
-            Home
-          </Link>
-          <span aria-hidden>/</span>
-          <Link href={shopHref} className="hover:text-ev-primary transition-colors">
-            {categoryLabel}
-          </Link>
-          <span aria-hidden>/</span>
-          <span className="text-ev-text font-medium line-clamp-1">{product.name}</span>
-        </nav>
-
         <Link
           href="/shop"
           className="inline-flex items-center gap-1 text-sm font-medium text-ev-primary hover:underline mb-6"

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   BadgeCheck,
-  ChevronRight,
   Circle,
   Loader2,
   LogOut,
@@ -199,15 +198,6 @@ export default function ElectricianProfilePage() {
         </div>
       ) : (
         <div className="mx-auto max-w-5xl animate-slide-up">
-          {/* Breadcrumb — Amazon-style path */}
-          <nav className="mb-4 flex flex-wrap items-center gap-1 text-xs text-ev-muted sm:text-sm" aria-label="Breadcrumb">
-            <Link href="/electrician/dashboard" className="hover:text-ev-primary hover:underline">
-              Technician home
-            </Link>
-            <ChevronRight size={14} className="shrink-0 opacity-50" aria-hidden />
-            <span className="font-medium text-ev-text">Your profile</span>
-          </nav>
-
           <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-ev-text sm:text-3xl">Your profile</h1>

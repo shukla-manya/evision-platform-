@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
 import { PublicShell } from '@/components/public/PublicShell';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
 import { PublicMarketingBand } from '@/components/public/PublicMarketingBand';
@@ -27,14 +26,6 @@ export default function BlogPage() {
       <PublicTrustStrip />
       <main id="blog-main" className="min-w-0">
         <div className="ev-container py-6 sm:py-10">
-          <nav className="mb-4 flex flex-wrap items-center gap-1.5 text-sm text-ev-muted" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-ev-primary">
-              Home
-            </Link>
-            <ChevronRight size={14} className="text-ev-subtle shrink-0" aria-hidden />
-            <span className="font-medium text-ev-text">Blog</span>
-          </nav>
-
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:gap-12">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-ev-text sm:text-3xl">Blog</h1>
