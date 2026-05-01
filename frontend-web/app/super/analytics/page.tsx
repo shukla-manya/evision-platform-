@@ -3,13 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Store,
   Users,
   Mail,
   Loader2,
   ShoppingBag,
   UserCog,
-  IndianRupee,
   CalendarClock,
   Package,
 } from 'lucide-react';
