@@ -79,40 +79,6 @@ export default function CheckoutPage() {
     void loadCart();
   }, [canUseCart, loadCart, router]);
 
-  async function saveNewAddress() {
-    if (!newAddr.address.trim() || !newAddr.city.trim() || !newAddr.state.trim() || !/^\d{6}$/.test(newAddr.pincode.trim())) {
-      toast.error('Fill address, city, state, and 6-digit pincode');
-      return;
-    }
-    setSavingAddr(true);
-    try {
-      const fallbackLat = 12.9716;
-      const fallbackLng = 77.5946;
-      const next: Addr[] = [
-        ...addresses,
-        {
-          label: newAddr.label.trim() || 'Home',
-          address: newAddr.address.trim(),
-          city: newAddr.city.trim(),
-          state: newAddr.state.trim(),
-          pincode: newAddr.pincode.trim(),
-          lat: fallbackLat,
-          lng: fallbackLng,
-          is_default: addresses.length === 0,
-        },
-      ];
-      await authApi.replaceAddressBook(next as Record<string, unknown>[]);
-      setAddresses(next);
-      setSelectedIdx(next.length - 1);
-      setNewAddr({ label: 'Home', address: '', city: '', state: '', pincode: '' });
-      toast.success('Address saved');
-    } catch {
-      toast.error('Could not save address');
-    } finally {
-      setSavingAddr(false);
-    }
-  }
-
   async function payNow() {
     if (!addresses.length) {
       toast.error('Add a delivery address first');
