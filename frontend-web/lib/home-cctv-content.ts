@@ -98,6 +98,12 @@ export const showcaseCombos: StaticShowcaseProduct[] = [
   { name: '4 SET IP 8MP (AI)', categoryLine: 'IP Cameras Set, Ultra Luxury', rating: 4.4, inStock: true, priceInr: 35999, searchQuery: '8MP AI' },
 ];
 
+/** Home “Security Camera Collection” band — copy block (paired with first two combo tiles on web). */
+export const securityCameraCollectionTitle = 'Security Camera Collection';
+
+export const securityCameraCollectionIntro =
+  'Discover high-performance Evision surveillance cameras and recording systems engineered for clear visuals, smart monitoring, and long-lasting security protection for residential and commercial properties.';
+
 export const customerReviews = [
   {
     quote:

@@ -90,6 +90,11 @@ import {
 } from './src/config/publicMarketing';
 import { BrowseBySiteAnimatedSvg } from './src/components/BrowseBySiteAnimatedSvg';
 import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
+import {
+  HOME_COMBO_COLLECTION_BODY,
+  HOME_COMBO_COLLECTION_TITLE,
+  HOME_COMBO_PREVIEW_ITEMS,
+} from './src/lib/home-combo-collection';
 import { HOME_HERO_SLIDES, HOME_PROMO_STRIP_CARDS, HOME_PROMO_STRIP_KICKER } from './src/lib/home-hero-slides';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
@@ -1315,6 +1320,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
   const heroScrollRef = useRef<ScrollView>(null);
   const [heroIdx, setHeroIdx] = useState(0);
   const heroSlideW = Math.max(1, winW - padL - padR);
+  const collectionTwoColumn = winW >= 720;
 
   const canAddToCart = userRole === 'customer' || userRole === 'dealer';
 
@@ -1598,6 +1604,53 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                 >
                   <Text style={styles.homeMarketingBtnSecondaryText}>Open web shop</Text>
                 </Pressable>
+              </View>
+            </View>
+
+            <View style={[styles.collectionBand, collectionTwoColumn ? styles.collectionBandRow : null]}>
+              <View style={[styles.collectionCopy, collectionTwoColumn ? styles.collectionCopyRow : null]}>
+                <Text style={[styles.collectionTitle, collectionTwoColumn ? styles.collectionTitleRow : null]}>
+                  {HOME_COMBO_COLLECTION_TITLE}
+                </Text>
+                <Text style={[styles.collectionBody, collectionTwoColumn ? styles.collectionBodyRow : null]}>
+                  {HOME_COMBO_COLLECTION_BODY}
+                </Text>
+                <Pressable
+                  style={[styles.collectionCta, collectionTwoColumn ? styles.collectionCtaRow : null]}
+                  onPress={() => void Linking.openURL(publicWebUrl('/shop'))}
+                  accessibilityRole="link"
+                  accessibilityLabel="More combos, open shop on web"
+                >
+                  <Text style={styles.collectionCtaText}>More combos</Text>
+                  <MaterialCommunityIcons name="chevron-right" size={18} color="#fff" />
+                </Pressable>
+              </View>
+              <View style={[styles.collectionCards, collectionTwoColumn ? styles.collectionCardsRow : null]}>
+                {HOME_COMBO_PREVIEW_ITEMS.map((item) => (
+                  <Pressable
+                    key={item.name}
+                    style={[styles.collectionCard, collectionTwoColumn ? styles.collectionCardRow : null]}
+                    onPress={() =>
+                      void Linking.openURL(publicWebUrl(`/shop?search=${encodeURIComponent(item.searchQuery)}`))
+                    }
+                    accessibilityRole="link"
+                    accessibilityLabel={`${item.name}, ${formatINR(item.priceInr)}`}
+                  >
+                    <View style={styles.collectionCardImageArea}>
+                      <MaterialCommunityIcons name="video-outline" size={34} color={colors.muted} style={{ opacity: 0.4 }} />
+                    </View>
+                    <View style={styles.collectionCardInner}>
+                      <Text style={styles.collectionCardCat} numberOfLines={2}>
+                        {item.categoryLine}
+                      </Text>
+                      <Text style={styles.collectionCardName} numberOfLines={2}>
+                        {item.name}
+                      </Text>
+                      <Text style={styles.collectionCardPrice}>{formatINR(item.priceInr)}</Text>
+                      <Text style={styles.collectionCardStock}>{item.inStock ? 'In stock' : 'Out of stock'}</Text>
+                    </View>
+                  </Pressable>
+                ))}
               </View>
             </View>
 
@@ -2844,6 +2897,93 @@ const styles = StyleSheet.create({
   },
   homePromoStripBuyRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
   homePromoStripBuyText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  collectionBand: {
+    marginTop: 6,
+    paddingTop: 18,
+    paddingBottom: 4,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    gap: 16,
+  },
+  collectionBandRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 18,
+  },
+  collectionCopy: {
+    flexShrink: 0,
+  },
+  collectionCopyRow: {
+    flex: 1,
+    minWidth: 0,
+    maxWidth: 340,
+    justifyContent: 'center',
+  },
+  collectionTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    letterSpacing: -0.3,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  collectionBody: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  collectionCta: {
+    marginTop: 14,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.brandPrimary,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  collectionCtaText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  collectionCards: {
+    gap: 10,
+  },
+  collectionCardsRow: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  collectionCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  collectionCardRow: {
+    flex: 1,
+    minWidth: 0,
+  },
+  collectionCardImageArea: {
+    height: 100,
+    backgroundColor: colors.softPanel,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  collectionCardInner: { padding: 12, gap: 4 },
+  collectionCardCat: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  collectionCardName: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, marginTop: 2 },
+  collectionCardPrice: { fontSize: 17, fontWeight: '800', color: colors.textPrimary, marginTop: 6 },
+  collectionCardStock: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
   homeMarketingHero: {
     paddingVertical: 16,
     paddingHorizontal: 14,

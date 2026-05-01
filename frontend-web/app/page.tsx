@@ -34,6 +34,8 @@ import {
   homeHeroSlides,
   homePromoStripCards,
   homePromoStripKicker,
+  securityCameraCollectionIntro,
+  securityCameraCollectionTitle,
   showcaseCombos,
   showcasePrimary,
   type StaticShowcaseProduct,
@@ -522,31 +524,33 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Combos + collection copy */}
-        <section className="ev-container py-12 sm:py-16">
-          <div className="max-w-3xl mx-auto w-full text-center mb-10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-ev-text mb-4">Security Camera Collection</h2>
-            <p className="text-ev-muted text-sm sm:text-base leading-relaxed">
-              Discover high-performance Evision surveillance cameras and recording systems engineered for clear visuals, smart monitoring,
-              and long-lasting security protection for residential and commercial properties.
-            </p>
-            <Link href="/shop" className="ev-btn-primary inline-flex items-center gap-2 mt-6 text-sm py-2.5 px-6">
-              More combos <ArrowRight size={16} aria-hidden />
-            </Link>
-          </div>
-          <div className="grid sm:grid-cols-3 gap-5 w-full">
-            {showcaseFromApi.combos.length > 0
-              ? showcaseFromApi.combos.map((p) => (
-                  <HomeShowcaseProductCard
-                    key={p.id}
-                    p={p}
-                    canBuy={canBuy}
-                    bumpWishlist={() => setWishBump((n) => n + 1)}
-                  />
-                ))
-              : showcaseCombos.map((p) => (
-                  <StaticProductCard key={p.name} p={p} canBuy={canBuy} />
-                ))}
+        {/* Combos — copy + CTA left, two products right */}
+        <section className="ev-container py-12 sm:py-16 border-b border-ev-border">
+          <div className="flex flex-col lg:flex-row lg:items-stretch gap-10 lg:gap-14 xl:gap-16">
+            <div className="lg:w-[min(100%,26rem)] xl:max-w-md shrink-0 flex flex-col justify-center text-center lg:text-left">
+              <h2 className="text-2xl sm:text-3xl font-bold text-ev-text mb-4">{securityCameraCollectionTitle}</h2>
+              <p className="text-ev-muted text-sm sm:text-base leading-relaxed">{securityCameraCollectionIntro}</p>
+              <Link
+                href="/shop"
+                className="ev-btn-primary inline-flex items-center gap-2 mt-6 lg:mt-8 text-sm py-2.5 px-6 self-center lg:self-start"
+              >
+                More combos <ArrowRight size={16} aria-hidden />
+              </Link>
+            </div>
+            <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {showcaseFromApi.combos.length > 0
+                ? showcaseFromApi.combos.slice(0, 2).map((p) => (
+                    <HomeShowcaseProductCard
+                      key={p.id}
+                      p={p}
+                      canBuy={canBuy}
+                      bumpWishlist={() => setWishBump((n) => n + 1)}
+                    />
+                  ))
+                : showcaseCombos.slice(0, 2).map((p) => (
+                    <StaticProductCard key={p.name} p={p} canBuy={canBuy} />
+                  ))}
+            </div>
           </div>
         </section>
 
