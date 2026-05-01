@@ -300,7 +300,7 @@ function HomeReviewsLoop() {
           {homeCustomerReviews.map((r, i) => (
             <blockquote
               key={`${r.author}-${i}`}
-              className={`absolute inset-0 flex flex-col justify-center overflow-y-auto text-center transition-opacity duration-600 ease-in-out ${
+              className={`absolute inset-0 flex flex-col justify-center overflow-y-auto text-center transition-opacity duration-500 ease-in-out ${
                 i === idx ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
               }`}
             >
@@ -749,7 +749,7 @@ export default function HomePage() {
               Loved by customers across India
             </h2>
             <p className="text-ev-muted text-sm text-center max-w-lg mb-8">
-              Seven recent experiences — tap a dot or wait a few seconds to see the next one.
+              Seven reviews loop automatically; the ring spins continuously in a circle. Tap any number to jump.
             </p>
             <HomeReviewsLoop />
           </div>
