@@ -225,7 +225,9 @@ export function ContactScreen() {
           </View>
         </View>
 
-        <GlobalBrandSummaryStrip />
+        <View style={{ marginTop: 20 }}>
+          <GlobalBrandSummaryStrip />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

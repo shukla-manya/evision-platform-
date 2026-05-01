@@ -1,6 +1,7 @@
 import { Image, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { GlobalBrandSummaryStrip } from '../components/GlobalBrandSummaryStrip';
 import {
   aboutPrimaryVisualAlt,
   aboutPrimaryVisualSrc,
@@ -10,7 +11,6 @@ import {
   premierServicesIntro,
   premierServicesTitle,
 } from '../lib/about-company-content';
-import { GlobalBrandSummaryStrip } from '../components/GlobalBrandSummaryStrip';
 import { colors } from '../theme/colors';
 import { screenGutter } from '../theme/layout';
 
@@ -76,7 +76,9 @@ export function AboutScreen() {
           ))}
         </View>
 
-        <GlobalBrandSummaryStrip />
+        <View style={{ marginTop: 16 }}>
+          <GlobalBrandSummaryStrip />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

@@ -7,7 +7,6 @@ import {
   type LucideIcon,
   LayoutDashboard,
   BarChart3,
-  Store,
   UserCog,
   Star,
   Mail,
@@ -41,7 +40,6 @@ const nav: NavItem[] = [
   { href: '/super/analytics', label: 'Analytics', icon: BarChart3 },
   { href: '/super/technicians', label: 'Technicians', icon: UserCog, badgeKey: 'pending_techs' },
   { href: '/super/dealers', label: 'Dealer GST', icon: ClipboardCheck, badgeKey: 'pending_dealer_gst' },
-  { href: '/super/shops', label: 'All shops', icon: Store },
   { href: '/super/reviews', label: 'Reviews', icon: Star },
   { href: '/super/email-logs', label: 'Email logs', icon: Mail },
 ];

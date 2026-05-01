@@ -2,6 +2,7 @@ import { useLayoutEffect } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { GlobalBrandSummaryStrip } from '../components/GlobalBrandSummaryStrip';
 import { publicShopBrandMark } from '../config/publicMarketing';
 import { publicWebUrl } from '../config/publicWeb';
 import { formatBlogDateLong, formatBlogDateShort, getBlogPostBySlug, getBlogPostsSorted } from '../lib/blog-posts';
@@ -68,6 +69,9 @@ export function BlogListScreen({ navigation }: NativeStackScreenProps<RootBlogPa
           </Pressable>
         </View>
 
+        <View style={{ marginTop: 16 }}>
+          <GlobalBrandSummaryStrip />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -121,6 +125,9 @@ export function BlogPostScreen({ route, navigation }: NativeStackScreenProps<Roo
             {para}
           </Text>
         ))}
+        <View style={{ marginTop: 20 }}>
+          <GlobalBrandSummaryStrip />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

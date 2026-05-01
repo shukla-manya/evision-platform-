@@ -98,24 +98,24 @@
   }
 }
 
-/* Home reviews — outer ring runs in a continuous circle */
-@keyframes evHomeReviewsRingSpin {
+/* Home testimonials — single-line infinite marquee */
+@keyframes evHomeTestimonialsMarquee {
   from {
-    transform: rotate(0deg);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    transform: rotate(360deg);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
-.ev-home-reviews-ring {
-  animation: evHomeReviewsRingSpin 18s linear infinite;
+.ev-home-testimonials-marquee__track {
+  display: flex;
+  width: max-content;
+  animation: evHomeTestimonialsMarquee 70s linear infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ev-home-reviews-ring {
-    animation: none;
-  }
+.ev-home-testimonials-marquee:hover .ev-home-testimonials-marquee__track {
+  animation-play-state: paused;
 }
 
 @theme {

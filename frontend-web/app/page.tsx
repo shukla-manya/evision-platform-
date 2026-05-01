@@ -253,12 +253,29 @@ function HomeLeadForm() {
   );
 }
 
-/** Orbit radius (rem) — keep numbered nodes outside the inner quote card on max-w-md squares. */
-const HOME_REVIEWS_ORBIT_REM = 9.25;
+function MarqueeStarStrip({ rating }: { rating: number }) {
+  const full = Math.floor(rating);
+  const partial = rating - full >= 0.5;
+  return (
+    <span className="inline-flex shrink-0 items-center gap-0.5 text-amber-500" aria-hidden>
+      {Array.from({ length: 5 }, (_, i) => (
+        <Star
+          key={i}
+          size={12}
+          className={
+            i < full
+              ? 'fill-amber-400 text-amber-500'
+              : i === full && partial
+                ? 'fill-amber-400/60 text-amber-500'
+                : 'fill-none text-ev-border'
+          }
+        />
+      ))}
+    </span>
+  );
+}
 
-function HomeReviewsLoop() {
-  const n = homeCustomerReviews.length;
-  const [idx, setIdx] = useState(0);
+function HomeTestimonialsMarquee() {
   const [motionReduced, setMotionReduced] = useState(false);
 
   useEffect(() => {
@@ -270,79 +287,56 @@ function HomeReviewsLoop() {
     return () => mq.removeEventListener('change', sync);
   }, []);
 
-  useEffect(() => {
-    if (motionReduced || n <= 1) return;
-    const id = window.setInterval(() => setIdx((i) => (i + 1) % n), 2800);
-    return () => window.clearInterval(id);
-  }, [motionReduced, n]);
+  const segment = (suffix: string) => (
+    <div
+      className="flex shrink-0 items-center gap-x-8 sm:gap-x-12 md:gap-x-16 pr-8 sm:pr-12 md:pr-16"
+      aria-hidden={suffix === 'b'}
+    >
+      {homeCustomerReviews.map((r, i) => (
+        <span
+          key={`${suffix}-${i}`}
+          className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap text-sm text-ev-text sm:text-[15px]"
+        >
+          <MarqueeStarStrip rating={r.rating} />
+          <span className="font-medium">&ldquo;{r.quote}&rdquo;</span>
+          <span className="text-ev-muted font-medium">— {r.author}</span>
+          <span className="text-ev-subtle hidden sm:inline">· {r.subtitle}</span>
+        </span>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-md overflow-visible rounded-2xl border border-ev-border bg-ev-surface shadow-ev-sm">
-      {/* Continuous circular motion — accent ring */}
+    <div
+      className="ev-home-testimonials-marquee group relative w-full overflow-hidden rounded-xl border border-ev-border bg-ev-surface py-3 shadow-ev-sm sm:py-3.5"
+      role="region"
+      aria-label="Customer testimonials, scrolling in a loop"
+    >
       <div
-        className={`pointer-events-none absolute inset-[3.5%] z-0 rounded-full border-2 border-ev-border/60 border-t-ev-primary border-r-ev-primary/40 ${
-          motionReduced ? '' : 'ev-home-reviews-ring'
-        }`}
+        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-ev-bg to-transparent sm:w-14"
         aria-hidden
       />
-      <div className="pointer-events-none absolute inset-[12%] z-0 rounded-full border border-dashed border-ev-border/35" aria-hidden />
-
-      {/* Center quote — stays upright while the ring and orbit run around it */}
-      <div className="absolute inset-[18%] z-10 flex flex-col rounded-2xl border border-ev-border/80 bg-ev-surface px-3 py-4 sm:px-5 sm:py-5 shadow-inner">
-        <p className="text-ev-primary font-bold text-[10px] uppercase tracking-[0.2em] mb-2 text-center shrink-0">
-          Customer reviews
-        </p>
-        <div className="relative min-h-0 flex-1 overflow-hidden" aria-live={motionReduced ? 'off' : 'polite'}>
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-ev-bg to-transparent sm:w-14"
+        aria-hidden
+      />
+      {motionReduced ? (
+        <div className="relative z-0 flex flex-wrap justify-center gap-x-4 gap-y-3 px-4 py-1 text-center text-sm text-ev-text">
           {homeCustomerReviews.map((r, i) => (
-            <blockquote
-              key={`${r.author}-${i}`}
-              className={`absolute inset-0 flex flex-col justify-center overflow-y-auto text-center transition-opacity duration-500 ease-in-out ${
-                i === idx ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
-              }`}
-            >
-              <div className="flex justify-center mb-2 shrink-0">
-                <StarRow rating={r.rating} />
-              </div>
-              <p className="text-ev-text text-sm sm:text-base leading-snug font-medium">&ldquo;{r.quote}&rdquo;</p>
-              <footer className="mt-3 text-ev-muted text-xs sm:text-sm shrink-0">
-                <span className="text-ev-text font-semibold">{r.author}</span>
-                <span className="text-ev-subtle"> · {r.subtitle}</span>
-              </footer>
-            </blockquote>
+            <span key={i} className="max-w-md text-ev-muted">
+              <span className="font-medium text-ev-text">&ldquo;{r.quote}&rdquo;</span>
+              <span className="text-ev-subtle"> — {r.author}</span>
+            </span>
           ))}
         </div>
-      </div>
-
-      {/* Seven controls on a circle — numbers stay upright */}
-      {homeCustomerReviews.map((_, i) => {
-        const angleDeg = (i / n) * 360 - 90;
-        return (
-          <div
-            key={i}
-            className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2"
-          >
-            <div
-              className="pointer-events-auto flex size-0 items-center justify-center"
-              style={{ transform: `rotate(${angleDeg}deg) translateY(calc(-1 * ${HOME_REVIEWS_ORBIT_REM}rem))` }}
-            >
-              <button
-                type="button"
-                onClick={() => setIdx(i)}
-                style={{ transform: `rotate(${-angleDeg}deg)` }}
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-bold shadow-ev-sm transition-all duration-300 sm:h-10 sm:w-10 sm:text-xs ${
-                  i === idx
-                    ? 'scale-110 border-ev-primary bg-ev-primary text-white ring-2 ring-ev-primary/25'
-                    : 'border-ev-border bg-ev-surface text-ev-muted hover:border-ev-primary/60 hover:text-ev-text'
-                }`}
-                aria-label={`Show review ${i + 1} of ${n}`}
-                aria-current={i === idx}
-              >
-                {i + 1}
-              </button>
-            </div>
+      ) : (
+        <div className="relative z-0 overflow-hidden">
+          <div className="ev-home-testimonials-marquee__track">
+            {segment('a')}
+            {segment('b')}
           </div>
-        );
-      })}
+        </div>
+      )}
     </div>
   );
 }
@@ -738,16 +732,13 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Customer reviews — seven testimonials in a square panel, crossfade loop */}
+        {/* Customer testimonials — single-line infinite marquee */}
         <section className="py-12 sm:py-16 border-t border-ev-border bg-ev-bg" aria-labelledby="home-reviews-heading">
-          <div className="ev-container flex flex-col items-center">
-            <h2 id="home-reviews-heading" className="text-xl sm:text-2xl font-bold text-ev-text text-center mb-2">
+          <div className="ev-container flex flex-col items-stretch gap-6">
+            <h2 id="home-reviews-heading" className="text-xl sm:text-2xl font-bold text-ev-text text-center">
               Loved by customers across India
             </h2>
-            <p className="text-ev-muted text-sm text-center max-w-lg mb-8">
-              Seven reviews loop automatically; the ring spins continuously in a circle. Tap any number to jump.
-            </p>
-            <HomeReviewsLoop />
+            <HomeTestimonialsMarquee />
           </div>
         </section>
 
