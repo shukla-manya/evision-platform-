@@ -39,8 +39,8 @@ export const aboutBrandSummary =
 const pexPhoto = (id: string, w: number) =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`;
 
-/** Landscape hero — electronics / manufacturing (16:9 frame on About). */
-export const aboutPrimaryVisualSrc = pexPhoto('163100', 1600);
+/** Manufacturing / electronics — shown in a 16:9 frame on About (web + app). */
+export const aboutPrimaryVisualSrc = pexPhoto('442150', 1600);
 export const aboutPrimaryVisualAlt =
-  'Printed circuit boards and electronic components in a manufacturing setting';
+  'Electronics assembly and quality control in a modern manufacturing environment';
 

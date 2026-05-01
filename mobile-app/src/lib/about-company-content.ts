@@ -41,7 +41,7 @@ export const aboutBrandSummary =
 const pexPhoto = (id: string, w: number) =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`;
 
-export const aboutPrimaryVisualSrc = pexPhoto('163100', 1600);
+export const aboutPrimaryVisualSrc = pexPhoto('442150', 1600);
 export const aboutPrimaryVisualAlt =
-  'Printed circuit boards and electronic components in a manufacturing setting';
+  'Electronics assembly and quality control in a modern manufacturing environment';
 
