@@ -1709,7 +1709,13 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                   />
                 </Animated.View>
                 <View style={[styles.customQuoteOverlay, StyleSheet.absoluteFillObject]} />
-                <View style={styles.customQuoteInner}>
+                <View
+                  style={[
+                    StyleSheet.absoluteFillObject,
+                    styles.customQuoteInner,
+                    { justifyContent: 'center', zIndex: 2 },
+                  ]}
+                >
                   <Text style={styles.customQuoteTitle}>{HOME_CUSTOM_QUOTE_TITLE}</Text>
                   <Text style={styles.customQuoteBody}>{HOME_CUSTOM_QUOTE_BODY}</Text>
                   <Pressable
@@ -3071,11 +3077,11 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   customQuoteInner: {
-    zIndex: 2,
-    paddingVertical: 28,
+    paddingVertical: 24,
     paddingHorizontal: 20,
     alignItems: 'center',
     maxWidth: 420,
+    alignSelf: 'center',
     width: '100%',
   },
   customQuoteTitle: {
