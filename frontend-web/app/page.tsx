@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -30,7 +30,7 @@ import {
   businessSegments,
   businessSegmentsSectionTitle,
   customerReviews,
-  heroPromoCards,
+  homeHeroSlides,
   showcaseCombos,
   showcasePrimary,
   type StaticShowcaseProduct,
@@ -279,8 +279,36 @@ export default function HomePage() {
   });
   const [loading, setLoading] = useState(true);
   const [, setWishBump] = useState(0);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [heroCarouselPaused, setHeroCarouselPaused] = useState(false);
+  const heroLiveRef = useRef<HTMLSpanElement>(null);
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canBuy = role === 'customer' || role === 'dealer';
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setHeroCarouselPaused(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  useEffect(() => {
+    if (heroCarouselPaused) return;
+    const n = homeHeroSlides.length;
+    if (n <= 1) return;
+    const id = window.setInterval(() => {
+      setHeroIndex((i) => (i + 1) % n);
+    }, 3000);
+    return () => window.clearInterval(id);
+  }, [heroCarouselPaused]);
+
+  useEffect(() => {
+    const el = heroLiveRef.current;
+    if (!el) return;
+    el.textContent = `Slide ${heroIndex + 1} of ${homeHeroSlides.length}: ${homeHeroSlides[heroIndex].title}. ${homeHeroSlides[heroIndex].subtitle}`;
+  }, [heroIndex]);
 
   useEffect(() => {
     let cancelled = false;

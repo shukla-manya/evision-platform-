@@ -10,27 +10,34 @@ export type StaticShowcaseProduct = {
   searchQuery: string;
 };
 
-export const heroPromoCards = [
+/** Full-bleed home hero carousel (web + mobile copy aligned). */
+export const homeHeroSlides = [
   {
     title: 'Wi-Fi CCTV Cameras',
-    subtitle: 'All-new and loveable.',
-    cta: 'Buy Now',
+    subtitle: 'All-new and loveable — wireless indoor and outdoor lines.',
+    cta: 'Browse Wi-Fi CCTV',
     href: '/shop?search=Wi-Fi%20CCTV',
-    artClass: 'from-slate-800 via-slate-700 to-slate-900',
+    imageSrc:
+      'https://images.unsplash.com/photo-1557598376-da691ed6591f?auto=format&fit=crop&w=1920&q=80',
+    imageAlt: 'Security camera mounted near a doorway',
   },
   {
     title: 'Power Over Ethernet',
-    subtitle: 'Reliable power & data in one cable.',
-    cta: 'Buy Now',
+    subtitle: 'Reliable power and data in one cable for pro installs.',
+    cta: 'Browse PoE gear',
     href: '/shop?search=PoE',
-    artClass: 'from-emerald-900 via-teal-800 to-cyan-900',
+    imageSrc:
+      'https://images.unsplash.com/photo-1616410738646-a66a3169768f?auto=format&fit=crop&w=1920&q=80',
+    imageAlt: 'Dome CCTV camera on a ceiling',
   },
   {
     title: 'Smart Security Kits',
-    subtitle: 'Everything you need to get started.',
-    cta: 'Buy Now',
+    subtitle: 'Everything you need to get started with multi-camera coverage.',
+    cta: 'Shop kits',
     href: '/shop?search=security%20kit',
-    artClass: 'from-amber-900 via-orange-800 to-red-950',
+    imageSrc:
+      'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?auto=format&fit=crop&w=1920&q=80',
+    imageAlt: 'Modern workspace with laptop and accessories',
   },
 ] as const;
 
