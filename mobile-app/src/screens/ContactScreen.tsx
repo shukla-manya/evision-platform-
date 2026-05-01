@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { aboutBrandSummary, publicCopyrightNotice } from '../config/publicMarketing';
+import { aboutBrandSummary } from '../config/publicMarketing';
 import { publicWebUrl } from '../config/publicWeb';
 import { publicContactApi, type ContactMessageResponse } from '../services/api';
 import { colors } from '../theme/colors';
@@ -219,8 +219,7 @@ export function ContactScreen() {
         </View>
 
         <View style={styles.bottomBrand}>
-          <Text style={[styles.muted, styles.bottomAbout]}>{aboutBrandSummary}</Text>
-          <Text style={styles.copyright}>{publicCopyrightNotice}</Text>
+          <Text style={styles.muted}>{aboutBrandSummary}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -306,14 +305,5 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-  },
-  bottomAbout: { marginBottom: 4 },
-  copyright: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    lineHeight: 18,
   },
 });

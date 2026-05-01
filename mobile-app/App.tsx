@@ -1274,14 +1274,15 @@ function PasswordResetScreen({
 }
 
 function resolveCatalogBrowseParams(
-  label: string,
+  tile: { label: string; catalogSearch?: string },
   _index: number,
   categories: Array<{ id: string; name: string }>,
 ): { category_id?: string; search?: string } {
-  const token = label.split(' ')[0].toLowerCase();
+  const query = tile.catalogSearch ?? tile.label;
+  const token = query.split(/\s+/)[0]?.toLowerCase() ?? '';
   const match = categories.find((c) => c.name.toLowerCase().includes(token));
   if (match?.id) return { category_id: match.id };
-  return { search: label };
+  return { search: query };
 }
 
 function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: string }) {
@@ -1511,8 +1512,8 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
             <View style={styles.categorySection}>
               <View style={styles.categorySectionHeader}>
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.categorySectionTitle}>Browse by solution</Text>
-                  <Text style={styles.categorySectionSubtitle}>CCTV, PoE, kits and verticals — same filters as the web shop</Text>
+                  <Text style={styles.categorySectionTitle}>Browse by site</Text>
+                  <Text style={styles.categorySectionSubtitle}>Tap a shortcut to filter products</Text>
                 </View>
                 <Pressable
                   onPress={() => void Linking.openURL(publicWebUrl('/shop'))}
@@ -1534,7 +1535,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                     <Pressable
                       key={tile.label}
                       onPress={() => {
-                        const pr = resolveCatalogBrowseParams(tile.label, i, apiCategories);
+                        const pr = resolveCatalogBrowseParams(tile, i, apiCategories);
                         setBrowseCategoryId(pr.category_id);
                         setBrowseSearch(pr.category_id ? undefined : pr.search);
                         setBrowseLabel(tile.label);

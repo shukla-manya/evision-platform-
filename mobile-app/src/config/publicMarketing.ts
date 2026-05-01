@@ -17,9 +17,6 @@ export const publicInfoEmail =
 export const publicRegisteredAddress =
   'E-Vision India, 9/205, Main Market, Near PNB, Old Faridabad — 121002';
 
-export const publicCopyrightNotice =
-  'Copyright © 2026 Evision Powered by Cybrical Tech LLP.';
-
 /** Lettermark above the in-app catalogue (matches web `NEXT_PUBLIC_SHOP_BRAND_MARK`). */
 export const publicShopBrandMark =
   process.env.EXPO_PUBLIC_SHOP_BRAND_MARK?.trim() || 'EVISION';

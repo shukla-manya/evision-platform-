@@ -57,6 +57,3 @@ export function publicTelHref(phone: string): string {
   if (!d) return '#';
   return d.startsWith('91') ? `tel:+${d}` : `tel:+91${d}`;
 }
-
-export const publicCopyrightNotice =
-  'Copyright © 2026 Evision Powered by Cybrical Tech LLP.';

@@ -28,6 +28,7 @@ import { getRole } from '@/lib/auth';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 import {
   businessSegments,
+  businessSegmentsSectionTitle,
   customerReviews,
   heroPromoCards,
   showcaseCombos,
@@ -349,10 +350,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Business segments */}
+        {/* Install-type shortcuts */}
         <section className="bg-gradient-to-b from-[#eef2f6] to-ev-bg py-10 sm:py-12 border-b border-ev-border">
           <div className="ev-container">
-            <h2 className="text-xl sm:text-2xl font-bold text-ev-text text-center mb-8">Business</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-ev-text text-center mb-8">{businessSegmentsSectionTitle}</h2>
             <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
               {businessSegments.map((b) => (
                 <Link

@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from 'react';
 import { aboutBrandSummary } from '@/lib/about-company-content';
-import { publicCopyrightNotice } from '@/lib/public-contact';
 import { publicContactApi, type ContactMessageResponse } from '@/lib/api';
 
 function apiErrorMessage(err: unknown, fallback: string): string {
@@ -252,7 +251,6 @@ export function ContactPageContent() {
 
         <div className="border-t border-ev-border pt-12 space-y-6">
           <p className="text-ev-muted text-sm leading-relaxed max-w-4xl">{aboutBrandSummary}</p>
-          <p className="text-ev-muted text-xs pt-4 border-t border-ev-border">{publicCopyrightNotice}</p>
         </div>
       </main>
     </>
