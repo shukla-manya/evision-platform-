@@ -1,17 +1,16 @@
-import { formatIndianPhoneDisplay, publicSupportPhone, publicWhatsAppChatUrl } from '@/lib/public-contact';
+import { publicWhatsAppChatUrl } from '@/lib/public-contact';
 
-/** Fixed WhatsApp entry point on every page — support number, opens `wa.me`. */
+/** Fixed WhatsApp entry point on every page — opens `wa.me` (number not shown in UI). */
 export function FloatingWhatsAppChat() {
   const href = publicWhatsAppChatUrl();
-  const display = formatIndianPhoneDisplay(publicSupportPhone);
-  const label = `Chat on WhatsApp — ${display}`;
+  const label = 'Chat on WhatsApp';
 
   return (
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed z-[90] flex max-w-[calc(100vw-1.5rem)] flex-row-reverse items-stretch overflow-hidden rounded-full border border-white/20 bg-[#25D366] text-white shadow-[0_6px_24px_rgba(0,0,0,0.28)] transition hover:brightness-110 hover:shadow-[0_8px_28px_rgba(37,211,102,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      className="fixed z-[90] flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-[#25D366] text-white shadow-[0_6px_24px_rgba(0,0,0,0.28)] transition hover:brightness-110 hover:shadow-[0_8px_28px_rgba(37,211,102,0.45)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:h-[3.75rem] sm:w-[3.75rem]"
       style={{
         bottom: 'max(1rem, env(safe-area-inset-bottom, 0px))',
         right: 'max(1rem, env(safe-area-inset-right, 0px))',

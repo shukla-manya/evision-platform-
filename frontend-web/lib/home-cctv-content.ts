@@ -123,10 +123,10 @@ export const innovationSectionBody =
 
 /** “Join as technician” home card — technician installing a bullet CCTV (online catalogue image). */
 export const homeJoinTechnicianSectionImageSrc =
-  'https://5.imimg.com/data5/SELLER/Default/2023/8/333285548/DN/UV/EL/57488744/cctv-camera-installation-500x500.jpeg';
+  'https://5.imimg.com/data5/SELLER/Default/2022/10/WG/WF/IB/150612412/cctv-camera-installation-service.jpg';
 
 export const homeJoinTechnicianSectionImageAlt =
-  'Professional technician in a blue shirt installing a white CCTV security camera on an exterior wall';
+  'Professional technician using a power drill to install a white bullet-style security camera on a wall';
 
 /** Left visual beside the home lead (mailto) form — CCTV install. */
 export const homeLeadFormImageSrc =
