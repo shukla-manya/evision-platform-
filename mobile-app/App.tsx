@@ -4,6 +4,7 @@ import {
   Alert,
   FlatList,
   Image,
+  ImageBackground,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -13,6 +14,7 @@ import {
   Switch,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -87,6 +89,7 @@ import {
   publicSupportTelHref,
 } from './src/config/publicMarketing';
 import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
+import { HOME_HERO_SLIDES } from './src/lib/home-hero-slides';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
 
 type RegisterInitialRole = 'customer' | 'dealer' | 'electrician' | 'shop_owner';
@@ -1303,8 +1306,23 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   const [cartBusyId, setCartBusyId] = useState<string | null>(null);
+  const heroScrollRef = useRef<ScrollView>(null);
+  const [heroIdx, setHeroIdx] = useState(0);
+  const { width: winW } = useWindowDimensions();
+  const heroSlideW = Math.max(1, winW - 2 * screenGutter);
 
   const canAddToCart = userRole === 'customer' || userRole === 'dealer';
+
+  useEffect(() => {
+    heroScrollRef.current?.scrollTo({ x: heroIdx * heroSlideW, animated: true });
+  }, [heroIdx, heroSlideW]);
+
+  useEffect(() => {
+    const n = HOME_HERO_SLIDES.length;
+    if (n <= 1) return;
+    const id = setInterval(() => setHeroIdx((i) => (i + 1) % n), 3000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -1469,6 +1487,61 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
         onRefresh={() => void load()}
         ListHeaderComponent={
           <View style={{ marginBottom: 14, gap: 12 }}>
+            <ScrollView
+              ref={heroScrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              keyboardShouldPersistTaps="handled"
+              style={{ width: heroSlideW, alignSelf: 'center' }}
+              onMomentumScrollEnd={(e) => {
+                const x = e.nativeEvent.contentOffset.x;
+                const idx = Math.round(x / heroSlideW);
+                setHeroIdx(Math.min(Math.max(0, idx), HOME_HERO_SLIDES.length - 1));
+              }}
+            >
+              {HOME_HERO_SLIDES.map((slide) => (
+                <Pressable
+                  key={slide.title}
+                  style={{ width: heroSlideW, height: 220 }}
+                  onPress={() => void Linking.openURL(publicWebUrl(slide.href))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${slide.title}. ${slide.subtitle}`}
+                >
+                  <ImageBackground
+                    source={{ uri: slide.imageUri }}
+                    style={styles.homeHeroSlideBg}
+                    imageStyle={styles.homeHeroSlideImage}
+                  >
+                    <View style={styles.homeHeroOverlay} />
+                    <View style={styles.homeHeroTextBlock}>
+                      <Text style={styles.homeHeroKicker}>All-new and loveable</Text>
+                      <Text style={styles.homeHeroTitle}>{slide.title}</Text>
+                      <Text style={styles.homeHeroSubtitle}>{slide.subtitle}</Text>
+                      <View style={styles.homeHeroCtaRow}>
+                        <Text style={styles.homeHeroCtaText}>{slide.cta}</Text>
+                        <MaterialCommunityIcons name="chevron-right" size={18} color="#fff" />
+                      </View>
+                    </View>
+                  </ImageBackground>
+                </Pressable>
+              ))}
+            </ScrollView>
+            <View style={styles.homeHeroDots}>
+              {HOME_HERO_SLIDES.map((s, i) => (
+                <Pressable
+                  key={s.title}
+                  onPress={() => setHeroIdx(i)}
+                  hitSlop={10}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Show hero slide: ${s.title}`}
+                  accessibilityState={{ selected: i === heroIdx }}
+                >
+                  <View style={[styles.homeHeroDot, i === heroIdx ? styles.homeHeroDotActive : null]} />
+                </Pressable>
+              ))}
+            </View>
             <View style={styles.homeMarketingHero}>
               <Text style={styles.homeMarketingKicker}>24/7 support · Free shipping, all over India</Text>
               <Pressable onPress={() => void Linking.openURL(publicSupportTelHref())} accessibilityRole="link">
@@ -2659,6 +2732,51 @@ const styles = StyleSheet.create({
   shopOptionText: { fontSize: 14, color: colors.textPrimary, fontWeight: '500' },
   shopOptionTextSelected: { fontWeight: '700', color: colors.brandPrimary },
   catalogFilterTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  homeHeroSlideBg: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: 'flex-end',
+  },
+  homeHeroSlideImage: { borderRadius: 16 },
+  homeHeroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.42)',
+    borderRadius: 16,
+  },
+  homeHeroTextBlock: { padding: 14, paddingBottom: 16, gap: 4 },
+  homeHeroKicker: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.88)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  homeHeroTitle: {
+    fontSize: 19,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: -0.3,
+    textShadowColor: 'rgba(0,0,0,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
+  },
+  homeHeroSubtitle: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.92)',
+    lineHeight: 17,
+    marginTop: 2,
+    textShadowColor: 'rgba(0,0,0,0.25)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  homeHeroCtaRow: { flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 8 },
+  homeHeroCtaText: { color: '#fff', fontWeight: '700', fontSize: 12 },
+  homeHeroDots: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 10 },
+  homeHeroDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.border },
+  homeHeroDotActive: { backgroundColor: colors.brandPrimary, width: 22 },
   homeMarketingHero: {
     paddingVertical: 16,
     paddingHorizontal: 14,

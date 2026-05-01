@@ -348,33 +348,64 @@ export default function HomePage() {
       <main id="main-content" className="min-w-0">
         <PublicTrustStrip />
 
-        {/* Hero promos */}
-        <section className="relative overflow-hidden border-b border-ev-border">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-10 right-1/4 w-72 h-72 bg-ev-primary/8 rounded-full blur-3xl" />
-          </div>
-          <div className="ev-container py-10 sm:py-14 relative">
-            <p className="text-center text-ev-primary font-semibold text-xs uppercase tracking-[0.2em] mb-6">All-new and loveable.</p>
-            <div className="grid md:grid-cols-3 gap-4 lg:gap-6">
-              {heroPromoCards.map((card) => (
-                <Link
-                  key={card.title}
-                  href={card.href}
-                  className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${card.artClass} p-6 sm:p-8 text-white shadow-ev-md hover:shadow-xl transition-shadow min-h-[200px] flex flex-col`}
-                >
-                  <h1 className="text-xl sm:text-2xl font-bold leading-tight pr-16">{card.title}</h1>
-                  <p className="text-white/80 text-sm mt-2 flex-1">{card.subtitle}</p>
-                  <span className="mt-6 inline-flex items-center gap-2 text-sm font-bold bg-white/15 group-hover:bg-white/25 px-4 py-2 rounded-xl w-fit border border-white/20">
-                    {card.cta} <ArrowRight size={16} aria-hidden />
+        {/* Hero carousel — full-width imagery, 3s per slide */}
+        <section
+          className="relative border-b border-ev-border overflow-hidden bg-ev-text"
+          aria-roledescription="carousel"
+          aria-label="Featured security products"
+        >
+          <span ref={heroLiveRef} className="sr-only" aria-live="polite" />
+          <div className="relative min-h-[280px] sm:min-h-[340px] md:min-h-[420px] w-full">
+            {homeHeroSlides.map((slide, i) => (
+              <Link
+                key={slide.title}
+                href={slide.href}
+                className={`absolute inset-0 flex flex-col justify-end transition-opacity duration-700 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-ev-text ${
+                  i === heroIndex ? 'opacity-100 z-[2] pointer-events-auto' : 'opacity-0 z-[1] pointer-events-none'
+                }`}
+                aria-hidden={i !== heroIndex}
+                tabIndex={i === heroIndex ? 0 : -1}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- remote marketing hero URLs */}
+                <img
+                  src={slide.imageSrc}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                  fetchPriority={i === 0 ? 'high' : 'low'}
+                  decoding={i === 0 ? 'sync' : 'async'}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/45 to-black/25" aria-hidden />
+                <div className="relative z-10 ev-container pb-10 sm:pb-12 pt-24 sm:pt-28 text-white">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/85 mb-2">All-new and loveable</p>
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold leading-tight max-w-3xl drop-shadow-sm">
+                    {slide.title}
+                  </h1>
+                  <p className="mt-3 text-sm sm:text-lg text-white/90 max-w-2xl leading-relaxed">{slide.subtitle}</p>
+                  <span className="mt-6 inline-flex items-center gap-2 text-sm font-bold bg-white/15 hover:bg-white/25 px-4 py-2.5 rounded-xl border border-white/25 w-fit transition-colors">
+                    {slide.cta} <ArrowRight size={16} aria-hidden />
                   </span>
-                </Link>
-              ))}
-            </div>
-            <div className="flex justify-center mt-8">
-              <Link href="/shop" className="ev-btn-primary inline-flex items-center gap-2 text-base py-3 px-8">
-                Search products <ArrowRight size={18} aria-hidden />
+                </div>
               </Link>
-            </div>
+            ))}
+          </div>
+          <div className="absolute bottom-4 left-0 right-0 z-[3] flex justify-center gap-2 pointer-events-auto">
+            {homeHeroSlides.map((slide, i) => (
+              <button
+                key={slide.title}
+                type="button"
+                onClick={() => setHeroIndex(i)}
+                className={`h-2.5 rounded-full transition-all pointer-events-auto ${
+                  i === heroIndex ? 'w-8 bg-white' : 'w-2.5 bg-white/45 hover:bg-white/70'
+                }`}
+                aria-label={`Show slide ${i + 1}: ${slide.title}`}
+                aria-current={i === heroIndex}
+              />
+            ))}
+          </div>
+          <div className="relative z-[3] flex justify-center py-4 bg-ev-bg/95 backdrop-blur-sm border-t border-white/10">
+            <Link href="/shop" className="ev-btn-primary inline-flex items-center gap-2 text-sm sm:text-base py-2.5 sm:py-3 px-6 sm:px-8">
+              Search products <ArrowRight size={18} aria-hidden />
+            </Link>
           </div>
         </section>
 
