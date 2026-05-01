@@ -14,11 +14,10 @@ import {
   premierServicesIntro,
   premierServicesTitle,
 } from '../lib/about-company-content';
-import { publicShopBrandMark } from '../config/publicMarketing';
 import { colors } from '../theme/colors';
 import { screenGutter } from '../theme/layout';
 
-const PREMIER_ICONS = ['view-grid-outline', 'home-variant-outline', 'shield-check-outline', 'cctv'] as const;
+const PREMIER_ICONS = ['view-grid-outline', 'home-variant-outline', 'shield-check-outline', 'video-wireless-outline'] as const;
 
 export function AboutScreen() {
   const { width: winW } = useWindowDimensions();
@@ -35,7 +34,7 @@ export function AboutScreen() {
           </Text>
         </View>
 
-        <Text style={styles.kicker}>{publicShopBrandMark}</Text>
+        <Text style={styles.kicker}>Company</Text>
         <Text style={styles.h1}>About E-Vision India</Text>
 
         <View style={[styles.split, twoCol ? styles.splitRow : null]}>
