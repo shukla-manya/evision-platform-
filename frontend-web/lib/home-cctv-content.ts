@@ -115,6 +115,25 @@ export const customQuoteSectionCta = 'Get a Custom Quote';
 export const customQuoteSectionBackgroundSrc =
   'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1920&q=80';
 
+/** “Innovation” strip — copy + two install photos (home vs office). */
+export const innovationSectionTitle = 'Standing at the Forefront of Innovation';
+
+export const innovationSectionBody =
+  'As we explore new technology, we push the capabilities of what is possible, driving progress through continuous innovation.';
+
+export const innovationInstallImages = [
+  {
+    src: 'https://images.unsplash.com/photo-1557598376-da691ed6591f?auto=format&fit=crop&w=1200&q=80',
+    alt: 'Wall-mounted security camera at a residential entrance',
+    caption: 'Residential — at home',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1616410738646-a66a3169768f?auto=format&fit=crop&w=1200&q=80',
+    alt: 'Dome CCTV camera installed in a commercial ceiling',
+    caption: 'Office & business sites',
+  },
+] as const;
+
 export const customerReviews = [
   {
     quote:

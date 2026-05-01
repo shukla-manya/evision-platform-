@@ -38,6 +38,9 @@ import {
   customQuoteSectionBody,
   customQuoteSectionCta,
   customQuoteSectionTitle,
+  innovationInstallImages,
+  innovationSectionBody,
+  innovationSectionTitle,
   securityCameraCollectionIntro,
   securityCameraCollectionTitle,
   showcaseCombos,
@@ -584,12 +587,25 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Innovation */}
-        <section className="ev-container py-10 sm:py-12 text-center max-w-3xl mx-auto">
-          <h2 className="text-lg sm:text-xl font-bold text-ev-text">Standing at the Forefront of Innovation</h2>
-          <p className="text-ev-muted text-sm sm:text-base mt-3 leading-relaxed">
-            As we explore new technology, we push the capabilities of what is possible, driving progress through continuous innovation.
-          </p>
+        {/* Innovation — copy + home / office install photography */}
+        <section className="ev-container py-10 sm:py-12 border-b border-ev-border">
+          <div className="max-w-3xl mx-auto w-full text-center">
+            <h2 className="text-lg sm:text-xl font-bold text-ev-text">{innovationSectionTitle}</h2>
+            <p className="text-ev-muted text-sm sm:text-base mt-3 leading-relaxed">{innovationSectionBody}</p>
+          </div>
+          <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 w-full max-w-5xl mx-auto">
+            {innovationInstallImages.map((img) => (
+              <figure key={img.caption} className="overflow-hidden rounded-2xl border border-ev-border bg-ev-surface shadow-ev-sm">
+                <div className="relative aspect-[4/3] w-full bg-ev-surface2">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- remote marketing photography */}
+                  <img src={img.src} alt={img.alt} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                </div>
+                <figcaption className="px-4 py-3 text-center text-xs sm:text-sm font-semibold text-ev-text border-t border-ev-border bg-ev-surface">
+                  {img.caption}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
         </section>
 
         {/* Live catalogue */}
