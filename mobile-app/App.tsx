@@ -519,6 +519,10 @@ const REGISTER_ROLE_TABS: { value: RegisterInitialRole; label: string }[] = [
   { value: 'electrician', label: 'Technician' },
 ];
 
+/** Same hero as web `/register` — shown outside the form card. */
+const REGISTER_SIGNUP_IMAGE_URI =
+  'https://www-cms.pipedriveassets.com/cdn-cgi/image/quality=70,format=auto/https://www-cms.pipedriveassets.com/Delight-the-Customer.jpg';
+
 function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<RootStackParamList, 'Register'>; navigation: any; onLoggedIn: (token: string, user: AppUser) => void }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState(route.params?.email || '');
@@ -546,6 +550,8 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
   /** After OTP is sent (customer / dealer / technician), lock identity & address fields — same policy as web. */
   const [registerDetailsLocked, setRegisterDetailsLocked] = useState(false);
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  const registerWideSplit = windowWidth >= 720;
   const registerFieldStyle = [styles.input, styles.registerField];
 
   const deliveryCachedGpsRef = useRef<{ lat: number; lng: number } | null>(null);
@@ -752,9 +758,28 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
           contentContainerStyle={[
             styles.listPad,
             { paddingBottom: Math.max(32, insets.bottom + 24), flexGrow: 1 },
+            registerWideSplit && styles.registerScrollWide,
           ]}
         >
-        <View style={[styles.card, styles.registerCard]}>
+        <View
+          style={[
+            registerWideSplit ? styles.registerSplitRow : styles.registerSplitCol,
+            registerWideSplit && styles.registerSplitRowMax,
+          ]}
+        >
+          <View style={registerWideSplit ? styles.registerHeroWide : styles.registerHeroNarrow}>
+            <Image
+              source={{ uri: REGISTER_SIGNUP_IMAGE_URI }}
+              style={[
+                styles.registerHeroImg,
+                { aspectRatio: registerWideSplit ? 4 / 3 : 5 / 3 },
+                registerWideSplit ? { maxHeight: Math.min(340, windowWidth * 0.38) } : null,
+              ]}
+              resizeMode="cover"
+              accessibilityLabel="Team welcoming customers in a professional workspace"
+            />
+          </View>
+          <View style={[styles.card, styles.registerCard, registerWideSplit && styles.registerCardWide]}>
           <Text style={styles.cardTitle}>Create account</Text>
           <Text style={styles.subtitle}>
             {ACCOUNT_ROLES_SUMMARY} — same app; your dashboard matches your role after sign-in. Superadmin accounts are
@@ -948,6 +973,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
                 : 'Register'}
             </Text>
           </Pressable>
+          </View>
         </View>
         <PublicWebsiteLinks audience="signed_out" />
         </ScrollView>
@@ -2543,6 +2569,44 @@ const styles = StyleSheet.create({
   },
   categoryClearChipText: { fontSize: 13, fontWeight: '700', color: colors.brandPrimary },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  registerScrollWide: {
+    alignItems: 'center',
+  },
+  registerSplitCol: {
+    width: '100%',
+    flexDirection: 'column',
+  },
+  registerSplitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    gap: 20,
+  },
+  registerSplitRowMax: {
+    maxWidth: 900,
+  },
+  registerHeroNarrow: {
+    width: '100%',
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.softPanel,
+  },
+  registerHeroWide: {
+    width: '44%',
+    maxWidth: 320,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.softPanel,
+  },
+  registerHeroImg: {
+    width: '100%',
+    backgroundColor: colors.border,
+  },
   registerCard: {
     padding: 16,
     borderRadius: 16,
@@ -2550,6 +2614,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
     maxWidth: 520,
+  },
+  registerCardWide: {
+    flex: 1,
+    minWidth: 0,
+    alignSelf: 'stretch',
+    maxWidth: 560,
   },
   registerField: {
     minHeight: 48,
