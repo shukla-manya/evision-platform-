@@ -88,6 +88,7 @@ import {
   publicSupportPhoneDisplay,
   publicSupportTelHref,
 } from './src/config/publicMarketing';
+import { BrowseBySiteAnimatedSvg } from './src/components/BrowseBySiteAnimatedSvg';
 import { CCTV_HOME_BROWSE_TILES } from './src/lib/home-cctv-mobile-tiles';
 import { HOME_HERO_SLIDES } from './src/lib/home-hero-slides';
 import { ACCOUNT_ROLES_SUMMARY } from './src/lib/userRoles';
@@ -1597,6 +1598,7 @@ function HomeScreen({ navigation, userRole }: { navigation: any; userRole?: stri
                   <Text style={styles.categorySeeAll}>See all</Text>
                 </Pressable>
               </View>
+              <BrowseBySiteAnimatedSvg />
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
