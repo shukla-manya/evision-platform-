@@ -12,7 +12,12 @@ import { saveToken, parseJwt, redirectByRole } from '@/lib/auth';
 import { TechnicianApplicationForm } from '@/components/register/TechnicianApplicationForm';
 import { publicBrandName } from '@/lib/public-brand';
 import { OtpCells } from '@/components/auth/OtpCells';
-import { getBrowserGeolocation, resolveRegistrationCoordinates, reverseGeocodeIndia } from '@/lib/registration-geo';
+import {
+  getBrowserGeolocation,
+  isBrowserGeolocationContextBlocked,
+  resolveRegistrationCoordinates,
+  reverseGeocodeIndia,
+} from '@/lib/registration-geo';
 import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
 import { REGISTER_SELF_SERVE_TABS } from '@/lib/user-roles';
 
@@ -94,9 +99,17 @@ export default function RegisterPage() {
   async function fillAddressFromGeo(kind: 'customer' | 'dealer') {
     setGeoAddrLoading(true);
     try {
+      if (isBrowserGeolocationContextBlocked()) {
+        toast.error(
+          'This page must be served over HTTPS (except on localhost) for the browser to allow location. Use HTTPS or type your address manually.',
+        );
+        return;
+      }
       const pos = await getBrowserGeolocation();
       if (!pos) {
-        toast.error('Could not read your location. Allow access or type your address manually.');
+        toast.error(
+          'Could not read your location. Allow location for this site in the browser settings, then try again — or type your address manually.',
+        );
         return;
       }
       const parsed = await reverseGeocodeIndia(pos.lat, pos.lng);

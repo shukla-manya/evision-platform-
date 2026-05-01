@@ -7,7 +7,12 @@ import { ArrowRight, Loader2, Mail, MapPin, Navigation, Upload, User } from 'luc
 import toast from 'react-hot-toast';
 import { authApi, registerElectricianFormData } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
-import { getBrowserGeolocation, resolveRegistrationCoordinates, reverseGeocodeIndia } from '@/lib/registration-geo';
+import {
+  getBrowserGeolocation,
+  isBrowserGeolocationContextBlocked,
+  resolveRegistrationCoordinates,
+  reverseGeocodeIndia,
+} from '@/lib/registration-geo';
 import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
 import { OtpCells } from '@/components/auth/OtpCells';
 
@@ -65,9 +70,17 @@ export function TechnicianApplicationForm({ embedded = false }: TechnicianApplic
   async function fillTechAreaFromGeo() {
     setGeoTechLoading(true);
     try {
+      if (isBrowserGeolocationContextBlocked()) {
+        toast.error(
+          'This page must be served over HTTPS (except on localhost) for the browser to allow location. Use HTTPS or enter city and pincode manually.',
+        );
+        return;
+      }
       const pos = await getBrowserGeolocation();
       if (!pos) {
-        toast.error('Could not read your location. Allow access or enter city and pincode manually.');
+        toast.error(
+          'Could not read your location. Allow location for this site in the browser settings, then try again — or enter city and pincode manually.',
+        );
         return;
       }
       cachedGpsRef.current = pos;
