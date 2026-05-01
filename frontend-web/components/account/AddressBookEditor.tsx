@@ -148,7 +148,7 @@ export function AddressBookEditor({
     const next = book.filter((_, j) => j !== i);
     const nextNorm = ensureOneDefault(normalizeBook(next));
     const saved = await persist(nextNorm);
-    if (!saved || !onSelectedIdxChange) return;
+    if (!saved || variant !== 'checkout' || !onSelectedIdxChange) return;
     if (saved.length === 0) {
       onSelectedIdxChange(0);
       return;
