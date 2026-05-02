@@ -968,6 +968,17 @@ function HomeScreen() {
   const quoteImgH = 288;
   const customQuoteMotion = useRef(new Animated.Value(0)).current;
 
+  const [showcaseCombos, setShowcaseCombos] = useState<Product[]>([]);
+  useEffect(() => {
+    productApi
+      .getHomeShowcase()
+      .then((res) => {
+        const combos = Array.isArray(res.data?.combos) ? (res.data!.combos as Product[]).slice(0, 2) : [];
+        setShowcaseCombos(combos);
+      })
+      .catch(() => setShowcaseCombos([]));
+  }, []);
+
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -1135,31 +1146,71 @@ function HomeScreen() {
                 </Pressable>
               </View>
               <View style={[styles.collectionCards, collectionTwoColumn ? styles.collectionCardsRow : null]}>
-                {HOME_COMBO_PREVIEW_ITEMS.map((item) => (
-                  <Pressable
-                    key={item.name}
-                    style={[styles.collectionCard, collectionTwoColumn ? styles.collectionCardRow : null]}
-                    onPress={() =>
-                      void Linking.openURL(publicWebUrl(`/shop?search=${encodeURIComponent(item.searchQuery)}`))
-                    }
-                    accessibilityRole="link"
-                    accessibilityLabel={`${item.name}, ${formatINR(item.priceInr)}`}
-                  >
-                    <View style={styles.collectionCardImageArea}>
-                      <MaterialCommunityIcons name="video-outline" size={34} color={colors.muted} style={{ opacity: 0.4 }} />
-                    </View>
-                    <View style={styles.collectionCardInner}>
-                      <Text style={styles.collectionCardCat} numberOfLines={2}>
-                        {item.categoryLine}
-                      </Text>
-                      <Text style={styles.collectionCardName} numberOfLines={2}>
-                        {item.name}
-                      </Text>
-                      <Text style={styles.collectionCardPrice}>{formatINR(item.priceInr)}</Text>
-                      <Text style={styles.collectionCardStock}>{item.inStock ? 'In stock' : 'Out of stock'}</Text>
-                    </View>
-                  </Pressable>
-                ))}
+                {(showcaseCombos.length > 0 ? showcaseCombos : null)?.map((p) => {
+                  const img = p.images?.[0];
+                  const price = Number(p.price_customer || 0);
+                  const ok = p.stock == null || Number(p.stock) > 0;
+                  const lr = Number(p.listing_rating ?? p.rating_avg ?? 0);
+                  const cnt = Number(p.listing_review_count ?? p.rating_count ?? 0);
+                  const catLine = [p.category_name, p.brand].filter(Boolean).join(' · ') || 'Catalogue';
+                  return (
+                    <Pressable
+                      key={p.id}
+                      style={[styles.collectionCard, collectionTwoColumn ? styles.collectionCardRow : null]}
+                      onPress={() => navigation.navigate('ProductDetail', { product: p })}
+                      accessibilityRole="link"
+                      accessibilityLabel={`${p.name}, ${formatINR(price)}`}
+                    >
+                      <View style={styles.collectionCardImageArea}>
+                        {img ? (
+                          <Image source={{ uri: img }} style={styles.collectionCardImage} resizeMode="cover" />
+                        ) : (
+                          <MaterialCommunityIcons name="video-outline" size={34} color={colors.muted} style={{ opacity: 0.4 }} />
+                        )}
+                      </View>
+                      <View style={styles.collectionCardInner}>
+                        <Text style={styles.collectionCardCat} numberOfLines={2}>
+                          {catLine}
+                        </Text>
+                        <Text style={styles.collectionCardName} numberOfLines={2}>
+                          {p.name}
+                        </Text>
+                        {lr >= 1 && cnt > 0 ? (
+                          <Text style={styles.collectionCardRating}>
+                            ★ {lr.toFixed(2)} ({cnt} review{cnt === 1 ? '' : 's'})
+                          </Text>
+                        ) : null}
+                        <Text style={styles.collectionCardPrice}>{formatINR(price)}</Text>
+                        <Text style={styles.collectionCardStock}>{ok ? 'In stock' : 'Out of stock'}</Text>
+                      </View>
+                    </Pressable>
+                  );
+                }) ??
+                  HOME_COMBO_PREVIEW_ITEMS.map((item) => (
+                    <Pressable
+                      key={item.name}
+                      style={[styles.collectionCard, collectionTwoColumn ? styles.collectionCardRow : null]}
+                      onPress={() =>
+                        void Linking.openURL(publicWebUrl(`/shop?search=${encodeURIComponent(item.searchQuery)}`))
+                      }
+                      accessibilityRole="link"
+                      accessibilityLabel={`${item.name}, ${formatINR(item.priceInr)}`}
+                    >
+                      <View style={styles.collectionCardImageArea}>
+                        <MaterialCommunityIcons name="video-outline" size={34} color={colors.muted} style={{ opacity: 0.4 }} />
+                      </View>
+                      <View style={styles.collectionCardInner}>
+                        <Text style={styles.collectionCardCat} numberOfLines={2}>
+                          {item.categoryLine}
+                        </Text>
+                        <Text style={styles.collectionCardName} numberOfLines={2}>
+                          {item.name}
+                        </Text>
+                        <Text style={styles.collectionCardPrice}>{formatINR(item.priceInr)}</Text>
+                        <Text style={styles.collectionCardStock}>{item.inStock ? 'In stock' : 'Out of stock'}</Text>
+                      </View>
+                    </Pressable>
+                  ))}
               </View>
             </View>
 
@@ -2152,7 +2203,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    overflow: 'hidden',
   },
+  collectionCardImage: { width: '100%', height: '100%' },
+  collectionCardRating: { fontSize: 11, fontWeight: '700', color: '#D97706', marginTop: 4 },
   collectionCardInner: { padding: 12, gap: 4 },
   collectionCardCat: {
     fontSize: 10,

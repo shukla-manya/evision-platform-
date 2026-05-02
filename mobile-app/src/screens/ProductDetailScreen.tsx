@@ -238,8 +238,10 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
     }
   };
 
+  const canPostReview = userRole === 'customer' || userRole === 'dealer';
+
   const submitProductReview = async () => {
-    if (!canAddToCart) {
+    if (!canPostReview) {
       Alert.alert('Sign in', 'Sign in as a customer or dealer to post a review.');
       return;
     }
@@ -464,7 +466,7 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
                   ))}
                 </View>
               )}
-              {canAddToCart ? (
+              {canPostReview ? (
                 <View style={styles.reviewForm}>
                   <Text style={styles.reviewFormTitle}>Write a review</Text>
                   <Text style={styles.reviewFormHint}>One per account; submit again to update.</Text>
