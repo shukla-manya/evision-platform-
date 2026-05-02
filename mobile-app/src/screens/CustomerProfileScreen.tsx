@@ -63,7 +63,8 @@ type Props = {
   onLogout: () => void;
   fcmToken: string | null;
   onOpenServiceHistory?: () => void;
-  navigation?: { getParent?: () => { navigate?: (name: string) => void } | undefined; navigate?: (name: string) => void };
+  /** Tab screen navigation — used for Checkout / in-app About+Contact when nested under root stack. */
+  navigation?: { getParent?: () => any; navigate?: (name: string) => void };
 };
 
 export function CustomerProfileScreen({ user, onLogout, fcmToken, onOpenServiceHistory, navigation }: Props) {
