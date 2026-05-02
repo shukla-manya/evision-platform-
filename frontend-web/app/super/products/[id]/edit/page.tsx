@@ -160,7 +160,7 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
   if (loading) {
     return (
       <SuperadminShell>
-        <main className="w-full min-w-0 flex items-center gap-2 py-8 text-ev-muted">
+        <main className="mx-auto w-full min-w-0 max-w-3xl flex items-center gap-2 py-8 text-ev-muted px-3 sm:px-4">
           <Loader2 className="animate-spin text-ev-primary" size={22} />
           Loading…
         </main>
@@ -170,13 +170,17 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
 
   return (
     <SuperadminShell>
-      <main className="w-full min-w-0 max-w-3xl">
-        <Link href="/super/products" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-4">
-          <ArrowLeft size={14} /> Products
+      <main className="mx-auto w-full min-w-0 max-w-3xl px-3 pb-6 sm:px-4 md:px-6">
+        <Link
+          href="/super/products"
+          className="ev-btn-secondary mb-4 inline-flex w-full min-h-11 shrink-0 items-center justify-center gap-2 py-2.5 text-sm sm:mb-5 sm:w-auto sm:min-h-0 sm:justify-start sm:px-4"
+        >
+          <ArrowLeft size={16} className="shrink-0" aria-hidden />
+          Products
         </Link>
-        <h1 className="text-2xl font-bold text-ev-text mb-2">Edit product</h1>
-        <p className="text-ev-muted text-sm mb-6">Update catalogue details and pricing.</p>
-        <form onSubmit={onSubmit} className="ev-card p-6 sm:p-8 space-y-5">
+        <h1 className="mb-1.5 pr-1 text-xl font-bold text-ev-text break-words sm:mb-2 sm:text-2xl">Edit product</h1>
+        <p className="mb-5 max-w-prose break-words text-sm text-ev-muted sm:mb-6">Update catalogue details and pricing.</p>
+        <form onSubmit={onSubmit} className="ev-card min-w-0 space-y-4 p-4 sm:space-y-5 sm:p-6 md:p-8">
           <div>
             <label className="ev-label">Product name</label>
             <input
@@ -424,22 +428,31 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
             />
             Active (visible in catalogue)
           </label>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <button type="submit" className="ev-btn-primary flex items-center gap-2 px-6 py-2.5" disabled={saving}>
-              {saving ? <Loader2 size={18} className="animate-spin" /> : null}
-              Save changes
-            </button>
-            <Link href="/super/products" className="ev-btn-secondary py-2.5 px-4 text-sm">
-              Cancel
-            </Link>
+          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:flex-wrap sm:items-center">
             <button
               type="button"
               onClick={onDelete}
-              className="ml-auto inline-flex items-center gap-2 text-sm text-ev-error hover:bg-ev-error/10 px-4 py-2.5 rounded-xl border border-ev-error/30"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-ev-error/30 px-4 py-2.5 text-sm text-ev-error hover:bg-ev-error/10 sm:order-last sm:ml-auto sm:min-h-0 sm:w-auto"
             >
-              <Trash2 size={16} />
+              <Trash2 size={16} aria-hidden />
               Delete
             </button>
+            <div className="flex flex-col gap-3 sm:flex-1 sm:flex-row sm:flex-wrap sm:gap-3">
+              <button
+                type="submit"
+                className="ev-btn-primary flex min-h-11 w-full items-center justify-center gap-2 px-6 py-2.5 sm:min-h-0 sm:w-auto"
+                disabled={saving}
+              >
+                {saving ? <Loader2 size={18} className="animate-spin" aria-hidden /> : null}
+                Save changes
+              </button>
+              <Link
+                href="/super/products"
+                className="ev-btn-secondary flex min-h-11 w-full items-center justify-center py-2.5 text-center text-sm sm:min-h-0 sm:w-auto sm:px-4"
+              >
+                Cancel
+              </Link>
+            </div>
           </div>
         </form>
       </main>
