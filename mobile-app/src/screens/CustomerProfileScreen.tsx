@@ -63,7 +63,7 @@ type Props = {
   onLogout: () => void;
   fcmToken: string | null;
   onOpenServiceHistory?: () => void;
-  /** Tab screen navigation — used for Checkout / in-app About+Contact when nested under root stack. */
+  /** Tab screen navigation — used for in-app About+Contact when nested under root stack. */
   navigation?: { getParent?: () => any; navigate?: (name: string) => void };
 };
 
@@ -115,14 +115,6 @@ export function CustomerProfileScreen({ user, onLogout, fcmToken, onOpenServiceH
       /* ignore */
     }
   }
-
-  const goCheckout = () => {
-    try {
-      navigation?.navigate?.('Checkout');
-    } catch {
-      void Linking.openURL(publicWebUrl('/checkout'));
-    }
-  };
 
   const displayName = me?.name || user?.name;
   const displayEmail = me?.email || user?.email;
@@ -192,7 +184,11 @@ export function CustomerProfileScreen({ user, onLogout, fcmToken, onOpenServiceH
                         <View key={String(a.id || i)} style={styles.addrRow}>
                           <View style={styles.addrHead}>
                             <Text style={styles.addrLabel}>{a.label || 'Address'}</Text>
-                            {a.is_default ? <Text style={styles.badgeDefault}>Default</Text> : null}
+                            {a.is_default ? (
+                              <View style={styles.badgeDefaultWrap}>
+                                <Text style={styles.badgeDefaultText}>Default</Text>
+                              </View>
+                            ) : null}
                           </View>
                           <Text style={styles.addrBody}>
                             {[a.address, a.city, a.state, a.pincode].filter(Boolean).join(', ')}
@@ -200,14 +196,12 @@ export function CustomerProfileScreen({ user, onLogout, fcmToken, onOpenServiceH
                         </View>
                       ))
                     )}
-                    <Text style={styles.hint}>
-                      Delivery addresses for orders. Edit or add addresses on the website for the full editor.
-                    </Text>
-                    <Pressable style={styles.btnSecondary} onPress={() => void Linking.openURL(publicWebUrl('/profile'))}>
-                      <Text style={styles.btnSecondaryText}>Edit addresses on website</Text>
-                    </Pressable>
-                    <Pressable style={[styles.btnSecondary, { marginTop: 10 }]} onPress={goCheckout}>
-                      <Text style={styles.btnSecondaryText}>Go to checkout</Text>
+                    <Pressable
+                      style={({ pressed }) => [styles.btnPrimary, pressed && styles.btnPressed]}
+                      onPress={() => void Linking.openURL(publicWebUrl('/profile'))}
+                      android_ripple={{ color: 'rgba(255,255,255,0.25)' }}
+                    >
+                      <Text style={styles.btnPrimaryText}>Edit addresses on website</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -330,8 +324,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   addrHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 },
-  addrLabel: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, flex: 1 },
-  badgeDefault: { fontSize: 11, fontWeight: '700', color: colors.brandPrimary },
+  addrLabel: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, flex: 1, minWidth: 0 },
+  badgeDefaultWrap: {
+    flexShrink: 0,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(232, 83, 42, 0.35)',
+    backgroundColor: 'rgba(232, 83, 42, 0.1)',
+  },
+  badgeDefaultText: { fontSize: 12, fontWeight: '800', color: colors.brandPrimary, letterSpacing: 0.2 },
   addrBody: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
   hint: { fontSize: 12, color: colors.textSecondary, lineHeight: 18, marginTop: 4 },
   switchRow: {
@@ -349,7 +352,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.12,
+        shadowRadius: 2,
+      },
+      android: { elevation: 2 },
+    }),
   },
+  btnPressed: { opacity: 0.92 },
   btnPrimaryText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   btnSecondary: {
     borderWidth: 1,
