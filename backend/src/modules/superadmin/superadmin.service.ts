@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
-import { AdminService } from '../admin/admin.service';
 import { ElectricianService } from '../electrician/electrician.service';
 import { ReviewsService } from '../reviews/reviews.service';
 import { EmailService } from '../emails/email.service';
@@ -30,40 +29,11 @@ export class SuperadminService {
 
   constructor(
     private dynamo: DynamoService,
-    private adminService: AdminService,
     private electricianService: ElectricianService,
     private reviewsService: ReviewsService,
     private emailService: EmailService,
     private pushService: PushService,
   ) {}
-
-  async getPendingAdmins() {
-    return this.adminService.getPendingAdmins();
-  }
-
-  async getAllAdmins() {
-    return this.adminService.getAllAdmins();
-  }
-
-  async approveAdmin(id: string) {
-    return this.adminService.approve(id);
-  }
-
-  async rejectAdmin(id: string, reason?: string) {
-    return this.adminService.reject(id, reason);
-  }
-
-  async suspendAdmin(id: string) {
-    return this.adminService.suspend(id);
-  }
-
-  async setPlatformCommission(id: string, pct: number) {
-    return this.adminService.setPlatformCommission(id, pct);
-  }
-
-  async markShopSettled(id: string) {
-    return this.adminService.markSettlementComplete(id);
-  }
 
   async getPendingElectricians() {
     return this.electricianService.getPendingElectricians();
@@ -132,14 +102,6 @@ export class SuperadminService {
       this.dynamo.scanAllPages({ TableName: this.dynamo.tableName('orders') }),
       this.dynamo.scanAllPages({ TableName: this.dynamo.tableName('electricians') }),
     ]);
-
-    const adminStats = {
-      total: admins.length,
-      pending: admins.filter((a) => a.status === 'pending').length,
-      approved: admins.filter((a) => a.status === 'approved').length,
-      rejected: admins.filter((a) => a.status === 'rejected').length,
-      suspended: admins.filter((a) => a.status === 'suspended').length,
-    };
 
     /** Counts rows in `users` by `role`. Technicians on the field team use the `electricians` table (see `active_electricians`). */
     const userStats = {
@@ -229,7 +191,6 @@ export class SuperadminService {
     const active_electricians = electricians.filter((e) => String(e.status) === 'approved').length;
 
     return {
-      admins: adminStats,
       users: userStats,
       emails: emailStats,
       orders: {
@@ -295,65 +256,6 @@ export class SuperadminService {
       error_message: e.error_message ? String(e.error_message) : null,
       sent_at: String(e.sent_at || ''),
     }));
-  }
-
-  async getSettlements() {
-    const [admins, orders] = await Promise.all([
-      this.dynamo.scan({ TableName: this.dynamo.tableName('admins') }),
-      this.dynamo.scan({ TableName: this.dynamo.tableName('orders') }),
-    ]);
-
-    const validOrders = orders.filter((o) => isOrderCountable(String(o.status)));
-    const adminById = new Map(admins.map((a) => [String(a.id), a]));
-
-    const total_collected = validOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
-    const platform_commission_earned = validOrders.reduce((sum, o) => {
-      const a = adminById.get(String(o.admin_id));
-      const pct = Number(a?.platform_commission_pct ?? 10);
-      return sum + (Number(o.total_amount || 0) * pct) / 100;
-    }, 0);
-    const lifetime_net_to_shops = total_collected - platform_commission_earned;
-
-    const shopRows = admins
-      .filter((a) => a.status === 'approved' || a.status === 'suspended')
-      .map((admin) => {
-        const id = String(admin.id);
-        const pct = Number(admin.platform_commission_pct ?? 10);
-        const settledAfter = admin.last_settlement_at ? new Date(String(admin.last_settlement_at)).getTime() : 0;
-        const periodOrders = validOrders.filter((o) => {
-          if (String(o.admin_id) !== id) return false;
-          const t = new Date(String(o.created_at || 0)).getTime();
-          return t > settledAfter;
-        });
-        const orders_this_period = periodOrders.length;
-        const gross = periodOrders.reduce((s, o) => s + Number(o.total_amount || 0), 0);
-        const commission = Math.round(gross * (pct / 100) * 100) / 100;
-        const net_payable = Math.round((gross - commission) * 100) / 100;
-
-        return {
-          admin_id: id,
-          shop_name: String(admin.shop_name || 'Shop'),
-          orders_this_period,
-          gross_amount: Math.round(gross * 100) / 100,
-          commission_deducted: commission,
-          net_payable,
-          platform_commission_pct: pct,
-          last_settled_at: admin.last_settlement_at ? String(admin.last_settlement_at) : null,
-        };
-      });
-
-    const pending_to_settle = shopRows.reduce((s, r) => s + r.net_payable, 0);
-    const total_settled = Math.max(0, lifetime_net_to_shops - pending_to_settle);
-
-    return {
-      summary: {
-        total_collected: Math.round(total_collected * 100) / 100,
-        total_settled: Math.round(total_settled * 100) / 100,
-        pending_to_settle: Math.round(pending_to_settle * 100) / 100,
-        platform_commission_earned: Math.round(platform_commission_earned * 100) / 100,
-      },
-      shops: shopRows,
-    };
   }
 
   async verifyDealerGst(userId: string): Promise<{ message: string; user_id: string }> {

@@ -8,7 +8,6 @@ const ROLE_LABELS: Record<string, string> = {
   electrician: 'Technician',
   electrician_pending: 'Technician (pending)',
   electrician_rejected: 'Technician (rejected)',
-  admin: 'Admin',
   superadmin: 'Superadmin',
 };
 
@@ -26,11 +25,11 @@ export function roleDisplayLabel(role: string | undefined | null): string {
     .join(' ');
 }
 
-/** Shop admins reset password via email OTP (SMTP). */
-export type PasswordResetApiRole = 'admin';
+/** Technicians reset password via email OTP (SMTP). */
+export type PasswordResetApiRole = 'electrician';
 
 export const PASSWORD_RESET_ROLE_OPTIONS: { value: PasswordResetApiRole; label: string }[] = [
-  { value: 'admin', label: 'Shop admin' },
+  { value: 'electrician', label: 'Technician' },
 ];
 
 /** Public self-serve registration tabs (technician = electrician in API). */

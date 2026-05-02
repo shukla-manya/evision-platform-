@@ -4,14 +4,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
-import {
-  RegisterDto,
-  AdminLoginDto,
-  SuperadminLoginDto,
-  PasswordResetStartDto,
-  PasswordResetCompleteDto,
-} from './dto/register.dto';
-import { AdminSetupPasswordDto } from './dto/admin-setup-password.dto';
+import { RegisterDto, SuperadminLoginDto, PasswordResetStartDto, PasswordResetCompleteDto } from './dto/register.dto';
 import { UpdateDeviceTokenDto } from './dto/update-device-token.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -56,33 +49,16 @@ export class AuthController {
 
   @Public()
   @Post('password/reset/start')
-  @ApiOperation({ summary: 'Start password reset via email OTP (shop admin or electrician only)' })
+  @ApiOperation({ summary: 'Start password reset via email OTP (technician accounts only)' })
   passwordResetStart(@Body() dto: PasswordResetStartDto) {
     return this.authService.passwordResetStart(dto);
   }
 
   @Public()
   @Post('password/reset/complete')
-  @ApiOperation({ summary: 'Complete password reset with OTP (shop admin or electrician only)' })
+  @ApiOperation({ summary: 'Complete password reset with OTP (technician accounts only)' })
   passwordResetComplete(@Body() dto: PasswordResetCompleteDto) {
     return this.authService.passwordResetComplete(dto);
-  }
-
-  @Public()
-  @Post('admin/login')
-  @ApiOperation({
-    summary:
-      'Shop admin: email + password → JWT (approved only; use approval email link to set password the first time)',
-  })
-  adminLogin(@Body() dto: AdminLoginDto) {
-    return this.authService.adminLogin(dto);
-  }
-
-  @Public()
-  @Post('admin/setup-password')
-  @ApiOperation({ summary: 'One-time: set password using JWT from approval email, then use admin/login' })
-  adminSetupPassword(@Body() dto: AdminSetupPasswordDto) {
-    return this.authService.adminSetupPasswordFromInvite(dto);
   }
 
   @Public()

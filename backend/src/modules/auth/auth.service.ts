@@ -13,14 +13,7 @@ import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { normalizeClientIp } from '../../common/http/client-ip.util';
-import {
-  RegisterDto,
-  AdminLoginDto,
-  SuperadminLoginDto,
-  PasswordResetStartDto,
-  PasswordResetCompleteDto,
-} from './dto/register.dto';
-import { AdminSetupPasswordDto } from './dto/admin-setup-password.dto';
+import { RegisterDto, SuperadminLoginDto, PasswordResetStartDto, PasswordResetCompleteDto } from './dto/register.dto';
 import type { AddressBookEntryDto } from './dto/update-address-book.dto';
 import { EmailService } from '../emails/email.service';
 
@@ -244,38 +237,28 @@ export class AuthService {
   async passwordResetStart(
     dto: PasswordResetStartDto,
   ): Promise<{ otp_sent: boolean; role: string; email: string }> {
-    const normalizedRole = dto.role;
     const email = this.normalizeOtpEmail(dto.email);
-    const account = await this.findAccountByRoleAndEmail(normalizedRole, email);
+    const account = await this.findElectricianByEmail(email);
     if (!account) throw new UnauthorizedException('Account not found for provided role and email');
     await this.sendOtp(email, { purpose: 'login' });
-    return { otp_sent: true, role: normalizedRole, email };
+    return { otp_sent: true, role: dto.role, email };
   }
 
   async passwordResetComplete(
     dto: PasswordResetCompleteDto,
   ): Promise<{ updated: boolean; role: string }> {
-    const normalizedRole = dto.role;
     const email = this.normalizeOtpEmail(dto.email);
-    const account = await this.findAccountByRoleAndEmail(normalizedRole, email);
+    const account = await this.findElectricianByEmail(email);
     if (!account) throw new UnauthorizedException('Account not found for provided role and email');
     await this.consumeOtp(email, dto.otp);
     const password_hash = await bcrypt.hash(String(dto.new_password || ''), 12);
 
-    if (normalizedRole === 'admin') {
-      await this.dynamo.update(
-        this.dynamo.tableName('admins'),
-        { id: String(account.id) },
-        { password_hash, updated_at: new Date().toISOString() },
-      );
-      return { updated: true, role: normalizedRole };
-    }
     await this.dynamo.update(
       this.dynamo.tableName('electricians'),
       { id: String(account.id) },
       { password_hash, updated_at: new Date().toISOString() },
     );
-    return { updated: true, role: normalizedRole };
+    return { updated: true, role: dto.role };
   }
 
   async updateShopperGeo(userId: string, lat: number, lng: number): Promise<{ lat: number; lng: number; geo_captured_at: string }> {
@@ -311,78 +294,6 @@ export class AuthService {
       { fcm_token: token, fcm_token_updated_at: new Date().toISOString() },
     );
     return { updated: true };
-  }
-
-  // ── Admin Login (email + password) — approved shops only, after password created from approval email ──
-  async adminLogin(dto: AdminLoginDto): Promise<{ access_token: string; admin: any }> {
-    const admin = await this.findAdminByEmail(dto.email);
-    if (!admin) throw new UnauthorizedException('Invalid credentials');
-
-    const st = String(admin.status || '').toLowerCase();
-    if (st === 'pending') {
-      throw new UnauthorizedException(
-        'Your shop registration is still under review. You will receive an email when it is approved.',
-      );
-    }
-    if (st === 'rejected') {
-      throw new UnauthorizedException('Your shop registration was not approved.');
-    }
-    if (st === 'suspended') {
-      throw new UnauthorizedException('Your shop account has been suspended.');
-    }
-    if (st !== 'approved') {
-      throw new UnauthorizedException('Your account is not available for sign-in.');
-    }
-
-    const ph = String(admin.password_hash || '');
-    if (!ph) {
-      throw new UnauthorizedException(
-        'You have not created a password yet. Open the link in your approval email to set your password, then sign in here.',
-      );
-    }
-
-    const valid = await bcrypt.compare(dto.password, ph);
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
-
-    const token = this.signToken(String(admin.id), 'admin', String(admin.email || ''), String(admin.phone || ''));
-    const { password_hash, ...safeAdmin } = admin;
-    return { access_token: token, admin: safeAdmin };
-  }
-
-  /** One-time password creation after superadmin approval (JWT from email). */
-  async adminSetupPasswordFromInvite(dto: AdminSetupPasswordDto): Promise<{ message: string }> {
-    let payload: { sub?: string; purpose?: string };
-    try {
-      payload = this.jwt.verify<{ sub?: string; purpose?: string }>(dto.token);
-    } catch {
-      throw new UnauthorizedException('Invalid or expired setup link');
-    }
-    if (payload.purpose !== 'admin_password_setup' || !payload.sub) {
-      throw new UnauthorizedException('Invalid setup link');
-    }
-
-    const admin = await this.dynamo.get(this.dynamo.tableName('admins'), { id: payload.sub });
-    if (!admin) throw new NotFoundException('Admin not found');
-    if (String(admin.status || '') !== 'approved') {
-      throw new BadRequestException('Your shop must be approved before you can set a password.');
-    }
-    const existing = String(admin.password_hash || '');
-    if (existing.length > 0) {
-      throw new BadRequestException(
-        'A password is already set for this account. Sign in with your email and password, or reset it with the email OTP flow.',
-      );
-    }
-
-    const password_hash = await bcrypt.hash(dto.new_password, 12);
-    const now = new Date().toISOString();
-    await this.dynamo.update(this.dynamo.tableName('admins'), { id: payload.sub }, {
-      password_hash,
-      password_set_at: now,
-      updated_at: now,
-    });
-    return {
-      message: 'Your password has been created. You can now sign in with your email and password.',
-    };
   }
 
   // ── Superadmin Login ──────────────────────────────────────────────────────
@@ -448,11 +359,6 @@ export class AuthService {
       const e = await this.dynamo.get(this.dynamo.tableName('electricians'), { id: user.id });
       if (!e) throw new NotFoundException('Profile not found');
       return strip(e as Record<string, unknown>);
-    }
-    if (role === 'admin') {
-      const a = await this.dynamo.get(this.dynamo.tableName('admins'), { id: user.id });
-      if (!a) throw new NotFoundException('Admin not found');
-      return strip(a as Record<string, unknown>);
     }
     if (role === 'superadmin') {
       const s = await this.dynamo.get(this.dynamo.tableName('superadmin'), { id: user.id });
@@ -527,36 +433,6 @@ export class AuthService {
       Limit: 1,
     });
     return items[0] || null;
-  }
-
-  async findAdminByEmail(email: string): Promise<any | null> {
-    const norm = this.normalizeOtpEmail(email);
-    const items = await this.dynamo.query({
-      TableName: this.dynamo.tableName('admins'),
-      IndexName: 'EmailIndex',
-      KeyConditionExpression: 'email = :email',
-      ExpressionAttributeValues: { ':email': norm },
-      Limit: 1,
-    });
-    if (items[0]) return items[0];
-    return this.dynamo.findOneByEmailCaseInsensitive(this.dynamo.tableName('admins'), norm);
-  }
-
-  private async findAdminByPhone(phone: string): Promise<any | null> {
-    const items = await this.dynamo.scan({
-      TableName: this.dynamo.tableName('admins'),
-      FilterExpression: 'phone = :phone',
-      ExpressionAttributeValues: { ':phone': phone },
-    });
-    return items[0] || null;
-  }
-
-  private async findAccountByRoleAndEmail(
-    role: 'electrician' | 'admin',
-    email: string,
-  ): Promise<any | null> {
-    if (role === 'admin') return this.findAdminByEmail(email);
-    return this.findElectricianByEmail(email);
   }
 
   /** @param otpKey normalized email (stored under Dynamo attribute `phone` for legacy partition key). */

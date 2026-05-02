@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-/** Shop partner self-registration is disabled; catalogue is superadmin-managed. */
-export default function AdminRegisterPage() {
-  redirect('/');
+/** Shop partner self-registration was removed; catalogue is superadmin-managed. */
+export default function AdminRegisterRedirectPage() {
+  redirect('/shop');
 }

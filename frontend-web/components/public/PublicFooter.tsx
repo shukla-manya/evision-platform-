@@ -216,14 +216,6 @@ export function PublicFooter({ authSurface = false }: PublicFooterProps) {
                       </Link>
                     </li>
                   </ul>
-                ) : role === 'admin' ? (
-                  <ul className="space-y-2">
-                    <li>
-                      <Link href="/contact" className={colLink}>
-                        Contact support
-                      </Link>
-                    </li>
-                  </ul>
                 ) : role === 'superadmin' ? (
                   <ul className="space-y-2">
                     <li>

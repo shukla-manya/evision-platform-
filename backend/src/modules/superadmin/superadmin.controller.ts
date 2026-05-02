@@ -7,13 +7,6 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 
-class RejectReasonDto {
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  reason?: string;
-}
-
 class ReviewElectricianDto {
   @ApiPropertyOptional({ example: 'approve', description: 'approve or reject' })
   @IsOptional()

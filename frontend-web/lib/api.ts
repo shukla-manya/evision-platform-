@@ -69,9 +69,6 @@ export const authApi = {
       new_password,
     }),
   register: (data: Record<string, unknown>) => api.post('/auth/register', data),
-  adminLogin: (email: string, password: string) => api.post('/auth/admin/login', { email, password }),
-  adminSetupPassword: (token: string, new_password: string) =>
-    api.post('/auth/admin/setup-password', { token, new_password }),
   superadminLogin: (email: string, password: string) => api.post('/auth/superadmin/login', { email, password }),
   me: () => api.get('/auth/me'),
   replaceAddressBook: (addresses: Record<string, unknown>[]) =>
@@ -158,10 +155,6 @@ export const ordersApi = {
 export const superadminApi = {
   verifyDealerGst: (userId: string) => api.put(`/superadmin/users/${userId}/verify-dealer-gst`),
   getPendingDealerGst: () => api.get('/superadmin/pending-dealer-gst'),
-  getAllAdmins: () => api.get('/superadmin/all-admins'),
-  suspendAdmin: (id: string) => api.put(`/superadmin/admin/${id}/suspend`),
-  setPlatformCommission: (id: string, platform_commission_pct: number) =>
-    api.put(`/superadmin/admin/${id}/commission`, { platform_commission_pct }),
   getPendingElectricians: () => api.get('/superadmin/pending-electricians'),
   reviewElectrician: (id: string, body: { action: 'approve' | 'reject'; reason?: string }) =>
     api.put(`/superadmin/electrician/${id}/approve`, body),

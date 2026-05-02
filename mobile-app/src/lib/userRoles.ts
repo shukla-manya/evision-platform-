@@ -7,7 +7,6 @@ const ROLE_LABELS: Record<string, string> = {
   electrician: 'Technician',
   electrician_pending: 'Technician (pending)',
   electrician_rejected: 'Technician (rejected)',
-  admin: 'Admin',
   superadmin: 'Superadmin',
 };
 
@@ -24,4 +23,6 @@ export function roleDisplayLabel(role: string | undefined | null): string {
     .join(' ');
 }
 
-export const PASSWORD_RESET_ROLE_OPTIONS: { value: 'admin'; label: string }[] = [{ value: 'admin', label: 'Shop admin' }];
+export const PASSWORD_RESET_ROLE_OPTIONS: { value: 'electrician'; label: string }[] = [
+  { value: 'electrician', label: 'Technician' },
+];

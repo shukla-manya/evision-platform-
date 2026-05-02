@@ -58,7 +58,7 @@ function displayPrice(p: Product, role?: string | null): { label: string; second
     if (v == null || Number.isNaN(Number(v))) return { label: '—' };
     return { label: formatInr(Number(v)) };
   }
-  if (role === 'admin' || role === 'superadmin') {
+  if (role === 'superadmin') {
     const c = p.price_customer;
     const d = p.price_dealer;
     return {

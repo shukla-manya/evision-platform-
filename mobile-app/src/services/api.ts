@@ -37,7 +37,7 @@ export type OtpVerifyResponse = {
   is_registered: boolean;
 };
 
-export type PasswordResetRole = 'admin';
+export type PasswordResetRole = 'electrician';
 
 export type RegisterRequest = {
   name: string;
@@ -169,8 +169,6 @@ export type ElectricianProfile = {
 };
 
 export const authApi = {
-  adminLogin: (email: string, password: string) =>
-    api.post<{ access_token: string; admin: unknown }>('/auth/admin/login', { email, password }),
   superadminLogin: (email: string, password: string) =>
     api.post<{ access_token: string }>('/auth/superadmin/login', { email, password }),
   sendOtp: (email: string, extra?: { purpose?: 'signup' }) =>

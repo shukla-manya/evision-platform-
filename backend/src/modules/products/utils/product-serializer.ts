@@ -15,7 +15,7 @@ function baseWithoutPrices(p: Record<string, unknown>) {
  *
  * - **customer**, **guest**, **unregistered**, **electrician** → only `price_customer`
  * - **dealer** → only `price_dealer`
- * - **admin**, **superadmin** → both `price_customer` and `price_dealer`
+ * - **superadmin** → both `price_customer` and `price_dealer`
  */
 export function serializeProductForRole(
   product: Record<string, unknown>,
@@ -23,7 +23,7 @@ export function serializeProductForRole(
 ): Record<string, unknown> {
   const out = baseWithoutPrices(product) as Record<string, unknown>;
 
-  if (role === 'admin' || role === 'superadmin') {
+  if (role === 'superadmin') {
     out.price_customer = Number(product.price_customer);
     out.price_dealer = Number(product.price_dealer);
     return out;

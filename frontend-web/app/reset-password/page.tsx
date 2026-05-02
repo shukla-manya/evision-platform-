@@ -12,7 +12,7 @@ import type { PasswordResetApiRole } from '@/lib/user-roles';
 type ResetRole = PasswordResetApiRole;
 
 export default function ResetPasswordPage() {
-  const role: ResetRole = 'admin';
+  const role: ResetRole = 'electrician';
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -60,10 +60,10 @@ export default function ResetPasswordPage() {
         <div className="ev-card p-8">
           <h1 className="text-2xl font-bold text-ev-text mb-1">Reset password</h1>
           <p className="text-ev-muted text-sm mb-6">
-            For <strong className="text-ev-text">approved shop admins</strong> and{' '}
-            <strong className="text-ev-text">technicians with a password</strong>. We email a 6-digit code to the address on
-            your account. <strong className="text-ev-text">Customers and dealers</strong> sign in with an email OTP — no
-            password reset here. <strong className="text-ev-text">Superadmin</strong> uses the dedicated sign-in page.
+            For <strong className="text-ev-text">technicians</strong> with a password on file. We email a 6-digit code to the
+            address on your technician account. <strong className="text-ev-text">Customers and dealers</strong> sign in with
+            an email OTP — no password reset here. <strong className="text-ev-text">Superadmin</strong> uses the dedicated
+            sign-in page.
           </p>
 
           {step === 'start' ? (
@@ -73,7 +73,7 @@ export default function ResetPasswordPage() {
                 <input
                   type="email"
                   className="ev-input"
-                  placeholder="admin@shop.com"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

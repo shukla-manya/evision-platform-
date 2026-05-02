@@ -342,7 +342,7 @@ export class ProductsService {
     if (pid && (role === 'guest' || role === 'customer' || role === 'dealer') && String(p.admin_id) !== pid) {
       throw new NotFoundException('Product not found');
     }
-    if (!p.active && !['admin', 'superadmin'].includes(role)) {
+    if (!p.active && role !== 'superadmin') {
       throw new NotFoundException('Product not found');
     }
     const enriched = await this.enrichShop([p]);
@@ -562,7 +562,7 @@ export class ProductsService {
     const stock = raw?.stock ?? serialized.stock;
     const low = raw?.low_stock_threshold ?? serialized.low_stock_threshold ?? 10;
     const out: Record<string, unknown> = { ...serialized, stock: Number(stock) };
-    if (role === 'admin' || role === 'superadmin') {
+    if (role === 'superadmin') {
       out.is_low_stock = Number(stock) <= Number(low);
     }
     return out;

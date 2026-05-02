@@ -91,17 +91,6 @@ export class RegisterDto {
   lng?: number;
 }
 
-export class AdminLoginDto {
-  @ApiProperty({ example: 'admin@shop.com' })
-  @IsEmail()
-  email: string;
-
-  @ApiProperty({ example: 'SecurePass@123' })
-  @IsString()
-  @MinLength(6)
-  password: string;
-}
-
 export class SuperadminLoginDto {
   @ApiProperty({ example: 'superadmin@evisionpvtltd.com' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
@@ -115,22 +104,22 @@ export class SuperadminLoginDto {
 }
 
 export class PasswordResetStartDto {
-  @ApiProperty({ enum: ['electrician', 'admin'], description: 'Customers and dealers sign in with OTP only.' })
-  @IsEnum(['electrician', 'admin'])
-  role: 'electrician' | 'admin';
+  @ApiProperty({ enum: ['electrician'], description: 'Customers and dealers sign in with OTP only.' })
+  @IsEnum(['electrician'])
+  role: 'electrician';
 
-  @ApiProperty({ example: 'admin@shop.com' })
+  @ApiProperty({ example: 'tech@example.com' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsEmail()
   email: string;
 }
 
 export class PasswordResetCompleteDto {
-  @ApiProperty({ enum: ['electrician', 'admin'] })
-  @IsEnum(['electrician', 'admin'])
-  role: 'electrician' | 'admin';
+  @ApiProperty({ enum: ['electrician'] })
+  @IsEnum(['electrician'])
+  role: 'electrician';
 
-  @ApiProperty({ example: 'admin@shop.com' })
+  @ApiProperty({ example: 'tech@example.com' })
   @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
   @IsEmail()
   email: string;

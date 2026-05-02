@@ -1,6 +1,5 @@
 /** Response shape for `GET /superadmin/analytics` — shared by dashboard and analytics pages. */
 export type SuperadminAnalyticsSnapshot = {
-  admins: { total: number; pending: number; approved: number; rejected: number; suspended: number };
   users: {
     total: number;
     customers: number;
