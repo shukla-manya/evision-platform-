@@ -73,7 +73,7 @@ export function ProductDescriptionRich({ text }: { text?: string | null }) {
     i += 1;
   }
 
-  return <div className="space-y-1 text-ev-muted">{nodes}</div>;
+  return <div className="space-y-2">{nodes}</div>;
 }
 
 /** Hero blurb: prefer first bullet points; otherwise first paragraph of prose. */
