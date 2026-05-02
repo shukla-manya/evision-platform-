@@ -168,7 +168,6 @@ const tabScreenOptions = {
   ),
 };
 const RootStack = createNativeStackNavigator<RootStackParamList>();
-const SuperadminStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 type AppUser = {
