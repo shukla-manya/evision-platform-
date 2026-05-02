@@ -52,7 +52,6 @@ import {
   Product,
   CartResponse,
   CheckoutResponse,
-  API_BASE_URL,
 } from './src/services/api';
 import { clearSession, getToken, setElectricianProfile, setToken } from './src/services/storage';
 import { PasswordInputWithToggle } from './src/components/PasswordInputWithToggle';
