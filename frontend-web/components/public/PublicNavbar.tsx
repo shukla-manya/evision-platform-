@@ -33,7 +33,8 @@ export function PublicNavbar() {
   const canCart = role === 'customer' || role === 'dealer';
   const isShopper = role === 'customer' || role === 'dealer';
   const isTechnician = role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected';
-  const hideHomeNavOnSignIn = pathname === '/login';
+  /** Customer sign-in: hide Home + customer Dashboard from the header (desktop + mobile menu). */
+  const hideShopperHomeAndCustomerDashboardOnLogin = pathname === '/login';
 
   const syncCounts = useCallback(() => {
     setHearts(wishlistCount());
@@ -141,7 +142,7 @@ export function PublicNavbar() {
           </Link>
           {isShopper ? (
             <>
-              {!hideHomeNavOnSignIn ? (
+              {!hideShopperHomeAndCustomerDashboardOnLogin ? (
                 <Link
                   href="/"
                   className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
@@ -149,7 +150,7 @@ export function PublicNavbar() {
                   Home
                 </Link>
               ) : null}
-              {role === 'customer' ? (
+              {role === 'customer' && !hideShopperHomeAndCustomerDashboardOnLogin ? (
                 <Link
                   href="/dashboard"
                   className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
