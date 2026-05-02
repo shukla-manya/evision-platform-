@@ -330,7 +330,11 @@ export default function ProductDetailPage() {
         <div className="ev-container py-20 flex flex-col items-center gap-4 text-ev-muted w-full min-w-0">
           <Package size={48} className="opacity-30" />
           <p className="text-ev-text font-medium">Product not found</p>
-          <Link href="/shop" className="ev-btn-secondary py-2 px-4 text-sm">
+          <Link
+            href="/shop"
+            className="ev-btn-secondary inline-flex min-h-11 w-full max-w-xs items-center justify-center gap-2 py-2.5 text-sm sm:min-h-0 sm:w-auto sm:px-4"
+          >
+            <ChevronLeft size={16} className="shrink-0" aria-hidden />
             Back to products
           </Link>
         </div>

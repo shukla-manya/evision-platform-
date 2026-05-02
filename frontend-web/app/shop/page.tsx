@@ -32,8 +32,6 @@ type Category = { id: string; name: string; parent_id?: string | null };
 
 type SortKey = 'relevance' | 'price_asc' | 'price_desc' | 'newest' | 'rating';
 
-type BrandToggleRow = { name: string; count: number };
-
 function formatInr(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 }
@@ -88,9 +86,6 @@ function ShopListingInner() {
   const [loadError, setLoadError] = useState(false);
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [brand, setBrand] = useState('');
-  const [brandOptions, setBrandOptions] = useState<BrandToggleRow[]>([]);
-  const [approvedShopsOnly, setApprovedShopsOnly] = useState(true);
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [inStockOnly, setInStockOnly] = useState(false);
@@ -131,7 +126,7 @@ function ShopListingInner() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, categoryId, brand, minPrice, maxPrice, inStockOnly, minRating, approvedShopsOnly, sort, pageSize]);
+  }, [search, categoryId, minPrice, maxPrice, inStockOnly, minRating, sort, pageSize]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -142,39 +137,20 @@ function ShopListingInner() {
         category_id: categoryId || undefined,
         min_price: minPrice ? Number(minPrice) : undefined,
         max_price: maxPrice ? Number(maxPrice) : undefined,
-        approved_shops_only: approvedShopsOnly,
       };
       const facetParams = {
         search: search.trim() || undefined,
         min_price: minPrice ? Number(minPrice) : undefined,
         max_price: maxPrice ? Number(maxPrice) : undefined,
-        approved_shops_only: approvedShopsOnly,
-        brand: brand.trim() || undefined,
       };
-      const [catRes, prodRes, brandScopeRes, facetRes] = await Promise.all([
+      const [catRes, prodRes, facetRes] = await Promise.all([
         catalogApi.getCategories(),
-        catalogApi.getProducts({
-          ...baseProductParams,
-          brand: brand.trim() || undefined,
-        }),
         catalogApi.getProducts(baseProductParams),
         catalogApi.getProducts(facetParams),
       ]);
       setCategories(Array.isArray(catRes.data) ? catRes.data : []);
       setRawProducts(Array.isArray(prodRes.data) ? prodRes.data : []);
       setFacetProducts(Array.isArray(facetRes.data) ? (facetRes.data as Product[]) : []);
-      const scopeList = Array.isArray(brandScopeRes.data) ? (brandScopeRes.data as Product[]) : [];
-      const byBrand = new Map<string, number>();
-      for (const p of scopeList) {
-        const b = String(p.brand || '').trim();
-        if (!b) continue;
-        byBrand.set(b, (byBrand.get(b) || 0) + 1);
-      }
-      setBrandOptions(
-        [...byBrand.entries()]
-          .map(([name, count]) => ({ name, count }))
-          .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
-      );
     } catch {
       setLoadError(true);
       setCategories([]);
@@ -184,7 +160,7 @@ function ShopListingInner() {
     } finally {
       setLoading(false);
     }
-  }, [search, categoryId, brand, minPrice, maxPrice, approvedShopsOnly]);
+  }, [search, categoryId, minPrice, maxPrice]);
 
   useEffect(() => {
     const t = setTimeout(() => load(), 300);
