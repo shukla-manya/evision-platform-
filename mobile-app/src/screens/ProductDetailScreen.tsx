@@ -195,7 +195,8 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
   const maxQty = product.stock != null ? Math.max(1, Number(product.stock)) : 99;
   const ratingAvg = Number(product.rating_avg || 0);
   const reviewCount = Number(product.rating_count || 0);
-  const blurbs = shortBlurb(product.description);
+  const blurbs = shortProductDescriptionBlurb(product.description);
+  const descLines = useMemo(() => parseProductDescriptionLines(product.description), [product.description]);
   const lowTh = Number(product.low_stock_threshold ?? 10);
   const stockNum = product.stock != null ? Number(product.stock) : null;
   const showUrgency = inStock && stockNum != null && stockNum > 0 && stockNum <= lowTh;
@@ -342,7 +343,11 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
             </Text>
           ) : null}
 
-          {blurbs ? <Text style={styles.blurb}>{blurbs}</Text> : null}
+          {blurbs ? (
+            <Text style={styles.blurb} selectable>
+              {blurbs}
+            </Text>
+          ) : null}
 
           <Text style={[styles.stockLine, inStock ? styles.stockIn : styles.stockOut]}>
             {inStock ? (product.stock != null ? `${product.stock} in stock` : 'In stock') : 'Out of stock'}
@@ -425,7 +430,32 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
         </View>
         <View style={styles.tabPanel}>
           {tab === 'description' ? (
-            <Text style={styles.bodyText}>{product.description || 'No description for this product.'}</Text>
+            <View>
+              {descLines.length === 0 ? (
+                <Text style={styles.bodyText}>No description for this product.</Text>
+              ) : (
+                descLines.map((row, i) => {
+                  if (row.kind === 'blank') {
+                    return <View key={`d-${i}`} style={styles.descSpacer} />;
+                  }
+                  if (row.kind === 'bullet') {
+                    return (
+                      <View key={`d-${i}`} style={styles.descBulletRow}>
+                        <View style={styles.descBulletDot} />
+                        <Text style={styles.descBulletText} selectable>
+                          {row.text}
+                        </Text>
+                      </View>
+                    );
+                  }
+                  return (
+                    <Text key={`d-${i}`} style={styles.descParagraph} selectable>
+                      {row.text}
+                    </Text>
+                  );
+                })
+              )}
+            </View>
           ) : (
             <View>
               {ratingAvg > 0 ? (
@@ -709,6 +739,17 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   bodyText: { fontSize: 14, color: colors.textSecondary, lineHeight: 22 },
+  descSpacer: { height: 10 },
+  descBulletRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10, paddingRight: 4 },
+  descBulletDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.brandPrimary,
+    marginTop: 7,
+  },
+  descBulletText: { flex: 1, fontSize: 14, color: colors.textPrimary, lineHeight: 22 },
+  descParagraph: { fontSize: 14, color: colors.textPrimary, lineHeight: 22, marginBottom: 12 },
   sectionTitle: { fontSize: 17, fontWeight: '800', color: colors.textPrimary },
   sectionSub: { fontSize: 13, color: colors.textSecondary, marginTop: 6, marginBottom: 12 },
   inputLabel: { fontSize: 12, fontWeight: '700', color: colors.textSecondary, marginTop: 10 },

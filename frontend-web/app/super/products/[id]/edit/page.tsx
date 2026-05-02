@@ -193,11 +193,21 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
           <div>
             <label className="ev-label">Description</label>
             <textarea
-              className="ev-input min-h-[100px]"
+              className="ev-input min-h-[160px] font-mono text-sm leading-relaxed"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              placeholder={
+                'One point per line. Use "- " for bullets, e.g.\n- Key benefit one\n- Key benefit two'
+              }
+              spellCheck
               required
             />
+            <p className="text-ev-subtle mt-1.5 text-xs leading-relaxed">
+              Storefront shows each line as a point; lines starting with <span className="font-mono">- </span>,{' '}
+              <span className="font-mono">* </span>, <span className="font-mono">• </span>, or numbered{' '}
+              <span className="font-mono">1. </span>
+              render as a bullet list.
+            </p>
           </div>
           <div>
             <label className="ev-label">Category</label>

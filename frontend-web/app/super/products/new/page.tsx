@@ -118,11 +118,20 @@ export default function AdminProductNewPage() {
           <div>
             <label className="ev-label">Description</label>
             <textarea
-              className="ev-input min-h-[100px]"
+              className="ev-input min-h-[160px] font-mono text-sm leading-relaxed"
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              placeholder={
+                'One point per line. Use "- " at the start of a line for bullets on the storefront, e.g.\n- 1080p video\n- 15m night vision\n- App control'
+              }
+              spellCheck
               required
             />
+            <p className="text-ev-subtle mt-1.5 text-xs leading-relaxed">
+              On the public product page, each line becomes a point; lines starting with <span className="font-mono">- </span>,{' '}
+              <span className="font-mono">* </span>, <span className="font-mono">• </span>, or <span className="font-mono">1. </span>
+              are shown as a proper bullet list.
+            </p>
           </div>
           <div>
             <label className="ev-label">Category</label>
