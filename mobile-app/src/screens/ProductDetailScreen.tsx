@@ -287,7 +287,7 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
               {[product.category_name, product.brand].filter(Boolean).join(' · ')}
             </Text>
           ) : null}
-          <CatalogPlacementHint variant="shopper" />
+          <CatalogPlacementHint />
 
           {ratingAvg > 0 ? (
             <Text style={styles.ratingBlock}>

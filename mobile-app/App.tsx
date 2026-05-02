@@ -60,7 +60,6 @@ import { BlogListScreen, BlogPostScreen } from './src/screens/BlogScreens';
 import { AboutScreen } from './src/screens/AboutScreen';
 import { ContactScreen } from './src/screens/ContactScreen';
 import { ProductDetailScreen } from './src/screens/ProductDetailScreen';
-import { SuperadminWebQueueLinks } from './src/components/SuperadminWebQueueLinks';
 import { setupPushNotifications, subscribeToPushTokenRefresh } from './src/services/notifications';
 import { WebView } from 'react-native-webview';
 import {
@@ -80,7 +79,6 @@ import { ServiceBookingConfirmScreen } from './src/screens/ServiceBookingConfirm
 import { LeaveReviewScreen } from './src/screens/LeaveReviewScreen';
 import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 import { CustomerProfileScreen } from './src/screens/CustomerProfileScreen';
-import { CatalogPlacementHint } from './src/components/CatalogPlacementHint';
 import { EvisionLogo } from './src/components/EvisionLogo';
 import { screenGutter } from './src/theme/layout';
 import { publicWebUrl } from './src/config/publicWeb';
