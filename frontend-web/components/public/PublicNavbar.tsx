@@ -46,9 +46,10 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
   const canCart = role === 'customer' || role === 'dealer';
   const isShopper = role === 'customer' || role === 'dealer';
   const isTechnician = role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected';
-  /** Customer on sign-in/register (or `/login`): hide explicit "Home" nav control; dealers unchanged. */
-  const hideCustomerHomeOnSignIn =
-    role === 'customer' && (authSurface || isCustomerLoginPath(pathname));
+  /** `/login`, `/register`, etc.: no marketing “Home” control; logo goes to shop instead of `/`. */
+  const authSignInHeader = authSurface || isCustomerLoginPath(pathname);
+  const brandHref = authSignInHeader ? '/shop' : '/';
+  const brandAriaLabel = authSignInHeader ? `${publicBrandName} — shop` : publicBrandName;
 
   const syncCounts = useCallback(() => {
     setHearts(wishlistCount());
@@ -104,7 +105,7 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
       className="sticky top-0 z-50 ev-header border-b border-white/10 pt-[env(safe-area-inset-top)]"
     >
       <div className="mx-auto flex min-h-14 w-full min-w-0 max-w-none items-center gap-2 py-2 ev-page-gutter sm:min-h-16 sm:gap-3">
-        <Link href="/" className="flex shrink-0 items-center gap-2 min-w-0" aria-label={publicBrandName}>
+        <Link href={brandHref} className="flex shrink-0 items-center gap-2 min-w-0" aria-label={brandAriaLabel}>
           <EvisionLogo variant="full" wordmark={publicBrandName} height={32} tone="onDark" className="shrink-0" />
         </Link>
 
@@ -156,7 +157,7 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
           </Link>
           {isShopper ? (
             <>
-              {!hideCustomerHomeOnSignIn ? (
+              {!authSignInHeader ? (
                 <Link
                   href="/"
                   className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
@@ -261,7 +262,7 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
           ))}
           {isShopper ? (
             <>
-              {!hideCustomerHomeOnSignIn ? (
+              {!authSignInHeader ? (
                 <Link href="/" className="block py-2.5 text-white/85 hover:text-white font-medium">
                   Home
                 </Link>
