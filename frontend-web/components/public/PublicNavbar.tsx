@@ -17,7 +17,18 @@ const NAV_LINKS = [
   { href: '/technician-services', label: 'Services' },
 ] as const;
 
-export function PublicNavbar() {
+function isCustomerLoginPath(pathname: string | null): boolean {
+  if (!pathname) return false;
+  const base = pathname.split('?')[0]?.replace(/\/+$/, '') ?? '';
+  return base === '/login';
+}
+
+type PublicNavbarProps = {
+  /** From `PublicShell` when rendering `(auth)` layout — minimal header on sign-in/register. */
+  authSurface?: boolean;
+};
+
+export function PublicNavbar({ authSurface = false }: PublicNavbarProps = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -26,15 +37,18 @@ export function PublicNavbar() {
   const [cartItems, setCartItems] = useState(0);
   const [hearts, setHearts] = useState(0);
 
-  const [role, setRole] = useState<string | undefined>(undefined);
+  const [role, setRole] = useState<string | undefined>(() =>
+    typeof window !== 'undefined' ? getRole() : undefined,
+  );
   useEffect(() => {
     queueMicrotask(() => setRole(getRole()));
   }, []);
   const canCart = role === 'customer' || role === 'dealer';
   const isShopper = role === 'customer' || role === 'dealer';
   const isTechnician = role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected';
-  /** Customer sign-in: hide Home + customer Dashboard from the header (desktop + mobile menu). */
-  const hideShopperHomeAndCustomerDashboardOnLogin = pathname === '/login';
+  /** Hide shopper Home + customer Dashboard on auth shell or `/login` (incl. trailing slash). */
+  const hideShopperHomeAndCustomerDashboardOnLogin =
+    authSurface || isCustomerLoginPath(pathname);
 
   const syncCounts = useCallback(() => {
     setHearts(wishlistCount());
