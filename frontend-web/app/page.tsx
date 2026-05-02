@@ -733,23 +733,8 @@ export default function HomePage() {
           <HomeTestimonialsMarquee />
         </section>
 
-        {/* Dealer / technician — hidden while signed in; use header Sign out to register another role */}
-        {sessionLoggedIn ? (
-          <section className="ev-container pb-16" aria-label="Account switching">
-            <p className="text-ev-muted text-sm text-center max-w-xl mx-auto leading-relaxed">
-              To register as a dealer or technician, or to sign in with a different account, choose{' '}
-              <strong className="text-ev-text">Sign out</strong> in the header. Then open{' '}
-              <Link href="/register" className="text-ev-primary font-medium hover:underline">
-                Register
-              </Link>{' '}
-              or{' '}
-              <Link href="/login" className="text-ev-primary font-medium hover:underline">
-                Sign in
-              </Link>
-              .
-            </p>
-          </section>
-        ) : (
+        {/* Dealer / technician — shown to visitors only (same promos as before the signed-in notice was removed) */}
+        {!sessionLoggedIn && (
           <section className="ev-container pb-16 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="ev-card overflow-hidden border-ev-primary/20 flex flex-col md:flex-row md:min-h-[min(100%,280px)]">
               <div className="relative w-full md:w-[44%] shrink-0 aspect-[5/4] sm:aspect-[4/3] md:aspect-auto md:min-h-[220px] bg-ev-surface2 border-b md:border-b-0 md:border-r border-ev-border">
