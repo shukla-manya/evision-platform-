@@ -13,7 +13,6 @@ export default function SuperCategoriesPage() {
   const [items, setItems] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
-  const [parentId, setParentId] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
@@ -39,13 +38,9 @@ export default function SuperCategoriesPage() {
     }
     setSaving(true);
     try {
-      await superadminApi.createCategory({
-        name: n,
-        ...(parentId ? { parent_id: parentId } : {}),
-      });
+      await superadminApi.createCategory({ name: n });
       toast.success('Category created');
       setName('');
-      setParentId('');
       load();
     } catch (err: unknown) {
       toast.error(getApiErrorMessage(err, 'Could not create category'));
@@ -78,29 +73,14 @@ export default function SuperCategoriesPage() {
 
         <form onSubmit={onCreate} className="ev-card p-4 sm:p-6 space-y-4 mb-8">
           <h2 className="text-sm font-semibold text-ev-text">Add category</h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-            <div className="min-w-0">
-              <label className="ev-label">Name</label>
-              <input
-                className="ev-input w-full min-w-0"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. CCTV Cameras"
-              />
-            </div>
-            <div className="min-w-0">
-              <label className="ev-label">Parent (optional)</label>
-              <select className="ev-input w-full min-w-0" value={parentId} onChange={(e) => setParentId(e.target.value)}>
-                <option value="">— Top level —</option>
-                {items
-                  .filter((c) => !c.parent_id)
-                  .map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
+          <div className="min-w-0">
+            <label className="ev-label">Name</label>
+            <input
+              className="ev-input w-full min-w-0"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. CCTV Cameras"
+            />
           </div>
           <button
             type="submit"
