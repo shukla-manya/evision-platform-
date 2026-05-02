@@ -493,25 +493,29 @@ export class AuthService {
   }
 
   private async findUserByEmail(email: string): Promise<any | null> {
+    const norm = this.normalizeOtpEmail(email);
     const items = await this.dynamo.query({
       TableName: this.dynamo.tableName('users'),
       IndexName: 'EmailIndex',
       KeyConditionExpression: 'email = :email',
-      ExpressionAttributeValues: { ':email': email },
+      ExpressionAttributeValues: { ':email': norm },
       Limit: 1,
     });
-    return items[0] || null;
+    if (items[0]) return items[0];
+    return this.dynamo.findOneByEmailCaseInsensitive(this.dynamo.tableName('users'), norm);
   }
 
   private async findElectricianByEmail(email: string): Promise<any | null> {
+    const norm = this.normalizeOtpEmail(email);
     const items = await this.dynamo.query({
       TableName: this.dynamo.tableName('electricians'),
       IndexName: 'EmailIndex',
       KeyConditionExpression: 'email = :email',
-      ExpressionAttributeValues: { ':email': email },
+      ExpressionAttributeValues: { ':email': norm },
       Limit: 1,
     });
-    return items[0] || null;
+    if (items[0]) return items[0];
+    return this.dynamo.findOneByEmailCaseInsensitive(this.dynamo.tableName('electricians'), norm);
   }
 
   private async findElectricianByPhone(phone: string): Promise<any | null> {

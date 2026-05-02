@@ -121,6 +121,18 @@ export class DynamoService implements OnModuleInit, OnModuleDestroy {
     return stripMongoId(doc as Record<string, unknown> | null);
   }
 
+  /**
+   * When `email` GSI equality misses (legacy mixed-case `email` values), resolve by anchored
+   * case-insensitive match. `emailLowerNorm` must already be trimmed + lowercased.
+   */
+  async findOneByEmailCaseInsensitive(table: string, emailLowerNorm: string): Promise<any | null> {
+    const escaped = emailLowerNorm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const doc = await this.send('findOneByEmailCi', () =>
+      this.col(table).findOne({ email: new RegExp(`^${escaped}$`, 'i') }),
+    );
+    return stripMongoId(doc as Record<string, unknown> | null);
+  }
+
   async update(
     table: string,
     key: Record<string, any>,
