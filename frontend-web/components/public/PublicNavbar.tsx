@@ -17,10 +17,10 @@ const NAV_LINKS = [
   { href: '/technician-services', label: 'Services' },
 ] as const;
 
-function isCustomerLoginPath(pathname: string | null): boolean {
+function isAuthSignInPath(pathname: string | null): boolean {
   if (!pathname) return false;
   const base = pathname.split('?')[0]?.replace(/\/+$/, '') ?? '';
-  return base === '/login';
+  return base === '/login' || base === '/register';
 }
 
 type PublicNavbarProps = {
@@ -47,7 +47,7 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
   const isShopper = role === 'customer' || role === 'dealer';
   const isTechnician = role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected';
   /** `/login`, `/register`, etc.: no marketing “Home” control; logo goes to shop instead of `/`. */
-  const authSignInHeader = authSurface || isCustomerLoginPath(pathname);
+  const authSignInHeader = authSurface || isAuthSignInPath(pathname);
   const brandHref = authSignInHeader ? '/shop' : '/';
   const brandAriaLabel = authSignInHeader ? `${publicBrandName} — shop` : publicBrandName;
 

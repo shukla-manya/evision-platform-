@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ChevronUp, Heart } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { getRole, isLoggedIn } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
 import { aboutBrandSummary } from '@/lib/about-company-content';
@@ -33,9 +34,25 @@ function isTechnicianRole(role: string | undefined) {
   return role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected';
 }
 
-export function PublicFooter() {
+type PublicFooterProps = {
+  /** Matches `(auth)` layout — strip marketing “Home” links so sign-in/register stay focused. */
+  authSurface?: boolean;
+};
+
+function isAuthSignInPath(pathname: string | null): boolean {
+  if (!pathname) return false;
+  const base = pathname.split('?')[0]?.replace(/\/+$/, '') ?? '';
+  return base === '/login' || base === '/register';
+}
+
+export function PublicFooter({ authSurface = false }: PublicFooterProps) {
+  const pathname = usePathname();
   const [loggedIn, setLoggedIn] = useState(false);
   const [role, setRole] = useState<string | undefined>(undefined);
+  const suppressMarketingHome = authSurface || isAuthSignInPath(pathname);
+  const helpNavLinks = suppressMarketingHome
+    ? footerQuickNavLinks.filter((item) => !(item.href === '/' && item.label === 'Home'))
+    : footerQuickNavLinks;
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
@@ -81,7 +98,7 @@ export function PublicFooter() {
             <div>
               <h2 className={colTitle}>Help &amp; information</h2>
               <ul className="space-y-2">
-                {footerQuickNavLinks.map((item) => (
+                {helpNavLinks.map((item) => (
                   <li key={`hi-${item.href}`}>
                     <Link href={item.href} className={colLink}>
                       {item.label}
@@ -165,11 +182,13 @@ export function PublicFooter() {
               {loggedIn ? (
                 shopper ? (
                   <ul className="space-y-2">
-                    <li>
-                      <Link href="/" className={colLink}>
-                        Home
-                      </Link>
-                    </li>
+                    {!suppressMarketingHome ? (
+                      <li>
+                        <Link href="/" className={colLink}>
+                          Home
+                        </Link>
+                      </li>
+                    ) : null}
                     <li>
                       <Link href="/orders" className={colLink}>
                         My orders
