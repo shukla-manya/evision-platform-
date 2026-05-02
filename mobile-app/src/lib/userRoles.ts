@@ -10,7 +10,7 @@ const ROLE_LABELS: Record<string, string> = {
   superadmin: 'Superadmin',
 };
 
-export const ACCOUNT_ROLES_SUMMARY = 'Customer · Dealer · Technician · Superadmin';
+export const ACCOUNT_ROLES_SUMMARY = 'Customer · Dealer · Technician';
 
 export function roleDisplayLabel(role: string | undefined | null): string {
   const key = String(role || '').toLowerCase().trim();
