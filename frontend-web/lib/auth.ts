@@ -25,7 +25,7 @@ export function isLoggedIn(): boolean {
   return !!Cookies.get(TOKEN_KEY);
 }
 
-/** Post-login landing: each role gets its dashboard; `/` stays the public marketing home for browsing anytime. */
+/** Post-login landing per role. Customers go to the shop (no separate hub at `/dashboard`). */
 export function redirectByRole(role: string): string {
   const routes: Record<string, string> = {
     superadmin: '/super/dashboard',
