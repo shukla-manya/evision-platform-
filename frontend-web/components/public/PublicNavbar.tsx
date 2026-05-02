@@ -50,9 +50,6 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
   const authSignInHeader = authSurface || isAuthSignInPath(pathname);
   const brandHref = authSignInHeader ? '/shop' : '/';
   const brandAriaLabel = authSignInHeader ? `${publicBrandName} — shop` : publicBrandName;
-  /** Customer only: hide explicit “Home” on sign-in/register (dealers still see Home there). */
-  const hideCustomerHomeOnAuthSignIn =
-    role === 'customer' && (authSurface || isAuthSignInPath(pathname));
 
   const syncCounts = useCallback(() => {
     setHearts(wishlistCount());
@@ -160,7 +157,7 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
           </Link>
           {isShopper ? (
             <>
-              {!hideCustomerHomeOnAuthSignIn ? (
+              {role === 'dealer' ? (
                 <Link
                   href="/"
                   className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
@@ -265,7 +262,7 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
           ))}
           {isShopper ? (
             <>
-              {!hideCustomerHomeOnAuthSignIn ? (
+              {role === 'dealer' ? (
                 <Link href="/" className="block py-2.5 text-white/85 hover:text-white font-medium">
                   Home
                 </Link>
