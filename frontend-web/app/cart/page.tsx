@@ -154,48 +154,50 @@ export default function CartPage() {
                   </div>
                   <div className="space-y-3">
                     {shop.items.map((item) => (
-                      <div key={item.id} className="border border-ev-border rounded-xl p-3 flex items-center gap-3">
-                        <div className="w-14 h-14 rounded-lg border border-ev-border bg-ev-surface2 overflow-hidden shrink-0">
+                      <div key={item.id} className="border border-ev-border rounded-xl p-3 flex gap-3">
+                        <div className="w-14 h-14 rounded-lg border border-ev-border bg-ev-surface2 overflow-hidden shrink-0 self-start">
                           {item.product_image_url ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={item.product_image_url} alt="" className="w-full h-full object-cover" />
                           ) : null}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-ev-text font-medium text-sm truncate">{item.product_name || 'Product'}</p>
-                          <p className="text-ev-muted text-xs">{formatInr(Number(item.price_at_time || 0))} each</p>
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-ev-text font-medium text-sm line-clamp-2">{item.product_name || 'Product'}</p>
+                            <p className="text-ev-text font-semibold text-sm shrink-0">{formatInr(Number(item.line_total || 0))}</p>
+                          </div>
+                          <p className="text-ev-muted text-xs mt-0.5">{formatInr(Number(item.price_at_time || 0))} each</p>
+                          <div className="flex items-center justify-between mt-2">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                aria-label="Decrease quantity"
+                                disabled={updating === item.id || item.quantity <= 1}
+                                className="w-8 h-8 rounded-lg border border-ev-border flex items-center justify-center hover:bg-ev-surface2 disabled:opacity-40"
+                                onClick={() => void setQty(item.id, item.quantity - 1)}
+                              >
+                                <Minus size={14} />
+                              </button>
+                              <span className="text-sm font-semibold text-ev-text w-6 text-center">{item.quantity}</span>
+                              <button
+                                type="button"
+                                aria-label="Increase quantity"
+                                disabled={updating === item.id}
+                                className="w-8 h-8 rounded-lg border border-ev-border flex items-center justify-center hover:bg-ev-surface2 disabled:opacity-40"
+                                onClick={() => void setQty(item.id, item.quantity + 1)}
+                              >
+                                <Plus size={14} />
+                              </button>
+                            </div>
                             <button
                               type="button"
-                              aria-label="Decrease quantity"
-                              disabled={updating === item.id || item.quantity <= 1}
-                              className="w-8 h-8 rounded-lg border border-ev-border flex items-center justify-center hover:bg-ev-surface2 disabled:opacity-40"
-                              onClick={() => void setQty(item.id, item.quantity - 1)}
+                              onClick={() => void removeItem(item.id)}
+                              className="text-ev-error text-xs inline-flex items-center gap-1 hover:underline"
                             >
-                              <Minus size={14} />
-                            </button>
-                            <span className="text-sm font-semibold text-ev-text w-6 text-center">{item.quantity}</span>
-                            <button
-                              type="button"
-                              aria-label="Increase quantity"
-                              disabled={updating === item.id}
-                              className="w-8 h-8 rounded-lg border border-ev-border flex items-center justify-center hover:bg-ev-surface2 disabled:opacity-40"
-                              onClick={() => void setQty(item.id, item.quantity + 1)}
-                            >
-                              <Plus size={14} />
+                              <Trash2 size={12} />
+                              Remove
                             </button>
                           </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-ev-text font-semibold text-sm">{formatInr(Number(item.line_total || 0))}</p>
-                          <button
-                            type="button"
-                            onClick={() => void removeItem(item.id)}
-                            className="text-ev-error text-xs mt-1 inline-flex items-center gap-1 hover:underline"
-                          >
-                            <Trash2 size={12} />
-                            Remove
-                          </button>
                         </div>
                       </div>
                     ))}
@@ -204,7 +206,7 @@ export default function CartPage() {
               ))}
             </section>
 
-            <aside className="ev-card p-5 h-fit sticky top-24 space-y-4">
+            <aside className="ev-card p-5 h-fit lg:sticky lg:top-24 space-y-4">
               <h3 className="text-ev-text font-semibold">Price summary</h3>
               {cart.shops.map((shop) => (
                 <div key={shop.admin_id} className="flex justify-between text-sm text-ev-muted">
