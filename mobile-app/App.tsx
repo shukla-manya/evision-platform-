@@ -80,6 +80,7 @@ import { ElectricianPublicProfileScreen } from './src/screens/ElectricianPublicP
 import { ServiceBookingConfirmScreen } from './src/screens/ServiceBookingConfirmScreen';
 import { LeaveReviewScreen } from './src/screens/LeaveReviewScreen';
 import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
+import { CustomerProfileScreen } from './src/screens/CustomerProfileScreen';
 import { EvisionLogo } from './src/components/EvisionLogo';
 import { screenGutter } from './src/theme/layout';
 import { publicWebUrl } from './src/config/publicWeb';
