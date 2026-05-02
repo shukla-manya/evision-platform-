@@ -44,12 +44,6 @@ export class ProductReviewsService {
     const ids = [...new Set(productIds.filter(Boolean))];
     const out: Record<string, { rating_avg: number; rating_count: number }> = {};
     if (!ids.length) return out;
-    const rows = await this.dynamo.scanAllPages({
-      TableName: this.table(),
-      FilterExpression: 'contains(:ids, product_id)',
-      ExpressionAttributeValues: { ':ids': ids },
-    });
-    // Mongo adapter may not support contains on array — use simple scan + filter in JS
     const all = await this.dynamo.scanAllPages({ TableName: this.table() });
     const byProduct = new Map<string, number[]>();
     for (const r of all) {
@@ -78,10 +72,13 @@ export class ProductReviewsService {
     if (!product) throw new NotFoundException('Product not found');
     this.assertProductReviewable(product as Record<string, unknown>);
 
-    const all = await this.dynamo.scanAllPages({ TableName: this.table() });
-    const mine = all
-      .filter((r) => String((r as { product_id?: unknown }).product_id) === productId)
-      .sort(
+    const mine = (
+      await this.dynamo.queryAllPages({
+        TableName: this.table(),
+        KeyConditionExpression: 'product_id = :p',
+        ExpressionAttributeValues: { ':p': productId },
+      })
+    ).sort(
         (a, b) =>
           new Date(String((b as { created_at?: unknown }).created_at || 0)).getTime() -
           new Date(String((a as { created_at?: unknown }).created_at || 0)).getTime(),
@@ -117,23 +114,26 @@ export class ProductReviewsService {
       photoUrl = await this.s3.upload(photo.buffer, photo.mimetype, 'reviews');
     }
 
-    const all = await this.dynamo.scanAllPages({ TableName: this.table() });
-    const existing = all.find(
-      (r) =>
-        String((r as { product_id?: unknown }).product_id) === productId &&
-        String((r as { customer_id?: unknown }).customer_id) === userId,
-    ) as Record<string, unknown> | undefined;
+    const hits = await this.dynamo.queryAllPages({
+      TableName: this.table(),
+      KeyConditionExpression: 'product_id = :p',
+      FilterExpression: 'customer_id = :u',
+      ExpressionAttributeValues: { ':p': productId, ':u': userId },
+    });
+    const existing = hits[0] as Record<string, unknown> | undefined;
 
     const now = new Date().toISOString();
     const id = existing?.id ? String(existing.id) : uuidv4();
     const prevPhoto = existing?.photo_url != null ? String(existing.photo_url) : null;
+    const nextPhoto =
+      photo != null ? photoUrl : existing?.photo_url != null ? existing.photo_url : null;
     const review = {
       id,
       product_id: productId,
       customer_id: userId,
       rating: Number(dto.rating),
       comment: dto.comment?.trim() || null,
-      photo_url: photoUrl ?? (existing?.photo_url != null ? existing.photo_url : null),
+      photo_url: nextPhoto,
       created_at: existing?.created_at || now,
       updated_at: now,
     };
