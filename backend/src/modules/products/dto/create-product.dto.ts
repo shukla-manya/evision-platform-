@@ -131,15 +131,4 @@ export class CreateProductDto {
   @Type(() => Boolean)
   @IsBoolean()
   home_showcase_hot?: boolean;
-
-  @ApiPropertyOptional({
-    example: 4.7,
-    description: 'Optional star rating shown only on homepage cards (not product reviews)',
-  })
-  @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  @Max(5)
-  home_showcase_rating?: number;
 }

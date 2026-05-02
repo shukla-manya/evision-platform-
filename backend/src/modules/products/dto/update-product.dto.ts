@@ -123,16 +123,4 @@ export class UpdateProductDto {
   @Type(() => Boolean)
   @IsBoolean()
   home_showcase_hot?: boolean;
-
-  @ApiPropertyOptional({
-    nullable: true,
-    description: 'Homepage-only star display; set null to clear',
-  })
-  @IsOptional()
-  @ValidateIf((_, v) => v !== null && v !== undefined)
-  @Type(() => Number)
-  @IsNumber()
-  @Min(1)
-  @Max(5)
-  home_showcase_rating?: number | null;
 }

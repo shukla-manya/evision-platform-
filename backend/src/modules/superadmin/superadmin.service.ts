@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { ElectricianService } from '../electrician/electrician.service';
 import { ReviewsService } from '../reviews/reviews.service';
+import { ProductReviewsService } from '../reviews/product-reviews.service';
 import { EmailService } from '../emails/email.service';
 import { PushService } from '../push/push.service';
 
@@ -31,6 +32,7 @@ export class SuperadminService {
     private dynamo: DynamoService,
     private electricianService: ElectricianService,
     private reviewsService: ReviewsService,
+    private productReviewsService: ProductReviewsService,
     private emailService: EmailService,
     private pushService: PushService,
   ) {}
@@ -86,11 +88,27 @@ export class SuperadminService {
   }
 
   async listReviews() {
-    return this.reviewsService.listAllForSuperadmin();
+    const [elec, prod] = await Promise.all([
+      this.reviewsService.listAllForSuperadmin(),
+      this.productReviewsService.listAllForSuperadmin(),
+    ]);
+    const merged = [...prod, ...elec].sort(
+      (a, b) =>
+        new Date(String((b as { created_at?: unknown }).created_at || 0)).getTime() -
+        new Date(String((a as { created_at?: unknown }).created_at || 0)).getTime(),
+    );
+    return merged;
   }
 
   async deleteReview(id: string) {
-    return this.reviewsService.deleteReviewAsSuperadmin(id);
+    try {
+      return await this.reviewsService.deleteReviewAsSuperadmin(id);
+    } catch (e) {
+      if (e instanceof NotFoundException) {
+        return this.productReviewsService.deleteAsSuperadmin(id);
+      }
+      throw e;
+    }
   }
 
   async getAnalytics() {

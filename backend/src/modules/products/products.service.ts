@@ -390,6 +390,8 @@ export class ProductsService {
     const serialized = serializeProductsForRole(cleaned, role) as Record<string, unknown>[];
     const cats = await this.categories.listAll();
     const catNameById = new Map(cats.map((c: { id: string; name: string }) => [c.id, c.name]));
+    const showcaseIds = cleaned.map((x) => String((x as Record<string, unknown>).id || '')).filter(Boolean);
+    const ratingSums = await this.productReviews.summariesForProductIds(showcaseIds);
 
     const rows: { section: string; order: number; payload: Record<string, unknown> }[] = [];
     for (let i = 0; i < serialized.length; i++) {
@@ -399,10 +401,21 @@ export class ProductsService {
       const withStock = this.withStockFlag(p, role, raw);
       const category_name = catNameById.get(String(withStock.category_id || '')) || null;
       const showcase_hot = raw.home_showcase_hot === true;
-      const base = { ...withStock, category_name, showcase_hot } as Record<string, unknown>;
+      const pid = String(raw.id || '');
+      const s = ratingSums[pid];
+      const listing_rating = s && s.rating_count > 0 ? s.rating_avg : null;
+      const listing_review_count = s?.rating_count ?? 0;
+      const base = {
+        ...withStock,
+        category_name,
+        listing_rating,
+        listing_review_count,
+        showcase_hot,
+      } as Record<string, unknown>;
       delete base.home_showcase_section;
       delete base.home_showcase_order;
       delete base.home_showcase_hot;
+      delete base.home_showcase_rating;
       rows.push({
         section: String(raw.home_showcase_section),
         order: Number(raw.home_showcase_order ?? 0),
@@ -521,7 +534,16 @@ export class ProductsService {
       const category_name = catNameById.get(String(row.category_id || '')) || null;
       return { ...row, category_name };
     });
-    return withCategories.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+    const listIds = withCategories.map((x) => String(x.id || '')).filter(Boolean);
+    const sums = await this.productReviews.summariesForProductIds(listIds);
+    const withRatings = withCategories.map((row) => {
+      const s = sums[String(row.id || '')];
+      if (s && s.rating_count > 0) {
+        return { ...row, rating_avg: s.rating_avg, rating_count: s.rating_count };
+      }
+      return row;
+    });
+    return withRatings.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
   }
 
   private stripForAdminResponse(p: Record<string, unknown>): Record<string, unknown> {

@@ -54,7 +54,7 @@ export class ProductsController {
   @Get(':id/reviews')
   @ApiOperation({ summary: 'List customer reviews for a product (public)' })
   @ApiBearerAuth()
-  async productReviews(@Param('id', ParseUUIDPipe) id: string) {
+  async listProductReviews(@Param('id', ParseUUIDPipe) id: string) {
     return this.productReviews.listForProductPublic(id);
   }
 
