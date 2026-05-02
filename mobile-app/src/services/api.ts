@@ -188,6 +188,8 @@ export const authApi = {
       new_password: newPassword,
     }),
   me: () => api.get('/auth/me'),
+  replaceAddressBook: (addresses: Record<string, unknown>[]) =>
+    api.put<{ address_book?: Record<string, unknown>[] }>('/auth/me/address-book', { addresses }),
   saveDeviceToken: (fcmToken: string) => api.post('/auth/me/device-token', { fcm_token: fcmToken }),
   updateGeo: (lat: number, lng: number) => api.patch<{ lat: number; lng: number; geo_captured_at: string }>('/auth/me/geo', { lat, lng }),
 };
