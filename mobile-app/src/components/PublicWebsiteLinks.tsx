@@ -17,7 +17,7 @@ export function PublicWebsiteLinks({
   audience,
   onOpenAbout,
   onOpenContact,
-  /** Customer email OTP sign-in: omit web “store home” + dashboard shortcuts from this link strip. */
+  /** Auth / sign-up flows: omit web marketing “Store home” (`/`) + `/dashboard` from this strip (matches web navbar/footer). */
   omitHomeAndDashboardWebLinks = false,
 }: {
   audience: 'signed_in' | 'signed_out';

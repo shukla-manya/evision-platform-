@@ -317,7 +317,7 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
           <Text style={styles.buttonSecondaryText}>Create an account</Text>
         </Pressable>
         <SuperadminWebQueueLinks />
-        <PublicWebsiteLinks audience="signed_out" />
+        <PublicWebsiteLinks audience="signed_out" omitHomeAndDashboardWebLinks />
       </ScrollView>
     </SafeAreaView>
   );
@@ -509,7 +509,7 @@ function AdminSignInScreen({
           </Pressable>
         </View>
         <SuperadminWebQueueLinks />
-        <PublicWebsiteLinks audience="signed_out" />
+        <PublicWebsiteLinks audience="signed_out" omitHomeAndDashboardWebLinks />
       </ScrollView>
     </SafeAreaView>
   );
@@ -977,7 +977,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
           </Pressable>
           </View>
         </View>
-        <PublicWebsiteLinks audience="signed_out" />
+        <PublicWebsiteLinks audience="signed_out" omitHomeAndDashboardWebLinks />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -1077,7 +1077,7 @@ function PasswordResetScreen({
             </Pressable>
           )}
         </View>
-        <PublicWebsiteLinks audience="signed_out" />
+        <PublicWebsiteLinks audience="signed_out" omitHomeAndDashboardWebLinks />
       </ScrollView>
     </SafeAreaView>
   );
