@@ -12,18 +12,28 @@ const LINKS: { label: string; path: string }[] = [
   { label: 'Privacy', path: '/privacy' },
 ];
 
+const DASHBOARD_PATH = '/dashboard';
+
 /** Signed-out: Returns + partner CTAs (web); signed-in (`audience="signed_in"`): none — same rule as web footer for logged-in users. */
 export function PublicWebsiteLinks({
   audience,
   onOpenAbout,
   onOpenContact,
+  /** Customer email OTP sign-in: omit web “store home” + dashboard shortcuts from this link strip. */
+  omitHomeAndDashboardWebLinks = false,
 }: {
   audience: 'signed_in' | 'signed_out';
   /** When set, “About” opens in-app instead of the browser. */
   onOpenAbout?: () => void;
   /** When set, “Contact” opens in-app instead of the browser. */
   onOpenContact?: () => void;
+  omitHomeAndDashboardWebLinks?: boolean;
 }) {
+  const navLinks =
+    omitHomeAndDashboardWebLinks
+      ? LINKS.filter((l) => l.path !== '/' && l.path.split('#')[0] !== DASHBOARD_PATH)
+      : LINKS;
+
   const open = (path: string) => () => {
     const base = path.split('#')[0] ?? path;
     if (base === '/about' && onOpenAbout) {
@@ -41,7 +51,7 @@ export function PublicWebsiteLinks({
     <View style={styles.wrap}>
       <Text style={styles.label}>On the website</Text>
       <View style={styles.row}>
-        {LINKS.map(({ label, path }) => (
+        {navLinks.map(({ label, path }) => (
           <Pressable key={path} onPress={open(path)} style={styles.linkHit}>
             <Text style={styles.linkText}>{label}</Text>
           </Pressable>

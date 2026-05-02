@@ -429,7 +429,7 @@ function OtpSignInScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: strin
           <Pressable style={styles.buttonSecondary} onPress={() => navigation.navigate('Register', {})}>
             <Text style={styles.buttonSecondaryText}>New user? Create an account</Text>
           </Pressable>
-          <PublicWebsiteLinks audience="signed_out" />
+          <PublicWebsiteLinks audience="signed_out" omitHomeAndDashboardWebLinks />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
