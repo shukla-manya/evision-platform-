@@ -23,6 +23,7 @@ import { getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 import { getBrowseProductIds, recordProductBrowse } from '@/lib/browse-history';
+import { ProductDescriptionRich, shortProductDescriptionBlurb } from '@/lib/format-product-description';
 
 type Product = {
   id: string;
@@ -69,14 +70,6 @@ function displayPrice(p: Product, role?: string | null): { label: string; second
   const v = p.price_customer;
   if (v == null || Number.isNaN(Number(v))) return { label: '—' };
   return { label: formatInr(Number(v)) };
-}
-
-function shortBlurb(description: string | undefined): string {
-  if (!description?.trim()) return '';
-  const parts = description.trim().split(/\n\s*\n/);
-  const head = parts.slice(0, 2).join('\n\n').trim();
-  if (head.length > 720) return `${head.slice(0, 700).trim()}…`;
-  return head;
 }
 
 type TabKey = 'description' | 'reviews';
@@ -317,7 +310,7 @@ export default function ProductDetailPage() {
     }
   }
 
-  const blurbs = useMemo(() => shortBlurb(product?.description), [product?.description]);
+  const blurbs = useMemo(() => shortProductDescriptionBlurb(product?.description), [product?.description]);
   const reviewCount = Number(product?.rating_count || 0);
   const ratingAvg = Number(product?.rating_avg || 0);
 
@@ -617,8 +610,8 @@ export default function ProductDetailPage() {
         </div>
         <div className="ev-card border-t-0 rounded-t-none p-6 min-h-[120px]">
           {tab === 'description' && (
-            <div className="text-ev-muted text-sm leading-relaxed whitespace-pre-line space-y-4">
-              <p>{product.description || 'No description provided for this product.'}</p>
+            <div className="min-w-0">
+              <ProductDescriptionRich text={product.description} />
             </div>
           )}
           {tab === 'reviews' && (

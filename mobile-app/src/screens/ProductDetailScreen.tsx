@@ -29,6 +29,7 @@ import { screenGutter } from '../theme/layout';
 import { publicWebUrl } from '../config/publicWeb';
 import { getBrowseProductIds, recordProductBrowse } from '../lib/product-browse-history';
 import { CatalogPlacementHint } from '../components/CatalogPlacementHint';
+import { parseProductDescriptionLines, shortProductDescriptionBlurb } from '../lib/format-product-description';
 
 type RootProductDetail = { ProductDetail: { product: Product } };
 
@@ -47,14 +48,6 @@ function getProductPriceForRole(product: Product, role?: string) {
   const preferred = isDealer ? product.price_dealer : product.price_customer;
   const fallback = isDealer ? product.price_customer : product.price_dealer;
   return Number(preferred ?? fallback ?? 0);
-}
-
-function shortBlurb(description: string | undefined): string {
-  if (!description?.trim()) return '';
-  const parts = description.trim().split(/\n\s*\n/);
-  const head = parts.slice(0, 2).join('\n\n').trim();
-  if (head.length > 600) return `${head.slice(0, 580).trim()}…`;
-  return head;
 }
 
 function asApiError(err: unknown, fallback: string) {
