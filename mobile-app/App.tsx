@@ -80,6 +80,7 @@ import { ServiceBookingConfirmScreen } from './src/screens/ServiceBookingConfirm
 import { LeaveReviewScreen } from './src/screens/LeaveReviewScreen';
 import { ServiceHistoryScreen } from './src/screens/ServiceHistoryScreen';
 import { CustomerProfileScreen } from './src/screens/CustomerProfileScreen';
+import { CatalogPlacementHint } from './src/components/CatalogPlacementHint';
 import { EvisionLogo } from './src/components/EvisionLogo';
 import { screenGutter } from './src/theme/layout';
 import { publicWebUrl } from './src/config/publicWeb';
@@ -256,6 +257,9 @@ function SuperadminHubScreen({ onLogout }: { onLogout: () => void }) {
         <Text style={[styles.subtitle, { textAlign: 'left', marginTop: 6 }]}>
           Superadmin queues open in your browser. Sign in on the web if you are prompted.
         </Text>
+        <View style={{ marginTop: 12 }}>
+          <CatalogPlacementHint variant="merchandiser" />
+        </View>
         <View style={{ marginTop: 16 }}>
           <SuperadminWebQueueLinks showHeader={false} />
         </View>

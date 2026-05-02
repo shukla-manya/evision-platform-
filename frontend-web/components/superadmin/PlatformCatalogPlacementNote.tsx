@@ -15,8 +15,16 @@ export function PlatformCatalogPlacementNote() {
           browse, search, product page, and cart, when the product is <span className="font-medium text-ev-text">active</span>.
         </li>
         <li>
-          <span className="font-medium text-ev-text">Category</span> — The category you choose is the browse path and
-          filter group this SKU sits under on the shop (not a separate “second catalogue”).
+          <span className="font-medium text-ev-text">Category</span> — Pick the <em>one</em> shop section this SKU
+          belongs in (e.g. Footwear, Running shoes). That controls which category browse path and filters it appears
+          under — it is not chosen automatically from the product name.
+        </li>
+        <li>
+          <span className="font-medium text-ev-text">Brand (optional)</span> — A separate label on the product (e.g.{' '}
+          <span className="font-mono text-ev-text">Puma</span> or <span className="font-mono text-ev-text">Nike</span>).
+          Shoppers can filter by brand on the shop. Brand does <span className="font-medium text-ev-text">not</span>{' '}
+          replace category: e.g. category “Footwear” + brand “Puma” lists the item under Footwear and lets Puma
+          filter find it.
         </li>
         <li>
           <span className="font-medium text-ev-text">Homepage showcase</span> — Optional extra spots on the marketing

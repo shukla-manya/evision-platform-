@@ -26,6 +26,7 @@ import { colors } from '../theme/colors';
 import { screenGutter } from '../theme/layout';
 import { publicWebUrl } from '../config/publicWeb';
 import { getBrowseProductIds, recordProductBrowse } from '../lib/product-browse-history';
+import { CatalogPlacementHint } from '../components/CatalogPlacementHint';
 
 type RootProductDetail = { ProductDetail: { product: Product } };
 
@@ -281,7 +282,12 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
           ) : null}
 
           <Text style={styles.title}>{product.name}</Text>
-          {product.brand ? <Text style={styles.brandLine}>{product.brand}</Text> : null}
+          {product.category_name || product.brand ? (
+            <Text style={styles.categoryBrandLine} numberOfLines={3}>
+              {[product.category_name, product.brand].filter(Boolean).join(' · ')}
+            </Text>
+          ) : null}
+          <CatalogPlacementHint variant="shopper" />
 
           {ratingAvg > 0 ? (
             <Text style={styles.ratingBlock}>
@@ -531,7 +537,7 @@ const styles = StyleSheet.create({
   },
   hotBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
   title: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
-  brandLine: { fontSize: 13, color: colors.textSecondary, marginTop: 4 },
+  categoryBrandLine: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginTop: 4 },
   ratingBlock: { fontSize: 13, color: colors.textSecondary, marginTop: 8, lineHeight: 20 },
   blurb: { fontSize: 13, color: colors.textSecondary, marginTop: 10, lineHeight: 20 },
   stockLine: { fontSize: 12, fontWeight: '700', marginTop: 10 },
