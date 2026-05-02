@@ -68,7 +68,7 @@ export class UpdateProductDto {
   @ApiPropertyOptional({ type: [String], description: 'Replace entire images list when provided' })
   @IsOptional()
   @IsArray()
-  @IsUrl({}, { each: true })
+  @IsString({ each: true })
   images?: string[];
 
   @ApiPropertyOptional()

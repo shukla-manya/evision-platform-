@@ -71,7 +71,8 @@ export class CreateProductDto {
   })
   @IsOptional()
   @IsArray()
-  @IsUrl({}, { each: true })
+  /** S3/CloudFront/http(s) or local stub (`local-dev://`); strict IsUrl rejects localhost and stub schemes. */
+  @IsString({ each: true })
   images?: string[];
 
   @ApiPropertyOptional({ example: 10, description: 'Alert when stock is at or below this value' })
