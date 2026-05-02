@@ -55,6 +55,16 @@ export class AuthService {
       }
     }
 
+    if (purpose === 'login') {
+      const [existingUser, electrician] = await Promise.all([
+        this.findUserByEmail(email),
+        this.findElectricianByEmail(email),
+      ]);
+      if (!existingUser && !electrician) {
+        throw new NotFoundException('No account found for this email. Please register first.');
+      }
+    }
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 min TTL
 
