@@ -353,9 +353,9 @@ export default function ProductDetailPage() {
       <main className="ev-container py-6 sm:py-8 w-full min-w-0">
         <Link
           href="/shop"
-          className="inline-flex items-center gap-1 text-sm font-medium text-ev-primary hover:underline mb-6"
+          className="ev-btn-secondary mb-6 inline-flex w-full min-h-11 shrink-0 items-center justify-center gap-2 py-2.5 text-sm sm:w-auto sm:min-h-0 sm:justify-start sm:px-4"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={16} className="shrink-0" aria-hidden />
           Back to products
         </Link>
 
