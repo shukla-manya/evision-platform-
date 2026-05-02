@@ -245,29 +245,6 @@ async function pickImageAsset(label: string) {
   return result.assets[0];
 }
 
-function SuperadminHubScreen({ onLogout }: { onLogout: () => void }) {
-  return (
-    <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.listPad}>
-        <Text style={styles.title}>Platform administration</Text>
-        <Text style={[styles.subtitle, { textAlign: 'left', marginTop: 6 }]}>
-          Superadmin queues open in your browser. Sign in on the web if you are prompted.
-        </Text>
-        <View style={{ marginTop: 12 }}>
-          <CatalogPlacementHint variant="merchandiser" />
-        </View>
-        <View style={{ marginTop: 16 }}>
-          <SuperadminWebQueueLinks showHeader={false} />
-        </View>
-        <PublicWebsiteLinks audience="signed_in" />
-        <Pressable style={[styles.buttonSecondary, { marginTop: 28 }]} onPress={() => void onLogout()}>
-          <Text style={styles.buttonSecondaryText}>Sign out</Text>
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
 function AuthWelcomeScreen({ navigation }: { navigation: any }) {
   return (
     <SafeAreaView style={styles.screen}>
@@ -287,19 +264,9 @@ function AuthWelcomeScreen({ navigation }: { navigation: any }) {
           <Text style={styles.splashPrimaryBtnText}>Sign in with mobile OTP</Text>
           <Text style={styles.splashCtaSub}>For customers, dealers and technicians</Text>
         </Pressable>
-        <View style={styles.splashOrRow}>
-          <View style={styles.splashOrLine} />
-          <Text style={styles.splashOrLabel}>or</Text>
-          <View style={styles.splashOrLine} />
-        </View>
-        <Pressable style={styles.splashSecondaryBtn} onPress={() => navigation.navigate('AdminSignIn')}>
-          <Text style={styles.splashSecondaryBtnText}>Platform admin? Sign in here</Text>
-          <Text style={styles.splashCtaSubMuted}>Catalogue & approvals (web queues linked below)</Text>
-        </Pressable>
         <Pressable style={[styles.buttonSecondary, { marginTop: 20 }]} onPress={() => navigation.navigate('Register', {})}>
           <Text style={styles.buttonSecondaryText}>Create an account</Text>
         </Pressable>
-        <SuperadminWebQueueLinks />
         <PublicWebsiteLinks audience="signed_out" omitHomeAndDashboardWebLinks />
       </ScrollView>
     </SafeAreaView>
@@ -415,85 +382,6 @@ function OtpSignInScreen({ onLoggedIn, navigation }: { onLoggedIn: (token: strin
           <PublicWebsiteLinks audience="signed_out" omitHomeAndDashboardWebLinks />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
-}
-
-function AdminSignInScreen({
-  navigation,
-  onLoggedIn,
-}: {
-  navigation: any;
-  onLoggedIn: (token: string, user: AppUser) => void;
-}) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const submit = async () => {
-    const em = email.trim().toLowerCase();
-    if (!em || !password) {
-      Alert.alert('Missing fields', 'Enter email and password.');
-      return;
-    }
-    try {
-      setLoading(true);
-      const { data } = await authApi.superadminLogin(em, password);
-      const payload = parseJwt(data.access_token);
-      const userId = String(payload?.sub || '');
-      const role = String(payload?.role || '');
-      if (!userId || !role) {
-        Alert.alert('Error', 'Invalid session.');
-        return;
-      }
-      onLoggedIn(data.access_token, {
-        id: userId,
-        role,
-        email: payload?.email ? String(payload.email) : em,
-        phone: payload?.phone ? String(payload.phone) : undefined,
-      });
-    } catch (err) {
-      Alert.alert('Sign in failed', asApiError(err, 'Invalid credentials.'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={[styles.listPad, styles.adminSignInScroll]}>
-        <View style={styles.centerBoxNoFlex}>
-          <Text style={styles.adminEmoji}>🛡️</Text>
-          <Text style={styles.title}>Platform admin</Text>
-          <Text style={styles.subtitle}>Sign in with your superadmin email and password</Text>
-        </View>
-        <View style={styles.card}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="email"
-            textContentType="username"
-          />
-          <PasswordInputWithToggle
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            autoComplete="password"
-            textContentType="password"
-          />
-          <Pressable style={styles.button} onPress={submit} disabled={loading}>
-            <Text style={styles.buttonText}>{loading ? 'Please wait...' : 'Sign in'}</Text>
-          </Pressable>
-        </View>
-        <SuperadminWebQueueLinks />
-        <PublicWebsiteLinks audience="signed_out" omitHomeAndDashboardWebLinks />
-      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -767,8 +655,7 @@ function RegisterScreen({ route, navigation, onLoggedIn }: { route: RouteProp<Ro
           <View style={[styles.card, styles.registerCard, registerWideSplit && styles.registerCardWide]}>
           <Text style={styles.cardTitle}>Create account</Text>
           <Text style={styles.subtitle}>
-            {ACCOUNT_ROLES_SUMMARY} — same app; your dashboard matches your role after sign-in. Superadmin accounts are
-            provisioned separately.
+            {ACCOUNT_ROLES_SUMMARY} — same app; your dashboard matches your role after sign-in.
           </Text>
           <View style={styles.registerRoleBar} accessibilityRole="tablist">
             {REGISTER_ROLE_TABS.map(({ value, label }, index) => (
@@ -1015,7 +902,7 @@ function PasswordResetScreen({
           <Text style={styles.cardTitle}>Reset Password</Text>
           <Text style={styles.subtitle}>
             Technicians only. We email a 6-digit OTP to the address on your technician account. Customers and dealers sign
-            in with an email OTP — no password reset here. Superadmin uses the web sign-in flow.
+            in with an email OTP — no password reset here.
           </Text>
           <TextInput
             style={styles.input}
@@ -1805,13 +1692,18 @@ function AppShell() {
       if (existing) {
         const payload = parseJwt(existing);
         if (payload?.sub && payload?.role) {
-          setAuthToken(existing);
-          setUser({
-            id: String(payload.sub),
-            role: String(payload.role),
-            email: payload.email ? String(payload.email) : undefined,
-            phone: payload.phone ? String(payload.phone) : undefined,
-          });
+          const role = String(payload.role);
+          if (role === 'superadmin') {
+            await clearSession();
+          } else {
+            setAuthToken(existing);
+            setUser({
+              id: String(payload.sub),
+              role,
+              email: payload.email ? String(payload.email) : undefined,
+              phone: payload.phone ? String(payload.phone) : undefined,
+            });
+          }
         }
       }
       setHydrating(false);
@@ -1849,16 +1741,33 @@ function AppShell() {
   }, [token, fcmToken, user?.role]);
 
   const handleLoggedIn = async (nextToken: string, nextUser: AppUser) => {
+    const bailSuperadmin = async () => {
+      await clearSession();
+      setAuthToken(null);
+      setUser(null);
+      Alert.alert('Sign in on the website', 'Platform admin accounts are not supported in this app. Use the web browser.');
+    };
+
+    if (nextUser.role === 'superadmin') {
+      await bailSuperadmin();
+      return;
+    }
+
     await setToken(nextToken);
     setAuthToken(nextToken);
     setUser(nextUser);
     try {
       const { data } = await authApi.me();
       if (data?.user) {
+        const resolvedRole = String(data.user.role || nextUser.role);
+        if (resolvedRole === 'superadmin') {
+          await bailSuperadmin();
+          return;
+        }
         setUser((prev) => ({
           ...(prev || nextUser),
           id: String(data.user.id || prev?.id || nextUser.id),
-          role: String(data.user.role || prev?.role || nextUser.role),
+          role: resolvedRole,
           email: data.user.email ? String(data.user.email) : prev?.email,
           phone: data.user.phone ? String(data.user.phone) : prev?.phone,
           name: data.user.name ? String(data.user.name) : prev?.name,
@@ -1895,23 +1804,6 @@ function AppShell() {
     ),
     [token, logout, fcmToken, user?.role],
   );
-  const superadminHubScreen = useMemo(() => () => <SuperadminHubScreen onLogout={logout} />, [logout]);
-  const superadminFlow = useMemo(
-    () =>
-      function SuperadminFlowNavigator() {
-        return (
-          <SuperadminStack.Navigator screenOptions={stackScreenOptions}>
-            <SuperadminStack.Screen
-              name="SuperadminHub"
-              component={superadminHubScreen}
-              options={{ title: 'Platform admin' }}
-            />
-          </SuperadminStack.Navigator>
-        );
-      },
-    [superadminHubScreen],
-  );
-
   if (hydrating) return <Loader text="Preparing app..." />;
 
   return (
@@ -1929,9 +1821,6 @@ function AppShell() {
             <RootStack.Screen name="Register" options={{ title: 'Register' }}>
               {(props) => <RegisterScreen {...props} onLoggedIn={handleLoggedIn} />}
             </RootStack.Screen>
-            <RootStack.Screen name="AdminSignIn" options={{ title: 'Platform admin' }}>
-              {(props) => <AdminSignInScreen {...props} onLoggedIn={handleLoggedIn} />}
-            </RootStack.Screen>
           </>
         ) : (
           <>
@@ -1940,13 +1829,11 @@ function AppShell() {
               component={
                 user?.role === 'electrician' || user?.role === 'electrician_pending' || user?.role === 'electrician_rejected'
                   ? electricianFlow
-                  : user?.role === 'superadmin'
-                  ? superadminFlow
                   : mainTabs
               }
               options={{ headerShown: false }}
             />
-            {user?.role !== 'electrician' && user?.role !== 'electrician_pending' && user?.role !== 'electrician_rejected' && user?.role !== 'superadmin' && (
+            {user?.role !== 'electrician' && user?.role !== 'electrician_pending' && user?.role !== 'electrician_rejected' && (
               <>
                 <RootStack.Screen name="ProductDetail" component={productDetailScreen} options={{ title: 'Product Detail' }} />
                 <RootStack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Checkout' }} />

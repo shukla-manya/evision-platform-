@@ -169,8 +169,6 @@ export type ElectricianProfile = {
 };
 
 export const authApi = {
-  superadminLogin: (email: string, password: string) =>
-    api.post<{ access_token: string }>('/auth/superadmin/login', { email, password }),
   sendOtp: (email: string, extra?: { purpose?: 'signup' }) =>
     api.post('/auth/send-otp', { email: email.trim().toLowerCase(), ...extra }),
   verifyOtp: (email: string, otp: string) =>
