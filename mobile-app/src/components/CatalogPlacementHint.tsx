@@ -2,25 +2,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
 import { publicBrandName } from '../config/publicMarketing';
 
-type Variant = 'shopper' | 'merchandiser';
-
-/**
- * Mirrors web superadmin copy: category = shop section; brand = optional label (e.g. Puma vs Nike).
- */
-export function CatalogPlacementHint({ variant }: { variant: Variant }) {
-  if (variant === 'merchandiser') {
-    return (
-      <View style={styles.box}>
-        <Text style={styles.title}>Catalogue (web)</Text>
-        <Text style={styles.body}>
-          When you add products in the browser: pick one <Text style={styles.strong}>Category</Text> — that is the shop
-          aisle. <Text style={styles.strong}>Brand</Text> (e.g. Puma, Nike) is optional and only sets the brand label and
-          web filters; it does not choose the category for you.
-        </Text>
-      </View>
-    );
-  }
-
+/** Shopper-facing: category = shop section; brand = optional label (e.g. Puma vs Nike). */
+export function CatalogPlacementHint() {
   return (
     <View style={styles.box}>
       <Text style={styles.title}>Category & brand</Text>
