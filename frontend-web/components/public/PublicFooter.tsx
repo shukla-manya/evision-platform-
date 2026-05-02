@@ -48,9 +48,12 @@ function isAuthSignInPath(pathname: string | null): boolean {
 export function PublicFooter({ authSurface = false }: PublicFooterProps) {
   const pathname = usePathname();
   const [loggedIn, setLoggedIn] = useState(false);
-  const [role, setRole] = useState<string | undefined>(undefined);
+  const [role, setRole] = useState<string | undefined>(() =>
+    typeof window !== 'undefined' ? getRole() : undefined,
+  );
   const suppressMarketingHome = authSurface || isAuthSignInPath(pathname);
-  const helpNavLinks = suppressMarketingHome
+  const hideCustomerHomeOnAuth = role === 'customer' && suppressMarketingHome;
+  const helpNavLinks = hideCustomerHomeOnAuth
     ? footerQuickNavLinks.filter((item) => !(item.href === '/' && item.label === 'Home'))
     : footerQuickNavLinks;
 
@@ -60,7 +63,7 @@ export function PublicFooter({ authSurface = false }: PublicFooterProps) {
       setRole(getRole());
     });
     return () => cancelAnimationFrame(id);
-  }, []);
+  }, [pathname]);
 
   const shopper = role === 'customer' || role === 'dealer';
   const technician = isTechnicianRole(role);
@@ -182,7 +185,7 @@ export function PublicFooter({ authSurface = false }: PublicFooterProps) {
               {loggedIn ? (
                 shopper ? (
                   <ul className="space-y-2">
-                    {!suppressMarketingHome ? (
+                    {!hideCustomerHomeOnAuth ? (
                       <li>
                         <Link href="/" className={colLink}>
                           Home
