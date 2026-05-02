@@ -72,6 +72,9 @@ export type Product = {
   stock?: number;
   rating_avg?: number;
   rating_count?: number;
+  listing_rating?: number;
+  listing_review_count?: number;
+  showcase_hot?: boolean;
   amazon_url?: string | null;
   low_stock_threshold?: number;
 };
@@ -190,6 +193,15 @@ export const authApi = {
   updateGeo: (lat: number, lng: number) => api.patch<{ lat: number; lng: number; geo_captured_at: string }>('/auth/me/geo', { lat, lng }),
 };
 
+export type ProductReviewRow = {
+  id: string;
+  customer_name?: string;
+  rating?: number;
+  comment?: string | null;
+  photo_url?: string | null;
+  created_at?: string;
+};
+
 export const productApi = {
   list: (params?: {
     approved_shops_only?: boolean;
@@ -200,6 +212,9 @@ export const productApi = {
     brand?: string;
   }) => api.get<Product[]>('/products', { params }),
   getById: (id: string) => api.get<Product>(`/products/${id}`),
+  getHomeShowcase: () =>
+    api.get<{ primary: Product[]; combos: Product[] }>('/products/home-showcase'),
+  getProductReviews: (id: string) => api.get<ProductReviewRow[]>(`/products/${id}/reviews`),
   listApprovedShops: () => api.get<ApprovedShopRow[]>('/products/shops/approved'),
 };
 
@@ -244,6 +259,10 @@ export const publicElectricianApi = {
 export const reviewsApi = {
   submitElectricianReview: (electricianId: string, formData: FormData) =>
     api.post(`/reviews/electrician/${electricianId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  submitProductReview: (productId: string, formData: FormData) =>
+    api.post(`/reviews/product/${productId}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
 };

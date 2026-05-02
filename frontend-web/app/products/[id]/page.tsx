@@ -17,7 +17,7 @@ import {
   Zap,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { cartApi, catalogApi, publicContactApi } from '@/lib/api';
+import { cartApi, catalogApi, publicContactApi, reviewsApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
@@ -81,6 +81,15 @@ function shortBlurb(description: string | undefined): string {
 
 type TabKey = 'description' | 'reviews';
 
+type ProductReviewRow = {
+  id: string;
+  customer_name?: string;
+  rating?: number;
+  comment?: string | null;
+  photo_url?: string | null;
+  created_at?: string;
+};
+
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -105,6 +114,12 @@ export default function ProductDetailPage() {
   const [enqMessage, setEnqMessage] = useState('');
   const [enqSending, setEnqSending] = useState(false);
   const [enqDone, setEnqDone] = useState(false);
+
+  const [productReviews, setProductReviews] = useState<ProductReviewRow[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
   const loadProduct = useCallback(async () => {
     if (!id) return;
@@ -173,6 +188,44 @@ export default function ProductDetailPage() {
     if (!product?.id) return;
     void loadRelatedAndRecent();
   }, [product?.id, loadRelatedAndRecent]);
+
+  const loadReviews = useCallback(async () => {
+    if (!id) return;
+    setReviewsLoading(true);
+    try {
+      const { data } = await catalogApi.getProductReviews(String(id));
+      setProductReviews(Array.isArray(data) ? (data as ProductReviewRow[]) : []);
+    } catch {
+      setProductReviews([]);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    void loadReviews();
+  }, [loadReviews]);
+
+  async function submitProductReview(e: React.FormEvent) {
+    e.preventDefault();
+    if (!product || !canBuy) return;
+    setReviewSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.append('rating', String(reviewRating));
+      if (reviewComment.trim()) fd.append('comment', reviewComment.trim());
+      await reviewsApi.createProductReview(product.id, fd);
+      toast.success('Thanks — your review was saved.');
+      setReviewComment('');
+      await loadReviews();
+      const { data } = await catalogApi.getProduct(String(id));
+      setProduct(data as Product);
+    } catch (err: unknown) {
+      toast.error(getApiErrorMessage(err, 'Could not post review'));
+    } finally {
+      setReviewSubmitting(false);
+    }
+  }
 
   async function addToCart() {
     if (!product) return;
@@ -569,25 +622,83 @@ export default function ProductDetailPage() {
             </div>
           )}
           {tab === 'reviews' && (
-            <div className="space-y-4 text-sm text-ev-muted">
+            <div className="space-y-6 text-sm text-ev-muted">
               {ratingAvg > 0 ? (
                 <p className="text-ev-text">
                   Average rating: <strong>{ratingAvg.toFixed(2)}</strong> out of 5
                   {reviewCount > 0 ? (
                     <>
                       {' '}
-                      from <strong>{reviewCount}</strong> review{reviewCount === 1 ? '' : 's'}
+                      from <strong>{reviewCount}</strong> verified customer review{reviewCount === 1 ? '' : 's'}.
                     </>
                   ) : null}
-                  .
                 </p>
               ) : (
                 <p>No ratings yet for this product.</p>
               )}
-              <p className="leading-relaxed">
-                Detailed written reviews will appear here when the storefront review feature is enabled. Your order and
-                product experience still matter — use the enquiry form below if you need help before you buy.
-              </p>
+
+              {reviewsLoading ? (
+                <p className="flex items-center gap-2 text-ev-muted">
+                  <Loader2 className="animate-spin" size={16} /> Loading reviews…
+                </p>
+              ) : productReviews.length === 0 ? (
+                <p>No written reviews yet. Be the first to share your experience after purchase.</p>
+              ) : (
+                <ul className="space-y-5 border-t border-ev-border pt-5">
+                  {productReviews.map((r) => (
+                    <li key={r.id} className="space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold text-ev-text">{r.customer_name || 'Customer'}</span>
+                        <span className="text-amber-600 font-medium tabular-nums">{Number(r.rating || 0).toFixed(1)} / 5</span>
+                      </div>
+                      {r.created_at ? (
+                        <p className="text-xs text-ev-subtle">{new Date(r.created_at).toLocaleString('en-IN')}</p>
+                      ) : null}
+                      {r.comment ? <p className="text-ev-text leading-relaxed">{r.comment}</p> : null}
+                      {r.photo_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={r.photo_url} alt="" className="max-h-52 rounded-lg border border-ev-border object-contain" />
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {canBuy ? (
+                <form onSubmit={(e) => void submitProductReview(e)} className="rounded-xl border border-ev-border bg-ev-surface2/50 p-4 space-y-3">
+                  <p className="text-ev-text font-medium text-sm">Write a review</p>
+                  <p className="text-xs text-ev-muted">One review per account; submitting again updates your rating and comment.</p>
+                  <div>
+                    <label className="ev-label text-xs">Your rating</label>
+                    <select
+                      className="ev-input mt-1 py-2 text-sm"
+                      value={reviewRating}
+                      onChange={(e) => setReviewRating(Number(e.target.value))}
+                    >
+                      {[5, 4, 3, 2, 1].map((n) => (
+                        <option key={n} value={n}>
+                          {n} star{n === 1 ? '' : 's'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="ev-label text-xs">Comment (optional)</label>
+                    <textarea
+                      className="ev-input mt-1 min-h-[88px] text-sm"
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      maxLength={2000}
+                      placeholder="What did you think of this product?"
+                    />
+                  </div>
+                  <button type="submit" className="ev-btn-primary text-sm py-2.5 px-4 disabled:opacity-50" disabled={reviewSubmitting}>
+                    {reviewSubmitting ? 'Posting…' : 'Post review'}
+                  </button>
+                </form>
+              ) : (
+                <p className="text-xs">Sign in as a customer or dealer to post a review.</p>
+              )}
             </div>
           )}
         </div>

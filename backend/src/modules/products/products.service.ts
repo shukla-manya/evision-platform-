@@ -175,6 +175,9 @@ export class ProductsService {
       item.home_showcase_section = dto.home_showcase_section;
       item.home_showcase_order = dto.home_showcase_order ?? 0;
       item.home_showcase_hot = dto.home_showcase_hot === true;
+      if (dto.home_showcase_rating != null) {
+        item.home_showcase_rating = dto.home_showcase_rating;
+      }
     }
 
     await this.dynamo.put(this.productsTable(), item);

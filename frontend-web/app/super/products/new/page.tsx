@@ -34,7 +34,6 @@ export default function AdminProductNewPage() {
     home_showcase_section: '' as '' | 'primary' | 'combos',
     home_showcase_order: '0',
     home_showcase_hot: false,
-    home_showcase_rating: '',
   });
 
   useEffect(() => {
@@ -77,9 +76,6 @@ export default function AdminProductNewPage() {
               home_showcase_section: form.home_showcase_section,
               home_showcase_order: Number(form.home_showcase_order) || 0,
               home_showcase_hot: form.home_showcase_hot,
-              ...(form.home_showcase_rating.trim() !== ''
-                ? { home_showcase_rating: Number(form.home_showcase_rating) }
-                : {}),
             }
           : {}),
       };
@@ -298,20 +294,9 @@ export default function AdminProductNewPage() {
               </div>
             </div>
             <div className="grid min-w-0 grid-cols-1 items-end gap-4 sm:grid-cols-2">
-              <div>
-                <label className="ev-label">Homepage star rating (optional)</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={5}
-                  step={0.05}
-                  className="ev-input"
-                  disabled={!form.home_showcase_section}
-                  value={form.home_showcase_rating}
-                  onChange={(e) => setForm((f) => ({ ...f, home_showcase_rating: e.target.value }))}
-                  placeholder="1–5"
-                />
-              </div>
+              <p className="text-ev-subtle text-xs sm:col-span-2">
+                Star ratings on the homepage and product pages come from verified customer reviews, not a manual number.
+              </p>
               <label className="flex cursor-pointer items-center gap-2 pb-0 text-sm text-ev-text sm:pb-2 min-h-[44px] sm:min-h-0">
                 <input
                   type="checkbox"

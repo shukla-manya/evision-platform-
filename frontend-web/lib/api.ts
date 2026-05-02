@@ -89,6 +89,7 @@ export const catalogApi = {
   getHomeShowcase: () =>
     api.get<{ primary: Record<string, unknown>[]; combos: Record<string, unknown>[] }>('/products/home-showcase'),
   getProduct: (id: string) => api.get(`/products/${id}`),
+  getProductReviews: (id: string) => api.get<Record<string, unknown>[]>(`/products/${id}/reviews`),
   getApprovedShops: () => api.get<Array<{ id: string; shop_name: string }>>('/products/shops/approved'),
 };
 
@@ -141,6 +142,10 @@ export const technicianDirectoryApi = {
 export const reviewsApi = {
   createElectricianReview: (electricianId: string, formData: FormData) =>
     api.post(`/reviews/electrician/${electricianId}`, formData),
+  createProductReview: (productId: string, formData: FormData) =>
+    api.post(`/reviews/product/${productId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 export const ordersApi = {

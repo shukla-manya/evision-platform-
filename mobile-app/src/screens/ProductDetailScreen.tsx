@@ -19,7 +19,9 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   cartApi,
   productApi,
+  reviewsApi,
   type Product,
+  type ProductReviewRow,
   publicContactApi,
 } from '../services/api';
 import { colors } from '../theme/colors';
@@ -91,6 +93,12 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
   const [enqSending, setEnqSending] = useState(false);
   const [enqDone, setEnqDone] = useState(false);
 
+  const [productReviews, setProductReviews] = useState<ProductReviewRow[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [revRating, setRevRating] = useState(5);
+  const [revComment, setRevComment] = useState('');
+  const [revSubmitting, setRevSubmitting] = useState(false);
+
   const images = useMemo(() => {
     const list = Array.isArray(product.images) && product.images.length ? product.images : [];
     if (list.length) return list;
@@ -119,6 +127,22 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
   useEffect(() => {
     void recordProductBrowse(product.id);
   }, [product.id]);
+
+  const loadReviews = useCallback(async () => {
+    setReviewsLoading(true);
+    try {
+      const { data } = await productApi.getProductReviews(product.id);
+      setProductReviews(Array.isArray(data) ? data : []);
+    } catch {
+      setProductReviews([]);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [product.id]);
+
+  useEffect(() => {
+    void loadReviews();
+  }, [loadReviews]);
 
   useEffect(() => {
     const m = userRole === 'dealer' ? Math.max(1, Number(product.min_order_quantity || 1)) : 1;
@@ -211,6 +235,29 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
       await Share.share({ message: `${product.name}\n${url}`, url });
     } catch {
       /* */
+    }
+  };
+
+  const submitProductReview = async () => {
+    if (!canAddToCart) {
+      Alert.alert('Sign in', 'Sign in as a customer or dealer to post a review.');
+      return;
+    }
+    setRevSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.append('rating', String(revRating));
+      if (revComment.trim()) fd.append('comment', revComment.trim());
+      await reviewsApi.submitProductReview(product.id, fd);
+      setRevComment('');
+      await loadReviews();
+      const { data } = await productApi.getById(product.id);
+      setProduct(data);
+      Alert.alert('Thanks', 'Your review was saved.');
+    } catch (err) {
+      Alert.alert('Error', asApiError(err, 'Could not post review.'));
+    } finally {
+      setRevSubmitting(false);
     }
   };
 
@@ -389,14 +436,72 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
               {ratingAvg > 0 ? (
                 <Text style={styles.bodyText}>
                   Average {ratingAvg.toFixed(2)} / 5
-                  {reviewCount > 0 ? ` from ${reviewCount} review${reviewCount === 1 ? '' : 's'}.` : '.'}
+                  {reviewCount > 0 ? ` from ${reviewCount} customer review${reviewCount === 1 ? '' : 's'}.` : '.'}
                 </Text>
               ) : (
                 <Text style={styles.bodyText}>No ratings yet.</Text>
               )}
-              <Text style={[styles.bodyText, { marginTop: 10 }]}>
-                Written reviews will appear here when enabled. Use the enquiry form below for questions before you buy.
-              </Text>
+              {reviewsLoading ? (
+                <ActivityIndicator style={{ marginTop: 12 }} color={colors.brandPrimary} />
+              ) : productReviews.length === 0 ? (
+                <Text style={[styles.bodyText, { marginTop: 10 }]}>No written reviews yet.</Text>
+              ) : (
+                <View style={{ marginTop: 12, gap: 14 }}>
+                  {productReviews.map((r) => (
+                    <View key={r.id} style={styles.reviewItem}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                        <Text style={styles.reviewName}>{r.customer_name || 'Customer'}</Text>
+                        <Text style={styles.reviewStars}>{Number(r.rating || 0).toFixed(1)} / 5</Text>
+                      </View>
+                      {r.created_at ? (
+                        <Text style={styles.reviewDate}>{new Date(r.created_at).toLocaleString('en-IN')}</Text>
+                      ) : null}
+                      {r.comment ? <Text style={styles.reviewComment}>{r.comment}</Text> : null}
+                      {r.photo_url ? (
+                        <Image source={{ uri: r.photo_url }} style={styles.reviewPhoto} resizeMode="contain" />
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              )}
+              {canAddToCart ? (
+                <View style={styles.reviewForm}>
+                  <Text style={styles.reviewFormTitle}>Write a review</Text>
+                  <Text style={styles.reviewFormHint}>One per account; submit again to update.</Text>
+                  <Text style={styles.inputLabel}>Rating</Text>
+                  <View style={styles.ratingPickRow}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Pressable
+                        key={n}
+                        onPress={() => setRevRating(n)}
+                        style={[styles.ratingChip, revRating === n && styles.ratingChipOn]}
+                      >
+                        <Text style={[styles.ratingChipText, revRating === n && styles.ratingChipTextOn]}>{n}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <Text style={styles.inputLabel}>Comment (optional)</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    value={revComment}
+                    onChangeText={setRevComment}
+                    placeholder="Share your experience…"
+                    multiline
+                    maxLength={2000}
+                  />
+                  <Pressable
+                    style={[styles.button, revSubmitting && styles.buttonDisabled]}
+                    onPress={() => void submitProductReview()}
+                    disabled={revSubmitting}
+                  >
+                    <Text style={styles.buttonText}>{revSubmitting ? 'Posting…' : 'Post review'}</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Text style={[styles.bodyText, { marginTop: 12, fontSize: 12 }]}>
+                  Sign in as a customer or dealer to post a review.
+                </Text>
+              )}
             </View>
           )}
         </View>

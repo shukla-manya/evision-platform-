@@ -59,6 +59,7 @@ type Product = {
 type ShowcaseProduct = Product & {
   category_name?: string | null;
   listing_rating?: number | null;
+  listing_review_count?: number;
   showcase_hot?: boolean;
 };
 
@@ -71,11 +72,11 @@ function formatInr(n: number) {
   return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
 }
 
-function StarRow({ rating }: { rating: number }) {
+function StarRow({ rating, reviewCount }: { rating: number; reviewCount?: number }) {
   const full = Math.floor(rating);
   const partial = rating - full >= 0.5;
   return (
-    <div className="flex items-center gap-0.5 text-amber-500" aria-label={`Rated ${rating} out of 5`}>
+    <div className="flex flex-wrap items-center gap-x-0.5 gap-y-0.5 text-amber-500" aria-label={`Rated ${rating} out of 5`}>
       {Array.from({ length: 5 }, (_, i) => (
         <Star
           key={i}
@@ -87,6 +88,9 @@ function StarRow({ rating }: { rating: number }) {
         />
       ))}
       <span className="text-ev-muted text-xs ml-1 tabular-nums">{rating.toFixed(2)} out of 5</span>
+      {reviewCount != null && reviewCount > 0 ? (
+        <span className="text-ev-muted text-xs w-full sm:w-auto sm:ml-1">({reviewCount} customer review{reviewCount === 1 ? '' : 's'})</span>
+      ) : null}
     </div>
   );
 }
@@ -105,6 +109,7 @@ function HomeShowcaseProductCard({
   const inStock = Number(p.stock ?? 0) > 0;
   const wished = isInWishlist(p.id);
   const rating = p.listing_rating;
+  const reviewCount = Number(p.listing_review_count || 0);
   return (
     <article className="ev-card overflow-hidden flex flex-col relative group">
       {p.showcase_hot ? (
@@ -142,7 +147,7 @@ function HomeShowcaseProductCard({
         </Link>
         {rating != null && !Number.isNaN(Number(rating)) && Number(rating) >= 1 ? (
           <div className="mt-2">
-            <StarRow rating={Number(rating)} />
+            <StarRow rating={Number(rating)} reviewCount={reviewCount > 0 ? reviewCount : undefined} />
           </div>
         ) : null}
         <p className="text-ev-muted text-xs mt-2">{inStock ? 'In stock' : 'Out of stock'}</p>

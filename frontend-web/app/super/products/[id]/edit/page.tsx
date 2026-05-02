@@ -30,7 +30,6 @@ type Product = {
   home_showcase_section?: 'primary' | 'combos' | string;
   home_showcase_order?: number;
   home_showcase_hot?: boolean;
-  home_showcase_rating?: number | null;
 };
 
 export default function AdminProductEditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -59,7 +58,6 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
     home_showcase_section: '' as '' | 'primary' | 'combos',
     home_showcase_order: '0',
     home_showcase_hot: false,
-    home_showcase_rating: '',
   });
 
   useEffect(() => {
@@ -94,10 +92,6 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
               : '',
           home_showcase_order: String(Number(p.home_showcase_order ?? 0)),
           home_showcase_hot: p.home_showcase_hot === true,
-          home_showcase_rating:
-            p.home_showcase_rating != null && !Number.isNaN(Number(p.home_showcase_rating))
-              ? String(p.home_showcase_rating)
-              : '',
         });
       })
       .catch(() => {
@@ -125,8 +119,6 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         showcase.home_showcase_section = form.home_showcase_section;
         showcase.home_showcase_order = Number(form.home_showcase_order) || 0;
         showcase.home_showcase_hot = form.home_showcase_hot;
-        showcase.home_showcase_rating =
-          form.home_showcase_rating.trim() === '' ? null : Number(form.home_showcase_rating);
       }
 
       await superadminApi.updateCatalogProduct(id, {
@@ -365,31 +357,18 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
                 />
               </div>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4 items-end">
-              <div>
-                <label className="ev-label">Homepage star rating (optional, 1–5)</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={5}
-                  step={0.05}
-                  className="ev-input"
-                  disabled={!form.home_showcase_section}
-                  value={form.home_showcase_rating}
-                  onChange={(e) => setForm((f) => ({ ...f, home_showcase_rating: e.target.value }))}
-                  placeholder="Leave empty to hide stars"
-                />
-              </div>
-              <label className="flex items-center gap-2 text-sm text-ev-text cursor-pointer pb-2">
-                <input
-                  type="checkbox"
-                  disabled={!form.home_showcase_section}
-                  checked={form.home_showcase_hot}
-                  onChange={(e) => setForm((f) => ({ ...f, home_showcase_hot: e.target.checked }))}
-                />
-                Show “Hot” ribbon on homepage card
-              </label>
-            </div>
+            <p className="text-ev-subtle text-xs">
+              Homepage stars use the average of real customer product reviews (same as the public product page), not a manual score.
+            </p>
+            <label className="flex items-center gap-2 text-sm text-ev-text cursor-pointer">
+              <input
+                type="checkbox"
+                disabled={!form.home_showcase_section}
+                checked={form.home_showcase_hot}
+                onChange={(e) => setForm((f) => ({ ...f, home_showcase_hot: e.target.checked }))}
+              />
+              Show “Hot” ribbon on homepage card
+            </label>
           </div>
           <div className="rounded-xl border border-ev-border bg-ev-surface2/60 p-4 text-sm text-ev-muted leading-relaxed">
             <span className="font-semibold text-ev-text">Price note:</span> Customer price and dealer price are separate fields.

@@ -11,6 +11,8 @@ type ReviewRow = {
   id: string;
   customer_name?: string;
   electrician_name?: string;
+  product_name?: string;
+  review_kind?: 'electrician' | 'product';
   rating?: number;
   comment?: string | null;
   photo_url?: string | null;
@@ -72,7 +74,11 @@ export default function CustomerReviewsModerationPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-ev-text font-semibold">{r.customer_name}</p>
-                    <p className="text-sm text-ev-muted">for {r.electrician_name}</p>
+                    <p className="text-sm text-ev-muted">
+                      {r.review_kind === 'product' || r.product_name
+                        ? `for product: ${r.product_name || 'Product'}`
+                        : `for technician: ${r.electrician_name || '—'}`}
+                    </p>
                     <p className="text-xs text-ev-subtle mt-1">
                       {r.created_at ? new Date(r.created_at).toLocaleString('en-IN') : ''}
                     </p>
