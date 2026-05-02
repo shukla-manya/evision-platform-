@@ -48,14 +48,35 @@ export function PublicWebsiteLinks({
         ))}
       </View>
       {audience === 'signed_out' ? (
-        <Pressable
-          accessibilityRole="link"
-          accessibilityHint="Opens sign in on the website"
-          onPress={() => void Linking.openURL(publicWebUrl('/login'))}
-          style={styles.returnsHit}
-        >
-          <Text style={styles.returnsLabel}>Returns</Text>
-        </Pressable>
+        <>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityHint="Opens sign in on the website"
+            onPress={() => void Linking.openURL(publicWebUrl('/login'))}
+            style={styles.returnsHit}
+          >
+            <Text style={styles.returnsLabel}>Returns</Text>
+          </Pressable>
+          <Text style={[styles.label, { marginTop: 16 }]}>Partners</Text>
+          <View style={styles.row}>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityHint="Opens dealer registration on the website"
+              onPress={() => void Linking.openURL(publicWebUrl('/register?role=dealer'))}
+              style={styles.linkHit}
+            >
+              <Text style={styles.linkText}>Become a dealer</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityHint="Opens technician registration on the website"
+              onPress={() => void Linking.openURL(publicWebUrl('/register?role=electrician'))}
+              style={styles.linkHit}
+            >
+              <Text style={styles.linkText}>Register as technician</Text>
+            </Pressable>
+          </View>
+        </>
       ) : null}
     </View>
   );

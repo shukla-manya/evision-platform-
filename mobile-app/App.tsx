@@ -259,6 +259,7 @@ function SuperadminHubScreen({ onLogout }: { onLogout: () => void }) {
         <View style={{ marginTop: 16 }}>
           <SuperadminWebQueueLinks showHeader={false} />
         </View>
+        <PublicWebsiteLinks audience="signed_in" />
         <Pressable style={[styles.buttonSecondary, { marginTop: 28 }]} onPress={() => void onLogout()}>
           <Text style={styles.buttonSecondaryText}>Sign out</Text>
         </Pressable>
@@ -275,6 +276,7 @@ function ShopPartnerPortalScreen({ onLogout }: { onLogout: () => void }) {
         <Text style={[styles.subtitle, { textAlign: 'left', marginTop: 8 }]}>
           The public catalogue and orders are managed on the platform. Use the website for storefront purchases; our team handles listing and fulfilment coordination.
         </Text>
+        <PublicWebsiteLinks audience="signed_in" />
         <Pressable style={[styles.buttonSecondary, { marginTop: 24 }]} onPress={() => void onLogout()}>
           <Text style={styles.buttonSecondaryText}>Sign out</Text>
         </Pressable>
@@ -1082,6 +1084,7 @@ function PasswordResetScreen({
 }
 
 function HomeScreen() {
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { width: winW } = useWindowDimensions();
   const padL = Math.max(screenGutter, insets.left);
@@ -1365,6 +1368,15 @@ function HomeScreen() {
 
             <HomeLeadFormSection />
         </View>
+        <PublicWebsiteLinks
+          audience="signed_in"
+          onOpenAbout={() => {
+            if (!tryNavigateRootAbout(navigation)) void Linking.openURL(publicWebUrl('/about'));
+          }}
+          onOpenContact={() => {
+            if (!tryNavigateRootContact(navigation)) void Linking.openURL(publicWebUrl('/contact'));
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );
