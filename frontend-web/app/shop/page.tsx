@@ -81,6 +81,8 @@ function isHotProduct(p: Product): boolean {
 function ShopListingInner() {
   const searchParams = useSearchParams();
   const [rawProducts, setRawProducts] = useState<Product[]>([]);
+  /** Full slice for sidebar counts & price hints (same filters as listing but no `category_id`). */
+  const [facetProducts, setFacetProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -142,16 +144,25 @@ function ShopListingInner() {
         max_price: maxPrice ? Number(maxPrice) : undefined,
         approved_shops_only: approvedShopsOnly,
       };
-      const [catRes, prodRes, brandScopeRes] = await Promise.all([
+      const facetParams = {
+        search: search.trim() || undefined,
+        min_price: minPrice ? Number(minPrice) : undefined,
+        max_price: maxPrice ? Number(maxPrice) : undefined,
+        approved_shops_only: approvedShopsOnly,
+        brand: brand.trim() || undefined,
+      };
+      const [catRes, prodRes, brandScopeRes, facetRes] = await Promise.all([
         catalogApi.getCategories(),
         catalogApi.getProducts({
           ...baseProductParams,
           brand: brand.trim() || undefined,
         }),
         catalogApi.getProducts(baseProductParams),
+        catalogApi.getProducts(facetParams),
       ]);
       setCategories(Array.isArray(catRes.data) ? catRes.data : []);
       setRawProducts(Array.isArray(prodRes.data) ? prodRes.data : []);
+      setFacetProducts(Array.isArray(facetRes.data) ? (facetRes.data as Product[]) : []);
       const scopeList = Array.isArray(brandScopeRes.data) ? (brandScopeRes.data as Product[]) : [];
       const byBrand = new Map<string, number>();
       for (const p of scopeList) {
@@ -168,6 +179,7 @@ function ShopListingInner() {
       setLoadError(true);
       setCategories([]);
       setRawProducts([]);
+      setFacetProducts([]);
       toast.error('Could not load catalogue');
     } finally {
       setLoading(false);
@@ -195,18 +207,18 @@ function ShopListingInner() {
 
   const categoryCounts = useMemo(() => {
     const m = new Map<string, number>();
-    for (const p of rawProducts) {
+    for (const p of facetProducts) {
       const id = String(p.category_id || '');
       if (!id) continue;
       m.set(id, (m.get(id) || 0) + 1);
     }
     return m;
-  }, [rawProducts]);
+  }, [facetProducts]);
 
   const cataloguePriceExtent = useMemo(() => {
     let min = Infinity;
     let max = -Infinity;
-    for (const p of rawProducts) {
+    for (const p of facetProducts) {
       const v = priceVal(p);
       if (v > 0) {
         min = Math.min(min, v);
@@ -215,7 +227,7 @@ function ShopListingInner() {
     }
     if (!Number.isFinite(min)) return { min: 0, max: 0 };
     return { min: Math.floor(min), max: Math.ceil(max) };
-  }, [rawProducts, priceVal]);
+  }, [facetProducts, priceVal]);
 
   const totalFiltered = products.length;
   const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
@@ -288,8 +300,8 @@ function ShopListingInner() {
                         : 'text-ev-muted hover:bg-ev-surface hover:text-ev-text border border-transparent'
                     }`}
                   >
-                    <span>All</span>
-                    <span className="text-ev-subtle text-xs tabular-nums">{rawProducts.length}</span>
+                    <span>All categories</span>
+                    <span className="text-ev-subtle text-xs tabular-nums">{facetProducts.length}</span>
                   </button>
                   {categories.map((c) => {
                     const count = categoryCounts.get(c.id) ?? 0;

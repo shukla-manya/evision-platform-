@@ -139,6 +139,10 @@ export default function AdminProductNewPage() {
                 </option>
               ))}
             </select>
+            <p className="text-ev-subtle mt-1.5 text-xs leading-relaxed">
+              This is the catalogue “type” shoppers use on the Shop page: the left sidebar lists these same categories, and
+              picking one filters products to that group. Choose the closest match so your listing appears in the right place.
+            </p>
           </div>
           <div className="min-w-0">
             <label className="ev-label">Upload images (multiple)</label>
