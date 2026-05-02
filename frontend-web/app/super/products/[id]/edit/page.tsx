@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { superadminApi, catalogApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { SuperadminShell } from '@/components/superadmin/SuperadminShell';
+import { dedupeImageUrlsPreserveOrder, parseImageUrlList } from '@/lib/product-image-urls';
 
 type Category = { id: string; name: string; parent_id?: string | null };
 
@@ -39,6 +40,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  /** Appended on save; parsed with `parseImageUrlList` */
+  const [additionalImageUrls, setAdditionalImageUrls] = useState('');
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -108,11 +111,12 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
     e.preventDefault();
     setSaving(true);
     try {
-      let nextImages = [...form.images];
+      const pasted = parseImageUrlList(additionalImageUrls);
+      let nextImages = dedupeImageUrlsPreserveOrder([...form.images, ...pasted]);
       if (files.length > 0) {
         const up = await superadminApi.uploadCatalogProductImages(files);
         const urls = (up.data as { urls?: string[] })?.urls || [];
-        nextImages = [...nextImages, ...urls];
+        nextImages = dedupeImageUrlsPreserveOrder([...nextImages, ...urls]);
       }
       const showcase: Record<string, unknown> = {};
       if (form.home_showcase_section === '') {
@@ -215,19 +219,56 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
               ))}
             </select>
           </div>
-          {form.images.length > 0 ? (
-            <div>
-              <p className="ev-label">Current images</p>
-              <ul className="text-xs text-ev-muted font-mono space-y-1 break-all max-h-32 overflow-y-auto border border-ev-border rounded-xl p-3 bg-ev-surface2">
-                {form.images.map((u) => (
-                  <li key={u}>{u}</li>
+          <div>
+            <p className="ev-label">Product images</p>
+            {form.images.length > 0 ? (
+              <ul className="space-y-2 mb-3">
+                {form.images.map((u, idx) => (
+                  <li
+                    key={`${u}-${idx}`}
+                    className="flex gap-3 items-start rounded-xl border border-ev-border bg-ev-surface2 p-2"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={u}
+                      alt=""
+                      className="w-14 h-14 shrink-0 rounded-lg object-cover bg-ev-surface border border-ev-border"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-mono text-ev-muted break-all">{u}</p>
+                      <button
+                        type="button"
+                        className="text-xs text-ev-error hover:underline mt-1"
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            images: f.images.filter((_, i) => i !== idx),
+                          }))
+                        }
+                      >
+                        Remove from product
+                      </button>
+                    </div>
+                  </li>
                 ))}
               </ul>
-              <p className="text-ev-subtle text-xs mt-1">Upload more below; all images are saved together.</p>
-            </div>
-          ) : null}
+            ) : (
+              <p className="text-sm text-ev-muted mb-2">No images yet. Add URLs or upload files below.</p>
+            )}
+            <label className="ev-label text-sm">Add image URLs from the web</label>
+            <textarea
+              className="ev-input min-h-[80px] font-mono text-sm mt-1"
+              value={additionalImageUrls}
+              onChange={(e) => setAdditionalImageUrls(e.target.value)}
+              placeholder="https://… one per line or comma-separated"
+              spellCheck={false}
+            />
+            <p className="text-ev-subtle text-xs mt-1">
+              Parsed on save (http/https only). Existing images stay unless you remove them above.
+            </p>
+          </div>
           <div>
-            <label className="ev-label">Upload images (multiple)</label>
+            <label className="ev-label">Upload more images (multiple)</label>
             <input
               type="file"
               accept="image/*"

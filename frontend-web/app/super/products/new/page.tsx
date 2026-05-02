@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { superadminApi, catalogApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { SuperadminShell } from '@/components/superadmin/SuperadminShell';
+import { dedupeImageUrlsPreserveOrder, parseImageUrlList } from '@/lib/product-image-urls';
 
 type Category = { id: string; name: string; parent_id?: string | null };
 
@@ -16,6 +17,8 @@ export default function AdminProductNewPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
+  /** Pasted http(s) image URLs, one per line or comma-separated (stored as-is on the product). */
+  const [imageUrlsFromWeb, setImageUrlsFromWeb] = useState('');
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -50,11 +53,13 @@ export default function AdminProductNewPage() {
     }
     setSaving(true);
     try {
-      let imageUrls: string[] = [];
+      const fromWeb = parseImageUrlList(imageUrlsFromWeb);
+      let uploaded: string[] = [];
       if (files.length > 0) {
         const up = await superadminApi.uploadCatalogProductImages(files);
-        imageUrls = (up.data as { urls?: string[] })?.urls || [];
+        uploaded = (up.data as { urls?: string[] })?.urls || [];
       }
+      const imageUrls = dedupeImageUrlsPreserveOrder([...fromWeb, ...uploaded]);
       const body = {
         name: form.name.trim(),
         description: form.description.trim(),
@@ -68,7 +73,7 @@ export default function AdminProductNewPage() {
         min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
         ...(form.mrp.trim() !== '' ? { mrp: Number(form.mrp) } : {}),
         ...(form.amazon_url.trim() !== '' ? { amazon_url: form.amazon_url.trim() } : {}),
-        ...(imageUrls.length ? { images: imageUrls } : {}),
+        ...(imageUrls.length > 0 ? { images: imageUrls } : {}),
         ...(form.home_showcase_section === 'primary' || form.home_showcase_section === 'combos'
           ? {
               home_showcase_section: form.home_showcase_section,
@@ -143,6 +148,25 @@ export default function AdminProductNewPage() {
               className="text-ev-muted text-sm w-full"
               onChange={(e) => setFiles(Array.from(e.target.files || []))}
             />
+            <p className="text-ev-subtle text-xs mt-1">
+              Files are stored on your catalogue CDN. You can combine uploads with online URLs below.
+            </p>
+          </div>
+          <div>
+            <label className="ev-label">Image URLs from the web (optional)</label>
+            <textarea
+              className="ev-input min-h-[88px] font-mono text-sm"
+              value={imageUrlsFromWeb}
+              onChange={(e) => setImageUrlsFromWeb(e.target.value)}
+              placeholder={
+                'https://cdn.example.com/product-front.jpg\nhttps://cdn.example.com/product-side.jpg'
+              }
+              spellCheck={false}
+            />
+            <p className="text-ev-subtle text-xs mt-1">
+              One URL per line or comma-separated. Only http(s) links are sent. Order is kept: these URLs are listed
+              before any newly uploaded files.
+            </p>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
