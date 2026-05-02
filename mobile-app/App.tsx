@@ -1749,54 +1749,6 @@ function OrderDetailScreen({ route }: { route: RouteProp<RootStackParamList, 'Or
   );
 }
 
-function ProfileScreen({
-  user,
-  onLogout,
-  fcmToken,
-  onOpenServiceHistory,
-  navigation,
-}: {
-  user: AppUser | null;
-  onLogout: () => void;
-  fcmToken: string | null;
-  onOpenServiceHistory?: () => void;
-  navigation?: { getParent: () => { navigate?: (name: string) => void } | undefined };
-}) {
-  const showServiceExtras = user?.role === 'customer' || user?.role === 'dealer';
-  return (
-    <SafeAreaView style={styles.screen}>
-      <View style={styles.listPad}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Profile</Text>
-          <Text style={styles.cardMeta}>User ID: {user?.id || '-'}</Text>
-          <Text style={styles.cardMeta}>Role: {user?.role || '-'}</Text>
-          <Text style={styles.cardMeta}>Email: {user?.email || '-'}</Text>
-          <Text style={styles.cardMeta}>Phone: {user?.phone || '-'}</Text>
-          <Text style={styles.cardMeta}>API: {API_BASE_URL}</Text>
-          <Text style={styles.cardMeta} numberOfLines={2}>FCM Token: {fcmToken || 'Not registered yet'}</Text>
-        </View>
-        {showServiceExtras && onOpenServiceHistory ? (
-          <Pressable style={styles.buttonSecondary} onPress={onOpenServiceHistory}>
-            <Text style={styles.buttonSecondaryText}>Service history & reviews</Text>
-          </Pressable>
-        ) : null}
-        <PublicWebsiteLinks
-          audience="signed_in"
-          onOpenAbout={() => {
-            if (!tryNavigateRootAbout(navigation)) void Linking.openURL(publicWebUrl('/about'));
-          }}
-          onOpenContact={() => {
-            if (!tryNavigateRootContact(navigation)) void Linking.openURL(publicWebUrl('/contact'));
-          }}
-        />
-        <Pressable style={styles.button} onPress={onLogout}>
-          <Text style={styles.buttonText}>Logout</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
-  );
-}
-
 function Loader({ text }: { text: string }) {
   return (
     <SafeAreaView style={styles.screen}>
@@ -1837,7 +1789,7 @@ function MainTabs({
       )}
       <Tab.Screen name="Profile">
         {(props) => (
-          <ProfileScreen
+          <CustomerProfileScreen
             navigation={props.navigation}
             user={user}
             onLogout={onLogout}
