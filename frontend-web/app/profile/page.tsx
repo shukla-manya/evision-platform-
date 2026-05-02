@@ -67,7 +67,7 @@ export default function ProfilePage() {
   if (!ok) {
     return (
       <PublicShell>
-        <main className="max-w-md mx-auto px-4 py-16 text-center text-ev-muted">
+        <main className="w-full min-w-0 max-w-md mx-auto px-4 sm:px-6 py-16 text-center text-ev-muted">
           <Link href="/login" className="ev-btn-primary">
             Sign in
           </Link>
@@ -78,8 +78,8 @@ export default function ProfilePage() {
 
   return (
     <PublicShell>
-      <main className="max-w-xl mx-auto px-4 sm:px-6 py-10 space-y-6">
-        <h1 className="text-2xl font-bold text-ev-text">Profile</h1>
+      <main className="w-full min-w-0 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-12 space-y-6 sm:space-y-8">
+        <h1 className="text-xl font-bold text-ev-text sm:text-2xl lg:text-3xl">Profile</h1>
 
         {loading ? (
           <div className="flex justify-center py-12 text-ev-muted gap-2">
@@ -87,89 +87,95 @@ export default function ProfilePage() {
           </div>
         ) : (
           <>
-            <section className="ev-card p-6 space-y-3">
-              <h2 className="text-sm font-semibold text-ev-text flex items-center gap-2">
-                <User size={16} className="text-ev-primary" />
-                My details
-              </h2>
-              <p className="text-sm text-ev-muted">
-                <span className="text-ev-subtle">Name</span>
-                <br />
-                <span className="text-ev-text">{user?.name || '—'}</span>
-              </p>
-              <p className="text-sm text-ev-muted">
-                <span className="text-ev-subtle">Email</span>
-                <br />
-                <span className="text-ev-text">{user?.email || '—'}</span>
-              </p>
-              <p className="text-sm text-ev-muted">
-                <span className="text-ev-subtle">Phone</span>
-                <br />
-                <span className="text-ev-text">{user?.phone || '—'}</span>
-              </p>
-            </section>
+            <div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-12 items-start">
+              <div className="lg:col-span-5 space-y-6 min-w-0">
+                <section className="ev-card p-4 sm:p-6 space-y-3 sm:space-y-4">
+                  <h2 className="text-sm font-semibold text-ev-text flex items-center gap-2">
+                    <User size={16} className="text-ev-primary shrink-0" />
+                    My details
+                  </h2>
+                  <dl className="grid grid-cols-1 gap-3 sm:gap-4 text-sm">
+                    <div className="min-w-0">
+                      <dt className="text-ev-subtle text-xs font-medium uppercase tracking-wide">Name</dt>
+                      <dd className="text-ev-text mt-0.5 break-words">{user?.name || '—'}</dd>
+                    </div>
+                    <div className="min-w-0">
+                      <dt className="text-ev-subtle text-xs font-medium uppercase tracking-wide">Email</dt>
+                      <dd className="text-ev-text mt-0.5 break-all">{user?.email || '—'}</dd>
+                    </div>
+                    <div className="min-w-0">
+                      <dt className="text-ev-subtle text-xs font-medium uppercase tracking-wide">Phone</dt>
+                      <dd className="text-ev-text mt-0.5 break-words">{user?.phone || '—'}</dd>
+                    </div>
+                  </dl>
+                </section>
 
-            {role === 'dealer' ? (
-              <section className="ev-card p-6 space-y-3">
-                <h2 className="text-sm font-semibold text-ev-text">Dealer account</h2>
-                <p className="text-ev-muted text-sm">
-                  Same cart, checkout, orders, and technician booking as customers — with dealer pricing in the shop and
-                  GST tax invoices from Dealer hub.
+                {role === 'dealer' ? (
+                  <section className="ev-card p-4 sm:p-6 space-y-3">
+                    <h2 className="text-sm font-semibold text-ev-text">Dealer account</h2>
+                    <p className="text-ev-muted text-sm leading-relaxed">
+                      Same cart, checkout, orders, and technician booking as customers — with dealer pricing in the shop
+                      and GST tax invoices from Dealer hub.
+                    </p>
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-2 pt-1">
+                      <Link href="/dealer/dashboard" className="ev-btn-primary text-sm py-2.5 px-4 text-center sm:inline-flex sm:justify-center">
+                        Dealer hub
+                      </Link>
+                      <Link href="/dealer/invoices" className="ev-btn-secondary text-sm py-2.5 px-4 text-center sm:inline-flex sm:justify-center">
+                        GST invoices
+                      </Link>
+                    </div>
+                    {user?.gst_no ? (
+                      <p className="text-sm text-ev-muted pt-2 border-t border-ev-border min-w-0">
+                        <span className="text-ev-subtle">GSTIN</span>
+                        <br />
+                        <span className="text-ev-text font-mono break-all">{user.gst_no}</span>
+                      </p>
+                    ) : null}
+                    {user?.business_name ? (
+                      <p className="text-sm text-ev-muted min-w-0">
+                        <span className="text-ev-subtle">Business</span>
+                        <br />
+                        <span className="text-ev-text break-words">{user.business_name}</span>
+                      </p>
+                    ) : null}
+                    {user?.business_address ? (
+                      <p className="text-sm text-ev-muted min-w-0">
+                        <span className="text-ev-subtle">Business address</span>
+                        <br />
+                        <span className="text-ev-text break-words">{user.business_address}</span>
+                      </p>
+                    ) : null}
+                  </section>
+                ) : null}
+              </div>
+
+              <section className="lg:col-span-7 ev-card p-4 sm:p-6 space-y-4 min-w-0">
+                <AddressBookEditor
+                  variant="profile"
+                  addresses={user?.address_book || []}
+                  onSaved={(book) => setUser((u) => (u ? { ...u, address_book: book } : u))}
+                />
+                <p className="text-ev-subtle text-xs leading-relaxed">
+                  Delivery addresses for orders. You can also change them during checkout. Dealer GST and registered
+                  business details come from your account — use support if those need an update.
                 </p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  <Link href="/dealer/dashboard" className="ev-btn-primary text-sm py-2 px-4">
-                    Dealer hub
-                  </Link>
-                  <Link href="/dealer/invoices" className="ev-btn-secondary text-sm py-2 px-4">
-                    GST invoices
-                  </Link>
-                </div>
-                {user?.gst_no ? (
-                  <p className="text-sm text-ev-muted pt-2 border-t border-ev-border">
-                    <span className="text-ev-subtle">GSTIN</span>
-                    <br />
-                    <span className="text-ev-text font-mono">{user.gst_no}</span>
-                  </p>
-                ) : null}
-                {user?.business_name ? (
-                  <p className="text-sm text-ev-muted">
-                    <span className="text-ev-subtle">Business</span>
-                    <br />
-                    <span className="text-ev-text">{user.business_name}</span>
-                  </p>
-                ) : null}
-                {user?.business_address ? (
-                  <p className="text-sm text-ev-muted">
-                    <span className="text-ev-subtle">Business address</span>
-                    <br />
-                    <span className="text-ev-text">{user.business_address}</span>
-                  </p>
-                ) : null}
+                <Link
+                  href="/checkout"
+                  className="ev-btn-secondary text-sm py-2.5 px-4 inline-flex w-full sm:w-auto justify-center"
+                >
+                  Go to checkout
+                </Link>
               </section>
-            ) : null}
+            </div>
 
-            <section className="ev-card p-6 space-y-4">
-              <AddressBookEditor
-                variant="profile"
-                addresses={user?.address_book || []}
-                onSaved={(book) => setUser((u) => (u ? { ...u, address_book: book } : u))}
-              />
-              <p className="text-ev-subtle text-xs leading-relaxed">
-                Delivery addresses for orders. You can also change them during checkout. Dealer GST and registered
-                business details come from your account — use support if those need an update.
-              </p>
-              <Link href="/checkout" className="ev-btn-secondary text-sm py-2 px-4 inline-flex">
-                Go to checkout
-              </Link>
-            </section>
-
-            <section className="ev-card p-6 space-y-4">
+            <section className="ev-card p-4 sm:p-6 space-y-4 max-w-3xl lg:max-w-none">
               <h2 className="text-sm font-semibold text-ev-text flex items-center gap-2">
-                <Bell size={16} className="text-ev-primary" />
+                <Bell size={16} className="text-ev-primary shrink-0" />
                 Notifications
               </h2>
-              <label className="flex items-center justify-between gap-4 text-sm text-ev-text cursor-pointer">
-                <span>Order updates by email</span>
+              <label className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 text-sm text-ev-text cursor-pointer py-1 min-w-0">
+                <span className="min-w-0">Order updates by email</span>
                 <input
                   type="checkbox"
                   checked={emailOrders}
@@ -178,11 +184,11 @@ export default function ProfilePage() {
                     persistNotif('ev_notif_email_orders', e.target.checked);
                     toast.success('Preference saved on this device');
                   }}
-                  className="rounded border-ev-border"
+                  className="rounded border-ev-border shrink-0 sm:order-none self-start sm:self-center"
                 />
               </label>
-              <label className="flex items-center justify-between gap-4 text-sm text-ev-text cursor-pointer">
-                <span>Offers &amp; promotions (push)</span>
+              <label className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4 text-sm text-ev-text cursor-pointer py-1 min-w-0">
+                <span className="min-w-0">Offers &amp; promotions (push)</span>
                 <input
                   type="checkbox"
                   checked={pushOffers}
@@ -191,7 +197,7 @@ export default function ProfilePage() {
                     persistNotif('ev_notif_push_offers', e.target.checked);
                     toast.success('Preference saved on this device');
                   }}
-                  className="rounded border-ev-border"
+                  className="rounded border-ev-border shrink-0 self-start sm:self-center"
                 />
               </label>
               <p className="text-ev-subtle text-xs">Device-only toggles; connect FCM in the mobile app for real pushes.</p>
@@ -199,7 +205,7 @@ export default function ProfilePage() {
 
             <button
               type="button"
-              className="ev-card p-5 w-full flex items-center justify-center gap-2 text-ev-error border-ev-error/20 hover:bg-ev-error/5 transition-colors"
+              className="ev-card p-4 sm:p-5 w-full max-w-3xl lg:max-w-none flex items-center justify-center gap-2 text-ev-error border-ev-error/20 hover:bg-ev-error/5 transition-colors min-h-12"
               onClick={() => {
                 clearAuth();
                 window.location.href = '/';
