@@ -156,12 +156,6 @@ export default function ProfilePage() {
                   addresses={user?.address_book || []}
                   onSaved={(book) => setUser((u) => (u ? { ...u, address_book: book } : u))}
                 />
-                <Link
-                  href="/checkout"
-                  className="ev-btn-secondary text-sm py-2.5 px-4 inline-flex w-full sm:w-auto justify-center"
-                >
-                  Go to checkout
-                </Link>
               </section>
             </div>
 
