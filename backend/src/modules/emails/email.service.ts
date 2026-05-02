@@ -15,6 +15,8 @@ export interface SendEmailOptions {
   attachments?: any[];
   /** Set on inbound messages so staff can reply directly to the visitor. */
   replyTo?: string;
+  /** Blind copy (e.g. superadmin) when primary `to` is a shared inbox. */
+  bcc?: string;
 }
 
 type EmailLayoutMeta = {
@@ -54,6 +56,7 @@ export class EmailService {
         from,
         to: opts.to,
         ...(opts.replyTo ? { replyTo: opts.replyTo } : {}),
+        ...(opts.bcc ? { bcc: opts.bcc } : {}),
         subject: opts.subject,
         html: opts.html,
         attachments: opts.attachments,
@@ -85,11 +88,16 @@ export class EmailService {
       .join('');
   }
 
-  /** Staff inbox for website/app contact form (uses CONTACT_FORM_TO_EMAIL or support default). */
+  /**
+   * Staff inbox for website/app contact form (product enquiries use the same endpoint).
+   * Set `CONTACT_FORM_TO_EMAIL` for a dedicated inbox; otherwise falls back to public support,
+   * then `SUPERADMIN_EMAIL`, then a default placeholder.
+   */
   contactFormStaffInbox(): string {
     return (
       this.config.get<string>('CONTACT_FORM_TO_EMAIL')?.trim() ||
       this.config.get<string>('PUBLIC_SUPPORT_EMAIL')?.trim() ||
+      this.config.get<string>('SUPERADMIN_EMAIL')?.trim() ||
       'support@evisionindia.com'
     );
   }
@@ -123,6 +131,11 @@ export class EmailService {
         header_border_color: '#10b981',
       },
     );
+    const superadmin = this.config.get<string>('SUPERADMIN_EMAIL')?.trim();
+    const bcc =
+      superadmin && superadmin.toLowerCase() !== data.staffEmail.trim().toLowerCase()
+        ? superadmin
+        : undefined;
     return this.send({
       to: data.staffEmail,
       to_role: 'support',
@@ -130,6 +143,7 @@ export class EmailService {
       html,
       trigger_event: 'contact_form_staff',
       replyTo: data.replyTo,
+      ...(bcc ? { bcc } : {}),
     });
   }
 
