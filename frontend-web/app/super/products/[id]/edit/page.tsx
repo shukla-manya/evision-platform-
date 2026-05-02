@@ -186,6 +186,7 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         <h1 className="text-2xl font-bold text-ev-text mb-2">Edit product</h1>
         <p className="text-ev-muted text-sm mb-6">Update catalogue details and pricing.</p>
         <form onSubmit={onSubmit} className="ev-card p-6 sm:p-8 space-y-5">
+          <PlatformCatalogPlacementNote />
           <div>
             <label className="ev-label">Product name</label>
             <input
