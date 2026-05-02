@@ -34,48 +34,6 @@ class ReviewElectricianDto {
 export class SuperadminController {
   constructor(private superadminService: SuperadminService) {}
 
-  @Get('pending-admins')
-  @ApiOperation({ summary: 'List all pending admin registrations' })
-  getPendingAdmins() {
-    return this.superadminService.getPendingAdmins();
-  }
-
-  @Get('all-admins')
-  @ApiOperation({ summary: 'List all admins with status' })
-  getAllAdmins() {
-    return this.superadminService.getAllAdmins();
-  }
-
-  @Put('admin/:id/approve')
-  @ApiOperation({ summary: 'Approve an admin registration' })
-  approveAdmin(@Param('id') id: string) {
-    return this.superadminService.approveAdmin(id);
-  }
-
-  @Put('admin/:id/reject')
-  @ApiOperation({ summary: 'Reject an admin registration' })
-  rejectAdmin(@Param('id') id: string, @Body() dto: RejectReasonDto) {
-    return this.superadminService.rejectAdmin(id, dto.reason);
-  }
-
-  @Put('admin/:id/suspend')
-  @ApiOperation({ summary: 'Toggle suspend/reactivate an admin' })
-  suspendAdmin(@Param('id') id: string) {
-    return this.superadminService.suspendAdmin(id);
-  }
-
-  @Put('admin/:id/commission')
-  @ApiOperation({ summary: 'Set platform commission percent for a shop' })
-  setCommission(@Param('id') id: string, @Body() dto: PlatformCommissionDto) {
-    return this.superadminService.setPlatformCommission(id, dto.platform_commission_pct);
-  }
-
-  @Put('admin/:id/mark-settled')
-  @ApiOperation({ summary: 'Mark current settlement period as paid for a shop' })
-  markSettled(@Param('id') id: string) {
-    return this.superadminService.markShopSettled(id);
-  }
-
   @Get('pending-electricians')
   @ApiOperation({ summary: 'List all pending electrician registrations' })
   getPendingElectricians() {
@@ -108,12 +66,6 @@ export class SuperadminController {
   @ApiOperation({ summary: 'Platform analytics overview' })
   getAnalytics() {
     return this.superadminService.getAnalytics();
-  }
-
-  @Get('settlements')
-  @ApiOperation({ summary: 'Payment settlements summary and per-shop rows' })
-  getSettlements() {
-    return this.superadminService.getSettlements();
   }
 
   @Get('reviews')
