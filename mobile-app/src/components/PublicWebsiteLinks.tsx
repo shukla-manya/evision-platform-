@@ -12,8 +12,6 @@ const LINKS: { label: string; path: string }[] = [
   { label: 'Privacy', path: '/privacy' },
 ];
 
-const DASHBOARD_PATH = '/dashboard';
-
 /** Signed-out: Returns + partner CTAs (web); signed-in (`audience="signed_in"`): none — same rule as web footer for logged-in users. */
 export function PublicWebsiteLinks({
   audience,
@@ -31,7 +29,10 @@ export function PublicWebsiteLinks({
 }) {
   const navLinks =
     omitHomeAndDashboardWebLinks
-      ? LINKS.filter((l) => l.path !== '/' && l.path.split('#')[0] !== DASHBOARD_PATH)
+      ? LINKS.filter((l) => {
+          const base = l.path.split('#')[0] ?? l.path;
+          return base !== '/' && base !== '/dashboard';
+        })
       : LINKS;
 
   const open = (path: string) => () => {

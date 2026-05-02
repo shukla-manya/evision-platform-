@@ -70,20 +70,27 @@ export default function SuperCategoriesPage() {
 
   return (
     <SuperadminShell>
-      <main className="w-full min-w-0 max-w-3xl">
-        <h1 className="text-2xl font-bold text-ev-text mb-2">Categories</h1>
-        <p className="text-ev-muted text-sm mb-6">Used by the public shop and catalogue (customer / dealer pricing is on products).</p>
+      <main className="mx-auto w-full min-w-0 max-w-3xl overflow-x-hidden">
+        <h1 className="text-xl font-bold text-ev-text sm:text-2xl mb-2">Categories</h1>
+        <p className="text-ev-muted text-sm mb-6 max-w-prose">
+          Used by the public shop and catalogue (customer / dealer pricing is on products).
+        </p>
 
-        <form onSubmit={onCreate} className="ev-card p-5 sm:p-6 space-y-4 mb-8">
+        <form onSubmit={onCreate} className="ev-card p-4 sm:p-6 space-y-4 mb-8">
           <h2 className="text-sm font-semibold text-ev-text">Add category</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+            <div className="min-w-0">
               <label className="ev-label">Name</label>
-              <input className="ev-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. CCTV Cameras" />
+              <input
+                className="ev-input w-full min-w-0"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. CCTV Cameras"
+              />
             </div>
-            <div>
+            <div className="min-w-0">
               <label className="ev-label">Parent (optional)</label>
-              <select className="ev-input" value={parentId} onChange={(e) => setParentId(e.target.value)}>
+              <select className="ev-input w-full min-w-0" value={parentId} onChange={(e) => setParentId(e.target.value)}>
                 <option value="">— Top level —</option>
                 {items
                   .filter((c) => !c.parent_id)
@@ -95,7 +102,11 @@ export default function SuperCategoriesPage() {
               </select>
             </div>
           </div>
-          <button type="submit" className="ev-btn-primary text-sm py-2 px-4 inline-flex items-center gap-2" disabled={saving}>
+          <button
+            type="submit"
+            className="ev-btn-primary w-full text-sm py-2.5 px-4 sm:w-auto inline-flex items-center justify-center gap-2"
+            disabled={saving}
+          >
             {saving ? <Loader2 className="animate-spin" size={16} /> : <Plus size={16} />}
             Create
           </button>
@@ -105,11 +116,16 @@ export default function SuperCategoriesPage() {
           <div className="flex items-center justify-center py-16 text-ev-muted gap-2">
             <Loader2 className="animate-spin text-ev-primary" size={22} /> Loading…
           </div>
+        ) : items.length === 0 ? (
+          <div className="ev-card p-8 sm:p-10 text-center text-ev-muted text-sm">No categories yet. Add one above.</div>
         ) : (
           <ul className="divide-y divide-ev-border rounded-xl border border-ev-border bg-ev-surface overflow-hidden">
             {items.map((c) => (
-              <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
-                <span className="text-ev-text">
+              <li
+                key={c.id}
+                className="flex flex-col gap-2 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+              >
+                <span className="min-w-0 break-words text-ev-text sm:pr-2">
                   {c.parent_id ? <span className="text-ev-muted">↳ </span> : null}
                   {c.name}
                 </span>
@@ -117,9 +133,9 @@ export default function SuperCategoriesPage() {
                   type="button"
                   disabled={deleting === c.id}
                   onClick={() => void onDelete(c.id, c.name)}
-                  className="text-red-600 text-xs font-semibold inline-flex items-center gap-1 hover:underline disabled:opacity-40"
+                  className="shrink-0 self-end text-red-600 text-xs font-semibold inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 min-h-10 min-w-[5.5rem] hover:bg-red-500/10 hover:underline disabled:opacity-40 sm:self-auto sm:min-h-0 sm:min-w-0 sm:px-2 sm:py-1.5"
                 >
-                  <Trash2 size={12} /> {deleting === c.id ? '…' : 'Delete'}
+                  <Trash2 size={12} aria-hidden /> {deleting === c.id ? '…' : 'Delete'}
                 </button>
               </li>
             ))}
