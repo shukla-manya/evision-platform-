@@ -48,9 +48,7 @@ function isAuthSignInPath(pathname: string | null): boolean {
 export function PublicFooter({ authSurface = false }: PublicFooterProps) {
   const pathname = usePathname();
   const [loggedIn, setLoggedIn] = useState(false);
-  const [role, setRole] = useState<string | undefined>(() =>
-    typeof window !== 'undefined' ? getRole() : undefined,
-  );
+  const [role, setRole] = useState<string | undefined>(undefined);
   const suppressMarketingHome = authSurface || isAuthSignInPath(pathname);
   const hideCustomerHomeOnAuth = role === 'customer' && suppressMarketingHome;
   const helpNavLinks = hideCustomerHomeOnAuth

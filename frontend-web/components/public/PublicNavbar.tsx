@@ -37,9 +37,8 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
   const [cartItems, setCartItems] = useState(0);
   const [hearts, setHearts] = useState(0);
 
-  const [role, setRole] = useState<string | undefined>(() =>
-    typeof window !== 'undefined' ? getRole() : undefined,
-  );
+  /** Always `undefined` on first paint so SSR and hydration match; auth UI syncs after mount. */
+  const [role, setRole] = useState<string | undefined>(undefined);
   useEffect(() => {
     queueMicrotask(() => setRole(getRole()));
   }, [pathname]);
