@@ -46,9 +46,9 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
   const canCart = role === 'customer' || role === 'dealer';
   const isShopper = role === 'customer' || role === 'dealer';
   const isTechnician = role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected';
-  /** Hide shopper Home + customer Dashboard on auth shell or `/login` (incl. trailing slash). */
-  const hideShopperHomeAndCustomerDashboardOnLogin =
-    authSurface || isCustomerLoginPath(pathname);
+  /** Customer on sign-in/register (or `/login`): hide explicit "Home" nav control; dealers unchanged. */
+  const hideCustomerHomeOnSignIn =
+    role === 'customer' && (authSurface || isCustomerLoginPath(pathname));
 
   const syncCounts = useCallback(() => {
     setHearts(wishlistCount());
@@ -156,7 +156,7 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
           </Link>
           {isShopper ? (
             <>
-              {!hideShopperHomeAndCustomerDashboardOnLogin ? (
+              {!hideCustomerHomeOnSignIn ? (
                 <Link
                   href="/"
                   className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
@@ -261,7 +261,7 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
           ))}
           {isShopper ? (
             <>
-              {!hideShopperHomeAndCustomerDashboardOnLogin ? (
+              {!hideCustomerHomeOnSignIn ? (
                 <Link href="/" className="block py-2.5 text-white/85 hover:text-white font-medium">
                   Home
                 </Link>
