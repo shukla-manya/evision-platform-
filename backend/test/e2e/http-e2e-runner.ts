@@ -792,9 +792,6 @@ async function main() {
 
   console.log('[e2e] superadmin approvals');
   {
-    const pendingAdmin = uuidv4();
-    const rejectAdmin = uuidv4();
-    const suspendAdmin = uuidv4();
     const pendingElec = uuidv4();
     const rejectElec = uuidv4();
     const dealerUser = uuidv4();
@@ -820,51 +817,6 @@ async function main() {
       .send({ email: saEmail, password: saE2ePassword });
     assert.equal(loginRes.status, 200);
     const sa = (loginRes.body as { access_token: string }).access_token;
-    for (const [id, email] of [
-      [pendingAdmin, `padm-${pendingAdmin}@e2e.invalid`],
-      [rejectAdmin, `radm-${rejectAdmin}@e2e.invalid`],
-      [suspendAdmin, `sadm-${suspendAdmin}@e2e.invalid`],
-    ] as const) {
-      await docClient.send(
-        new PutCommand({
-          TableName: 'evision_admins',
-          Item: {
-            id,
-            shop_name: `Shop ${id.slice(0, 4)}`,
-            owner_name: 'Owner',
-            email,
-            phone: `+9191666${String(id.slice(0, 4)).padStart(4, '0')}`,
-            status: 'pending',
-            created_at: now,
-          },
-        }),
-      );
-    }
-    await request(app.getHttpServer())
-      .put(`/superadmin/admin/${pendingAdmin}/approve`)
-      .set('Authorization', `Bearer ${sa}`)
-      .expect(200);
-    await request(app.getHttpServer())
-      .put(`/superadmin/admin/${rejectAdmin}/reject`)
-      .set('Authorization', `Bearer ${sa}`)
-      .send({ reason: 'E2E reject' })
-      .expect(200);
-    await request(app.getHttpServer())
-      .put(`/superadmin/admin/${suspendAdmin}/approve`)
-      .set('Authorization', `Bearer ${sa}`)
-      .expect(200);
-    await request(app.getHttpServer())
-      .put(`/superadmin/admin/${suspendAdmin}/suspend`)
-      .set('Authorization', `Bearer ${sa}`)
-      .expect(200);
-    const suspended = await docClient.send(
-      new ScanCommand({
-        TableName: 'evision_admins',
-        FilterExpression: 'id = :id',
-        ExpressionAttributeValues: { ':id': suspendAdmin },
-      }),
-    );
-    assert.equal((suspended.Items || [])[0]?.status, 'suspended');
 
     await docClient.send(
       new PutCommand({

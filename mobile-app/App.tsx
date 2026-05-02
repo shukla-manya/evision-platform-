@@ -1014,12 +1014,12 @@ function PasswordResetScreen({
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Reset Password</Text>
           <Text style={styles.subtitle}>
-            Shop admins only. We email a 6-digit OTP to the address on your shop account. Customers and dealers sign in
-            with an email OTP — no password reset here. Superadmin uses the web sign-in flow.
+            Technicians only. We email a 6-digit OTP to the address on your technician account. Customers and dealers sign
+            in with an email OTP — no password reset here. Superadmin uses the web sign-in flow.
           </Text>
           <TextInput
             style={styles.input}
-            placeholder="admin@shop.com"
+            placeholder="you@example.com"
             keyboardType="email-address"
             autoCapitalize="none"
             value={emailReset}
@@ -1895,7 +1895,6 @@ function AppShell() {
     ),
     [token, logout, fcmToken, user?.role],
   );
-  const shopPartnerFlow = useMemo(() => () => <ShopPartnerPortalScreen onLogout={logout} />, [logout]);
   const superadminHubScreen = useMemo(() => () => <SuperadminHubScreen onLogout={logout} />, [logout]);
   const superadminFlow = useMemo(
     () =>
@@ -1941,15 +1940,13 @@ function AppShell() {
               component={
                 user?.role === 'electrician' || user?.role === 'electrician_pending' || user?.role === 'electrician_rejected'
                   ? electricianFlow
-                  : user?.role === 'admin'
-                  ? shopPartnerFlow
                   : user?.role === 'superadmin'
                   ? superadminFlow
                   : mainTabs
               }
               options={{ headerShown: false }}
             />
-            {user?.role !== 'electrician' && user?.role !== 'electrician_pending' && user?.role !== 'electrician_rejected' && user?.role !== 'admin' && user?.role !== 'superadmin' && (
+            {user?.role !== 'electrician' && user?.role !== 'electrician_pending' && user?.role !== 'electrician_rejected' && user?.role !== 'superadmin' && (
               <>
                 <RootStack.Screen name="ProductDetail" component={productDetailScreen} options={{ title: 'Product Detail' }} />
                 <RootStack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Checkout' }} />
