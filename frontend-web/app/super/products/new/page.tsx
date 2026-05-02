@@ -26,7 +26,6 @@ export default function AdminProductNewPage() {
     price_dealer: '',
     stock: '',
     category_id: '',
-    brand: '',
     active: true,
     low_stock_threshold: '10',
     mrp: '',
@@ -67,7 +66,6 @@ export default function AdminProductNewPage() {
         price_dealer: Number(form.price_dealer),
         stock: Number(form.stock),
         category_id: form.category_id,
-        brand: form.brand.trim() || undefined,
         active: form.active,
         low_stock_threshold: Number(form.low_stock_threshold) || 10,
         min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
@@ -253,10 +251,6 @@ export default function AdminProductNewPage() {
                 onChange={(e) => setForm((f) => ({ ...f, low_stock_threshold: e.target.value }))}
               />
             </div>
-          </div>
-          <div>
-            <label className="ev-label">Brand (optional)</label>
-            <input className="ev-input" value={form.brand} onChange={(e) => setForm((f) => ({ ...f, brand: e.target.value }))} />
           </div>
           <div>
             <label className="ev-label">Amazon / external buy URL (optional)</label>
