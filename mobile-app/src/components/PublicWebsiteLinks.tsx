@@ -12,7 +12,7 @@ const LINKS: { label: string; path: string }[] = [
   { label: 'Privacy', path: '/privacy' },
 ];
 
-/** Signed-out: “Returns” opens storefront sign-in; signed-in: Returns row hidden (matches web footer). */
+/** Signed-out: partner CTAs + Returns (matches web `PublicFooter` Installation & partners); signed-in: hidden. */
 export function PublicWebsiteLinks({
   audience,
   onOpenAbout,

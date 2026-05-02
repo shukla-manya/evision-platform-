@@ -143,17 +143,19 @@ export function PublicFooter() {
                     Service areas
                   </Link>
                 </li>
-                <li>
-                  <Link href="/register?role=dealer" className={colLink}>
-                    Become a dealer
-                  </Link>
-                </li>
                 {!loggedIn ? (
-                  <li>
-                    <Link href="/register?role=electrician" className={colLink}>
-                      Register as technician
-                    </Link>
-                  </li>
+                  <>
+                    <li>
+                      <Link href="/register?role=dealer" className={colLink}>
+                        Become a dealer
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/register?role=electrician" className={colLink}>
+                        Register as technician
+                      </Link>
+                    </li>
+                  </>
                 ) : null}
               </ul>
             </div>
