@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { superadminApi, catalogApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { SuperadminShell } from '@/components/superadmin/SuperadminShell';
+import { PlatformCatalogPlacementNote } from '@/components/superadmin/PlatformCatalogPlacementNote';
 import { dedupeImageUrlsPreserveOrder, parseImageUrlList } from '@/lib/product-image-urls';
 
 type Category = { id: string; name: string; parent_id?: string | null };
@@ -111,6 +112,7 @@ export default function AdminProductNewPage() {
           List items for your E vision catalogue.
         </p>
         <form onSubmit={onSubmit} className="ev-card min-w-0 space-y-4 p-4 sm:space-y-5 sm:p-6 md:p-8">
+          <PlatformCatalogPlacementNote />
           <div>
             <label className="ev-label">Product name</label>
             <input
