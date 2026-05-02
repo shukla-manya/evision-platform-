@@ -33,6 +33,7 @@ export function PublicNavbar() {
   const canCart = role === 'customer' || role === 'dealer';
   const isShopper = role === 'customer' || role === 'dealer';
   const isTechnician = role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected';
+  const hideHomeNavOnSignIn = pathname === '/login';
 
   const syncCounts = useCallback(() => {
     setHearts(wishlistCount());
@@ -140,12 +141,14 @@ export function PublicNavbar() {
           </Link>
           {isShopper ? (
             <>
-              <Link
-                href="/"
-                className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
-              >
-                Home
-              </Link>
+              {!hideHomeNavOnSignIn ? (
+                <Link
+                  href="/"
+                  className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
+                >
+                  Home
+                </Link>
+              ) : null}
               {role === 'customer' ? (
                 <Link
                   href="/dashboard"
@@ -251,9 +254,11 @@ export function PublicNavbar() {
           ))}
           {isShopper ? (
             <>
-              <Link href="/" className="block py-2.5 text-white/85 hover:text-white font-medium">
-                Home
-              </Link>
+              {!hideHomeNavOnSignIn ? (
+                <Link href="/" className="block py-2.5 text-white/85 hover:text-white font-medium">
+                  Home
+                </Link>
+              ) : null}
               {role === 'customer' ? (
                 <Link href="/dashboard" className="block py-2.5 text-white/85 hover:text-white font-medium">
                   Dashboard

@@ -151,12 +151,12 @@ function LoginPageInner() {
 
       <div className="w-full max-w-md relative z-10 animate-slide-up">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-5">
+          <div className="inline-flex items-center gap-2.5 mb-5">
             <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-ev-glow">
               <Camera size={22} className="text-white" />
             </div>
             <span className="text-ev-text font-bold text-xl">{publicBrandName}</span>
-          </Link>
+          </div>
 
           <p className="text-3xl leading-none mb-2" aria-hidden>
             👋
