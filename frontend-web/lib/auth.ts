@@ -30,7 +30,7 @@ export function redirectByRole(role: string): string {
   const routes: Record<string, string> = {
     superadmin: '/super/dashboard',
     admin: '/',
-    customer: '/dashboard',
+    customer: '/shop',
     dealer: '/dealer/dashboard',
     electrician: '/electrician/dashboard',
     electrician_pending: '/electrician/dashboard',
