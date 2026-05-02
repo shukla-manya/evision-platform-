@@ -111,7 +111,6 @@ type RegisterInitialRole = 'customer' | 'dealer' | 'electrician';
 type RootStackParamList = {
   Auth: undefined;
   OtpSignIn: undefined;
-  AdminSignIn: undefined;
   Register: { email?: string; phone?: string; initialRole?: RegisterInitialRole };
   PasswordReset: { role?: PasswordResetRole; email?: string };
   Main: undefined;
