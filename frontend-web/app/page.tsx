@@ -733,7 +733,7 @@ export default function HomePage() {
           <HomeTestimonialsMarquee />
         </section>
 
-        {/* Dealer / technician — shown to visitors only (same promos as before the signed-in notice was removed) */}
+        {/* Dealer / technician promos (guests only) */}
         {!sessionLoggedIn && (
           <section className="ev-container pb-16 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="ev-card overflow-hidden border-ev-primary/20 flex flex-col md:flex-row md:min-h-[min(100%,280px)]">
