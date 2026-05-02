@@ -255,12 +255,12 @@ export function PublicNavbar() {
           ))}
           {isShopper ? (
             <>
-              {!hideHomeNavOnSignIn ? (
+              {!hideShopperHomeAndCustomerDashboardOnLogin ? (
                 <Link href="/" className="block py-2.5 text-white/85 hover:text-white font-medium">
                   Home
                 </Link>
               ) : null}
-              {role === 'customer' ? (
+              {role === 'customer' && !hideShopperHomeAndCustomerDashboardOnLogin ? (
                 <Link href="/dashboard" className="block py-2.5 text-white/85 hover:text-white font-medium">
                   Dashboard
                 </Link>
