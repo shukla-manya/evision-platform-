@@ -1,8 +1,7 @@
 import { Controller, Get, Put, Delete, Param, Body, UseGuards, Query } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { IsString, IsOptional, IsNumber, Min, Max } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { IsString, IsOptional } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import { SuperadminService } from './superadmin.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -25,15 +24,6 @@ class ReviewElectricianDto {
   @IsOptional()
   @IsString()
   reason?: string;
-}
-
-class PlatformCommissionDto {
-  @ApiProperty({ example: 10, description: 'Percent of each order retained by platform' })
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0)
-  @Max(100)
-  platform_commission_pct: number;
 }
 
 @ApiTags('Superadmin')
