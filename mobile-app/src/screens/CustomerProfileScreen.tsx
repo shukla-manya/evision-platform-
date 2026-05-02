@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
   dd: { fontSize: 15, color: colors.textPrimary, flexWrap: 'wrap' },
   bodyMuted: { fontSize: 14, color: colors.textSecondary, lineHeight: 20 },
   metaSmall: { fontSize: 13, color: colors.textSecondary, marginTop: 4 },
-  mono: { fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: undefined }) as string },
+  mono: { fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
   addrRow: {
     paddingVertical: 10,
     paddingHorizontal: 12,
@@ -369,5 +370,3 @@ const styles = StyleSheet.create({
   },
   btnDangerText: { color: colors.error, fontWeight: '700', fontSize: 16 },
 });
-
-import { Platform } from 'react-native';
