@@ -195,22 +195,26 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
               required
             />
           </div>
-          <div>
-            <label className="ev-label">Category</label>
-            <select
-              className="ev-input"
-              value={form.category_id}
-              onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
-              required
-            >
-              <option value="">Select category</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.parent_id ? `↳ ${c.name}` : c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div>
+              <label className="ev-label">Category</label>
+              <select
+                className="ev-input"
+                value={form.category_id}
+                onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
+                required
+              >
+                <option value="">Select category</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.parent_id ? `↳ ${c.name}` : c.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-ev-subtle mt-1.5 text-xs leading-relaxed">
+                Shop filters use this field: customers narrow the catalogue from the left sidebar by category (same names as
+                here). Subcategories show as indented (↳) in both places.
+              </p>
+            </div>
           <div>
             <p className="ev-label">Product images</p>
             {form.images.length > 0 ? (
