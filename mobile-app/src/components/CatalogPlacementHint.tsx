@@ -2,15 +2,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
 import { publicBrandName } from '../config/publicMarketing';
 
-/** Shopper-facing: category = shop section; brand = optional label (e.g. Puma vs Nike). */
+/** Shopper-facing: how catalogue items are grouped (matches web shop emphasis). */
 export function CatalogPlacementHint() {
   return (
     <View style={styles.box}>
-      <Text style={styles.title}>Category & brand</Text>
+      <Text style={styles.title}>Categories</Text>
       <Text style={styles.body}>
-        Items are grouped under a <Text style={styles.strong}>category</Text> in the {publicBrandName} shop.{' '}
-        <Text style={styles.strong}>Brand</Text> (when shown) is an extra label — e.g. Puma vs Nike — and you can filter
-        by brand on the website shop.
+        Items are grouped under a <Text style={styles.strong}>category</Text> in the {publicBrandName} catalogue — same as on
+        the website shop.
       </Text>
     </View>
   );
