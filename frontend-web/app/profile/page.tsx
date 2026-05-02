@@ -156,10 +156,6 @@ export default function ProfilePage() {
                   addresses={user?.address_book || []}
                   onSaved={(book) => setUser((u) => (u ? { ...u, address_book: book } : u))}
                 />
-                <p className="text-ev-subtle text-xs leading-relaxed">
-                  Delivery addresses for orders. You can also change them during checkout. Dealer GST and registered
-                  business details come from your account — use support if those need an update.
-                </p>
                 <Link
                   href="/checkout"
                   className="ev-btn-secondary text-sm py-2.5 px-4 inline-flex w-full sm:w-auto justify-center"
