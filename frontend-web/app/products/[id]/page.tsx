@@ -23,7 +23,11 @@ import { getRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 import { getBrowseProductIds, recordProductBrowse } from '@/lib/browse-history';
-import { ProductDescriptionRich, shortProductDescriptionBlurb } from '@/lib/format-product-description';
+import {
+  getFeaturePreviewLines,
+  ProductDescriptionRich,
+  shortProductDescriptionBlurb,
+} from '@/lib/format-product-description';
 
 type Product = {
   id: string;
@@ -149,17 +153,56 @@ export default function ProductDetailPage() {
   const loadRelatedAndRecent = useCallback(async () => {
     if (!product?.id) return;
     const cid = product.category_id;
+    const maxRelated = 14;
+    const mergeUnique = (acc: Product[], more: Product[]) => {
+      const seen = new Set(acc.map((p) => p.id));
+      for (const p of more) {
+        if (p.id === product.id || seen.has(p.id)) continue;
+        acc.push(p);
+        seen.add(p.id);
+        if (acc.length >= maxRelated) break;
+      }
+      return acc;
+    };
+
+    const searchFallback = (): string | undefined => {
+      const stop = new Set(['with', 'for', 'the', 'and', 'from', 'this', 'that', 'your', 'our', 'are', 'you']);
+      for (const w of product.name.split(/\s+/)) {
+        const t = w.replace(/[^a-z0-9]/gi, '');
+        if (t.length >= 4 && !stop.has(t.toLowerCase())) return t;
+      }
+      const head = product.name.trim().slice(0, 48);
+      return head.length >= 3 ? head : undefined;
+    };
+
     try {
+      let list: Product[] = [];
       if (cid) {
         const { data } = await catalogApi.getProducts({
           category_id: cid,
           approved_shops_only: true,
         });
-        const list = (Array.isArray(data) ? data : []) as Product[];
-        setRelated(list.filter((p) => p.id !== product.id).slice(0, 6));
-      } else {
-        setRelated([]);
+        list = (Array.isArray(data) ? data : []) as Product[];
       }
+      list = list.filter((p) => p.id !== product.id);
+      if (list.length < 6 && product.shop_name?.trim()) {
+        const { data } = await catalogApi.getProducts({
+          search: product.shop_name.trim(),
+          approved_shops_only: true,
+        });
+        list = mergeUnique(list, (Array.isArray(data) ? data : []) as Product[]);
+      }
+      if (list.length < 6) {
+        const q = searchFallback();
+        if (q) {
+          const { data } = await catalogApi.getProducts({
+            search: q,
+            approved_shops_only: true,
+          });
+          list = mergeUnique(list, (Array.isArray(data) ? data : []) as Product[]);
+        }
+      }
+      setRelated(list.slice(0, maxRelated));
     } catch {
       setRelated([]);
     }
@@ -175,7 +218,7 @@ export default function ProductDetailPage() {
       }
     }
     setRecentProducts(fetched.slice(0, 6));
-  }, [product?.id, product?.category_id]);
+  }, [product?.id, product?.category_id, product?.shop_name, product?.name]);
 
   useEffect(() => {
     if (!product?.id) return;
@@ -311,6 +354,7 @@ export default function ProductDetailPage() {
   }
 
   const blurbs = useMemo(() => shortProductDescriptionBlurb(product?.description), [product?.description]);
+  const aboutPreview = useMemo(() => getFeaturePreviewLines(product?.description, 6), [product?.description]);
   const reviewCount = Number(product?.rating_count || 0);
   const ratingAvg = Number(product?.rating_avg || 0);
 
@@ -425,10 +469,23 @@ export default function ProductDetailPage() {
               </div>
             ) : null}
 
-            {blurbs ? (
-              <p className="text-ev-muted text-sm leading-relaxed whitespace-pre-line border-l-2 border-ev-primary/40 pl-4">
-                {blurbs}
-              </p>
+            {aboutPreview.length > 0 ? (
+              <section className="rounded-xl border border-ev-border bg-ev-surface2/40 px-4 py-3 sm:px-5 sm:py-4" aria-label="About this item">
+                <h2 className="text-base font-semibold text-ev-text">About this item</h2>
+                <ul className="mt-3 list-none space-y-2.5 p-0 text-sm leading-snug text-ev-text">
+                  {aboutPreview.map((f, idx) => (
+                    <li key={`${idx}-${f.title.slice(0, 24)}`} className="flex gap-2.5">
+                      <span className="mt-[0.35em] h-1.5 w-1.5 shrink-0 rounded-full bg-ev-text" aria-hidden />
+                      <span>
+                        <strong className="font-semibold">{f.title}</strong>
+                        <span> – {f.body}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ) : blurbs ? (
+              <p className="text-ev-text text-sm leading-relaxed whitespace-pre-line">{blurbs}</p>
             ) : null}
 
             {product.shop_name ? (
@@ -759,40 +816,47 @@ export default function ProductDetailPage() {
         </section>
 
         {related.length > 0 ? (
-          <section className="mt-12">
-            <h2 className="text-ev-text font-bold text-xl mb-6">Related products</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <section className="mt-12 border-t border-ev-border pt-8">
+            <h2 className="text-ev-text font-bold text-lg sm:text-xl mb-1">Similar items</h2>
+            <p className="text-ev-muted text-sm mb-4">More from this catalogue — customers also viewed these.</p>
+            <div className="flex gap-3 overflow-x-auto pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory">
               {related.map((p) => {
                 const img = p.images?.[0];
                 const pr = displayPrice(p, role);
                 const ok = p.stock == null || Number(p.stock) > 0;
+                const r = Number(p.rating_avg || 0);
                 return (
-                  <div key={p.id} className="ev-card overflow-hidden flex flex-col">
-                    <Link href={`/products/${p.id}`} className="block aspect-[4/3] bg-ev-surface2 relative">
+                  <div
+                    key={p.id}
+                    className="ev-card flex w-[min(11.5rem,calc(100vw-5rem))] shrink-0 snap-start flex-col overflow-hidden sm:w-48"
+                  >
+                    <Link href={`/products/${p.id}`} className="relative block aspect-square bg-ev-surface2">
                       {img ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={img} alt="" className="w-full h-full object-cover" />
+                        <img src={img} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="text-ev-muted opacity-30" size={40} />
+                        <div className="flex h-full w-full items-center justify-center">
+                          <Package className="text-ev-muted opacity-30" size={32} />
                         </div>
                       )}
                     </Link>
-                    <div className="p-4 flex flex-col flex-1 gap-2">
-                      <p className="text-ev-muted text-xs line-clamp-1">{p.category_name || p.brand || 'Product'}</p>
-                      <Link href={`/products/${p.id}`} className="font-semibold text-ev-text line-clamp-2 hover:text-ev-primary">
+                    <div className="flex flex-1 flex-col gap-1.5 p-3">
+                      <p className="line-clamp-1 text-[11px] text-ev-muted">{p.category_name || p.brand || 'Product'}</p>
+                      <Link href={`/products/${p.id}`} className="line-clamp-2 min-h-[2.5rem] text-sm font-semibold leading-snug text-ev-text hover:text-ev-primary">
                         {p.name}
                       </Link>
-                      <p className="text-ev-primary font-bold">{pr.label}</p>
-                      <div className="mt-auto pt-2">
-                        {ok ? (
-                          <Link href={`/products/${p.id}`} className="ev-btn-primary py-2 px-4 text-sm inline-block text-center w-full">
-                            View product
-                          </Link>
-                        ) : (
-                          <span className="text-ev-error text-sm">Out of stock</span>
-                        )}
-                      </div>
+                      {r > 0 ? <p className="text-[11px] text-amber-600">★ {r.toFixed(1)}</p> : null}
+                      <p className="text-sm font-bold text-ev-primary">{pr.label}</p>
+                      {ok ? (
+                        <Link
+                          href={`/products/${p.id}`}
+                          className="ev-btn-secondary mt-auto py-2 text-center text-xs font-semibold"
+                        >
+                          View
+                        </Link>
+                      ) : (
+                        <span className="mt-auto text-xs text-ev-error">Out of stock</span>
+                      )}
                     </div>
                   </div>
                 );

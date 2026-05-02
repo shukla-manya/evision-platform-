@@ -29,7 +29,11 @@ import { screenGutter } from '../theme/layout';
 import { publicWebUrl } from '../config/publicWeb';
 import { getBrowseProductIds, recordProductBrowse } from '../lib/product-browse-history';
 import { CatalogPlacementHint } from '../components/CatalogPlacementHint';
-import { parseProductDescriptionLines, shortProductDescriptionBlurb } from '../lib/format-product-description';
+import {
+  getFeaturePreviewLines,
+  parseProductDescriptionLines,
+  shortProductDescriptionBlurb,
+} from '../lib/format-product-description';
 
 type RootProductDetail = { ProductDetail: { product: Product } };
 
@@ -147,19 +151,53 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
   }, [images.length, selImg]);
 
   useEffect(() => {
-    if (!product.category_id) {
-      setRelated([]);
-      return;
-    }
     let cancelled = false;
+    const maxRelated = 14;
+    const mergeUnique = (acc: Product[], more: Product[]) => {
+      const seen = new Set(acc.map((p) => p.id));
+      for (const p of more) {
+        if (p.id === product.id || seen.has(p.id)) continue;
+        acc.push(p);
+        seen.add(p.id);
+        if (acc.length >= maxRelated) break;
+      }
+      return acc;
+    };
+    const searchFallback = (): string | undefined => {
+      const stop = new Set(['with', 'for', 'the', 'and', 'from', 'this', 'that', 'your', 'our', 'are', 'you']);
+      for (const w of product.name.split(/\s+/)) {
+        const t = w.replace(/[^a-z0-9]/gi, '');
+        if (t.length >= 4 && !stop.has(t.toLowerCase())) return t;
+      }
+      const head = product.name.trim().slice(0, 48);
+      return head.length >= 3 ? head : undefined;
+    };
+
     (async () => {
       try {
-        const { data } = await productApi.list({
-          category_id: product.category_id,
-          approved_shops_only: true,
-        });
-        const list = ((data as Product[]) || []).filter((p) => p.id !== product.id).slice(0, 6);
-        if (!cancelled) setRelated(list);
+        let list: Product[] = [];
+        if (product.category_id) {
+          const { data } = await productApi.list({
+            category_id: product.category_id,
+            approved_shops_only: true,
+          });
+          list = ((data as Product[]) || []).filter((p) => p.id !== product.id);
+        }
+        if (list.length < 6 && product.shop_name?.trim()) {
+          const { data } = await productApi.list({
+            search: product.shop_name.trim(),
+            approved_shops_only: true,
+          });
+          list = mergeUnique(list, (data as Product[]) || []);
+        }
+        if (list.length < 6) {
+          const q = searchFallback();
+          if (q) {
+            const { data } = await productApi.list({ search: q, approved_shops_only: true });
+            list = mergeUnique(list, (data as Product[]) || []);
+          }
+        }
+        if (!cancelled) setRelated(list.slice(0, maxRelated));
       } catch {
         if (!cancelled) setRelated([]);
       }
@@ -167,7 +205,7 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [product.category_id, product.id]);
+  }, [product.category_id, product.id, product.shop_name, product.name]);
 
   useEffect(() => {
     let cancelled = false;
@@ -197,6 +235,8 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
   const reviewCount = Number(product.rating_count || 0);
   const blurbs = shortProductDescriptionBlurb(product.description);
   const descLines = useMemo(() => parseProductDescriptionLines(product.description), [product.description]);
+  const aboutPreview = useMemo(() => getFeaturePreviewLines(product.description, 6), [product.description]);
+  const firstFeatureIndex = useMemo(() => descLines.findIndex((r) => r.kind === 'feature'), [descLines]);
   const lowTh = Number(product.low_stock_threshold ?? 10);
   const stockNum = product.stock != null ? Number(product.stock) : null;
   const showUrgency = inStock && stockNum != null && stockNum > 0 && stockNum <= lowTh;
@@ -343,7 +383,20 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
             </Text>
           ) : null}
 
-          {blurbs ? (
+          {aboutPreview.length > 0 ? (
+            <View style={styles.aboutBox}>
+              <Text style={styles.aboutHeading}>About this item</Text>
+              {aboutPreview.map((f, idx) => (
+                <View key={`ab-${idx}-${f.title.slice(0, 20)}`} style={styles.aboutRow}>
+                  <View style={styles.aboutDot} />
+                  <Text style={styles.aboutLine} selectable>
+                    <Text style={styles.aboutFeatTitle}>{f.title}</Text>
+                    <Text style={styles.aboutFeatBody}> – {f.body}</Text>
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : blurbs ? (
             <Text style={styles.blurb} selectable>
               {blurbs}
             </Text>
@@ -445,6 +498,20 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
                         <Text style={styles.descBulletText} selectable>
                           {row.text}
                         </Text>
+                      </View>
+                    );
+                  }
+                  if (row.kind === 'feature') {
+                    return (
+                      <View key={`d-${i}`}>
+                        {i === firstFeatureIndex ? <Text style={styles.aboutThisItemTab}>About this item</Text> : null}
+                        <View style={styles.descFeatureRow}>
+                          <View style={styles.descFeatureDot} />
+                          <Text style={styles.descFeatureText} selectable>
+                            <Text style={styles.descFeatureTitle}>{row.title}</Text>
+                            <Text> – {row.body}</Text>
+                          </Text>
+                        </View>
                       </View>
                     );
                   }
@@ -566,26 +633,35 @@ export function ProductDetailScreen({ route, navigation, userRole }: Props) {
 
         {related.length > 0 ? (
           <View style={styles.sectionBlock}>
-            <Text style={styles.sectionHeading}>Related products</Text>
-            {related.map((p) => {
-              const img = p.images?.[0] || p.image_url;
-              const ok = p.stock == null || Number(p.stock) > 0;
-              return (
-                <Pressable key={p.id} style={styles.relCard} onPress={() => navigation.replace('ProductDetail', { product: p })}>
-                  {img ? <Image source={{ uri: img }} style={styles.relImg} resizeMode="cover" /> : null}
-                  <View style={styles.relBody}>
-                    <Text style={styles.relCat} numberOfLines={1}>
+            <Text style={styles.sectionHeading}>Similar items</Text>
+            <Text style={styles.sectionSubThin}>More from this catalogue</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.relScroll}>
+              {related.map((p) => {
+                const img = p.images?.[0] || p.image_url;
+                const ok = p.stock == null || Number(p.stock) > 0;
+                const r = Number(p.rating_avg || 0);
+                return (
+                  <Pressable
+                    key={p.id}
+                    style={styles.relTile}
+                    onPress={() => navigation.replace('ProductDetail', { product: p })}
+                  >
+                    <View style={styles.relTileImgWrap}>
+                      {img ? <Image source={{ uri: img }} style={styles.relTileImg} resizeMode="cover" /> : null}
+                    </View>
+                    <Text style={styles.relTileCat} numberOfLines={1}>
                       {p.category_name || p.brand || 'Product'}
                     </Text>
-                    <Text style={styles.relName} numberOfLines={2}>
+                    <Text style={styles.relTileName} numberOfLines={2}>
                       {p.name}
                     </Text>
-                    <Text style={styles.relPrice}>{formatINR(getProductPriceForRole(p, userRole))}</Text>
-                    <Text style={ok ? styles.relCta : styles.relOos}>{ok ? 'View' : 'Out of stock'}</Text>
-                  </View>
-                </Pressable>
-              );
-            })}
+                    {r > 0 ? <Text style={styles.relTileRate}>★ {r.toFixed(1)}</Text> : null}
+                    <Text style={styles.relTilePrice}>{formatINR(getProductPriceForRole(p, userRole))}</Text>
+                    <Text style={ok ? styles.relTileCta : styles.relOos}>{ok ? 'View' : 'Out of stock'}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
           </View>
         ) : null}
 
@@ -669,6 +745,26 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '800', color: colors.textPrimary },
   categoryBrandLine: { fontSize: 13, fontWeight: '600', color: colors.textSecondary, marginTop: 4 },
   ratingBlock: { fontSize: 13, color: colors.textSecondary, marginTop: 8, lineHeight: 20 },
+  aboutBox: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.softPanel,
+  },
+  aboutHeading: { fontSize: 16, fontWeight: '800', color: colors.textPrimary },
+  aboutRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 10 },
+  aboutDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.textPrimary,
+    marginTop: 6,
+  },
+  aboutLine: { flex: 1, fontSize: 14, color: colors.textPrimary, lineHeight: 21 },
+  aboutFeatTitle: { fontWeight: '700', color: colors.textPrimary },
+  aboutFeatBody: { fontWeight: '400', color: colors.textPrimary },
   blurb: { fontSize: 13, color: colors.textSecondary, marginTop: 10, lineHeight: 20 },
   stockLine: { fontSize: 12, fontWeight: '700', marginTop: 10 },
   stockIn: { color: colors.serviceSuccess },
@@ -750,6 +846,17 @@ const styles = StyleSheet.create({
   },
   descBulletText: { flex: 1, fontSize: 14, color: colors.textPrimary, lineHeight: 22 },
   descParagraph: { fontSize: 14, color: colors.textPrimary, lineHeight: 22, marginBottom: 12 },
+  aboutThisItemTab: { fontSize: 16, fontWeight: '800', color: colors.textPrimary, marginBottom: 8 },
+  descFeatureRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10, paddingRight: 4 },
+  descFeatureDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.textPrimary,
+    marginTop: 7,
+  },
+  descFeatureText: { flex: 1, fontSize: 14, color: colors.textPrimary, lineHeight: 22 },
+  descFeatureTitle: { fontWeight: '700' },
   sectionTitle: { fontSize: 17, fontWeight: '800', color: colors.textPrimary },
   sectionSub: { fontSize: 13, color: colors.textSecondary, marginTop: 6, marginBottom: 12 },
   inputLabel: { fontSize: 12, fontWeight: '700', color: colors.textSecondary, marginTop: 10 },
@@ -767,23 +874,33 @@ const styles = StyleSheet.create({
   textArea: { minHeight: 100, textAlignVertical: 'top' },
   success: { fontSize: 14, fontWeight: '600', color: colors.serviceSuccess, marginTop: 8 },
   sectionBlock: { marginTop: 8 },
-  sectionHeading: { fontSize: 18, fontWeight: '800', color: colors.textPrimary, marginBottom: 12 },
-  relCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
+  sectionHeading: { fontSize: 18, fontWeight: '800', color: colors.textPrimary, marginBottom: 4 },
+  sectionSubThin: { fontSize: 12, color: colors.muted, marginBottom: 12 },
+  relScroll: { paddingBottom: 4, gap: 0 },
+  relTile: {
+    width: 152,
+    marginRight: 12,
+    padding: 10,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
-    marginBottom: 10,
-    overflow: 'hidden',
+    backgroundColor: colors.surface,
   },
-  relImg: { width: 100, height: 100, backgroundColor: colors.softPanel },
-  relBody: { flex: 1, padding: 10, justifyContent: 'center' },
-  relCat: { fontSize: 11, color: colors.muted },
-  relName: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, marginTop: 2 },
-  relPrice: { fontSize: 15, fontWeight: '800', color: colors.brandPrimary, marginTop: 6 },
-  relCta: { fontSize: 12, fontWeight: '700', color: colors.brandPrimary, marginTop: 4 },
-  relOos: { fontSize: 12, fontWeight: '700', color: colors.pending, marginTop: 4 },
+  relTileImgWrap: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: colors.softPanel,
+    marginBottom: 8,
+  },
+  relTileImg: { width: '100%', height: '100%' },
+  relTileCat: { fontSize: 10, color: colors.muted },
+  relTileName: { fontSize: 13, fontWeight: '700', color: colors.textPrimary, marginTop: 4, minHeight: 36 },
+  relTileRate: { fontSize: 11, color: '#D97706', marginTop: 4 },
+  relTilePrice: { fontSize: 15, fontWeight: '800', color: colors.brandPrimary, marginTop: 6 },
+  relTileCta: { fontSize: 12, fontWeight: '700', color: colors.brandPrimary, marginTop: 8 },
+  relOos: { fontSize: 11, fontWeight: '700', color: colors.pending, marginTop: 8 },
   recentCard: { width: 140, marginRight: 12 },
   recentImgWrap: {
     width: 140,
