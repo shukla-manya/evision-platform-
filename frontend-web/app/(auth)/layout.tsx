@@ -3,7 +3,7 @@ import { PublicShell } from '@/components/public/PublicShell';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <PublicShell>
+    <PublicShell authSurface>
       <Suspense fallback={<div className="min-h-[40vh]" />}>{children}</Suspense>
     </PublicShell>
   );
