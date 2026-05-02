@@ -28,7 +28,7 @@ type PublicNavbarProps = {
   authSurface?: boolean;
 };
 
-export function PublicNavbar({ authSurface = false }: PublicNavbarProps = {}) {
+export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
