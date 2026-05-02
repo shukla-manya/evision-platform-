@@ -148,6 +148,7 @@ export class ReviewsService {
       const electrician = await this.dynamo.get(this.electriciansTable(), { id: String(r.electrician_id) });
       out.push({
         ...r,
+        review_kind: 'electrician' as const,
         customer_name: customer?.name || customer?.email || 'Customer',
         electrician_name: electrician?.name || 'Electrician',
       });

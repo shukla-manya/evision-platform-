@@ -12,6 +12,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
 import { CategoriesService } from '../categories/categories.service';
+import { ProductReviewsService } from '../reviews/product-reviews.service';
 import { serializeProductForRole, serializeProductsForRole, PriceViewerRole } from './utils/product-serializer';
 
 @Injectable()
@@ -23,6 +24,7 @@ export class ProductsService {
     private s3: S3Service,
     private categories: CategoriesService,
     private config: ConfigService,
+    private productReviews: ProductReviewsService,
   ) {}
 
   private productsTable() {
@@ -173,9 +175,6 @@ export class ProductsService {
       item.home_showcase_section = dto.home_showcase_section;
       item.home_showcase_order = dto.home_showcase_order ?? 0;
       item.home_showcase_hot = dto.home_showcase_hot === true;
-      if (dto.home_showcase_rating != null && !Number.isNaN(Number(dto.home_showcase_rating))) {
-        item.home_showcase_rating = Number(dto.home_showcase_rating);
-      }
     }
 
     await this.dynamo.put(this.productsTable(), item);
@@ -218,7 +217,6 @@ export class ProductsService {
           'home_showcase_section',
           'home_showcase_order',
           'home_showcase_hot',
-          'home_showcase_rating',
         );
       } else {
         updates.home_showcase_section = dto.home_showcase_section;
@@ -235,13 +233,6 @@ export class ProductsService {
 
     if (dto.home_showcase_hot !== undefined && !clearingHomeShowcase) {
       updates.home_showcase_hot = dto.home_showcase_hot;
-    }
-    if (dto.home_showcase_rating !== undefined && !clearingHomeShowcase) {
-      if (dto.home_showcase_rating === null) {
-        removeAttrs.push('home_showcase_rating');
-      } else {
-        updates.home_showcase_rating = Number(dto.home_showcase_rating);
-      }
     }
 
     assign('name', dto.name?.trim());
@@ -353,7 +344,11 @@ export class ProductsService {
     const cats = await this.categories.listAll();
     const catNameById = new Map(cats.map((c: { id: string; name: string }) => [c.id, c.name]));
     const category_name = catNameById.get(String(withStock.category_id || '')) || null;
-    return { ...withStock, category_name };
+    const sums = await this.productReviews.summariesForProductIds([id]);
+    const s = sums[id];
+    const ratingBlock =
+      s && s.rating_count > 0 ? { rating_avg: s.rating_avg, rating_count: s.rating_count } : {};
+    return { ...withStock, category_name, ...ratingBlock };
   }
 
   /**
@@ -403,15 +398,10 @@ export class ProductsService {
       this.applyCdnToProductPayload(p);
       const withStock = this.withStockFlag(p, role, raw);
       const category_name = catNameById.get(String(withStock.category_id || '')) || null;
-      const listing_rating =
-        raw.home_showcase_rating != null && !Number.isNaN(Number(raw.home_showcase_rating))
-          ? Number(raw.home_showcase_rating)
-          : null;
       const showcase_hot = raw.home_showcase_hot === true;
-      const base = { ...withStock, category_name, listing_rating, showcase_hot } as Record<string, unknown>;
+      const base = { ...withStock, category_name, showcase_hot } as Record<string, unknown>;
       delete base.home_showcase_section;
       delete base.home_showcase_order;
-      delete base.home_showcase_rating;
       delete base.home_showcase_hot;
       rows.push({
         section: String(raw.home_showcase_section),

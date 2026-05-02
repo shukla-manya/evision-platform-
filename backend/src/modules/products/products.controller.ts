@@ -5,10 +5,15 @@ import { Public } from '../../common/decorators/public.decorator';
 import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 import { ProductsService } from './products.service';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
+import { ProductReviewsService } from '../reviews/product-reviews.service';
+
 @ApiTags('Products')
 @Controller('products')
 export class ProductsController {
-  constructor(private products: ProductsService) {}
+  constructor(
+    private products: ProductsService,
+    private productReviews: ProductReviewsService,
+  ) {}
 
   @Public()
   @UseGuards(OptionalJwtAuthGuard)
@@ -42,6 +47,15 @@ export class ProductsController {
   @ApiBearerAuth()
   async homeShowcase() {
     return this.products.listHomeShowcaseForPublic();
+  }
+
+  @Public()
+  @UseGuards(OptionalJwtAuthGuard)
+  @Get(':id/reviews')
+  @ApiOperation({ summary: 'List customer reviews for a product (public)' })
+  @ApiBearerAuth()
+  async productReviews(@Param('id', ParseUUIDPipe) id: string) {
+    return this.productReviews.listForProductPublic(id);
   }
 
   @Public()
