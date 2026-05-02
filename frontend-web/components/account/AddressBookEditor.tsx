@@ -215,17 +215,23 @@ export function AddressBookEditor({
                   ) : (
                     <span className="font-semibold text-ev-text">{a.label || 'Address'}</span>
                   )}
-                  <div className="flex flex-wrap items-center gap-1 shrink-0">
+                  <div className="flex flex-wrap items-stretch gap-2 shrink-0 sm:justify-end">
                     {a.is_default ? (
-                      <span className="text-xs font-medium text-ev-primary">Default</span>
+                      <span
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-ev-primary/35 bg-ev-primary/10 px-3 py-2 text-sm font-semibold text-ev-primary"
+                        title="This address is used first at checkout"
+                      >
+                        <Star size={16} className="shrink-0 fill-ev-primary text-ev-primary" aria-hidden />
+                        Default
+                      </span>
                     ) : (
                       <button
                         type="button"
                         disabled={saving || isEditing}
                         onClick={() => void setDefault(i)}
-                        className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-ev-muted hover:bg-ev-surface hover:text-ev-text disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-ev-border bg-ev-surface px-3 py-2 text-sm font-medium text-ev-text shadow-sm hover:bg-ev-surface2 hover:border-ev-muted/50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 transition"
                       >
-                        <Star size={14} />
+                        <Star size={16} className="shrink-0 text-ev-muted" aria-hidden />
                         Set default
                       </button>
                     )}
@@ -233,18 +239,18 @@ export function AddressBookEditor({
                       type="button"
                       disabled={saving || isEditing}
                       onClick={() => beginEdit(i)}
-                      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-ev-muted hover:bg-ev-surface hover:text-ev-text disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-ev-border bg-ev-surface px-3 py-2 text-sm font-medium text-ev-text shadow-sm hover:bg-ev-surface2 hover:border-ev-muted/50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 transition"
                     >
-                      <Pencil size={14} />
+                      <Pencil size={16} className="shrink-0 text-ev-muted" aria-hidden />
                       Edit
                     </button>
                     <button
                       type="button"
                       disabled={saving || isEditing}
                       onClick={() => void removeAt(i)}
-                      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-ev-error/90 hover:bg-ev-error/10 disabled:opacity-50"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-ev-error/35 bg-ev-surface px-3 py-2 text-sm font-medium text-ev-error shadow-sm hover:bg-ev-error/10 hover:border-ev-error/50 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 transition"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={16} className="shrink-0" aria-hidden />
                       Remove
                     </button>
                   </div>
