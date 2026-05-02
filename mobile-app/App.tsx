@@ -268,23 +268,6 @@ function SuperadminHubScreen({ onLogout }: { onLogout: () => void }) {
   );
 }
 
-function ShopPartnerPortalScreen({ onLogout }: { onLogout: () => void }) {
-  return (
-    <SafeAreaView style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.listPad}>
-        <Text style={styles.title}>Partner account</Text>
-        <Text style={[styles.subtitle, { textAlign: 'left', marginTop: 8 }]}>
-          The public catalogue and orders are managed on the platform. Use the website for storefront purchases; our team handles listing and fulfilment coordination.
-        </Text>
-        <PublicWebsiteLinks audience="signed_in" />
-        <Pressable style={[styles.buttonSecondary, { marginTop: 24 }]} onPress={() => void onLogout()}>
-          <Text style={styles.buttonSecondaryText}>Sign out</Text>
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
 function AuthWelcomeScreen({ navigation }: { navigation: any }) {
   return (
     <SafeAreaView style={styles.screen}>
@@ -991,7 +974,7 @@ function PasswordResetScreen({
   route: RouteProp<RootStackParamList, 'PasswordReset'>;
   navigation: any;
 }) {
-  const role: PasswordResetRole = 'admin';
+  const role: PasswordResetRole = 'electrician';
   const [emailReset, setEmailReset] = useState(route.params?.email || '');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
