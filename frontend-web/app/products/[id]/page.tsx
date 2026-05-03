@@ -19,7 +19,7 @@ import {
 import toast from 'react-hot-toast';
 import { cartApi, catalogApi, publicContactApi, reviewsApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
-import { getRole } from '@/lib/auth';
+import { getRole, isTechnicianRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 import { getBrowseProductIds, recordProductBrowse } from '@/lib/browse-history';
@@ -92,6 +92,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canBuy = role === 'customer' || role === 'dealer';
+  const isTechnician = isTechnicianRole(role);
 
   const [product, setProduct] = useState<Product | null>(null);
   const [related, setRelated] = useState<Product[]>([]);

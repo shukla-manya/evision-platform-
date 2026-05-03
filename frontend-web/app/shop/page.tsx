@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Heart, Loader2, Plus, Search, ShoppingBag, SlidersHorizontal, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { cartApi, catalogApi } from '@/lib/api';
-import { getRole } from '@/lib/auth';
+import { getRole, isTechnicianRole } from '@/lib/auth';
 import { PublicShell } from '@/components/public/PublicShell';
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
@@ -99,6 +99,7 @@ function ShopListingInner() {
 
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canAddToCart = role === 'customer' || role === 'dealer';
+  const isTechnician = isTechnicianRole(role);
 
   const priceVal = useCallback(
     (p: Product) => Number(role === 'dealer' ? p.price_dealer ?? p.price_customer : p.price_customer ?? 0),
@@ -452,17 +453,19 @@ function ShopListingInner() {
                               <div className="absolute inset-0 flex items-center justify-center text-ev-subtle text-sm">No image</div>
                             )}
                           </Link>
-                          <button
-                            type="button"
-                            className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-ev-border bg-ev-surface/95 shadow-ev-sm hover:border-ev-primary"
-                            aria-label="Wishlist"
-                            onClick={() => {
-                              toggleWishlistId(p.id);
-                              refreshWishlist();
-                            }}
-                          >
-                            <Heart size={18} className={wished ? 'fill-ev-primary text-ev-primary' : 'text-ev-muted'} />
-                          </button>
+                          {!isTechnician ? (
+                            <button
+                              type="button"
+                              className="absolute top-3 right-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-ev-border bg-ev-surface/95 shadow-ev-sm hover:border-ev-primary"
+                              aria-label="Wishlist"
+                              onClick={() => {
+                                toggleWishlistId(p.id);
+                                refreshWishlist();
+                              }}
+                            >
+                              <Heart size={18} className={wished ? 'fill-ev-primary text-ev-primary' : 'text-ev-muted'} />
+                            </button>
+                          ) : null}
                         </div>
                         <div className="flex flex-1 flex-col p-5">
                           <Link
@@ -527,6 +530,10 @@ function ShopListingInner() {
                               >
                                 <Plus size={16} /> Add to cart
                               </button>
+                            ) : isTechnician ? (
+                              <Link href={`/products/${p.id}`} className="ev-btn-secondary block w-full py-2.5 text-center text-sm">
+                                View product
+                              </Link>
                             ) : (
                               <Link href="/login" className="ev-btn-secondary block w-full py-2.5 text-center text-sm">
                                 Sign in to add to cart
