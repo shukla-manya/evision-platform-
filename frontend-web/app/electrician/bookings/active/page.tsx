@@ -39,7 +39,7 @@ export default function ElectricianActiveBookingsPage() {
 
   return (
     <ElectricianShell>
-      <div className="max-w-2xl mx-auto space-y-4">
+      <div className="w-full min-w-0 max-w-full space-y-4">
         <h1 className="text-2xl font-bold text-ev-text">Active job</h1>
         {loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-12">

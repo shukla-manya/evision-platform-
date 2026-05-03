@@ -130,7 +130,7 @@ export default function ElectricianSettingsPage() {
 
   return (
     <ElectricianShell>
-      <div className="mx-auto max-w-2xl space-y-6">
+      <div className="w-full min-w-0 max-w-full space-y-6">
         <div className="ev-card p-6 sm:p-8 space-y-5">
           <h1 className="text-2xl font-bold text-ev-text">Settings</h1>
           <p className="text-ev-muted text-sm leading-relaxed">

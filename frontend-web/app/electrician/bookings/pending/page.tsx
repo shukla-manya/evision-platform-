@@ -70,7 +70,7 @@ export default function ElectricianPendingBookingsPage() {
 
   return (
     <ElectricianShell>
-      <div className="max-w-2xl mx-auto space-y-4">
+      <div className="w-full min-w-0 max-w-full space-y-4">
         <h1 className="text-2xl font-bold text-ev-text">Booking requests</h1>
 
         {loading ? (

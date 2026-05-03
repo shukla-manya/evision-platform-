@@ -79,7 +79,7 @@ export default function ElectricianHistoryBookingsPage() {
 
   return (
     <ElectricianShell>
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="w-full min-w-0 max-w-full space-y-6">
         <h1 className="text-2xl font-bold text-ev-text">Completed jobs</h1>
 
         <div className="grid grid-cols-3 gap-3">
