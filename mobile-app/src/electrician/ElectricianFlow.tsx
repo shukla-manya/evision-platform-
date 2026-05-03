@@ -49,6 +49,11 @@ function asErrorMessage(err: unknown, fallback: string) {
   return fallback;
 }
 
+function cleanLabel(raw: unknown, fallback: string): string {
+  const s = String(raw ?? '').trim();
+  return s || fallback;
+}
+
 /** Same format as web registration: `Experience: N yrs · city, PIN…` */
 function parseTechServiceAddress(addr?: string | null): { years: number | null; area: string } {
   const s = String(addr || '').trim();
