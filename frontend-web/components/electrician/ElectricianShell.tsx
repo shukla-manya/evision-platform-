@@ -322,8 +322,8 @@ export function ElectricianShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex min-h-screen min-w-0 flex-1 flex-col overflow-x-hidden lg:ml-64">
-        <div className="ev-shell-body min-w-0 flex-1">{children}</div>
+      <main className="flex min-h-screen w-full min-w-0 flex-1 flex-col overflow-x-hidden lg:pl-64">
+        <div className="ev-shell-body w-full min-w-0 flex-1">{children}</div>
         <ElectricianFooter />
       </main>
 
