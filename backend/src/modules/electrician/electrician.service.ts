@@ -30,6 +30,23 @@ export class ElectricianService {
     return this.dynamo.tableName('electricians');
   }
 
+  /** Matches registration format: `Experience: N yrs · City, PIN…` */
+  private parseElectricianAddress(raw: string): { years: number | null; area: string } {
+    const s = String(raw || '').trim();
+    if (!s) return { years: null, area: '' };
+    const m = s.match(/^Experience:\s*(\d{1,2})\s*yrs?\s*·\s*([\s\S]+)$/i);
+    if (m) {
+      const y = Number(m[1]);
+      return { years: Number.isFinite(y) ? y : null, area: m[2].trim() };
+    }
+    const m2 = s.match(/^Experience:\s*([^·]+)\s*·\s*([\s\S]+)$/i);
+    if (m2) {
+      const num = Number(String(m2[1]).match(/\d+/)?.[0]);
+      return { years: Number.isFinite(num) ? num : null, area: m2[2].trim() };
+    }
+    return { years: null, area: s };
+  }
+
   private parseSkills(skills?: string): string[] {
     if (!skills) return [];
     const raw = String(skills).trim();
