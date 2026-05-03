@@ -167,6 +167,14 @@ export function CustomerProfileScreen({ user, onLogout, fcmToken, onOpenServiceH
                       <Text style={styles.bodyMuted}>
                         Dealer pricing in the shop and GST invoices — open the web dealer hub for full tools.
                       </Text>
+                      <Text style={[styles.metaSmall, { marginTop: 8 }]}>
+                        GST status:{' '}
+                        <Text style={{ fontWeight: '700', color: isGstVerifiedFlag(me?.gst_verified) ? colors.success : colors.warning }}>
+                          {isGstVerifiedFlag(me?.gst_verified)
+                            ? 'Verified — wholesale pricing active'
+                            : 'Pending — retail prices until verified'}
+                        </Text>
+                      </Text>
                       <Pressable style={styles.btnPrimary} onPress={() => void Linking.openURL(publicWebUrl('/dealer/dashboard'))}>
                         <Text style={styles.btnPrimaryText}>Dealer hub (web)</Text>
                       </Pressable>
