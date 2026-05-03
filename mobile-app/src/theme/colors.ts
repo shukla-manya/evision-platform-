@@ -17,5 +17,7 @@ export const colors = {
   textSecondary: '#6C757D',
   muted: '#8B949E',
   pending: '#FF8C42',
+  /** Dealer GST “pending verification” — matches web `text-orange-600` */
+  orange600: '#EA580C',
   error: '#E74C3C',
 };

@@ -1586,7 +1586,12 @@ function DealerDashboardScreen() {
       <ScrollView contentContainerStyle={styles.listPad}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Dealer Dashboard</Text>
-          <Text style={[styles.cardMeta, { fontWeight: '600', color: gstVerified ? colors.serviceSuccess : colors.pending }]}>
+          <Text
+            style={[
+              styles.cardMeta,
+              { fontWeight: '600', color: gstVerified ? colors.serviceSuccess : colors.orange600 },
+            ]}
+          >
             GST: {gstVerified ? 'Verified — wholesale pricing active' : 'Pending — retail prices until verified'}
           </Text>
           <Text style={styles.cardMeta}>Total spend: {formatINR(analytics.totalSpend)}</Text>

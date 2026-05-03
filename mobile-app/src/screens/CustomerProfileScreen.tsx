@@ -172,7 +172,7 @@ export function CustomerProfileScreen({ user, onLogout, fcmToken, onOpenServiceH
                         <Text
                           style={{
                             fontWeight: '700',
-                            color: isGstVerifiedFlag(me?.gst_verified) ? colors.serviceSuccess : colors.pending,
+                            color: isGstVerifiedFlag(me?.gst_verified) ? colors.serviceSuccess : colors.orange600,
                           }}
                         >
                           {isGstVerifiedFlag(me?.gst_verified)

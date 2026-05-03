@@ -132,7 +132,7 @@ export default function ProfilePage() {
                       {user?.gst_verified ? (
                         <span className="text-ev-success font-medium">Verified — wholesale pricing active</span>
                       ) : (
-                        <span className="text-amber-800 dark:text-amber-200/90 font-medium">
+                        <span className="text-orange-600 dark:text-orange-300 font-medium">
                           Pending — team is verifying your GSTIN; retail prices until then
                         </span>
                       )}
