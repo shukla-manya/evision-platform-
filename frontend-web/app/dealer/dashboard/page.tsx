@@ -400,7 +400,7 @@ export default function DealerDashboardPage() {
                     {personalizedTimeGreetingIst(greetFirst || undefined)}
                   </span>
                 </p>
-                <h1 className="text-2xl font-bold text-ev-text">Dealer dashboard</h1>
+                <h1 className="text-xl font-bold text-ev-text">Dealer dashboard</h1>
                 <p className="text-ev-muted text-sm mt-1">Dealer account · GST verified</p>
                 <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 inline-flex mt-3">
                   Browse dealer prices
@@ -414,7 +414,7 @@ export default function DealerDashboardPage() {
             <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
               <div className="ev-card p-5">
                 <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Total spent</p>
-                <p className="text-2xl font-bold text-ev-text tabular-nums">{formatInr(computed.totalSpent)}</p>
+                <p className="text-xl font-bold text-ev-text tabular-nums">{formatInr(computed.totalSpent)}</p>
                 <p className="text-ev-muted text-xs mt-2">
                   <span className={computed.spendDelta >= 0 ? 'text-ev-success' : 'text-ev-error'}>
                     {computed.spendDelta >= 0 ? '↑' : '↓'} {Math.abs(computed.spendDelta)}%
@@ -444,7 +444,7 @@ export default function DealerDashboardPage() {
 
             <section className="ev-card overflow-hidden">
               <div className="px-5 py-4 border-b border-ev-border flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-ev-text font-semibold">Recent bulk orders</h2>
+                <h2 className="text-base font-semibold text-ev-text">Recent bulk orders</h2>
                 <button
                   type="button"
                   onClick={() => void downloadAllGstInvoicesZip()}
@@ -505,7 +505,7 @@ export default function DealerDashboardPage() {
             </section>
 
             <section className="ev-card p-5">
-              <h2 className="text-ev-text font-semibold mb-4">Top products — dealer pricing</h2>
+              <h2 className="text-base font-semibold text-ev-text mb-4">Top products — dealer pricing</h2>
               {computed.topProducts.length === 0 ? (
                 <p className="text-ev-muted text-sm">No dealer-priced products available yet.</p>
               ) : (
