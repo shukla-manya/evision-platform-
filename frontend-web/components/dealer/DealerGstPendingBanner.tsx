@@ -23,7 +23,8 @@ export function DealerGstPendingBanner() {
         const { data } = await authApi.me();
         const u = data?.user as Record<string, unknown> | undefined;
         if (cancelled || !u) return;
-        const verified = u.gst_verified === true || u.gst_verified === 'true';
+        const gv = u.gst_verified;
+        const verified = gv === true || gv === 'true' || gv === 1 || gv === '1';
         setVisible(!verified);
       } catch {
         if (!cancelled) setVisible(false);

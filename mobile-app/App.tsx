@@ -1511,16 +1511,27 @@ function MyOrdersScreen({ navigation, userRole }: { navigation: any; userRole?: 
   );
 }
 
+function dealerGstVerifiedFromMe(user: { gst_verified?: unknown } | undefined): boolean {
+  const gv = user?.gst_verified;
+  return gv === true || gv === 'true' || gv === 1 || gv === '1';
+}
+
 function DealerDashboardScreen() {
   const [groups, setGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [gstVerified, setGstVerified] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const { data } = await ordersApi.listMyGroups();
-      setGroups(data || []);
+      const [ordersRes, meRes] = await Promise.all([
+        ordersApi.listMyGroups(),
+        authApi.me().catch(() => ({ data: {} as Record<string, unknown> })),
+      ]);
+      setGroups(ordersRes.data || []);
+      const meUser = (meRes.data as { user?: { gst_verified?: unknown } } | undefined)?.user;
+      setGstVerified(dealerGstVerifiedFromMe(meUser));
     } catch (err) {
       Alert.alert('Error', asApiError(err, 'Failed to load dealer dashboard.'));
     } finally {
@@ -1575,6 +1586,9 @@ function DealerDashboardScreen() {
       <ScrollView contentContainerStyle={styles.listPad}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Dealer Dashboard</Text>
+          <Text style={[styles.cardMeta, { fontWeight: '600', color: gstVerified ? colors.serviceSuccess : colors.pending }]}>
+            GST: {gstVerified ? 'Verified — wholesale pricing active' : 'Pending — retail prices until verified'}
+          </Text>
           <Text style={styles.cardMeta}>Total spend: {formatINR(analytics.totalSpend)}</Text>
           <Text style={styles.cardMeta}>Orders placed: {analytics.totalOrders}</Text>
           <Text style={styles.cardMeta}>Avg order value: {formatINR(analytics.averageOrderValue)}</Text>
