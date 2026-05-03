@@ -37,7 +37,3 @@ export function parseElectricianServiceAddress(addr?: string | null): ParsedElec
   }
   return { experienceYears: null, experienceLabel: '', areaLabel: raw, full: raw };
 }
-
-export function formatElectricianServiceAddress(years: number, area: string): string {
-  return `Experience: ${Math.round(years)} yrs · ${area.trim()}`;
-}
