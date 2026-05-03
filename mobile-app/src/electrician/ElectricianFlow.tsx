@@ -175,7 +175,7 @@ function BookingDetailScreen({ route, navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={[styles.screen, styles.fillScreen]}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Booking Detail</Text>
         <Text style={styles.meta}>Booking ID: {String(booking.id)}</Text>
@@ -353,7 +353,7 @@ function UploadPhotoScreen({ route, navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={[styles.screen, styles.fillScreen]}>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Upload Completion Photo</Text>
         <Text style={styles.meta}>Booking: {bookingId}</Text>
@@ -441,8 +441,12 @@ function ProfileScreen({ onLogout, fcmToken }: { onLogout: () => void; fcmToken:
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollPad}>
+    <SafeAreaView style={[styles.screen, styles.fillScreen]}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={styles.fillScreen}
+        contentContainerStyle={styles.scrollPad}
+      >
         <View style={styles.card}>
           <Text style={styles.cardTitle}>{profile?.name || 'My Profile'}</Text>
           {loading ? (
@@ -539,35 +543,133 @@ function ProfileScreen({ onLogout, fcmToken }: { onLogout: () => void; fcmToken:
   );
 }
 
+type HistoryRow = ServiceBooking & {
+  customer_name?: string;
+  product_name?: string;
+  issue?: string;
+};
+
 function JobHistoryScreen() {
-  const [history, setHistory] = useState<ServiceBooking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [rows, setRows] = useState<HistoryRow[]>([]);
+  const [avgRating, setAvgRating] = useState(0);
+  const [reviewTotal, setReviewTotal] = useState(0);
+  const [ratingByCustomer, setRatingByCustomer] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const load = async () => {
       try {
-        const { data } = await electricianApi.historyBookings();
-        setHistory(data || []);
+        setLoading(true);
+        const [hist, meRes] = await Promise.all([
+          electricianApi.historyBookings(),
+          electricianApi.me(),
+        ]);
+        const list = (Array.isArray(hist.data) ? hist.data : []) as HistoryRow[];
+        setRows(list);
+        const me = (meRes.data || null) as ElectricianProfile | null;
+        setAvgRating(Number(me?.rating_avg || 0));
+        setReviewTotal(Number(me?.rating_count || 0));
+        const eid = String(me?.id || '');
+        if (eid) {
+          try {
+            const { data } = await electricianApi.getBookingProfile(eid);
+            const revs = Array.isArray((data as { reviews?: { customer_id?: string; rating?: number }[] })?.reviews)
+              ? (data as { reviews: { customer_id?: string; rating?: number }[] }).reviews
+              : [];
+            const map: Record<string, number> = {};
+            for (const r of revs) {
+              const cid = String(r.customer_id || '');
+              if (cid && map[cid] === undefined) map[cid] = Number(r.rating || 0);
+            }
+            setRatingByCustomer(map);
+          } catch {
+            setRatingByCustomer({});
+          }
+        } else {
+          setRatingByCustomer({});
+        }
       } catch (err) {
         Alert.alert('Error', asErrorMessage(err, 'Failed to load history.'));
+      } finally {
+        setLoading(false);
       }
     };
     void load();
   }, []);
 
   return (
-    <ScrollView style={styles.screen}>
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Job history</Text>
-        <Text style={styles.meta}>Completed jobs: {history.length}</Text>
-      </View>
-      {history.map((item) => (
-        <View key={item.id} style={styles.card}>
-          <Text style={styles.cardTitle}>#{String(item.id).slice(0, 8)}</Text>
-          <Text style={styles.meta}>Completed at: {String(item.updated_at || '-')}</Text>
-        </View>
-      ))}
-      <TechnicianWorkspaceFooter />
-    </ScrollView>
+    <SafeAreaView style={[styles.screen, styles.fillScreen]}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={styles.fillScreen}
+        contentContainerStyle={[styles.scrollPad, styles.historyScrollContent]}
+      >
+        <Text style={styles.sectionTitle}>Completed jobs</Text>
+        {loading ? (
+          <View style={styles.centerRow}>
+            <ActivityIndicator color={colors.brandPrimary} />
+            <Text style={[styles.meta, { marginLeft: 8 }]}>Loading…</Text>
+          </View>
+        ) : (
+          <>
+            <View style={styles.statsRow}>
+              <View style={[styles.card, styles.statCard]}>
+                <Text style={styles.statLabel}>Total jobs</Text>
+                <Text style={styles.statValue}>{rows.length}</Text>
+              </View>
+              <View style={[styles.card, styles.statCard]}>
+                <Text style={styles.statLabel}>Avg rating</Text>
+                <View style={styles.statRowInner}>
+                  <MaterialCommunityIcons name="star" size={18} color={colors.pending} />
+                  <Text style={styles.statValue}>{avgRating > 0 ? avgRating.toFixed(1) : '—'}</Text>
+                </View>
+              </View>
+              <View style={[styles.card, styles.statCard]}>
+                <Text style={styles.statLabel}>Total reviews</Text>
+                <Text style={styles.statValue}>{reviewTotal}</Text>
+              </View>
+            </View>
+            {rows.length === 0 ? (
+              <View style={styles.card}>
+                <Text style={styles.meta}>No completed jobs yet.</Text>
+              </View>
+            ) : (
+              rows.map((b) => {
+                const cid = String(b.customer_id || '');
+                const stars = cid ? ratingByCustomer[cid] : undefined;
+                const when = b.updated_at || b.created_at || '';
+                const dateStr = when
+                  ? new Date(when).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : '—';
+                return (
+                  <View key={b.id} style={styles.historyCard}>
+                    <View style={styles.historyCardLeft}>
+                      <Text style={styles.cardTitle}>{cleanLabel(b.customer_name, 'Customer')}</Text>
+                      <Text style={styles.meta}>{cleanLabel(b.product_name || b.issue, 'Service')}</Text>
+                    </View>
+                    <View style={styles.historyCardRight}>
+                      <Text style={styles.meta}>{dateStr}</Text>
+                      {stars != null && stars > 0 ? (
+                        <Text style={styles.reviewLine}>
+                          <MaterialCommunityIcons name="star" size={12} color={colors.pending} /> {stars}★
+                        </Text>
+                      ) : (
+                        <Text style={styles.subtleSmall}>No review yet</Text>
+                      )}
+                    </View>
+                  </View>
+                );
+              })
+            )}
+          </>
+        )}
+        <TechnicianWorkspaceFooter />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -620,7 +722,7 @@ export function ElectricianFlow({
 
   if (gate === 'loading') {
     return (
-      <SafeAreaView style={styles.screen}>
+      <SafeAreaView style={[styles.screen, styles.fillScreen]}>
         <Text style={styles.meta}>Loading...</Text>
       </SafeAreaView>
     );
@@ -628,7 +730,7 @@ export function ElectricianFlow({
 
   if (gate === 'pending') {
     return (
-      <SafeAreaView style={styles.screen}>
+      <SafeAreaView style={[styles.screen, styles.fillScreen]}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Application under review</Text>
           <Text style={styles.meta}>
@@ -647,7 +749,7 @@ export function ElectricianFlow({
 
   if (gate === 'rejected') {
     return (
-      <SafeAreaView style={styles.screen}>
+      <SafeAreaView style={[styles.screen, styles.fillScreen]}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Application not approved</Text>
           <Text style={styles.meta}>
@@ -679,8 +781,41 @@ export function ElectricianFlow({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background, padding: 14 },
+  screen: { flex: 1, width: '100%', backgroundColor: colors.background, padding: 14 },
+  fillScreen: { flex: 1, width: '100%', minWidth: 0, alignSelf: 'stretch' },
+  homeListContent: { flexGrow: 1, paddingBottom: 16 },
+  historyScrollContent: { flexGrow: 1 },
   scrollPad: { paddingBottom: 24 },
+  centerRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16 },
+  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  statCard: { flex: 1, minWidth: 0, paddingVertical: 12, alignItems: 'center' },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statValue: { fontSize: 20, fontWeight: '700', color: colors.textPrimary, marginTop: 4 },
+  statRowInner: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  historyCard: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 8,
+  },
+  historyCardLeft: { flex: 1, minWidth: 0 },
+  historyCardRight: { alignItems: 'flex-end' },
+  reviewLine: { marginTop: 4, fontSize: 12, fontWeight: '600', color: colors.pending },
+  subtleSmall: { marginTop: 4, fontSize: 11, color: colors.muted },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 10 },
