@@ -2,8 +2,8 @@ import { OrdersService } from './orders.service';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { EmailService } from '../emails/email.service';
 import { ShiprocketService } from './shiprocket.service';
-import { S3Service } from '../../common/s3/s3.service';
 import { PushService } from '../push/push.service';
+import { InvoicesService } from '../invoices/invoices.service';
 
 describe('OrdersService', () => {
   describe('listGroupsForUser', () => {
