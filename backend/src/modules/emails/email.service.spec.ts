@@ -259,8 +259,8 @@ describe('EmailService', () => {
     );
     const html = lastHtml();
     expect(html).toContain('customer.pdf');
-    expect(html).not.toContain('Dealer tax invoice');
-    expect(html).not.toContain('GST tax invoice');
+    expect(html).not.toContain('Download dealer invoice PDF');
+    expect(html).not.toContain('Download GST tax invoice PDF');
     expect(lastTrigger()).toBe('invoice_generated');
   });
 
@@ -278,8 +278,8 @@ describe('EmailService', () => {
       [],
     );
     const html = lastHtml();
-    expect(html).toContain('Dealer tax invoice');
-    expect(html).toContain('GST tax invoice');
+    expect(html).toContain('Download dealer invoice PDF');
+    expect(html).toContain('Download GST tax invoice PDF');
     expect(html).toContain('https://inv/d.pdf');
   });
 });

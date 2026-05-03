@@ -361,10 +361,10 @@ export class EmailService {
     const dealer = data.dealerInvoiceUrl?.trim();
     const gst = data.gstInvoiceUrl?.trim();
     const dealer_invoice_block = dealer
-      ? `<tr><td colspan="2" style="padding:12px 0 0;border-top:1px solid #1e3a5f;"><p style="margin:0;color:#94a3b8;font-size:13px;">Dealer tax invoice</p><p style="margin:6px 0 0;"><a href="${this.hrefAttr(dealer)}" style="color:#60a5fa;font-size:14px;text-decoration:none;font-weight:600;">Download PDF</a></p></td></tr>`
+      ? `<tr><td colspan="2" style="padding:12px 0 0;border-top:1px solid #374151;"><p style="margin:0;color:#9ca3af;font-size:12px;">Dealer invoice (wholesale pricing)</p><p style="margin:6px 0 0;"><a href="${this.hrefAttr(dealer)}" style="color:#f97316;font-size:14px;text-decoration:none;font-weight:600;">Download dealer invoice PDF</a></p></td></tr>`
       : '';
     const gst_invoice_block = gst
-      ? `<tr><td colspan="2" style="padding:12px 0 0;border-top:1px solid #1e3a5f;"><p style="margin:0;color:#94a3b8;font-size:13px;">GST tax invoice</p><p style="margin:6px 0 0;"><a href="${this.hrefAttr(gst)}" style="color:#60a5fa;font-size:14px;text-decoration:none;font-weight:600;">Download PDF</a></p></td></tr>`
+      ? `<tr><td colspan="2" style="padding:12px 0 0;border-top:1px solid #374151;"><p style="margin:0;color:#9ca3af;font-size:12px;">GST tax invoice (statutory)</p><p style="margin:6px 0 0;"><a href="${this.hrefAttr(gst)}" style="color:#f97316;font-size:14px;text-decoration:none;font-weight:600;">Download GST tax invoice PDF</a></p></td></tr>`
       : '';
     return { dealer_invoice_block, gst_invoice_block };
   }
@@ -1006,8 +1006,8 @@ export class EmailService {
       },
       {
         email_title: `Invoice ${data.invoiceNumber}`,
-        preheader: `Invoice ${data.invoiceNumber} for order ${data.orderId} is ready.`,
-        header_border_color: '#3b82f6',
+        preheader: `Order ${data.orderId} — invoice ${data.invoiceNumber} (PDF attached).`,
+        header_border_color: '#374151',
       },
     );
     await this.send({

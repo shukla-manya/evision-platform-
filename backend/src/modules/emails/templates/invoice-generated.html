@@ -1,22 +1,21 @@
-<div style="text-align:center;margin-bottom:20px;">
-  <div style="display:inline-block;background:#0c2340;border:2px solid #3b82f6;border-radius:50%;width:56px;height:56px;line-height:56px;font-size:22px;" aria-hidden="true">📄</div>
-</div>
-<h2 style="color:#3b82f6;margin:0 0 10px;font-size:22px;font-weight:700;text-align:center;">Invoice ready</h2>
-<p style="color:#94a3b8;margin:0 0 20px;font-size:14px;text-align:center;line-height:1.6;">
-  Hi {{customer_name}}, your invoice for order <strong style="color:#e2e8f0;">{{order_id}}</strong> is ready. PDFs are attached to this email when applicable.
+<h2 style="color:#e5e7eb;margin:0 0 12px;font-size:20px;font-weight:700;">Your order invoice is ready</h2>
+<p style="color:#9ca3af;margin:0 0 18px;font-size:14px;line-height:1.65;">
+  Hi {{customer_name}}, your final invoice for order <strong style="color:#f3f4f6;">{{order_id}}</strong> is attached as PDF(s).
+  These are issued after delivery: an <strong style="color:#f3f4f6;">order invoice</strong> (sold-by shop summary) for everyone, and for verified dealers a
+  <strong style="color:#f3f4f6;">dealer invoice</strong> plus a <strong style="color:#f3f4f6;">GST tax invoice</strong> with HSN and tax break-up.
 </p>
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#142035;border-radius:12px;border:1px solid #1e3a5f;margin-bottom:12px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#111827;border-radius:10px;border:1px solid #374151;margin-bottom:14px;">
   <tr>
-    <td style="padding:18px 22px;">
+    <td style="padding:16px 20px;">
       <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
         <tr>
-          <td style="color:#94a3b8;font-size:13px;padding:6px 0;">Invoice #</td>
-          <td style="color:#e2e8f0;font-size:14px;font-weight:600;padding:6px 0;text-align:right;">{{invoice_number}}</td>
+          <td style="color:#9ca3af;font-size:12px;padding:4px 0;">Invoice number</td>
+          <td style="color:#f9fafb;font-size:14px;font-weight:600;padding:4px 0;text-align:right;">{{invoice_number}}</td>
         </tr>
         <tr>
-          <td colspan="2" style="padding:14px 0 0;border-top:1px solid #1e3a5f;">
-            <p style="margin:0;color:#94a3b8;font-size:13px;">Customer invoice</p>
-            <p style="margin:6px 0 0;"><a href="{{customer_invoice_url}}" style="color:#60a5fa;font-size:14px;text-decoration:none;font-weight:600;">Download PDF</a></p>
+          <td colspan="2" style="padding:12px 0 0;border-top:1px solid #374151;">
+            <p style="margin:0;color:#9ca3af;font-size:12px;">Order invoice (all buyers)</p>
+            <p style="margin:6px 0 0;"><a href="{{customer_invoice_url}}" style="color:#f97316;font-size:14px;text-decoration:none;font-weight:600;">Download order invoice PDF</a></p>
           </td>
         </tr>
         {{dealer_invoice_block}}
@@ -26,5 +25,5 @@
   </tr>
 </table>
 <div style="text-align:center;">
-  <a href="{{orders_url}}" style="display:inline-block;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;">View my orders</a>
+  <a href="{{orders_url}}" style="display:inline-block;background:#1f2937;color:#f9fafb;text-decoration:none;padding:11px 24px;border-radius:8px;font-size:14px;font-weight:600;border:1px solid #374151;">View my orders</a>
 </div>
