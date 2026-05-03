@@ -80,8 +80,8 @@ describe('OrdersService', () => {
         dynamo,
         {} as EmailService,
         {} as ShiprocketService,
-        {} as S3Service,
         {} as PushService,
+        { generateWithPdf: jest.fn() } as unknown as InvoicesService,
       );
 
       const rows = await svc.listGroupsForUser('u1');
@@ -118,8 +118,8 @@ describe('OrdersService', () => {
         dynamo,
         { sendOrderStageUpdate: sendStage } as unknown as EmailService,
         { findOrderByAwb: findAwb } as unknown as ShiprocketService,
-        {} as S3Service,
         { sendToToken: jest.fn().mockResolvedValue(undefined) } as unknown as PushService,
+        { generateWithPdf: jest.fn() } as unknown as InvoicesService,
       );
 
       const res = await svc.handleShiprocketWebhook({
@@ -144,8 +144,8 @@ describe('OrdersService', () => {
         dynamo,
         {} as EmailService,
         { findOrderByAwb: jest.fn() } as unknown as ShiprocketService,
-        {} as S3Service,
         {} as PushService,
+        { generateWithPdf: jest.fn() } as unknown as InvoicesService,
       );
       const res = await svc.handleShiprocketWebhook({
         awb_code: 'AWB123',
