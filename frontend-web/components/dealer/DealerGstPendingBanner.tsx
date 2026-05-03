@@ -94,7 +94,7 @@ export function DealerGstPendingBanner({ bleedGutter = false }: Props) {
       role="status"
       aria-label={GST_PENDING_TICKER}
       className={[
-        'border-y border-amber-400/80 bg-amber-100 py-2 shadow-sm',
+        'border-y border-amber-400/80 bg-amber-100 py-2 shadow-sm mb-5 sm:mb-6',
         outerLayout,
       ].join(' ')}
     >
