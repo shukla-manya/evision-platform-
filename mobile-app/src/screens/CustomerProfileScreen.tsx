@@ -169,7 +169,12 @@ export function CustomerProfileScreen({ user, onLogout, fcmToken, onOpenServiceH
                       </Text>
                       <Text style={[styles.metaSmall, { marginTop: 8 }]}>
                         GST status:{' '}
-                        <Text style={{ fontWeight: '700', color: isGstVerifiedFlag(me?.gst_verified) ? colors.success : colors.warning }}>
+                        <Text
+                          style={{
+                            fontWeight: '700',
+                            color: isGstVerifiedFlag(me?.gst_verified) ? colors.serviceSuccess : colors.pending,
+                          }}
+                        >
                           {isGstVerifiedFlag(me?.gst_verified)
                             ? 'Verified — wholesale pricing active'
                             : 'Pending — retail prices until verified'}
