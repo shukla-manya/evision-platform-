@@ -400,12 +400,12 @@ export default function DealerDashboardPage() {
           <>
             <header className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-ev-muted text-sm mb-1">
+                <p className="text-ev-muted text-base mb-1">
                   <span className="text-ev-text font-semibold">
                     {personalizedTimeGreetingIst(greetFirst || undefined)}
                   </span>
                 </p>
-                <h1 className="text-xl font-bold text-ev-text">Dealer dashboard</h1>
+                <h1 className="text-2xl font-bold text-ev-text">Dealer dashboard</h1>
                 <p className="text-ev-muted text-sm mt-1">
                   Dealer account ·{' '}
                   {gstVerified ? (
@@ -456,7 +456,7 @@ export default function DealerDashboardPage() {
 
             <section className="ev-card overflow-hidden">
               <div className="px-5 py-4 border-b border-ev-border flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-base font-semibold text-ev-text">Recent bulk orders</h2>
+                <h2 className="text-lg font-semibold text-ev-text">Recent bulk orders</h2>
                 <button
                   type="button"
                   onClick={() => void downloadAllGstInvoicesZip()}
@@ -517,7 +517,7 @@ export default function DealerDashboardPage() {
             </section>
 
             <section className="ev-card p-5">
-              <h2 className="text-base font-semibold text-ev-text mb-4">Top products — dealer pricing</h2>
+              <h2 className="text-lg font-semibold text-ev-text mb-4">Top products — dealer pricing</h2>
               {computed.topProducts.length === 0 ? (
                 <p className="text-ev-muted text-sm">No dealer-priced products available yet.</p>
               ) : (

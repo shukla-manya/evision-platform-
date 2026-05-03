@@ -46,19 +46,19 @@ export function DealerGstPendingBanner({ bleedGutter = false }: Props) {
 
   if (!visible) return null;
 
-  const gutterBleed = bleedGutter
+  const outerLayout = bleedGutter
     ? '-mx-4 px-4 sm:-mx-5 sm:px-5 md:-mx-6 md:px-6 lg:-mx-8 lg:px-8'
-    : '';
+    : 'px-4 sm:px-6';
 
   return (
     <div
       role="status"
       className={[
         'w-full shrink-0 border-y border-amber-400/80 bg-amber-100 py-3.5 shadow-sm',
-        gutterBleed,
+        outerLayout,
       ].join(' ')}
     >
-      <div className="mx-auto max-w-3xl px-1 text-center sm:px-2">
+      <div className="mx-auto max-w-3xl text-center">
         <p className="text-sm font-bold tracking-tight text-amber-950">Wholesale pricing after GST approval</p>
         <p className="mt-1.5 text-sm leading-relaxed text-amber-900">
           Our team is verifying your GSTIN. Until then you can browse and buy at retail prices. After verification
