@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Heart, Menu, Search, ShoppingCart, X } from 'lucide-react';
 import { cartApi } from '@/lib/api';
-import { clearAuth, getRole, isLoggedIn } from '@/lib/auth';
+import { clearAuth, getRole, isLoggedIn, isTechnicianRole } from '@/lib/auth';
 import { publicBrandName } from '@/lib/public-brand';
 import { EvisionLogo } from '@/components/brand/EvisionLogo';
 import { wishlistCount } from '@/lib/wishlist';
@@ -44,7 +44,7 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
   }, [pathname]);
   const canCart = role === 'customer' || role === 'dealer';
   const isShopper = role === 'customer' || role === 'dealer';
-  const isTechnician = role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected';
+  const isTechnician = isTechnicianRole(role);
   /** `/login`, `/register`: logo targets shop instead of marketing `/` (all roles). */
   const authSignInHeader = authSurface || isAuthSignInPath(pathname);
   const brandHref = authSignInHeader ? '/shop' : '/';
@@ -130,30 +130,34 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
         </form>
 
         <div className="flex items-center gap-1 sm:gap-2 ml-auto shrink-0">
-          <Link
-            href="/wishlist"
-            className="p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors relative"
-            aria-label="Wishlist"
-          >
-            <Heart size={20} />
-            {hearts > 0 ? (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-0.5 flex items-center justify-center rounded-full bg-ev-primary text-[10px] font-bold text-white">
-                {hearts > 99 ? '99+' : hearts}
-              </span>
-            ) : null}
-          </Link>
-          <Link
-            href="/cart"
-            className="p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors relative"
-            aria-label="Cart"
-          >
-            <ShoppingCart size={20} />
-            {cartItems > 0 ? (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-0.5 flex items-center justify-center rounded-full bg-ev-primary text-[10px] font-bold text-white">
-                {cartItems > 99 ? '99+' : cartItems}
-              </span>
-            ) : null}
-          </Link>
+          {!isTechnician ? (
+            <>
+              <Link
+                href="/wishlist"
+                className="p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors relative"
+                aria-label="Wishlist"
+              >
+                <Heart size={20} />
+                {hearts > 0 ? (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-0.5 flex items-center justify-center rounded-full bg-ev-primary text-[10px] font-bold text-white">
+                    {hearts > 99 ? '99+' : hearts}
+                  </span>
+                ) : null}
+              </Link>
+              <Link
+                href="/cart"
+                className="p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors relative"
+                aria-label="Cart"
+              >
+                <ShoppingCart size={20} />
+                {cartItems > 0 ? (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-0.5 flex items-center justify-center rounded-full bg-ev-primary text-[10px] font-bold text-white">
+                    {cartItems > 99 ? '99+' : cartItems}
+                  </span>
+                ) : null}
+              </Link>
+            </>
+          ) : null}
           {isShopper ? (
             <>
               <Link

@@ -23,7 +23,7 @@ import { BrowseBySiteAnimatedSvg } from '@/components/public/BrowseBySiteAnimate
 import { PublicTrustStrip } from '@/components/public/PublicTrustStrip';
 import { publicBrandName } from '@/lib/public-brand';
 import { publicSupportEmail } from '@/lib/public-contact';
-import { getRole, isLoggedIn } from '@/lib/auth';
+import { getRole, isLoggedIn, isTechnicianRole } from '@/lib/auth';
 import { isInWishlist, toggleWishlistId } from '@/lib/wishlist';
 import {
   businessSegments,
@@ -99,10 +99,13 @@ function HomeShowcaseProductCard({
   p,
   canBuy,
   bumpWishlist,
+  hideShopperActions,
 }: {
   p: ShowcaseProduct;
   canBuy: boolean;
   bumpWishlist?: () => void;
+  /** Technician accounts: no wishlist / cart / “sign in to buy” on marketing grids. */
+  hideShopperActions?: boolean;
 }) {
   const img = p.images?.[0];
   const price = Number(p.price_customer || 0);
@@ -124,19 +127,21 @@ function HomeShowcaseProductCard({
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-ev-muted/40 text-4xl font-light select-none">◉</div>
         )}
-        <button
-          type="button"
-          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-ev-surface/95 border border-ev-border flex items-center justify-center shadow-ev-sm hover:border-ev-primary transition-colors z-10"
-          aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
-          onClick={(e) => {
-            e.preventDefault();
-            toggleWishlistId(p.id);
-            bumpWishlist?.();
-            window.dispatchEvent(new Event('ev-wishlist'));
-          }}
-        >
-          <Heart size={18} className={wished ? 'text-ev-primary fill-ev-primary' : 'text-ev-muted'} />
-        </button>
+        {!hideShopperActions ? (
+          <button
+            type="button"
+            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-ev-surface/95 border border-ev-border flex items-center justify-center shadow-ev-sm hover:border-ev-primary transition-colors z-10"
+            aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
+            onClick={(e) => {
+              e.preventDefault();
+              toggleWishlistId(p.id);
+              bumpWishlist?.();
+              window.dispatchEvent(new Event('ev-wishlist'));
+            }}
+          >
+            <Heart size={18} className={wished ? 'text-ev-primary fill-ev-primary' : 'text-ev-muted'} />
+          </button>
+        ) : null}
       </Link>
       <div className="p-4 sm:p-5 flex-1 flex flex-col">
         <p className="text-ev-subtle text-[11px] uppercase tracking-wide mb-1 line-clamp-2">
@@ -154,7 +159,11 @@ function HomeShowcaseProductCard({
         <p className="text-xl font-bold text-ev-text mt-2">{price > 0 ? formatInr(price) : '—'}</p>
         <div className="mt-auto pt-4">
           {inStock ? (
-            canBuy ? (
+            hideShopperActions ? (
+              <Link href={`/products/${p.id}`} className="ev-btn-secondary w-full text-sm py-2.5 text-center block">
+                View product
+              </Link>
+            ) : canBuy ? (
               <button
                 type="button"
                 className="ev-btn-primary w-full text-sm py-2.5 inline-flex items-center justify-center gap-1.5"
@@ -343,6 +352,7 @@ export default function HomePage() {
   const [sessionLoggedIn, setSessionLoggedIn] = useState(false);
   const role = typeof window !== 'undefined' ? getRole() : undefined;
   const canBuy = role === 'customer' || role === 'dealer';
+  const hideShopperRetail = isTechnicianRole(role);
 
   useEffect(() => {
     queueMicrotask(() => setSessionLoggedIn(isLoggedIn()));
@@ -567,6 +577,7 @@ export default function HomePage() {
                     key={p.id}
                     p={p}
                     canBuy={canBuy}
+                    hideShopperActions={hideShopperRetail}
                     bumpWishlist={() => setWishBump((n) => n + 1)}
                   />
                 ))}
@@ -601,6 +612,7 @@ export default function HomePage() {
                     key={p.id}
                     p={p}
                     canBuy={canBuy}
+                    hideShopperActions={hideShopperRetail}
                     bumpWishlist={() => setWishBump((n) => n + 1)}
                   />
                 ))

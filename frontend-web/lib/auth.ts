@@ -25,6 +25,12 @@ export function isLoggedIn(): boolean {
   return !!Cookies.get(TOKEN_KEY);
 }
 
+/** Technician JWT roles — not a shopper; hide cart, wishlist, and storefront purchase CTAs. */
+export function isTechnicianRole(role: string | undefined | null): boolean {
+  const r = String(role || '');
+  return r === 'electrician' || r === 'electrician_pending' || r === 'electrician_rejected';
+}
+
 /** Post-login landing per role. Customers go to the shop (no separate hub at `/dashboard`). */
 export function redirectByRole(role: string): string {
   const routes: Record<string, string> = {
