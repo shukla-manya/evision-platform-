@@ -39,16 +39,19 @@ export function DealerGstPendingBanner({ bleedGutter = false }: Props) {
       return;
     }
     let cancelled = false;
+    let fetchGen = 0;
 
     const refresh = () => {
+      const gen = ++fetchGen;
       void (async () => {
         try {
           const { data } = await authApi.me();
+          if (cancelled || gen !== fetchGen) return;
           const u = data?.user as Record<string, unknown> | undefined;
-          if (cancelled || !u) return;
+          if (!u) return;
           setVisible(!isDealerGstVerified(u.gst_verified));
         } catch {
-          if (!cancelled) setVisible(false);
+          if (!cancelled && gen === fetchGen) setVisible(false);
         }
       })();
     };
