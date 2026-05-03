@@ -197,7 +197,7 @@ export default function ElectricianProfilePage() {
           <p className="text-sm">Loading your profile…</p>
         </div>
       ) : (
-        <div className="mx-auto max-w-5xl animate-slide-up">
+        <div className="w-full min-w-0 max-w-full animate-slide-up">
           <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-ev-text sm:text-3xl">Your profile</h1>

@@ -209,7 +209,7 @@ export function PublicFooter({ authSurface = false }: PublicFooterProps) {
                       </Link>
                     </li>
                     <li>
-                      <Link href="/profile" className={colLink}>
+                      <Link href="/electrician/profile" className={colLink}>
                         Profile
                       </Link>
                     </li>

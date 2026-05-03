@@ -16,6 +16,7 @@ import { electricianApi } from '@/lib/api';
 import { clearAuth, getRole } from '@/lib/auth';
 import { ELECTRICIAN_SUPPORT_EMAIL } from '@/lib/electrician-ui';
 import { EvisionLogo } from '@/components/brand/EvisionLogo';
+import { PublicFooter } from '@/components/public/PublicFooter';
 
 type MeRow = {
   status?: string;
@@ -321,8 +322,9 @@ export function ElectricianShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main className="ev-shell-body min-h-screen min-w-0 flex-1 overflow-x-hidden lg:ml-64">
-        {children}
+      <main className="flex min-h-screen min-w-0 flex-1 flex-col overflow-x-hidden lg:ml-64">
+        <div className="ev-shell-body min-w-0 flex-1">{children}</div>
+        <PublicFooter />
       </main>
 
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-ev-border bg-ev-surface/95 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
