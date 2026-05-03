@@ -353,7 +353,13 @@ export class AuthService {
     if (role === 'customer' || role === 'dealer') {
       const u = await this.dynamo.get(this.dynamo.tableName('users'), { id: user.id });
       if (!u) throw new NotFoundException('User not found');
-      return strip(u as Record<string, unknown>);
+      const out = strip(u as Record<string, unknown>);
+      if (role === 'dealer') {
+        const gv = out.gst_verified;
+        out.gst_verified =
+          gv === true || gv === 'true' || gv === 1 || gv === '1';
+      }
+      return out;
     }
     if (role === 'electrician' || role === 'electrician_pending' || role === 'electrician_rejected') {
       const e = await this.dynamo.get(this.dynamo.tableName('electricians'), { id: user.id });

@@ -22,6 +22,7 @@ import { clearAuth, getRole, getToken, parseJwt } from '@/lib/auth';
 import { ResponsiveSidebarShell } from '@/components/layout/ResponsiveSidebarShell';
 import { EvisionLogo } from '@/components/brand/EvisionLogo';
 import { personalizedTimeGreetingIst } from '@/lib/time-greeting';
+import { DealerGstPendingBanner } from '@/components/dealer/DealerGstPendingBanner';
 
 type OrderItem = {
   id: string;
@@ -117,6 +118,7 @@ export default function DealerDashboardPage() {
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [downloading, setDownloading] = useState(false);
   const [profileName, setProfileName] = useState<string | undefined>(undefined);
+  const [gstVerified, setGstVerified] = useState(false);
   /** Set after mount so SSR + first client paint match (cookies are not available on the server). */
   const [clientJwtEmail, setClientJwtEmail] = useState('');
   /**
@@ -143,8 +145,10 @@ export default function DealerDashboardPage() {
       ]);
       setOrders(Array.isArray(ordersRes.data) ? (ordersRes.data as OrderGroup[]) : []);
       setProducts(Array.isArray(productsRes.data) ? (productsRes.data as CatalogProduct[]) : []);
-      const meUser = (meRes.data as { user?: { name?: string } })?.user;
+      const meUser = (meRes.data as { user?: { name?: string; gst_verified?: unknown } })?.user;
       setProfileName(typeof meUser?.name === 'string' ? meUser.name : undefined);
+      const gv = meUser?.gst_verified;
+      setGstVerified(gv === true || gv === 'true' || gv === 1 || gv === '1');
     } catch {
       toast.error('Failed to load dealer dashboard');
     } finally {
@@ -401,7 +405,14 @@ export default function DealerDashboardPage() {
                   </span>
                 </p>
                 <h1 className="text-xl font-bold text-ev-text">Dealer dashboard</h1>
-                <p className="text-ev-muted text-sm mt-1">Dealer account · GST verified</p>
+                <p className="text-ev-muted text-sm mt-1">
+                  Dealer account ·{' '}
+                  {gstVerified ? (
+                    <span className="text-ev-success">GST verified</span>
+                  ) : (
+                    <span className="text-amber-700 dark:text-amber-200/90">GST verification pending</span>
+                  )}
+                </p>
                 <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 inline-flex mt-3">
                   Browse dealer prices
                 </Link>
