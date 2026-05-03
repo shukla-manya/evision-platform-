@@ -31,6 +31,8 @@ export default function AdminProductNewPage() {
     mrp: '',
     min_order_quantity: '1',
     amazon_url: '',
+    hsn_code: '',
+    store_sku: '',
     home_showcase_section: '' as '' | 'primary' | 'combos',
     home_showcase_order: '0',
     home_showcase_hot: false,
@@ -47,6 +49,16 @@ export default function AdminProductNewPage() {
     e.preventDefault();
     if (!form.category_id) {
       toast.error('Choose a category');
+      return;
+    }
+    const hsnTrim = form.hsn_code.trim();
+    if (hsnTrim && !/^\d{4,10}$/.test(hsnTrim)) {
+      toast.error('HSN/SAC must be 4–10 digits only');
+      return;
+    }
+    const skuTrim = form.store_sku.trim();
+    if (skuTrim.length > 120) {
+      toast.error('Store SKU must be at most 120 characters');
       return;
     }
     setSaving(true);
@@ -70,6 +82,8 @@ export default function AdminProductNewPage() {
         min_order_quantity: Math.max(1, Number(form.min_order_quantity) || 1),
         ...(form.mrp.trim() !== '' ? { mrp: Number(form.mrp) } : {}),
         ...(form.amazon_url.trim() !== '' ? { amazon_url: form.amazon_url.trim() } : {}),
+        ...(hsnTrim ? { hsn_code: hsnTrim } : {}),
+        ...(skuTrim ? { store_sku: skuTrim } : {}),
         ...(imageUrls.length > 0 ? { images: imageUrls } : {}),
         ...(form.home_showcase_section === 'primary' || form.home_showcase_section === 'combos'
           ? {
@@ -270,6 +284,33 @@ export default function AdminProductNewPage() {
               onChange={(e) => setForm((f) => ({ ...f, amazon_url: e.target.value }))}
               placeholder="https://www.amazon.in/…"
             />
+          </div>
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="ev-label">HSN / SAC (optional)</label>
+              <input
+                className="ev-input font-mono"
+                inputMode="numeric"
+                maxLength={10}
+                value={form.hsn_code}
+                onChange={(e) => setForm((f) => ({ ...f, hsn_code: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
+                placeholder="e.g. 85176290"
+              />
+              <p className="text-ev-subtle mt-1.5 text-xs leading-relaxed">
+                4–10 digits. Printed on GST tax invoices for this SKU.
+              </p>
+            </div>
+            <div>
+              <label className="ev-label">Store SKU (optional)</label>
+              <input
+                className="ev-input font-mono"
+                maxLength={120}
+                value={form.store_sku}
+                onChange={(e) => setForm((f) => ({ ...f, store_sku: e.target.value }))}
+                placeholder="Manufacturer or internal code"
+              />
+              <p className="text-ev-subtle mt-1.5 text-xs leading-relaxed">Shown on order and dealer invoice line items.</p>
+            </div>
           </div>
           <div className="min-w-0 space-y-4 rounded-xl border border-ev-border bg-ev-surface2/60 p-3 sm:p-4">
             <p className="text-sm leading-relaxed text-ev-muted break-words">

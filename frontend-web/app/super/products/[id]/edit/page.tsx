@@ -30,6 +30,8 @@ type Product = {
   home_showcase_section?: 'primary' | 'combos' | string;
   home_showcase_order?: number;
   home_showcase_hot?: boolean;
+  hsn_code?: string | null;
+  store_sku?: string | null;
 };
 
 export default function AdminProductEditPage({ params }: { params: Promise<{ id: string }> }) {
@@ -55,6 +57,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
     min_order_quantity: '1',
     images: [] as string[],
     amazon_url: '',
+    hsn_code: '',
+    store_sku: '',
     home_showcase_section: '' as '' | 'primary' | 'combos',
     home_showcase_order: '0',
     home_showcase_hot: false,
@@ -86,6 +90,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
           min_order_quantity: String(Math.max(1, Number(p.min_order_quantity ?? 1))),
           images: Array.isArray(p.images) ? p.images : [],
           amazon_url: typeof p.amazon_url === 'string' ? p.amazon_url : '',
+          hsn_code: typeof p.hsn_code === 'string' ? p.hsn_code : '',
+          store_sku: typeof p.store_sku === 'string' ? p.store_sku : '',
           home_showcase_section:
             p.home_showcase_section === 'primary' || p.home_showcase_section === 'combos'
               ? p.home_showcase_section
@@ -103,6 +109,16 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const hsnTrim = form.hsn_code.trim();
+    if (hsnTrim && !/^\d{4,10}$/.test(hsnTrim)) {
+      toast.error('HSN/SAC must be 4–10 digits only');
+      return;
+    }
+    const skuTrim = form.store_sku.trim();
+    if (skuTrim.length > 120) {
+      toast.error('Store SKU must be at most 120 characters');
+      return;
+    }
     setSaving(true);
     try {
       const pasted = parseImageUrlList(additionalImageUrls);
@@ -135,6 +151,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         mrp: form.mrp.trim() === '' ? null : Number(form.mrp),
         images: nextImages,
         amazon_url: form.amazon_url.trim() === '' ? null : form.amazon_url.trim(),
+        hsn_code: hsnTrim === '' ? null : hsnTrim,
+        store_sku: skuTrim === '' ? null : skuTrim,
         ...showcase,
       });
       toast.success('Product updated');
@@ -429,6 +447,31 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
               placeholder="https://www.amazon.in/…"
             />
             <p className="text-ev-subtle text-xs mt-1">Shown as “Buy from Amazon” on the public product page. Leave empty to hide.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="ev-label">HSN / SAC (optional)</label>
+              <input
+                className="ev-input font-mono"
+                inputMode="numeric"
+                maxLength={10}
+                value={form.hsn_code}
+                onChange={(e) => setForm((f) => ({ ...f, hsn_code: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
+                placeholder="e.g. 85176290"
+              />
+              <p className="text-ev-subtle text-xs mt-1">4–10 digits for GST invoices. Clear the field to remove.</p>
+            </div>
+            <div>
+              <label className="ev-label">Store SKU (optional)</label>
+              <input
+                className="ev-input font-mono"
+                maxLength={120}
+                value={form.store_sku}
+                onChange={(e) => setForm((f) => ({ ...f, store_sku: e.target.value }))}
+                placeholder="Manufacturer or internal code"
+              />
+              <p className="text-ev-subtle text-xs mt-1">Printed on order line items. Clear to remove.</p>
+            </div>
           </div>
           <label className="flex items-center gap-2 text-sm text-ev-text cursor-pointer">
             <input
