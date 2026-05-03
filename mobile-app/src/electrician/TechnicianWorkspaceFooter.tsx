@@ -91,7 +91,6 @@ export function TechnicianWorkspaceFooter() {
 const styles = StyleSheet.create({
   outer: {
     marginTop: 8,
-    marginHorizontal: -2,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },

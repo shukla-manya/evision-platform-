@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Bell, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -53,6 +53,7 @@ export default function ElectricianSettingsPage() {
   const [experienceYears, setExperienceYears] = useState('');
   const [serviceArea, setServiceArea] = useState('');
   const [skillsCsv, setSkillsCsv] = useState('');
+  const skillsSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -74,6 +75,14 @@ export default function ElectricianSettingsPage() {
     };
     void load();
   }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    if (typeof window === 'undefined' || window.location.hash !== '#skills-experience') return;
+    queueMicrotask(() => {
+      skillsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [loading]);
 
   const approved = String(accountStatus).toLowerCase() === 'approved';
 
@@ -135,7 +144,11 @@ export default function ElectricianSettingsPage() {
           </div>
         </div>
 
-        <div className="ev-card p-6 sm:p-8 space-y-5">
+        <div
+          id="skills-experience"
+          ref={skillsSectionRef}
+          className="ev-card scroll-mt-28 p-6 sm:p-8 space-y-5"
+        >
           <h2 className="text-lg font-semibold text-ev-text">Skills &amp; experience</h2>
           <p className="text-ev-muted text-sm leading-relaxed">
             Keep your years of experience, service area, and services accurate so customers know what you offer.

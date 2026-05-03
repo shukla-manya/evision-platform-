@@ -17,6 +17,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { PublicWebsiteLinks } from '../components/PublicWebsiteLinks';
+import { TechnicianWorkspaceFooter } from './TechnicianWorkspaceFooter';
 import { API_BASE_URL, electricianApi, ElectricianProfile, ServiceBooking } from '../services/api';
 import { createTrackingSocket } from '../services/trackingSocket';
 import { colors } from '../theme/colors';
@@ -145,6 +146,7 @@ function HomeScreen({ navigation }: any) {
             </Pressable>
           )}
           ListEmptyComponent={<Text style={styles.meta}>No pending bookings.</Text>}
+          ListFooterComponent={<TechnicianWorkspaceFooter />}
         />
       )}
     </SafeAreaView>
@@ -456,6 +458,9 @@ function ProfileScreen({ onLogout, fcmToken }: { onLogout: () => void; fcmToken:
         {!loading && approved ? (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Skills &amp; experience</Text>
+            <Text style={styles.meta}>
+              Edit years, service area, and services below, then tap Save. This is what customers see on your profile.
+            </Text>
             <Text style={styles.fieldLabel}>Years of experience</Text>
             <TextInput
               style={styles.textInput}
@@ -506,6 +511,8 @@ function ProfileScreen({ onLogout, fcmToken }: { onLogout: () => void; fcmToken:
           </View>
         ) : null}
 
+        <TechnicianWorkspaceFooter />
+
         <PublicWebsiteLinks audience="signed_in" omitShopAndStoreHome />
         <Pressable style={styles.secondaryButton} onPress={() => void loadProfile()}>
           <Text style={styles.secondaryButtonText}>Refresh</Text>
@@ -551,6 +558,7 @@ function JobHistoryScreen() {
           <Text style={styles.meta}>Completed at: {String(item.updated_at || '-')}</Text>
         </View>
       ))}
+      <TechnicianWorkspaceFooter />
     </ScrollView>
   );
 }

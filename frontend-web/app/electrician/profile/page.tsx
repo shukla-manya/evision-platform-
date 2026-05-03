@@ -123,7 +123,7 @@ const quickLinks: {
   icon: typeof Pencil;
   variant?: 'primary';
 }[] = [
-  { href: '/electrician/settings', label: 'Edit profile', icon: Pencil, variant: 'primary' },
+  { href: '/electrician/settings#skills-experience', label: 'Update skills & settings', icon: Pencil, variant: 'primary' },
   { href: '/electrician/reviews', label: 'Reviews', icon: MessageSquare },
 ];
 
@@ -316,7 +316,20 @@ export default function ElectricianProfilePage() {
               </section>
 
               <section className="rounded-2xl border border-ev-border bg-ev-surface p-5 shadow-ev-sm sm:p-6">
-                <h2 className="border-b border-ev-border pb-3 text-base font-semibold text-ev-text">Skills & experience</h2>
+                <div className="flex flex-col gap-2 border-b border-ev-border pb-3 sm:flex-row sm:items-center sm:justify-between">
+                  <h2 className="text-base font-semibold text-ev-text">Skills &amp; experience</h2>
+                  {approved ? (
+                    <Link
+                      href="/electrician/settings#skills-experience"
+                      className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-ev-primary hover:underline"
+                    >
+                      <Pencil size={15} aria-hidden />
+                      Update experience &amp; services
+                    </Link>
+                  ) : (
+                    <p className="text-xs text-ev-muted sm:text-right">You can edit this section after your account is approved.</p>
+                  )}
+                </div>
                 <div className="mt-5 space-y-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-ev-subtle">Experience</p>
