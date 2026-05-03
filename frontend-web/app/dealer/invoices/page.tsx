@@ -136,9 +136,11 @@ export default function DealerInvoicesPage() {
             GST tax invoices
           </h1>
           <p className="text-ev-muted text-sm mt-2 leading-relaxed">
-            Each document is a <strong className="text-ev-text font-semibold">GST Tax Invoice</strong> (not a simple
-            receipt). It includes your dealer GSTIN, the seller&apos;s GSTIN, HSN codes per line item, and a breakdown
-            of IGST / CGST / SGST where applicable, plus total taxable value, total tax, and grand total.
+            Invoices are generated <strong className="text-ev-text font-semibold">after delivery</strong>, similar to
+            major marketplaces: an <strong className="text-ev-text font-semibold">order invoice</strong> for every buyer,
+            plus your <strong className="text-ev-text font-semibold">dealer invoice</strong> and statutory{' '}
+            <strong className="text-ev-text font-semibold">GST tax invoice</strong> with seller/buyer GSTIN, HSN/SAC per
+            line (from catalogue when set), and IGST / CGST / SGST totals.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
@@ -158,8 +160,10 @@ export default function DealerInvoicesPage() {
 
         <div className="ev-card overflow-hidden">
           <div className="px-5 py-4 border-b border-ev-border">
-            <h2 className="text-ev-text font-semibold">Available invoices</h2>
-            <p className="text-ev-subtle text-xs mt-1">PDF opens in a new tab. ZIP bundles every GST invoice on file.</p>
+            <h2 className="text-ev-text font-semibold">GST tax invoices (per shipment)</h2>
+            <p className="text-ev-subtle text-xs mt-1">
+              Open each PDF in a new tab. ZIP downloads all GST tax invoices we have on file for your account.
+            </p>
           </div>
           {loading ? (
             <div className="flex items-center gap-2 text-ev-muted px-5 py-12">

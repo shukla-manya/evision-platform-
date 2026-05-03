@@ -171,8 +171,8 @@ export default function MyOrdersPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-ev-text">My orders</h1>
           <p className="text-ev-muted text-sm mt-1">
-            Grouped by checkout: each order group can include several shops. Expand a group for shipments, tracking, and
-            invoices (GST tax invoices for dealers when available).
+            Grouped by checkout: each order group can include several shops. After delivery, expand a shipment for
+            tracking and PDFs — order invoice for everyone; dealer + GST tax invoices when your account is a verified dealer.
           </p>
         </div>
         <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 self-start">
@@ -248,11 +248,11 @@ export default function MyOrdersPage() {
                       const delivered = String(sub.status || '').toLowerCase() === 'delivered';
                       const itemsSummary =
                         sub.items?.map((it) => `${it.product_name || 'Item'} ×${it.quantity || 1}`).join(', ') || '—';
-                      const invoices = [
-                        sub.customer_invoice_url,
-                        sub.dealer_invoice_url,
-                        sub.gst_invoice_url,
-                      ].filter((u): u is string => !!u);
+                      const invoiceDocs = [
+                        sub.customer_invoice_url && { url: sub.customer_invoice_url, label: 'Order invoice' },
+                        sub.dealer_invoice_url && { url: sub.dealer_invoice_url, label: 'Dealer invoice' },
+                        sub.gst_invoice_url && { url: sub.gst_invoice_url, label: 'GST tax invoice' },
+                      ].filter(Boolean) as { url: string; label: string }[];
                       return (
                         <div key={sub.id} className="rounded-xl border border-ev-border p-4 bg-ev-surface">
                           <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
@@ -284,18 +284,18 @@ export default function MyOrdersPage() {
                               ) : null}
                             </div>
                           ) : null}
-                          {invoices.length > 0 ? (
+                          {invoiceDocs.length > 0 ? (
                             <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-ev-border">
-                              {invoices.map((url, i) => (
+                              {invoiceDocs.map((doc) => (
                                 <a
-                                  key={i}
-                                  href={url}
+                                  key={doc.url}
+                                  href={doc.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center gap-1.5 text-xs text-ev-primary border border-ev-primary/20 rounded-lg px-3 py-1.5 hover:bg-ev-primary/5"
                                 >
                                   <Download size={11} />
-                                  Download invoice
+                                  {doc.label}
                                 </a>
                               ))}
                             </div>
