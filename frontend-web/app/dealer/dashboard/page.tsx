@@ -411,7 +411,7 @@ export default function DealerDashboardPage() {
                   {gstVerified ? (
                     <span className="text-ev-success">GST verified</span>
                   ) : (
-                    <span className="text-amber-700 dark:text-amber-200/90">GST verification pending</span>
+                    <span className="text-orange-600 dark:text-orange-300">GST verification pending</span>
                   )}
                 </p>
                 <Link href="/shop" className="ev-btn-secondary text-sm py-2 px-4 inline-flex mt-3">
