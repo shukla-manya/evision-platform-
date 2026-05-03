@@ -19,6 +19,8 @@ export function PublicWebsiteLinks({
   onOpenContact,
   /** Auth / sign-up flows: omit web marketing “Store home” (`/`) + `/dashboard` from this strip (matches web navbar/footer). */
   omitHomeAndDashboardWebLinks = false,
+  /** Technician workspace: hide shopper storefront links (`/`, `/shop`). */
+  omitShopAndStoreHome = false,
 }: {
   audience: 'signed_in' | 'signed_out';
   /** When set, “About” opens in-app instead of the browser. */
@@ -26,14 +28,14 @@ export function PublicWebsiteLinks({
   /** When set, “Contact” opens in-app instead of the browser. */
   onOpenContact?: () => void;
   omitHomeAndDashboardWebLinks?: boolean;
+  omitShopAndStoreHome?: boolean;
 }) {
-  const navLinks =
-    omitHomeAndDashboardWebLinks
-      ? LINKS.filter((l) => {
-          const base = l.path.split('#')[0] ?? l.path;
-          return base !== '/' && base !== '/dashboard';
-        })
-      : LINKS;
+  const navLinks = LINKS.filter((l) => {
+    const base = l.path.split('#')[0] ?? l.path;
+    if (omitHomeAndDashboardWebLinks && (base === '/' || base === '/dashboard')) return false;
+    if (omitShopAndStoreHome && (base === '/' || base === '/shop')) return false;
+    return true;
+  });
 
   const open = (path: string) => () => {
     const base = path.split('#')[0] ?? path;

@@ -96,7 +96,7 @@ export default function ElectricianDashboardPage() {
           Loading…
         </div>
       ) : (
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="w-full min-w-0 max-w-full space-y-6">
           <header className="space-y-1">
             <h1 className="text-xl sm:text-2xl font-bold text-ev-text leading-snug">
               {personalizedTimeGreetingIst(me?.name, { whenEmpty: 'there' })}{' '}

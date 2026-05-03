@@ -506,7 +506,7 @@ function ProfileScreen({ onLogout, fcmToken }: { onLogout: () => void; fcmToken:
           </View>
         ) : null}
 
-        <PublicWebsiteLinks audience="signed_in" />
+        <PublicWebsiteLinks audience="signed_in" omitShopAndStoreHome />
         <Pressable style={styles.secondaryButton} onPress={() => void loadProfile()}>
           <Text style={styles.secondaryButtonText}>Refresh</Text>
         </Pressable>

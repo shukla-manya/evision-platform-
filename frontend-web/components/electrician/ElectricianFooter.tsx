@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Heart } from 'lucide-react';
 import { ELECTRICIAN_SUPPORT_EMAIL } from '@/lib/electrician-ui';
 import { publicCompanyLegalName } from '@/lib/public-contact';
 
@@ -37,9 +38,32 @@ export function ElectricianFooter() {
             Privacy
           </Link>
         </nav>
-        <p className="pt-5 text-center text-[12px] text-white/50 sm:pt-6 sm:text-left">
-          © {year} {publicCompanyLegalName}. All rights reserved.
-        </p>
+        <div className="pt-5 flex flex-col gap-3 border-t border-white/10 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:border-t-0 sm:pt-6">
+          <p className="text-center text-[12px] text-white/50 sm:text-left">
+            © {year} {publicCompanyLegalName}. All rights reserved.
+          </p>
+          <p className="text-center text-[11px] text-white/40 sm:text-right flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 sm:justify-end">
+            <span className="inline-flex items-center gap-1">
+              Made with
+              <Heart
+                className="size-3.5 text-ev-primary shrink-0"
+                fill="currentColor"
+                strokeWidth={0}
+                aria-label="love"
+              />
+              by
+            </span>{' '}
+            <a
+              href="https://wa.me/918005586588"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-white/65 hover:text-white hover:underline"
+            >
+              Manya Shukla
+            </a>
+            <span className="text-white/45"> · +91 8005586588</span>
+          </p>
+        </div>
       </div>
     </footer>
   );
