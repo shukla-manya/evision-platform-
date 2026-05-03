@@ -11,6 +11,7 @@ import {
   IsArray,
   IsUrl,
   IsIn,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -139,4 +140,22 @@ export class CreateProductDto {
   @Min(1)
   @Max(5)
   home_showcase_rating?: number;
+
+  @ApiPropertyOptional({
+    example: '85176290',
+    description: 'HSN/SAC for GST tax invoices (digits only, 4–10 characters)',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{4,10}$/)
+  hsn_code?: string;
+
+  @ApiPropertyOptional({
+    example: 'HAV-MCB-16A',
+    description: 'Seller or manufacturer SKU printed on order invoices',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  store_sku?: string;
 }

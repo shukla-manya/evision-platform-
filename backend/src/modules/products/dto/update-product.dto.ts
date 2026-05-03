@@ -12,6 +12,8 @@ import {
   IsUrl,
   ValidateIf,
   IsIn,
+  Matches,
+  MinLength,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -123,4 +125,24 @@ export class UpdateProductDto {
   @Type(() => Boolean)
   @IsBoolean()
   home_showcase_hot?: boolean;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description: 'HSN/SAC for GST invoices; set null to clear',
+  })
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsString()
+  @Matches(/^\d{4,10}$/)
+  hsn_code?: string | null;
+
+  @ApiPropertyOptional({
+    nullable: true,
+    description: 'Store SKU on invoices; set null to clear',
+  })
+  @IsOptional()
+  @ValidateIf((_, v) => v !== null && v !== undefined)
+  @IsString()
+  @MinLength(1)
+  store_sku?: string | null;
 }
