@@ -77,6 +77,9 @@ export type Product = {
   showcase_hot?: boolean;
   amazon_url?: string | null;
   low_stock_threshold?: number;
+  /** Set on catalogue products; used on generated invoice PDFs. */
+  hsn_code?: string | null;
+  store_sku?: string | null;
 };
 
 export type ApprovedShopRow = { id: string; shop_name: string };

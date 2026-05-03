@@ -22,8 +22,8 @@ function SuccessInner() {
           <p className="text-ev-muted text-sm leading-relaxed mb-6">
             Thank you — your order is confirmed. Reference <span className="text-ev-text font-semibold">#{ref}</span>.
             We are preparing {shipments === 1 ? 'one shipment' : `${shipments} shipments`} for dispatch. You will receive
-            email updates; open <strong className="text-ev-text">My orders</strong> anytime for tracking and invoices
-            (including GST tax invoices for dealer accounts when issued).
+            email updates; open <strong className="text-ev-text">My orders</strong> anytime for tracking. PDF invoices
+            (including dealer and GST tax invoices when your account qualifies) are added <strong className="text-ev-text">after delivery</strong>, and we email you the same links.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/orders" className="ev-btn-primary">

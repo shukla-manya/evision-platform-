@@ -1488,6 +1488,12 @@ function MyOrdersScreen({ navigation, userRole }: { navigation: any; userRole?: 
     <SafeAreaView style={styles.screen}>
       <FlatList
         contentContainerStyle={styles.listPad}
+        ListHeaderComponent={
+          <Text style={[styles.cardMeta, { marginBottom: 4 }]}>
+            Open an order for tracking. PDF invoices (order invoice for everyone; dealer and GST tax invoices for verified
+            dealers) are added after each shop shipment is delivered — you also get an email with the same links.
+          </Text>
+        }
         data={groups}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
@@ -1562,7 +1568,10 @@ function DealerDashboardScreen() {
 
   const bulkOpenInvoices = async () => {
     if (!analytics.invoiceUrls.length) {
-      Alert.alert('No invoices', 'No invoice URLs available yet.');
+      Alert.alert(
+        'No invoice PDFs yet',
+        'PDFs are created after your orders are marked delivered. Check again once shipments show as delivered.',
+      );
       return;
     }
     try {
@@ -1573,7 +1582,7 @@ function DealerDashboardScreen() {
           await new Promise((resolve) => setTimeout(resolve, 250));
         }
       }
-      Alert.alert('Done', `Opened ${analytics.invoiceUrls.length} invoice links.`);
+      Alert.alert('Done', `Opened ${analytics.invoiceUrls.length} invoice PDF link(s) in your browser.`);
     } finally {
       setDownloading(false);
     }
@@ -1597,10 +1606,10 @@ function DealerDashboardScreen() {
           <Text style={styles.cardMeta}>Total spend: {formatINR(analytics.totalSpend)}</Text>
           <Text style={styles.cardMeta}>Orders placed: {analytics.totalOrders}</Text>
           <Text style={styles.cardMeta}>Avg order value: {formatINR(analytics.averageOrderValue)}</Text>
-          <Text style={styles.cardMeta}>Invoice files: {analytics.invoiceUrls.length}</Text>
+          <Text style={styles.cardMeta}>Invoice PDFs on file: {analytics.invoiceUrls.length}</Text>
           <Pressable style={styles.button} onPress={bulkOpenInvoices} disabled={downloading}>
             <Text style={styles.buttonText}>
-              {downloading ? 'Opening invoices...' : 'Bulk Download Invoices'}
+              {downloading ? 'Opening PDFs…' : 'Open all invoice PDFs'}
             </Text>
           </Pressable>
         </View>
@@ -1657,10 +1666,30 @@ function OrderDetailScreen({ route }: { route: RouteProp<RootStackParamList, 'Or
               </Text>
             ))}
             {(() => {
-              const invs = [subOrder.customer_invoice_url, subOrder.dealer_invoice_url, subOrder.gst_invoice_url].filter(Boolean);
-              if (!subOrder.tracking_url && invs.length === 0) return null;
+              const invoiceDocs = (
+                [
+                  subOrder.customer_invoice_url && {
+                    url: String(subOrder.customer_invoice_url),
+                    label: 'Order invoice',
+                  },
+                  subOrder.dealer_invoice_url && {
+                    url: String(subOrder.dealer_invoice_url),
+                    label: 'Dealer invoice',
+                  },
+                  subOrder.gst_invoice_url && {
+                    url: String(subOrder.gst_invoice_url),
+                    label: 'GST tax invoice',
+                  },
+                ] as { url: string; label: string }[]
+              ).filter(Boolean);
+              if (!subOrder.tracking_url && invoiceDocs.length === 0) return null;
               return (
                 <View style={{ marginTop: 10, gap: 8 }}>
+                  {invoiceDocs.length === 0 && !!subOrder.tracking_url ? (
+                    <Text style={styles.cardMeta}>
+                      PDF invoices appear here after this shipment is marked delivered. We email you the same downloads.
+                    </Text>
+                  ) : null}
                   {!!subOrder.tracking_url && (
                     <Pressable
                       style={[styles.buttonSecondary, { marginTop: 0 }]}
@@ -1669,13 +1698,13 @@ function OrderDetailScreen({ route }: { route: RouteProp<RootStackParamList, 'Or
                       <Text style={styles.buttonSecondaryText}>Track shipment</Text>
                     </Pressable>
                   )}
-                  {invs.map((url: string, i: number) => (
+                  {invoiceDocs.map((doc) => (
                     <Pressable
-                      key={`inv-${String(subOrder.id)}-${i}`}
+                      key={`inv-${String(subOrder.id)}-${doc.label}`}
                       style={[styles.buttonSecondary, { marginTop: 0 }]}
-                      onPress={() => void Linking.openURL(String(url))}
+                      onPress={() => void Linking.openURL(doc.url)}
                     >
-                      <Text style={styles.buttonSecondaryText}>Download invoice</Text>
+                      <Text style={styles.buttonSecondaryText}>{doc.label}</Text>
                     </Pressable>
                   ))}
                 </View>
