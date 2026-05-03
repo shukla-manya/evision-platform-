@@ -389,7 +389,7 @@ export default function DealerDashboardPage() {
       }
       sidebar={dealerSidebar}
     >
-      <DealerGstPendingBanner />
+      <DealerGstPendingBanner bleedGutter />
       <div className="min-h-screen min-w-0 w-full space-y-6 sm:space-y-8">
         {loading ? (
           <div className="flex items-center gap-2 text-ev-muted py-20">
