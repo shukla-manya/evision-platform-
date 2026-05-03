@@ -17,6 +17,14 @@ export const publicInfoEmail =
 export const publicRegisteredAddress =
   'E-Vision India, 9/205, Main Market, Near PNB, Old Faridabad — 121002';
 
+/** Matches web `lib/public-contact` `publicCompanyLegalName`. */
+export const publicCompanyLegalName = 'E vision Pvt. Ltd.';
+
+export function publicOfficeGoogleMapsSearchUrl(): string {
+  const q = encodeURIComponent(publicRegisteredAddress);
+  return `https://www.google.com/maps/search/?api=1&query=${q}`;
+}
+
 /** Marketing display name (matches web `NEXT_PUBLIC_BRAND_NAME` / `lib/public-brand`). */
 export const publicBrandName = process.env.EXPO_PUBLIC_BRAND_NAME?.trim() || 'E vision';
 
