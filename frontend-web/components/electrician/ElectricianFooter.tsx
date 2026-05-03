@@ -1,8 +1,6 @@
 'use client';
 
-import Link from 'next/link';
 import { Heart } from 'lucide-react';
-import { ELECTRICIAN_SUPPORT_EMAIL } from '@/lib/electrician-ui';
 import {
   formatIndianPhoneDisplay,
   publicCompanyLegalName,
@@ -18,42 +16,13 @@ import {
 
 const year = new Date().getFullYear();
 
-const linkClass =
-  'text-[13px] leading-snug text-white/70 hover:text-white transition-colors py-0.5';
-
 const sectionTitle =
   'text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90 mb-3';
 
-/**
- * Technician workspace footer only — matches public site “Registered office & helpdesk”
- * and bottom legal / attribution strip (no shop columns).
- */
+/** Technician workspace footer — registered office & helpdesk, then copyright and attribution. */
 export function ElectricianFooter() {
   return (
     <footer className="mt-auto border-t border-ev-border bg-ev-navbar pb-[env(safe-area-inset-bottom)] text-white">
-      <div className="ev-page-gutter py-6 sm:py-7">
-        <nav
-          className="flex flex-wrap gap-x-5 gap-y-2 border-b border-white/10 pb-5 sm:pb-6"
-          aria-label="Technician links"
-        >
-          <a href={`mailto:${ELECTRICIAN_SUPPORT_EMAIL}`} className={linkClass}>
-            Email support
-          </a>
-          <Link href="/support" className={linkClass}>
-            Help centre
-          </Link>
-          <Link href="/faq" className={linkClass}>
-            FAQs
-          </Link>
-          <Link href="/terms" className={linkClass}>
-            Terms
-          </Link>
-          <Link href="/privacy" className={linkClass}>
-            Privacy
-          </Link>
-        </nav>
-      </div>
-
       <div id="technician-footer-contact" className="border-t border-white/10 bg-ev-footer scroll-mt-4">
         <div className="ev-page-gutter py-10 sm:py-11">
           <h2 className={`${sectionTitle} mb-5`}>Registered office &amp; helpdesk</h2>
