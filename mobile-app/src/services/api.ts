@@ -277,6 +277,8 @@ export const electricianApi = {
   pendingBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/pending'),
   activeBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/active'),
   historyBookings: () => api.get<ServiceBooking[]>('/electrician/bookings/history'),
+  getBookingProfile: (electricianId: string) =>
+    api.get<ElectricianPublicProfile>(`/electrician/${electricianId}/profile`),
   respondBooking: (bookingId: string, action: 'accept' | 'decline') =>
     api.put(`/electrician/booking/${bookingId}/respond`, { action }),
   updateJobStatus: (
