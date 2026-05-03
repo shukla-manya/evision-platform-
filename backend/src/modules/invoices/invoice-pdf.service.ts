@@ -54,7 +54,7 @@ export class InvoicePdfService {
   }
 
   async generateCustomerInvoice(data: InvoiceRenderData): Promise<Buffer> {
-    const doc = PDFDocument({ margin: 50, size: 'A4' });
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
     this.header(doc, data, 'Order invoice');
     this.partyBlock(doc, data, { showShopGstin: true, showBuyerGstin: false });
     this.itemsTable(doc, data.items);
@@ -65,7 +65,7 @@ export class InvoicePdfService {
   }
 
   async generateDealerInvoice(data: InvoiceRenderData): Promise<Buffer> {
-    const doc = PDFDocument({ margin: 50, size: 'A4' });
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
     this.header(doc, data, 'Dealer invoice (wholesale)');
     this.partyBlock(doc, data, { showShopGstin: true, showBuyerGstin: true });
     this.itemsTable(doc, data.items);
@@ -88,7 +88,7 @@ export class InvoicePdfService {
   }
 
   async generateGstInvoice(data: InvoiceRenderData): Promise<Buffer> {
-    const doc = PDFDocument({ margin: 50, size: 'A4' });
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
     this.header(doc, data, 'GST tax invoice');
     this.gstParticulars(doc, data);
     this.partyBlock(doc, data, { showShopGstin: false, showBuyerGstin: false });
@@ -144,55 +144,56 @@ export class InvoicePdfService {
   ) {
     const startY = doc.y;
     const mid = doc.page.width / 2;
+    const lineGap = 11;
+    let leftY = startY + 22;
+    let rightY = startY + 22;
 
     doc.fontSize(7).fillColor(MUTED).font('Helvetica-Bold').text('Sold by', 50, startY);
     doc.fontSize(9).fillColor(INK).font('Helvetica-Bold').text(data.shop_name, 50, startY + 11);
     doc.fontSize(8).fillColor(MUTED).font('Helvetica');
-    let yL = doc.y + 2;
     if (data.shop_owner) {
-      doc.text(data.shop_owner, 50, yL);
-      yL = doc.y + 2;
+      doc.text(data.shop_owner, 50, leftY);
+      leftY += lineGap;
     }
     if (data.shop_email) {
-      doc.text(data.shop_email, 50, yL);
-      yL = doc.y + 2;
+      doc.text(data.shop_email, 50, leftY);
+      leftY += lineGap;
     }
     if (opts.showShopGstin && data.shop_gstin) {
-      doc.text(`GSTIN ${data.shop_gstin}`, 50, yL);
-      yL = doc.y + 2;
+      doc.text(`GSTIN ${data.shop_gstin}`, 50, leftY);
+      leftY += lineGap;
     }
 
     doc.fontSize(7).fillColor(MUTED).font('Helvetica-Bold').text('Bill to', mid, startY);
     doc.fontSize(9).fillColor(INK).font('Helvetica-Bold').text(data.customer_name, mid, startY + 11);
     doc.fontSize(8).fillColor(MUTED).font('Helvetica');
-    let yR = doc.y + 2;
     if (data.customer_phone) {
-      doc.text(data.customer_phone, mid, yR);
-      yR = doc.y + 2;
+      doc.text(data.customer_phone, mid, rightY);
+      rightY += lineGap;
     }
     if (data.customer_email) {
-      doc.text(data.customer_email, mid, yR);
-      yR = doc.y + 2;
+      doc.text(data.customer_email, mid, rightY);
+      rightY += lineGap;
     }
     if (opts.showBuyerGstin && data.buyer_gstin) {
-      doc.text(`GSTIN ${data.buyer_gstin}`, mid, yR);
-      yR = doc.y + 2;
+      doc.text(`GSTIN ${data.buyer_gstin}`, mid, rightY);
+      rightY += lineGap;
     }
 
-    const colBottom = Math.max(yL, yR, startY + 52);
-    let y = colBottom + 8;
+    let y = Math.max(leftY, rightY, startY + 48) + 6;
 
     if (data.ship_to_lines && data.ship_to_lines.length > 0) {
       doc.fontSize(7).fillColor(MUTED).font('Helvetica-Bold').text('Ship to', 50, y);
-      y += 11;
+      y += lineGap;
       doc.fontSize(8).fillColor(DARK).font('Helvetica');
       for (const line of data.ship_to_lines) {
-        doc.text(line, 50, y, { width: doc.page.width - 100 });
-        y = doc.y + 2;
+        if (!String(line).trim()) continue;
+        doc.text(String(line), 50, y, { width: doc.page.width - 100 });
+        y += lineGap;
       }
     }
 
-    doc.y = y + 10;
+    doc.y = y + 8;
     this.hLine(doc, doc.y);
     doc.y += 12;
   }
@@ -313,14 +314,15 @@ export class InvoicePdfService {
   }
 
   private totalRow(doc: PDFKit.PDFDocument, total: number, currency: string) {
-    const rightW = 200;
-    const rightX = doc.page.width - 50 - rightW;
-    doc.fontSize(9).fillColor(MUTED).font('Helvetica').text('Grand total', rightX, doc.y, { width: 90, align: 'right' });
-    doc.fontSize(11).fillColor(INK).font('Helvetica-Bold').text(`${currency} ${this.inr(total)}`, rightX + 95, doc.y, {
-      width: 105,
+    const top = doc.y;
+    const blockW = 220;
+    const rightX = doc.page.width - 50 - blockW;
+    doc.fontSize(9).fillColor(MUTED).font('Helvetica').text('Grand total', rightX, top, { width: 80, align: 'right' });
+    doc.fontSize(12).fillColor(INK).font('Helvetica-Bold').text(`${currency} ${this.inr(total)}`, rightX + 85, top, {
+      width: blockW - 85,
       align: 'right',
     });
-    doc.moveDown(1.2);
+    doc.y = top + 26;
   }
 
   private footer(doc: PDFKit.PDFDocument) {

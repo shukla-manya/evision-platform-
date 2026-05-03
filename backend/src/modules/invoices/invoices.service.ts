@@ -21,6 +21,25 @@ export class InvoicesService {
   private orderItemsTable() { return this.dynamo.tableName('order_items'); }
   private usersTable() { return this.dynamo.tableName('users'); }
   private adminsTable() { return this.dynamo.tableName('admins'); }
+  private groupsTable() { return this.dynamo.tableName('order_groups'); }
+  private productsTable() { return this.dynamo.tableName('products'); }
+
+  /** Build ship-to lines from checkout `delivery_snapshot` on the order group. */
+  private shipToLinesFromSnapshot(snap: unknown): string[] | undefined {
+    if (!snap || typeof snap !== 'object') return undefined;
+    const o = snap as Record<string, unknown>;
+    const lines: string[] = [];
+    const label = o.label != null ? String(o.label).trim() : '';
+    const addr = o.address != null ? String(o.address).trim() : '';
+    const city = o.city != null ? String(o.city).trim() : '';
+    const state = o.state != null ? String(o.state).trim() : '';
+    const pin = o.pincode != null ? String(o.pincode).trim() : '';
+    if (label) lines.push(label);
+    if (addr) lines.push(addr);
+    const tail = [city, state, pin].filter(Boolean).join(', ');
+    if (tail) lines.push(tail);
+    return lines.length ? lines : undefined;
+  }
 
   async listForAdmin(adminId: string): Promise<Record<string, unknown>[]> {
     const orders = await this.dynamo.query({
@@ -100,7 +119,8 @@ export class InvoicesService {
     const order = await this.dynamo.get(this.ordersTable(), { id: orderId });
     if (!order) throw new NotFoundException(`Order ${orderId} not found`);
 
-    const [items, user, admin] = await Promise.all([
+    const groupId = String(order.group_id || '');
+    const [items, user, admin, group] = await Promise.all([
       this.dynamo.query({
         TableName: this.orderItemsTable(),
         KeyConditionExpression: 'order_id = :oid',
@@ -108,7 +128,20 @@ export class InvoicesService {
       }),
       this.dynamo.get(this.usersTable(), { id: String(order.user_id || '') }),
       this.dynamo.get(this.adminsTable(), { id: String(order.admin_id || '') }),
+      groupId ? this.dynamo.get(this.groupsTable(), { id: groupId }) : Promise.resolve(null),
     ]);
+
+    const ship_to_lines = this.shipToLinesFromSnapshot(
+      group && typeof group === 'object' ? (group as Record<string, unknown>).delivery_snapshot : undefined,
+    );
+
+    const productIds = [...new Set(items.map((it) => String(it.product_id || '')).filter(Boolean))];
+    const productRows = await Promise.all(
+      productIds.map((pid) => this.dynamo.get(this.productsTable(), { id: pid })),
+    );
+    const prodById = new Map(
+      productRows.filter(Boolean).map((p) => [String((p as { id: string }).id), p as Record<string, unknown>]),
+    );
 
     const now = new Date().toISOString();
     const invoiceId = existing ? String(existing.id) : uuidv4();
@@ -133,6 +166,21 @@ export class InvoicesService {
       });
     }
 
+    const lineItems = items.map((item) => {
+      const pid = String(item.product_id || '');
+      const p = pid ? prodById.get(pid) : undefined;
+      const hsnRaw = p ? String(p.hsn_code || p.hsn || '').trim() : '';
+      const skuRaw = p?.store_sku != null ? String(p.store_sku).trim() : pid ? pid.slice(0, 13) : '';
+      return {
+        product_name: String(item.product_name || 'Product'),
+        quantity: Number(item.quantity || 1),
+        unit_price: Number(item.unit_price || 0),
+        line_total: Number(item.line_total || 0),
+        ...(hsnRaw ? { hsn_code: hsnRaw } : {}),
+        ...(skuRaw ? { sku: skuRaw } : {}),
+      };
+    });
+
     const renderData: InvoiceRenderData = {
       invoice_number: invoiceNumber,
       issued_at: now,
@@ -145,13 +193,12 @@ export class InvoicesService {
       shop_email: String(admin?.email || ''),
       shop_gstin: String(admin?.gstin || admin?.gst_no || ''),
       buyer_gstin: String(user?.gstin || user?.gst_no || ''),
-      items: items.map((item) => ({
-        product_name: String(item.product_name || 'Product'),
-        quantity: Number(item.quantity || 1),
-        unit_price: Number(item.unit_price || 0),
-        line_total: Number(item.line_total || 0),
-      })),
+      items: lineItems,
       total_amount: Number(order.total_amount || 0),
+      currency: String(order.currency || 'INR'),
+      ship_to_lines,
+      payment_note:
+        'Payment completed at checkout (PayU). This invoice is issued after delivery for your records.',
     };
 
     const isDealer = String(user?.role || '') === 'dealer';

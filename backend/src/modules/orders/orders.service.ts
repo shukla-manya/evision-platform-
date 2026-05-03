@@ -1,12 +1,10 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
-import PDFDocument = require('pdfkit');
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { EmailService } from '../emails/email.service';
 import { ShiprocketService } from './shiprocket.service';
 import { ShipOrderDto } from './dto/ship-order.dto';
-import { S3Service } from '../../common/s3/s3.service';
 import { PushService } from '../push/push.service';
+import { InvoicesService } from '../invoices/invoices.service';
 
 @Injectable()
 export class OrdersService {
@@ -16,8 +14,8 @@ export class OrdersService {
     private dynamo: DynamoService,
     private email: EmailService,
     private shiprocket: ShiprocketService,
-    private s3: S3Service,
     private push: PushService,
+    private invoices: InvoicesService,
   ) {}
 
   private ordersTable() { return this.dynamo.tableName('orders'); }
@@ -429,137 +427,11 @@ export class OrdersService {
   }
 
   private async generateInvoiceIfMissing(order: Record<string, unknown>): Promise<void> {
-    const existing = await this.dynamo.queryOne({
-      TableName: this.invoicesTable(),
-      IndexName: 'OrderIndex',
-      KeyConditionExpression: 'order_id = :oid',
-      ExpressionAttributeValues: { ':oid': String(order.id) },
-    });
-    if (existing) return;
-
-    const now = new Date().toISOString();
-    const user = (await this.dynamo.get(this.usersTable(), { id: String(order.user_id) })) || {};
-    const admin = (await this.dynamo.get(this.adminsTable(), { id: String(order.admin_id) })) || {};
-    const items = await this.dynamo.query({
-      TableName: this.orderItemsTable(),
-      KeyConditionExpression: 'order_id = :oid',
-      ExpressionAttributeValues: { ':oid': String(order.id) },
-    });
-    const invoiceId = uuidv4();
-    const datePart = now.slice(0, 10).replace(/-/g, '');
-    const baseMeta = {
-      invoiceId,
-      orderId: String(order.id),
-      invoiceNumber: `INV-${datePart}-${invoiceId.slice(0, 6).toUpperCase()}`,
-      orderDate: String(order.created_at || now),
-      issuedAt: now,
-      customerName: String(user.name || 'Customer'),
-      customerEmail: String(user.email || ''),
-      customerPhone: String(user.phone || ''),
-      customerGst: String(user.gst_no || ''),
-      customerRole: String(user.role || 'customer'),
-      shopName: String(admin.shop_name || 'Shop'),
-      shopOwner: String(admin.owner_name || ''),
-      shopGst: String(admin.gst_no || ''),
-      totalAmount: Number(order.total_amount || 0),
-      currency: String(order.currency || 'INR'),
-      items: items.map((it) => ({
-        name: String(it.product_name || 'Item'),
-        qty: Number(it.quantity || 1),
-        unit: Number(it.unit_price || 0),
-        line: Number(it.line_total || 0),
-      })),
-    };
-
-    const customerPdf = await this.buildInvoicePdf({
-      ...baseMeta,
-      variant: 'customer',
-      title: 'Customer Invoice',
-    });
-    const uploadOrFallback = async (buf: Buffer, filename: string): Promise<string> => {
-      try {
-        return await this.s3.upload(buf, 'application/pdf', 'misc');
-      } catch {
-        return `local-invoice://${filename}`;
-      }
-    };
-    const customerPdfUrl = await uploadOrFallback(
-      customerPdf,
-      `${baseMeta.invoiceNumber}-customer.pdf`,
-    );
-
-    let dealerPdfUrl: string | null = null;
-    let gstPdfUrl: string | null = null;
-    const attachments: Array<{ filename: string; content: Buffer; contentType: string }> = [
-      {
-        filename: `${baseMeta.invoiceNumber}-customer.pdf`,
-        content: customerPdf,
-        contentType: 'application/pdf',
-      },
-    ];
-    if (baseMeta.customerRole === 'dealer') {
-      const dealerPdf = await this.buildInvoicePdf({
-        ...baseMeta,
-        variant: 'dealer',
-        title: 'Dealer Invoice',
-      });
-      const gstPdf = await this.buildInvoicePdf({
-        ...baseMeta,
-        variant: 'gst',
-        title: 'GST Invoice',
-      });
-      dealerPdfUrl = await uploadOrFallback(
-        dealerPdf,
-        `${baseMeta.invoiceNumber}-dealer.pdf`,
-      );
-      gstPdfUrl = await uploadOrFallback(
-        gstPdf,
-        `${baseMeta.invoiceNumber}-gst.pdf`,
-      );
-      attachments.push(
-        {
-          filename: `${baseMeta.invoiceNumber}-dealer.pdf`,
-          content: dealerPdf,
-          contentType: 'application/pdf',
-        },
-        {
-          filename: `${baseMeta.invoiceNumber}-gst.pdf`,
-          content: gstPdf,
-          contentType: 'application/pdf',
-        },
-      );
-    }
-
-    await this.dynamo.put(this.invoicesTable(), {
-      id: invoiceId,
-      order_id: String(order.id),
-      group_id: String(order.group_id || ''),
-      user_id: String(order.user_id || ''),
-      admin_id: String(order.admin_id || ''),
-      total_amount: Number(order.total_amount || 0),
-      currency: String(order.currency || 'INR'),
-      invoice_number: baseMeta.invoiceNumber,
-      customer_invoice_url: customerPdfUrl,
-      dealer_invoice_url: dealerPdfUrl,
-      gst_invoice_url: gstPdfUrl,
-      status: 'generated',
-      issued_at: now,
-      created_at: now,
-      updated_at: now,
-    });
-
-    if (baseMeta.customerEmail) {
-      await this.email.sendInvoiceGenerated(
-        baseMeta.customerEmail,
-        {
-          customerName: baseMeta.customerName,
-          orderId: baseMeta.orderId,
-          invoiceNumber: baseMeta.invoiceNumber,
-          customerInvoiceUrl: customerPdfUrl,
-          dealerInvoiceUrl: dealerPdfUrl || undefined,
-          gstInvoiceUrl: gstPdfUrl || undefined,
-        },
-        attachments,
+    try {
+      await this.invoices.generateWithPdf(String(order.id));
+    } catch (e) {
+      this.logger.error(
+        `Invoice generation failed for order ${String(order.id)}: ${(e as Error)?.message || e}`,
       );
     }
   }
