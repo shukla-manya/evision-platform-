@@ -284,6 +284,8 @@ export const electricianApi = {
     status: 'on_the_way' | 'reached' | 'work_started' | 'completed',
   ) => api.put(`/electrician/job/${bookingId}/status`, { status }),
   setAvailability: (online: boolean) => api.put('/electrician/me/availability', { online }),
+  updateProfile: (body: { skills?: string[]; experience_years?: number; service_area?: string }) =>
+    api.patch<ElectricianProfile>('/electrician/me/profile', body),
   updateGeo: (lat: number, lng: number) =>
     api.patch<{ lat: number; lng: number; geo_captured_at: string }>('/electrician/me/geo', { lat, lng }),
   saveDeviceToken: (fcmToken: string) => api.post('/electrician/my/device-token', { fcm_token: fcmToken }),

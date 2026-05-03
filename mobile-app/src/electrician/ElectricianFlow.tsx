@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -8,6 +9,7 @@ import {
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -43,6 +45,36 @@ function asErrorMessage(err: unknown, fallback: string) {
   if (typeof message === 'string') return message;
   if (Array.isArray(message)) return message.join(', ');
   return fallback;
+}
+
+/** Same format as web registration: `Experience: N yrs · city, PIN…` */
+function parseTechServiceAddress(addr?: string | null): { years: number | null; area: string } {
+  const s = String(addr || '').trim();
+  if (!s) return { years: null, area: '' };
+  const m = s.match(/^Experience:\s*(\d{1,2})\s*yrs?\s*·\s*([\s\S]+)$/i);
+  if (m) {
+    const y = Number(m[1]);
+    return { years: Number.isFinite(y) ? y : null, area: m[2].trim() };
+  }
+  const m2 = s.match(/^Experience:\s*([^·]+)\s*·\s*([\s\S]+)$/i);
+  if (m2) {
+    const num = Number(String(m2[1]).match(/\d+/)?.[0]);
+    return { years: Number.isFinite(num) ? num : null, area: m2[2].trim() };
+  }
+  return { years: null, area: s };
+}
+
+function skillsFromProfile(skills: unknown): string[] {
+  if (Array.isArray(skills)) return skills.map(String);
+  const str = String(skills || '').trim();
+  if (!str) return [];
+  try {
+    const j = JSON.parse(str);
+    if (Array.isArray(j)) return j.map(String);
+  } catch {
+    /* comma-separated */
+  }
+  return str.split(',').map((x) => x.trim()).filter(Boolean);
 }
 
 function HomeScreen({ navigation }: any) {
@@ -326,12 +358,23 @@ function UploadPhotoScreen({ route, navigation }: any) {
 function ProfileScreen({ onLogout, fcmToken }: { onLogout: () => void; fcmToken: string | null }) {
   const [profile, setProfile] = useState<ElectricianProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [experienceDigits, setExperienceDigits] = useState('');
+  const [serviceArea, setServiceArea] = useState('');
+  const [skillsCsv, setSkillsCsv] = useState('');
 
   const loadProfile = useCallback(async () => {
     try {
       setLoading(true);
       const { data } = await electricianApi.me();
-      setProfile(data || null);
+      const row = data || null;
+      setProfile(row);
+      if (row) {
+        const parsed = parseTechServiceAddress(row.address);
+        setExperienceDigits(parsed.years != null ? String(parsed.years) : '');
+        setServiceArea(parsed.area);
+        setSkillsCsv(skillsFromProfile(row.skills).join(', '));
+      }
     } catch (err) {
       Alert.alert('Error', asErrorMessage(err, 'Could not load profile.'));
     } finally {
@@ -343,38 +386,140 @@ function ProfileScreen({ onLogout, fcmToken }: { onLogout: () => void; fcmToken:
     void loadProfile();
   }, [loadProfile]);
 
+  const approved = String(profile?.status || '').toLowerCase() === 'approved';
+
+  const saveSkills = async () => {
+    if (!approved) {
+      Alert.alert('Not available', 'You can edit skills after your account is approved.');
+      return;
+    }
+    const y = Number(String(experienceDigits).replace(/\D/g, '').slice(0, 2));
+    const area = serviceArea.trim();
+    if (!Number.isFinite(y) || y < 1 || y > 60) {
+      Alert.alert('Check input', 'Enter years of experience (1–60).');
+      return;
+    }
+    if (!area) {
+      Alert.alert('Check input', 'Enter your service area (city, PIN, etc.).');
+      return;
+    }
+    const skills = skillsCsv.split(',').map((s) => s.trim()).filter(Boolean);
+    if (skills.length > 25) {
+      Alert.alert('Check input', 'At most 25 services.');
+      return;
+    }
+    for (const s of skills) {
+      if (s.length > 60) {
+        Alert.alert('Check input', 'Each service must be 60 characters or less.');
+        return;
+      }
+    }
+    try {
+      setSaving(true);
+      const { data } = await electricianApi.updateProfile({
+        experience_years: y,
+        service_area: area,
+        skills,
+      });
+      setProfile(data || null);
+      Alert.alert('Saved', 'Skills and experience were updated.');
+    } catch (err) {
+      Alert.alert('Error', asErrorMessage(err, 'Could not save.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{profile?.name || 'My Profile'}</Text>
-        {loading ? (
-          <Text style={styles.meta}>Loading profile...</Text>
-        ) : (
-          <>
-            <Text style={styles.meta}>Email: {profile?.email || '-'}</Text>
-            <Text style={styles.meta}>Phone: {profile?.phone || '-'}</Text>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scrollPad}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{profile?.name || 'My Profile'}</Text>
+          {loading ? (
+            <Text style={styles.meta}>Loading profile...</Text>
+          ) : (
+            <>
+              <Text style={styles.meta}>Email: {profile?.email || '-'}</Text>
+              <Text style={styles.meta}>Phone: {profile?.phone || '-'}</Text>
+              <Text style={styles.meta}>
+                Rating: {Number(profile?.rating_avg || 0).toFixed(1)} ({profile?.rating_count || 0})
+              </Text>
+              <Text style={styles.meta}>Status: {profile?.status || '-'}</Text>
+              <Text style={styles.meta}>API: {API_BASE_URL}</Text>
+              <Text style={styles.meta} numberOfLines={2}>
+                FCM Token: {fcmToken || 'Not registered yet'}
+              </Text>
+            </>
+          )}
+        </View>
+
+        {!loading && approved ? (
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Skills &amp; experience</Text>
+            <Text style={styles.fieldLabel}>Years of experience</Text>
+            <TextInput
+              style={styles.textInput}
+              value={experienceDigits}
+              onChangeText={(t) => setExperienceDigits(t.replace(/\D/g, '').slice(0, 2))}
+              keyboardType="number-pad"
+              maxLength={2}
+              placeholder="e.g. 5"
+              placeholderTextColor={colors.textSecondary}
+            />
+            <Text style={styles.fieldLabel}>Service area</Text>
+            <TextInput
+              style={[styles.textInput, styles.textInputMultiline]}
+              value={serviceArea}
+              onChangeText={setServiceArea}
+              placeholder="City, PIN code, India"
+              placeholderTextColor={colors.textSecondary}
+              multiline
+            />
+            <Text style={styles.fieldLabel}>Services (comma-separated)</Text>
+            <TextInput
+              style={[styles.textInput, styles.textInputMultiline]}
+              value={skillsCsv}
+              onChangeText={setSkillsCsv}
+              placeholder="AC repair, Wiring, …"
+              placeholderTextColor={colors.textSecondary}
+              multiline
+            />
+            <Pressable
+              style={[styles.primaryButton, saving && styles.primaryButtonDisabled]}
+              onPress={() => void saveSkills()}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Save skills &amp; experience</Text>
+              )}
+            </Pressable>
+          </View>
+        ) : null}
+
+        {!loading && !approved ? (
+          <View style={styles.card}>
             <Text style={styles.meta}>
-              Rating: {Number(profile?.rating_avg || 0).toFixed(1)} ({profile?.rating_count || 0})
+              After approval, you can update your years of experience, service area, and services here.
             </Text>
-            <Text style={styles.meta}>Status: {profile?.status || '-'}</Text>
-            <Text style={styles.meta}>API: {API_BASE_URL}</Text>
-            <Text style={styles.meta} numberOfLines={2}>FCM Token: {fcmToken || 'Not registered yet'}</Text>
-          </>
-        )}
-      </View>
-      <PublicWebsiteLinks audience="signed_in" />
-      <Pressable style={styles.secondaryButton} onPress={() => void loadProfile()}>
-        <Text style={styles.secondaryButtonText}>Refresh</Text>
-      </Pressable>
-      <View style={styles.card}>
-        <Text style={styles.meta}>
-          You sign in with a code sent to your mobile. There is no separate password for your technician account in
-          this app.
-        </Text>
-      </View>
-      <Pressable style={styles.dangerButton} onPress={onLogout}>
-        <Text style={styles.primaryButtonText}>Logout</Text>
-      </Pressable>
+          </View>
+        ) : null}
+
+        <PublicWebsiteLinks audience="signed_in" />
+        <Pressable style={styles.secondaryButton} onPress={() => void loadProfile()}>
+          <Text style={styles.secondaryButtonText}>Refresh</Text>
+        </Pressable>
+        <View style={styles.card}>
+          <Text style={styles.meta}>
+            You sign in with a code sent to your mobile. There is no separate password for your technician account in
+            this app.
+          </Text>
+        </View>
+        <Pressable style={styles.dangerButton} onPress={onLogout}>
+          <Text style={styles.primaryButtonText}>Logout</Text>
+        </Pressable>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -519,6 +664,7 @@ export function ElectricianFlow({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background, padding: 14 },
+  scrollPad: { paddingBottom: 24 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary, marginBottom: 10 },
