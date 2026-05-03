@@ -124,7 +124,6 @@ export function ElectricianFooter() {
               >
                 Manya Shukla
               </a>
-              <span className="text-white/45">· +91 8005586588</span>
             </p>
           </div>
         </div>
