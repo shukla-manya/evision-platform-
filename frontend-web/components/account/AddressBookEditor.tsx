@@ -42,10 +42,14 @@ function ensureOneDefault(book: AddressBookEntry[]): AddressBookEntry[] {
 }
 
 function validateRow(a: AddressBookEntry): string | null {
-  if (a.address.trim().length < 3) return 'Enter street address (at least 3 characters)';
-  if (a.city.trim().length < 2) return 'Enter city';
-  if (a.state.trim().length < 2) return 'Enter state';
-  if (!/^\d{6}$/.test(a.pincode.trim())) return 'Enter a valid 6-digit pincode';
+  const address = (a.address ?? '').trim();
+  const city = (a.city ?? '').trim();
+  const state = (a.state ?? '').trim();
+  const pincode = (a.pincode ?? '').trim();
+  if (address.length < 3) return 'Enter street address (at least 3 characters)';
+  if (city.length < 2) return 'Enter city';
+  if (state.length < 2) return 'Enter state';
+  if (!/^\d{6}$/.test(pincode)) return 'Enter a valid 6-digit pincode';
   return null;
 }
 
