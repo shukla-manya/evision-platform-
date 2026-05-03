@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { electricianApi } from '@/lib/api';
+import { parseElectricianServiceAddress } from '@/lib/electrician-profile-address';
 import { ElectricianShell } from '@/components/electrician/ElectricianShell';
 import { clearAuth } from '@/lib/auth';
 
@@ -50,27 +51,6 @@ function skillsList(skills: Profile['skills']): string[] {
     /* comma list */
   }
   return s.split(',').map((x) => x.trim()).filter(Boolean);
-}
-
-/** "Experience: 2 yrs · Delhi, 110044" → parts */
-function parseServiceAddress(addr?: string): {
-  experienceLabel: string;
-  areaLabel: string;
-  full: string;
-} {
-  const raw = String(addr || '').trim();
-  if (!raw) {
-    return { experienceLabel: '', areaLabel: '—', full: '—' };
-  }
-  const m = raw.match(/^Experience:\s*([^·]+)\s*·\s*([\s\S]+)$/i);
-  if (m) {
-    return {
-      experienceLabel: m[1].trim(),
-      areaLabel: m[2].trim(),
-      full: raw,
-    };
-  }
-  return { experienceLabel: '', areaLabel: raw, full: raw };
 }
 
 function pincodeFromText(text: string): string {
@@ -169,7 +149,7 @@ export default function ElectricianProfilePage() {
 
   const skills = profile ? skillsList(profile.skills) : [];
   const approved = String(profile?.status || '').toLowerCase() === 'approved';
-  const { experienceLabel, areaLabel, full: fullAddress } = parseServiceAddress(profile?.address);
+  const { experienceLabel, areaLabel, full: fullAddress } = parseElectricianServiceAddress(profile?.address);
   const pincode = pincodeFromText(areaLabel);
   const cityLine = areaLabel.includes(',')
     ? areaLabel
