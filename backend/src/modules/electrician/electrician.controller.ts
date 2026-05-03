@@ -37,6 +37,7 @@ import { UpdateElectricianAvailabilityDto } from '../service/dto/update-electric
 import { ReviewsService } from '../reviews/reviews.service';
 import { UpdateElectricianDeviceTokenDto } from './dto/update-device-token.dto';
 import { UpdateGeoDto } from '../auth/dto/update-geo.dto';
+import { UpdateElectricianProfileDto } from './dto/update-electrician-profile.dto';
 
 @ApiTags('Electrician')
 @Controller(['electrician', 'electricians'])
@@ -229,6 +230,17 @@ export class ElectricianController {
   @ApiOperation({ summary: 'Update base coordinates used for nearby discovery' })
   updateGeo(@CurrentUser() user: { id: string }, @Body() dto: UpdateGeoDto) {
     return this.electrician.updateGeoCoords(user.id, dto.lat, dto.lng);
+  }
+
+  @Patch('me/profile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('electrician')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Update skills and/or years of experience + service area line (approved technicians only)',
+  })
+  updateMyProfile(@CurrentUser() user: { id: string }, @Body() dto: UpdateElectricianProfileDto) {
+    return this.electrician.updateMyProfile(user.id, dto);
   }
 
   @Post('my/device-token')

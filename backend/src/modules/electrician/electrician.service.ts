@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { EmailService } from '../emails/email.service';
 import { RegisterElectricianDto } from './dto/register-electrician.dto';
+import { UpdateElectricianProfileDto } from './dto/update-electrician-profile.dto';
 import { PushService } from '../push/push.service';
 import { AuthService } from '../auth/auth.service';
 
@@ -327,6 +328,57 @@ export class ElectricianService {
     if (!electrician) throw new NotFoundException('Electrician not found');
     const { password_hash, ...safe } = electrician;
     return safe;
+  }
+
+  async updateMyProfile(
+    electricianId: string,
+    dto: UpdateElectricianProfileDto,
+  ): Promise<Record<string, unknown>> {
+    const electrician = await this.dynamo.get(this.table(), { id: electricianId });
+    if (!electrician) throw new NotFoundException('Electrician not found');
+    if (String(electrician.status || '').toLowerCase() !== 'approved') {
+      throw new BadRequestException('Only approved technicians can update skills and service details');
+    }
+
+    const touchSkills = dto.skills !== undefined;
+    const touchAddr = dto.experience_years !== undefined || dto.service_area !== undefined;
+    if (!touchSkills && !touchAddr) {
+      throw new BadRequestException('Provide skills and/or experience and service area fields to update');
+    }
+
+    const now = new Date().toISOString();
+    const updates: Record<string, unknown> = { updated_at: now };
+
+    if (touchSkills) {
+      const list = (dto.skills || []).map((s) => String(s).trim()).filter(Boolean);
+      if (list.length > 25) {
+        throw new BadRequestException('At most 25 service tags are allowed');
+      }
+      for (const s of list) {
+        if (s.length > 60) {
+          throw new BadRequestException('Each skill must be at most 60 characters');
+        }
+      }
+      updates.skills = list;
+    }
+
+    if (touchAddr) {
+      const parsed = this.parseElectricianAddress(String(electrician.address || ''));
+      const years =
+        dto.experience_years !== undefined ? Number(dto.experience_years) : parsed.years;
+      const areaRaw =
+        dto.service_area !== undefined ? String(dto.service_area).trim() : parsed.area;
+      if (years == null || !Number.isFinite(years) || years < 1 || years > 60) {
+        throw new BadRequestException('Years of experience must be between 1 and 60');
+      }
+      if (!areaRaw) {
+        throw new BadRequestException('Service area (city, PIN, etc.) cannot be empty');
+      }
+      updates.address = `Experience: ${Math.round(years)} yrs · ${areaRaw}`;
+    }
+
+    await this.dynamo.update(this.table(), { id: electricianId }, updates);
+    return this.getMe(electricianId);
   }
 
   async getMyBookings(electricianId: string): Promise<Record<string, unknown>[]> {
