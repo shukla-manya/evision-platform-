@@ -69,11 +69,12 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const port = configService.get('PORT', 8000);
-  const host = configService.get('HOST', '127.0.0.1');
+  // Bind 0.0.0.0 so Render/Docker and LAN dev can reach the server; use HOST=127.0.0.1 for loopback-only.
+  const host = configService.get('HOST', '0.0.0.0');
   await app.listen(port, host);
   const mongoSummary = app.get(DynamoService).getMongoConnectionSummary();
   if (mongoSummary) console.log(`\n🍃 ${mongoSummary}`);
-  console.log(`\n⚡ E vision API running on http://localhost:${port}`);
+  console.log(`\n⚡ E vision API running on port ${port} (${host})`);
   console.log(`📖 Swagger docs: http://localhost:${port}/api/docs\n`);
 }
 
