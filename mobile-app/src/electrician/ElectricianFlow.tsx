@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { PublicWebsiteLinks } from '../components/PublicWebsiteLinks';
 import { TechnicianWorkspaceFooter } from './TechnicianWorkspaceFooter';
 import { API_BASE_URL, electricianApi, ElectricianProfile, ServiceBooking } from '../services/api';
