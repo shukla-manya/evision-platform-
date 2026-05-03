@@ -14,6 +14,7 @@ type User = {
   email?: string;
   phone?: string;
   gst_no?: string | null;
+  gst_verified?: boolean;
   business_name?: string | null;
   business_address?: string | null;
   address_book?: AddressBookEntry[];
@@ -125,8 +126,19 @@ export default function ProfilePage() {
                         GST invoices
                       </Link>
                     </div>
+                    <p className="text-sm text-ev-muted pt-2 border-t border-ev-border min-w-0">
+                      <span className="text-ev-subtle">GST status</span>
+                      <br />
+                      {user?.gst_verified ? (
+                        <span className="text-ev-success font-medium">Verified — wholesale pricing active</span>
+                      ) : (
+                        <span className="text-amber-800 dark:text-amber-200/90 font-medium">
+                          Pending — team is verifying your GSTIN; retail prices until then
+                        </span>
+                      )}
+                    </p>
                     {user?.gst_no ? (
-                      <p className="text-sm text-ev-muted pt-2 border-t border-ev-border min-w-0">
+                      <p className="text-sm text-ev-muted pt-2 min-w-0">
                         <span className="text-ev-subtle">GSTIN</span>
                         <br />
                         <span className="text-ev-text font-mono break-all">{user.gst_no}</span>
