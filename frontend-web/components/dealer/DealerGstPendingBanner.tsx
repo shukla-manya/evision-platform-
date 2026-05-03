@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { authApi } from '@/lib/api';
 import { getRole, getToken } from '@/lib/auth';
 
+const GST_PENDING_TICKER =
+  'Wholesale pricing after GST approval — Our team is verifying your GSTIN. Until then you can browse and buy at retail prices. After verification you\u2019ll get an email and the full catalogue will show dealer (wholesale) prices at checkout.';
+
 type Props = {
   /**
    * When true, cancels horizontal padding from `.ev-shell-body` so the strip runs
@@ -65,18 +68,26 @@ export function DealerGstPendingBanner({ bleedGutter = false }: Props) {
   return (
     <div
       role="status"
+      aria-label={GST_PENDING_TICKER}
       className={[
-        'border-y border-amber-400/80 bg-amber-100 py-3.5 shadow-sm',
+        'border-y border-amber-400/80 bg-amber-100 py-2 shadow-sm',
         outerLayout,
       ].join(' ')}
     >
-      <div className="mx-auto max-w-3xl text-center">
-        <p className="text-sm font-bold tracking-tight text-amber-950">Wholesale pricing after GST approval</p>
-        <p className="mt-1.5 text-sm leading-relaxed text-amber-900">
-          Our team is verifying your GSTIN. Until then you can browse and buy at retail prices. After verification
-          you&apos;ll get an email and the full catalogue will show dealer (wholesale) prices at checkout.
-        </p>
+      {/* Infinite marquee: two identical segments, animate –50% for a seamless loop */}
+      <div className="motion-reduce:hidden overflow-hidden">
+        <div className="flex w-max animate-[evGstMarquee_55s_linear_infinite] will-change-transform">
+          <span className="shrink-0 whitespace-nowrap pr-16 text-sm font-semibold tracking-tight text-amber-950">
+            {GST_PENDING_TICKER}
+          </span>
+          <span className="shrink-0 whitespace-nowrap pr-16 text-sm font-semibold tracking-tight text-amber-950" aria-hidden>
+            {GST_PENDING_TICKER}
+          </span>
+        </div>
       </div>
+      <p className="hidden text-center text-sm font-semibold leading-snug text-amber-950 motion-reduce:block">
+        {GST_PENDING_TICKER}
+      </p>
     </div>
   );
 }
