@@ -156,14 +156,6 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
           </Link>
           {isShopper ? (
             <>
-              {role === 'dealer' ? (
-                <Link
-                  href="/"
-                  className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
-                >
-                  Home
-                </Link>
-              ) : null}
               <Link
                 href="/orders"
                 className="hidden sm:inline-flex text-white/90 text-sm font-medium px-3 py-2 rounded-lg hover:bg-white/10 whitespace-nowrap"
@@ -261,11 +253,6 @@ export function PublicNavbar({ authSurface = false }: PublicNavbarProps) {
           ))}
           {isShopper ? (
             <>
-              {role === 'dealer' ? (
-                <Link href="/" className="block py-2.5 text-white/85 hover:text-white font-medium">
-                  Home
-                </Link>
-              ) : null}
               <Link href="/orders" className="block py-2.5 text-white/85 hover:text-white font-medium">
                 My orders
               </Link>
