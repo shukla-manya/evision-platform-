@@ -47,10 +47,15 @@ type MeUser = {
   email?: string;
   phone?: string;
   gst_no?: string | null;
+  gst_verified?: boolean | string | number;
   business_name?: string | null;
   business_address?: string | null;
   address_book?: AddressBookEntry[];
 };
+
+function isGstVerifiedFlag(v: unknown): boolean {
+  return v === true || v === 'true' || v === 1 || v === '1';
+}
 
 function apiErr(err: unknown, fallback: string): string {
   const ax = err as { response?: { data?: { message?: string } }; message?: string };

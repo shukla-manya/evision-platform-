@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { ordersApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { getRole } from '@/lib/auth';
+import { DealerGstPendingBanner } from '@/components/dealer/DealerGstPendingBanner';
 
 function formatInr(n: number) {
   return new Intl.NumberFormat('en-IN', {
