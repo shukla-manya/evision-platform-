@@ -424,17 +424,17 @@ export default function DealerDashboardPage() {
               </div>
               <Link href="/orders" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
                 <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Active orders</p>
-                <p className="text-2xl font-bold text-ev-text tabular-nums">{computed.activeOrders}</p>
+                <p className="text-xl font-bold text-ev-text tabular-nums">{computed.activeOrders}</p>
                 <p className="text-ev-muted text-xs mt-2">{computed.inTransit} in transit</p>
               </Link>
               <div className="ev-card p-5">
                 <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">Total saved vs MRP</p>
-                <p className="text-2xl font-bold text-ev-text tabular-nums">{formatInr(computed.estimatedSavings)}</p>
+                <p className="text-xl font-bold text-ev-text tabular-nums">{formatInr(computed.estimatedSavings)}</p>
                 <p className="text-ev-muted text-xs mt-2">Estimated from catalogue MRP / retail</p>
               </div>
               <Link href="/dealer/invoices" className="ev-card p-5 hover:border-ev-primary/25 transition-colors block">
                 <p className="text-ev-muted text-xs font-medium uppercase tracking-wide mb-1">GST tax invoices</p>
-                <p className="text-2xl font-bold text-ev-text tabular-nums">{computed.gstInvoicesCount}</p>
+                <p className="text-xl font-bold text-ev-text tabular-nums">{computed.gstInvoicesCount}</p>
                 <p className="text-ev-muted text-xs mt-2 inline-flex items-center gap-1">
                   <FileText size={12} />
                   View & download
