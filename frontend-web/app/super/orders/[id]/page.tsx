@@ -297,7 +297,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                     <li key={String(inv.id)} className="border border-ev-border rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <p className="font-mono text-ev-text font-semibold">{inv.invoice_number || inv.id}</p>
-                        <p className="text-ev-muted text-xs">Order-linked invoice</p>
+                        <p className="text-ev-muted text-xs">Issued after delivery</p>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {inv.customer_invoice_url ? (
@@ -307,7 +307,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                             rel="noreferrer"
                             className="ev-btn-secondary text-xs py-1.5 px-3 inline-flex items-center gap-1"
                           >
-                            <FileText size={12} /> Customer PDF
+                            <FileText size={12} /> Order invoice
                           </a>
                         ) : null}
                         {inv.dealer_invoice_url ? (
@@ -317,7 +317,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                             rel="noreferrer"
                             className="ev-btn-secondary text-xs py-1.5 px-3 inline-flex items-center gap-1"
                           >
-                            Dealer PDF
+                            Dealer invoice
                           </a>
                         ) : null}
                         {inv.gst_invoice_url ? (
@@ -327,7 +327,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
                             rel="noreferrer"
                             className="ev-btn-secondary text-xs py-1.5 px-3 inline-flex items-center gap-1"
                           >
-                            GST PDF
+                            GST tax invoice
                           </a>
                         ) : null}
                       </div>

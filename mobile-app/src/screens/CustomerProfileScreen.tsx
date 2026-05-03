@@ -165,7 +165,8 @@ export function CustomerProfileScreen({ user, onLogout, fcmToken, onOpenServiceH
                     <View style={styles.card}>
                       <Text style={styles.cardTitle}>Dealer account</Text>
                       <Text style={styles.bodyMuted}>
-                        Dealer pricing in the shop and GST invoices — open the web dealer hub for full tools.
+                        Dealer pricing in the shop. Invoice PDFs (including GST when eligible) show under My orders after
+                        each delivery; the web dealer hub adds bulk GST downloads and account tools.
                       </Text>
                       <Text style={[styles.metaSmall, { marginTop: 8 }]}>
                         GST status:{' '}
