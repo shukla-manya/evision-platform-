@@ -25,6 +25,16 @@
 }
 
 /* Home “browse by site” strip — animated illustration above segment chips */
+/* Dealer GST pending banner — single-line ticker (duplicate track, –50% loop) */
+@keyframes evGstMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @keyframes evBrowseSiteWire {
   to {
     stroke-dashoffset: -72;
