@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   MinLength,
+  MaxLength,
   IsNumber,
   Min,
   Max,
@@ -143,5 +144,6 @@ export class UpdateProductDto {
   @ValidateIf((_, v) => v !== null && v !== undefined)
   @IsString()
   @MinLength(1)
+  @MaxLength(120)
   store_sku?: string | null;
 }

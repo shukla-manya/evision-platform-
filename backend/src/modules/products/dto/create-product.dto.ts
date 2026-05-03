@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   MinLength,
+  MaxLength,
   IsNumber,
   Min,
   Max,
@@ -157,5 +158,6 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   @MinLength(1)
+  @MaxLength(120)
   store_sku?: string;
 }

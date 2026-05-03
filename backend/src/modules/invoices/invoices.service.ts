@@ -104,8 +104,11 @@ export class InvoicesService {
   }
 
   /**
-   * Full invoice generation: creates DB record, generates PDF variants,
-   * uploads to S3, emails customer. Idempotent — returns existing record if PDFs already generated.
+   * Full invoice generation: DB row, PDF variants, S3, customer email.
+   * Idempotent if `customer_invoice_url` is already set.
+   *
+   * **When this runs:** today only from the Shiprocket webhook path when the order reaches
+   * `delivered` (`OrdersService` → `generateInvoiceIfMissing`). Not a payment-time proforma.
    */
   async generateWithPdf(orderId: string): Promise<Record<string, unknown>> {
     const existing = await this.dynamo.queryOne({

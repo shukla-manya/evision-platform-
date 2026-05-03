@@ -103,20 +103,26 @@ export class InvoicePdfService {
     doc.rect(50, 32, doc.page.width - 100, 1.5).fill(RULE);
 
     doc.fontSize(15).fillColor(INK).font('Helvetica-Bold').text('E vision', 50, 44);
-    doc.fontSize(8).fillColor(MUTED).font('Helvetica').text('Marketplace order document', 50, doc.y + 2);
+    doc.fontSize(8).fillColor(MUTED).font('Helvetica').text('Marketplace order document', 50, 60);
 
     const rightX = doc.page.width - 230;
+    const rw = 180;
     const dateStr = new Date(data.issued_at).toLocaleDateString('en-IN', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
     });
-    doc.fontSize(11).fillColor(INK).font('Helvetica-Bold').text(title, rightX, 44, { width: 180, align: 'right' });
+    let ry = 44;
+    doc.fontSize(11).fillColor(INK).font('Helvetica-Bold').text(title, rightX, ry, { width: rw, align: 'right' });
+    ry += 16;
     doc.fontSize(8).fillColor(DARK).font('Helvetica');
-    doc.text(`Invoice no. ${data.invoice_number}`, rightX, doc.y + 4, { width: 180, align: 'right' });
-    doc.text(`Invoice date ${dateStr}`, rightX, doc.y + 2, { width: 180, align: 'right' });
-    doc.text(`Order ID`, rightX, doc.y + 6, { width: 180, align: 'right' });
-    doc.font('Helvetica').fontSize(7).fillColor(DARK).text(data.order_id, rightX, doc.y + 2, { width: 180, align: 'right' });
+    doc.text(`Invoice no. ${data.invoice_number}`, rightX, ry, { width: rw, align: 'right' });
+    ry += 12;
+    doc.text(`Invoice date ${dateStr}`, rightX, ry, { width: rw, align: 'right' });
+    ry += 12;
+    doc.text('Order ID', rightX, ry, { width: rw, align: 'right' });
+    ry += 11;
+    doc.fontSize(7).text(data.order_id, rightX, ry, { width: rw, align: 'right' });
 
     this.hLine(doc, 118);
     doc.y = 128;

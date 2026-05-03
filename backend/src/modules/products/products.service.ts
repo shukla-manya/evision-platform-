@@ -171,6 +171,8 @@ export class ProductsService {
       created_at: now,
       updated_at: now,
     };
+    if (dto.hsn_code?.trim()) item.hsn_code = dto.hsn_code.trim();
+    if (dto.store_sku?.trim()) item.store_sku = dto.store_sku.trim();
     if (dto.home_showcase_section === 'primary' || dto.home_showcase_section === 'combos') {
       item.home_showcase_section = dto.home_showcase_section;
       item.home_showcase_order = dto.home_showcase_order ?? 0;
@@ -252,6 +254,14 @@ export class ProductsService {
     assign(
       'amazon_url',
       dto.amazon_url === undefined ? undefined : dto.amazon_url === null ? null : dto.amazon_url?.trim() || null,
+    );
+    assign(
+      'hsn_code',
+      dto.hsn_code === undefined ? undefined : dto.hsn_code === null ? null : dto.hsn_code?.trim() || null,
+    );
+    assign(
+      'store_sku',
+      dto.store_sku === undefined ? undefined : dto.store_sku === null ? null : dto.store_sku?.trim() || null,
     );
 
     if (dto.images !== undefined) {

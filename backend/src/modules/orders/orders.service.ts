@@ -426,6 +426,13 @@ export class OrdersService {
     return { ok: true, order_id: order.id, status: internalStatus };
   }
 
+  /**
+   * Final invoices (PDFs) are created only after delivery — Shiprocket webhook sets
+   * `internalStatus === 'delivered'`, then this runs once per order (idempotent in InvoicesService).
+   *
+   * Flow: Shiprocket → OrdersService (status) → InvoicesService.generateWithPdf →
+   * InvoicePdfService (customer; dealer + GST PDFs if buyer is dealer) → S3 + invoice email.
+   */
   private async generateInvoiceIfMissing(order: Record<string, unknown>): Promise<void> {
     try {
       await this.invoices.generateWithPdf(String(order.id));
