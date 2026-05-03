@@ -28,6 +28,7 @@ type Props = {
  * Shown for logged-in dealers until superadmin verifies GST (gst_verified).
  */
 export function DealerGstPendingBanner({ bleedGutter = false }: Props) {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -38,22 +39,34 @@ export function DealerGstPendingBanner({ bleedGutter = false }: Props) {
       return;
     }
     let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await authApi.me();
-        const u = data?.user as Record<string, unknown> | undefined;
-        if (cancelled || !u) return;
-        const gv = u.gst_verified;
-        const verified = gv === true || gv === 'true' || gv === 1 || gv === '1';
-        setVisible(!verified);
-      } catch {
-        if (!cancelled) setVisible(false);
-      }
-    })();
+
+    const refresh = () => {
+      void (async () => {
+        try {
+          const { data } = await authApi.me();
+          const u = data?.user as Record<string, unknown> | undefined;
+          if (cancelled || !u) return;
+          setVisible(!isDealerGstVerified(u.gst_verified));
+        } catch {
+          if (!cancelled) setVisible(false);
+        }
+      })();
+    };
+
+    refresh();
+
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', onVisible);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', onVisible);
     };
-  }, []);
+  }, [pathname]);
 
   if (!visible) return null;
 
