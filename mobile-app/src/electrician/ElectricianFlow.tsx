@@ -114,7 +114,7 @@ function HomeScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView style={[styles.screen, styles.fillScreen]}>
       <View style={styles.card}>
         <View style={styles.rowBetween}>
           <Text style={styles.cardTitle}>Online / Offline</Text>
@@ -137,6 +137,8 @@ function HomeScreen({ navigation }: any) {
         <Text style={styles.meta}>Loading...</Text>
       ) : (
         <FlatList
+          style={styles.fillScreen}
+          contentContainerStyle={styles.homeListContent}
           data={pending}
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
