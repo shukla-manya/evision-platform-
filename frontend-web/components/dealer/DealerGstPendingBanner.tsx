@@ -1,11 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { authApi } from '@/lib/api';
 import { getRole, getToken } from '@/lib/auth';
 
 const GST_PENDING_TICKER =
   'Wholesale pricing after GST approval — Our team is verifying your GSTIN. Until then you can browse and buy at retail prices. After verification you\u2019ll get an email and the full catalogue will show dealer (wholesale) prices at checkout.';
+
+function isDealerGstVerified(value: unknown): boolean {
+  if (value === true || value === 1) return true;
+  if (value === 'true' || value === '1') return true;
+  if (typeof value === 'string' && value.trim().toLowerCase() === 'true') return true;
+  return false;
+}
 
 type Props = {
   /**
