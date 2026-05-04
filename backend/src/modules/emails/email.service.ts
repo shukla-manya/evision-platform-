@@ -31,45 +31,179 @@ type EmailLayoutMeta = {
 };
 
 @Injectable()
-export class EmailService {
+export class EmailService implements OnModuleInit {
   private readonly logger = new Logger(EmailService.name);
   private transporter: nodemailer.Transporter;
+  private readonly sesClient: SESv2Client | null;
+  private readonly useSesTransport: boolean;
 
   constructor(
     private config: ConfigService,
     private dynamo: DynamoService,
   ) {
+    const transport = String(this.config.get<string>('EMAIL_TRANSPORT') ?? '')
+      .trim()
+      .toLowerCase();
+    this.useSesTransport = transport === 'ses';
+
+    const port = Number(this.config.get('SMTP_PORT', 587)) || 587;
     this.transporter = nodemailer.createTransport({
-      host: config.get('SMTP_HOST', 'smtp.gmail.com'),
-      port: config.get('SMTP_PORT', 587),
-      secure: false,
+      host: this.config.get('SMTP_HOST', 'smtp.gmail.com'),
+      port,
+      secure: port === 465,
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
+      connectionTimeout: 15_000,
+      greetingTimeout: 15_000,
+      socketTimeout: 60_000,
       auth: {
-        user: config.get('SMTP_USER'),
-        pass: config.get('SMTP_PASS'),
+        user: this.config.get('SMTP_USER'),
+        pass: this.config.get('SMTP_PASS'),
       },
+    });
+
+    const region =
+      (this.config.get<string>('SES_REGION') || '').trim() ||
+      this.config.get<string>('AWS_REGION', 'ap-south-1');
+    this.sesClient = this.useSesTransport ? new SESv2Client({ region }) : null;
+  }
+
+  onModuleInit() {
+    const nodeEnv = String(this.config.get<string>('NODE_ENV') ?? '').toLowerCase();
+    const otpFlag = String(this.config.get<string | boolean>('OTP_CONSOLE_ONLY') ?? '')
+      .trim()
+      .toLowerCase();
+    const consoleOnly = otpFlag === '1' || otpFlag === 'true' || otpFlag === 'yes';
+    if (consoleOnly && (nodeEnv === 'production' || nodeEnv === 'prod')) {
+      this.logger.warn(
+        'OTP_CONSOLE_ONLY is enabled while NODE_ENV suggests production — OTP emails will NOT be sent (codes only appear in logs).',
+      );
+    }
+    this.logger.log(
+      `Outbound email transport: ${this.useSesTransport ? `SES (${this.config.get<string>('SES_REGION')?.trim() || this.config.get<string>('AWS_REGION', 'ap-south-1')})` : 'SMTP (Nodemailer pool)'}`,
+    );
+  }
+
+  private formatFromHeader(): string {
+    const addr = (this.config.get<string>('EMAIL_FROM') || '').trim();
+    const name = (this.config.get<string>('EMAIL_FROM_NAME') || 'E vision Pvt. Ltd.').trim();
+    return `"${name}" <${addr}>`;
+  }
+
+  /** Minimal plain-text body for SES Simple (and deliverability). */
+  private htmlToPlainFallback(html: string): string {
+    const t = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' ');
+    return t.replace(/\s+/g, ' ').trim().slice(0, 20_000) || ' ';
+  }
+
+  private splitAddressList(raw?: string): string[] {
+    if (!raw?.trim()) return [];
+    return raw
+      .split(/[,;]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  private async mimeNodeToBuffer(node: InstanceType<typeof MailComposer>['compile'] extends () => infer R ? R : never): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const chunks: Buffer[] = [];
+      const stream = (node as { createReadStream: (o?: object) => NodeJS.ReadableStream }).createReadStream();
+      stream.on('data', (c: string | Buffer) => {
+        chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
+      });
+      stream.on('error', reject);
+      stream.on('end', () => resolve(Buffer.concat(chunks)));
     });
   }
 
+  private async sendViaSes(opts: SendEmailOptions, fromHeader: string): Promise<{ messageId?: string }> {
+    const fromAddr = (this.config.get<string>('EMAIL_FROM') || '').trim();
+    if (!fromAddr) {
+      throw new Error('EMAIL_FROM is required when EMAIL_TRANSPORT=ses');
+    }
+
+    const destination = {
+      ToAddresses: [opts.to.trim()],
+      BccAddresses: this.splitAddressList(opts.bcc),
+    };
+    const replyTo = this.splitAddressList(opts.replyTo);
+
+    if (opts.attachments?.length) {
+      const composer = new MailComposer({
+        from: fromHeader,
+        to: opts.to,
+        subject: opts.subject,
+        html: opts.html,
+        ...(opts.replyTo ? { replyTo: opts.replyTo } : {}),
+        ...(opts.bcc ? { bcc: opts.bcc } : {}),
+        attachments: opts.attachments,
+      });
+      const mimeNode = composer.compile();
+      const raw = await this.mimeNodeToBuffer(mimeNode);
+      const cmd = new SendEmailCommand({
+        FromEmailAddress: fromHeader,
+        Destination: destination,
+        ...(replyTo.length ? { ReplyToAddresses: replyTo } : {}),
+        Content: {
+          Raw: { Data: new Uint8Array(raw) },
+        },
+      });
+      return this.sesClient!.send(cmd);
+    }
+
+    const sesAttachments = opts.attachments?.map((a) => ({
+      FileName: String(a.filename || 'attachment'),
+      RawContent: new Uint8Array(Buffer.isBuffer(a.content) ? a.content : Buffer.from(a.content ?? [])),
+      ContentType: a.contentType ? String(a.contentType) : undefined,
+      ContentDisposition: 'ATTACHMENT' as const,
+    }));
+
+    const cmd = new SendEmailCommand({
+      FromEmailAddress: fromHeader,
+      Destination: destination,
+      ...(replyTo.length ? { ReplyToAddresses: replyTo } : {}),
+      Content: {
+        Simple: {
+          Subject: { Data: opts.subject, Charset: 'UTF-8' },
+          Body: {
+            Html: { Data: opts.html, Charset: 'UTF-8' },
+            Text: { Data: this.htmlToPlainFallback(opts.html), Charset: 'UTF-8' },
+          },
+          ...(sesAttachments?.length ? { Attachments: sesAttachments } : {}),
+        },
+      },
+    });
+    return this.sesClient!.send(cmd);
+  }
+
   async send(opts: SendEmailOptions): Promise<{ ok: boolean; error: string | null }> {
-    const from = `"${this.config.get('EMAIL_FROM_NAME', 'E vision Pvt. Ltd.')}" <${this.config.get('EMAIL_FROM')}>`;
+    const from = this.formatFromHeader();
     let status: 'sent' | 'failed' = 'sent';
     let errorMessage: string | null = null;
 
     try {
-      await this.transporter.sendMail({
-        from,
-        to: opts.to,
-        ...(opts.replyTo ? { replyTo: opts.replyTo } : {}),
-        ...(opts.bcc ? { bcc: opts.bcc } : {}),
-        subject: opts.subject,
-        html: opts.html,
-        attachments: opts.attachments,
-      });
-      this.logger.log(`Email sent [${opts.trigger_event}] → ${opts.to}`);
-    } catch (err) {
+      if (this.useSesTransport && this.sesClient) {
+        const out = await this.sendViaSes(opts, from);
+        this.logger.log(
+          `Email sent (SES) [${opts.trigger_event}] → ${opts.to}${out.MessageId ? ` id=${out.MessageId}` : ''}`,
+        );
+      } else {
+        await this.transporter.sendMail({
+          from,
+          to: opts.to,
+          ...(opts.replyTo ? { replyTo: opts.replyTo } : {}),
+          ...(opts.bcc ? { bcc: opts.bcc } : {}),
+          subject: opts.subject,
+          html: opts.html,
+          attachments: opts.attachments,
+        });
+        this.logger.log(`Email sent [${opts.trigger_event}] → ${opts.to}`);
+      }
+    } catch (err: unknown) {
       status = 'failed';
-      errorMessage = err.message;
-      this.logger.error(`Email failed [${opts.trigger_event}] → ${opts.to}: ${err.message}`);
+      errorMessage = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Email failed [${opts.trigger_event}] → ${opts.to}: ${errorMessage}`);
     }
 
     await this.dynamo.put(this.dynamo.tableName('email_logs'), {
