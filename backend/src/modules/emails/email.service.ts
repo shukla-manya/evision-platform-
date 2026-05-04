@@ -7,9 +7,6 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const MailComposer = require('nodemailer/lib/mail-composer') as typeof import('nodemailer/lib/mail-composer');
-
 export interface SendEmailOptions {
   to: string;
   to_role: string;
@@ -105,19 +102,7 @@ export class EmailService implements OnModuleInit {
       .filter(Boolean);
   }
 
-  private async mimeNodeToBuffer(node: InstanceType<typeof MailComposer>['compile'] extends () => infer R ? R : never): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
-      const chunks: Buffer[] = [];
-      const stream = (node as { createReadStream: (o?: object) => NodeJS.ReadableStream }).createReadStream();
-      stream.on('data', (c: string | Buffer) => {
-        chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(c));
-      });
-      stream.on('error', reject);
-      stream.on('end', () => resolve(Buffer.concat(chunks)));
-    });
-  }
-
-  private async sendViaSes(opts: SendEmailOptions, fromHeader: string): Promise<{ messageId?: string }> {
+  private async sendViaSes(opts: SendEmailOptions, fromHeader: string): Promise<{ MessageId?: string }> {
     const fromAddr = (this.config.get<string>('EMAIL_FROM') || '').trim();
     if (!fromAddr) {
       throw new Error('EMAIL_FROM is required when EMAIL_TRANSPORT=ses');
@@ -129,35 +114,14 @@ export class EmailService implements OnModuleInit {
     };
     const replyTo = this.splitAddressList(opts.replyTo);
 
-    if (opts.attachments?.length) {
-      const composer = new MailComposer({
-        from: fromHeader,
-        to: opts.to,
-        subject: opts.subject,
-        html: opts.html,
-        ...(opts.replyTo ? { replyTo: opts.replyTo } : {}),
-        ...(opts.bcc ? { bcc: opts.bcc } : {}),
-        attachments: opts.attachments,
-      });
-      const mimeNode = composer.compile();
-      const raw = await this.mimeNodeToBuffer(mimeNode);
-      const cmd = new SendEmailCommand({
-        FromEmailAddress: fromHeader,
-        Destination: destination,
-        ...(replyTo.length ? { ReplyToAddresses: replyTo } : {}),
-        Content: {
-          Raw: { Data: new Uint8Array(raw) },
-        },
-      });
-      return this.sesClient!.send(cmd);
-    }
-
-    const sesAttachments = opts.attachments?.map((a) => ({
-      FileName: String(a.filename || 'attachment'),
-      RawContent: new Uint8Array(Buffer.isBuffer(a.content) ? a.content : Buffer.from(a.content ?? [])),
-      ContentType: a.contentType ? String(a.contentType) : undefined,
-      ContentDisposition: 'ATTACHMENT' as const,
-    }));
+    const sesAttachments = opts.attachments?.length
+      ? opts.attachments.map((a) => ({
+          FileName: String(a.filename || 'attachment'),
+          RawContent: new Uint8Array(Buffer.isBuffer(a.content) ? a.content : Buffer.from(a.content ?? [])),
+          ContentType: a.contentType ? String(a.contentType) : undefined,
+          ContentDisposition: 'ATTACHMENT' as const,
+        }))
+      : undefined;
 
     const cmd = new SendEmailCommand({
       FromEmailAddress: fromHeader,
