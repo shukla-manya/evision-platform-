@@ -12,7 +12,6 @@ export interface JwtPayload {
   phone?: string;
   sa_sess?: string;
 }
-
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
