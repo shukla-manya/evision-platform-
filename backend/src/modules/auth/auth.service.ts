@@ -81,7 +81,7 @@ export class AuthService {
       await this.dynamo.delete(this.dynamo.tableName('otps'), { phone: email });
       throw new ServiceUnavailableException(
         error ||
-          'Unable to send verification email. Configure SMTP (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM).',
+          'Unable to send verification email. Configure SMTP (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM) or set EMAIL_TRANSPORT=ses with a verified SES identity.',
       );
     }
 

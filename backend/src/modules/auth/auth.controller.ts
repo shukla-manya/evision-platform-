@@ -24,7 +24,7 @@ export class AuthController {
   @Post('send-otp')
   @ApiOperation({
     summary:
-      'Send 6-digit OTP to email via SMTP (Nodemailer). Set OTP_CONSOLE_ONLY=true to log the code only (no email), for local dev.',
+      'Send 6-digit OTP to email. Uses SMTP (Nodemailer) by default; set EMAIL_TRANSPORT=ses for Amazon SES. OTP_CONSOLE_ONLY=true logs the code only (no email), for local dev.',
   })
   sendOtp(@Body() dto: SendOtpDto) {
     return this.authService.sendOtp(dto.email, { purpose: dto.purpose });
