@@ -1,10 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const MailComposer = require('nodemailer/lib/mail-composer') as typeof import('nodemailer/lib/mail-composer');
 
 export interface SendEmailOptions {
   to: string;
