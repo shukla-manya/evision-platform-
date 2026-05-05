@@ -42,15 +42,13 @@ export default function RegisterPage() {
   });
   const [loading, setLoading] = useState(false);
   const [geoAddrLoading, setGeoAddrLoading] = useState(false);
-  const [otpSending, setOtpSending] = useState(false);
-  const [registerStep, setRegisterStep] = useState<RegisterStep>('details');
-  const [registerOtpKey, setRegisterOtpKey] = useState(0);
-  const [registerOtpCells, setRegisterOtpCells] = useState<string[]>(['', '', '', '', '', '']);
-  const [otpAttemptsLeft, setOtpAttemptsLeft] = useState(OTP_ATTEMPTS);
-  const [resendSeconds, setResendSeconds] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
   const [phoneDigits, setPhoneDigits] = useState('');
   const [address, setAddress] = useState('');
