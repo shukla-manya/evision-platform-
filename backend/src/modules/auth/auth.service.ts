@@ -137,12 +137,13 @@ export class AuthService {
       }
     }
 
+    const password_hash = await bcrypt.hash(dto.password, 12);
     const user = {
       id,
       name: dto.name,
       phone: dto.phone,
       email: emailNorm,
-      password_hash: null,
+      password_hash,
       role: dto.role,
       gst_no: dto.gst_no || null,
       gst_verified: dto.role === 'dealer' ? false : undefined,
@@ -163,33 +164,6 @@ export class AuthService {
     const token = this.signToken(id, dto.role, emailNorm, dto.phone);
     const { ...safeUser } = user;
     return { access_token: token, user: safeUser };
-  }
-
-  async passwordResetStart(
-    dto: PasswordResetStartDto,
-  ): Promise<{ otp_sent: boolean; role: string; email: string }> {
-    const email = this.normalizeOtpEmail(dto.email);
-    const account = await this.findElectricianByEmail(email);
-    if (!account) throw new UnauthorizedException('Account not found for provided role and email');
-    await this.sendOtp(email, { purpose: 'login' });
-    return { otp_sent: true, role: dto.role, email };
-  }
-
-  async passwordResetComplete(
-    dto: PasswordResetCompleteDto,
-  ): Promise<{ updated: boolean; role: string }> {
-    const email = this.normalizeOtpEmail(dto.email);
-    const account = await this.findElectricianByEmail(email);
-    if (!account) throw new UnauthorizedException('Account not found for provided role and email');
-    await this.consumeOtp(email, dto.otp);
-    const password_hash = await bcrypt.hash(String(dto.new_password || ''), 12);
-
-    await this.dynamo.update(
-      this.dynamo.tableName('electricians'),
-      { id: String(account.id) },
-      { password_hash, updated_at: new Date().toISOString() },
-    );
-    return { updated: true, role: dto.role };
   }
 
   async updateShopperGeo(userId: string, lat: number, lng: number): Promise<{ lat: number; lng: number; geo_captured_at: string }> {
