@@ -4,7 +4,7 @@
 const heroWifiCctv =
   'https://cdn.mos.cms.futurecdn.net/tMajjm2ZCo3a5ZyGVgt2JG.jpg';
 const heroPoeSetup =
-  'https://upload.wikimedia.org/wikipedia/commons/f/f1/ZyXEL_ZyAIR_G-1000_and_D-Link_DWL-P50_20060829_2.jpg';
+  'https://www.phihong.com/wp-content/uploads/category-banner-poe.jpg';
 const heroSmartSecurityKit =
   'https://images.ctfassets.net/n58cc9djl3c5/3yGoaL5yznxTszN9bg53g5/715e0584582269d9d71060eda3083886/HSS_Cameras.webp';
 
@@ -42,7 +42,7 @@ export const homeHeroSlides = [
     cta: 'Browse PoE gear',
     href: '/shop?search=PoE',
     imageSrc: heroPoeSetup,
-    imageAlt: 'ZyXEL access point and D-Link PoE adapter wired to a wall jack',
+    imageAlt: 'PoE injector setup showing data and power to a CCTV camera',
   },
   {
     title: 'Smart Security Kits',
