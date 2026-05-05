@@ -74,7 +74,6 @@ export class AuthService {
   // ── Registration ──────────────────────────────────────────────────────────
   async register(dto: RegisterDto): Promise<{ access_token: string; user: any }> {
     const emailNorm = String(dto.email || '').trim().toLowerCase();
-    await this.consumeOtp(emailNorm, dto.otp);
     if (dto.role === 'dealer' && !dto.gst_no) {
       throw new BadRequestException('GST number is required for dealer accounts');
     }
