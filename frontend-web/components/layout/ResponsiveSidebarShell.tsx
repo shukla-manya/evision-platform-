@@ -39,7 +39,7 @@ export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }:
   }, [drawerOpen]);
 
   return (
-    <div className="min-h-screen bg-ev-bg flex min-w-0">
+    <div className="min-h-screen w-full bg-ev-bg flex min-w-0 overflow-x-hidden">
       <header className="md:hidden fixed top-0 inset-x-0 z-20 flex h-14 min-h-14 items-center gap-3 border-b border-white/10 bg-ev-navbar/95 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-md">
         <button
           type="button"
@@ -78,7 +78,7 @@ export function ResponsiveSidebarShell({ children, sidebar, mobileTopBarTitle }:
         </div>
       </aside>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden pt-14 md:pl-64 md:pt-0">
+      <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-x-hidden pt-14 md:pl-64 md:pt-0">
         <div className="ev-shell-body flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>
       </div>
     </div>
