@@ -310,7 +310,7 @@ export class AuthService {
   }
 
   private async findUserByEmail(email: string): Promise<any | null> {
-    const norm = this.normalizeOtpEmail(email);
+    const norm = this.normalizeEmail(email);
     const items = await this.dynamo.query({
       TableName: this.dynamo.tableName('users'),
       IndexName: 'EmailIndex',
@@ -323,7 +323,7 @@ export class AuthService {
   }
 
   private async findElectricianByEmail(email: string): Promise<any | null> {
-    const norm = this.normalizeOtpEmail(email);
+    const norm = this.normalizeEmail(email);
     const items = await this.dynamo.query({
       TableName: this.dynamo.tableName('electricians'),
       IndexName: 'EmailIndex',
@@ -344,31 +344,6 @@ export class AuthService {
       Limit: 1,
     });
     return items[0] || null;
-  }
-
-  /** @param otpKey normalized email (stored under Dynamo attribute `phone` for legacy partition key). */
-  private async consumeOtp(otpKey: string, otp: string): Promise<void> {
-    const record = await this.dynamo.get(this.dynamo.tableName('otps'), { phone: otpKey });
-
-    if (!record) throw new UnauthorizedException('OTP not found or expired');
-    const stored = String(record.otp ?? '').replace(/\D/g, '');
-    const given = String(otp ?? '').replace(/\D/g, '');
-    if (stored.length !== 6 || given.length !== 6 || stored !== given) {
-      throw new UnauthorizedException('Invalid OTP');
-    }
-
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    if (record.expires_at < nowSeconds) {
-      await this.dynamo.delete(this.dynamo.tableName('otps'), { phone: otpKey });
-      throw new UnauthorizedException('OTP has expired');
-    }
-
-    await this.dynamo.delete(this.dynamo.tableName('otps'), { phone: otpKey });
-  }
-
-  /** Used by technician self-registration: validate and delete OTP in one step with multipart submit. */
-  async consumeRegistrationOtp(email: string, otp: string): Promise<void> {
-    await this.consumeOtp(this.normalizeOtpEmail(email), otp);
   }
 
   async replaceAddressBook(
