@@ -5,7 +5,6 @@ import {
   ConflictException,
   Logger,
   NotFoundException,
-  ServiceUnavailableException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -13,9 +12,8 @@ import * as bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { DynamoService } from '../../common/dynamo/dynamo.service';
 import { normalizeClientIp } from '../../common/http/client-ip.util';
-import { RegisterDto, SuperadminLoginDto, PasswordResetStartDto, PasswordResetCompleteDto } from './dto/register.dto';
+import { LoginDto, RegisterDto, SuperadminLoginDto } from './dto/register.dto';
 import type { AddressBookEntryDto } from './dto/update-address-book.dto';
-import { EmailService } from '../emails/email.service';
 
 @Injectable()
 export class AuthService {

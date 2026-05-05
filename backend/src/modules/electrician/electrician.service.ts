@@ -138,13 +138,8 @@ export class ElectricianService {
       throw new ConflictException('This email is already registered for a shopper account');
     }
 
-    await this.auth.consumeRegistrationOtp(emailNorm, dto.otp);
-
     const id = uuidv4();
-    const rawPwd = dto.password?.trim();
-    const secret =
-      rawPwd && rawPwd.length >= 8 ? rawPwd : `no_login_pwd_${uuidv4()}_${Date.now()}`;
-    const passwordHash = await bcrypt.hash(secret, 12);
+    const passwordHash = await bcrypt.hash(dto.password.trim(), 12);
     const now = new Date().toISOString();
     const electrician = {
       id,

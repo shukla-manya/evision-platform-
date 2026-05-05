@@ -5,8 +5,6 @@ import {
   IsNumberString,
   IsOptional,
   IsString,
-  Length,
-  Matches,
   MinLength,
 } from 'class-validator';
 
@@ -21,24 +19,14 @@ export class RegisterElectricianDto {
   @Matches(/^\+[1-9]\d{9,14}$/, { message: 'Phone must be E.164 format' })
   phone: string;
 
-  @ApiProperty({ example: '482931', description: '6-digit OTP from POST /auth/send-otp to the same email' })
-  @IsString()
-  @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
-  @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
-  otp: string;
-
   @ApiProperty({ example: 'ravi.electrician@example.com' })
   @IsEmail()
   email: string;
 
-  @ApiPropertyOptional({
-    example: 'SecurePass@123',
-    description: 'Optional legacy field; sign-in is mobile OTP only',
-  })
-  @IsOptional()
+  @ApiProperty({ example: 'SecurePass@123' })
   @IsString()
-  @MinLength(8)
-  password?: string;
+  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  password: string;
 
   @ApiPropertyOptional({ example: 'Near Sector 15 market, Faridabad' })
   @IsOptional()

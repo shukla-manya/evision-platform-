@@ -6,13 +6,24 @@ import {
   IsOptional,
   Matches,
   MinLength,
-  Length,
   ValidateIf,
   IsNumber,
   Min,
   Max,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+
+export class LoginDto {
+  @ApiProperty({ example: 'user@example.com' })
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
+  @IsEmail()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  @MinLength(6)
+  password: string;
+}
 
 export class RegisterDto {
   @ApiProperty({ example: 'Rahul Kumar' })
@@ -33,11 +44,10 @@ export class RegisterDto {
   @IsEnum(['customer', 'dealer'])
   role: 'customer' | 'dealer';
 
-  @ApiProperty({ example: '482931', description: 'OTP sent to the same email via POST /auth/send-otp' })
+  @ApiProperty({ example: 'SecurePass@123', minLength: 6 })
   @IsString()
-  @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
-  @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
-  otp: string;
+  @MinLength(6, { message: 'Password must be at least 6 characters' })
+  password: string;
 
   @ApiPropertyOptional({ example: '07AABCU9603R1ZP', description: 'Required for dealers' })
   @IsOptional()
@@ -101,37 +111,4 @@ export class SuperadminLoginDto {
   @IsString()
   @MinLength(6)
   password: string;
-}
-
-export class PasswordResetStartDto {
-  @ApiProperty({ enum: ['electrician'], description: 'Customers and dealers sign in with OTP only.' })
-  @IsEnum(['electrician'])
-  role: 'electrician';
-
-  @ApiProperty({ example: 'tech@example.com' })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
-  @IsEmail()
-  email: string;
-}
-
-export class PasswordResetCompleteDto {
-  @ApiProperty({ enum: ['electrician'] })
-  @IsEnum(['electrician'])
-  role: 'electrician';
-
-  @ApiProperty({ example: 'tech@example.com' })
-  @Transform(({ value }) => (typeof value === 'string' ? value.trim().toLowerCase() : value))
-  @IsEmail()
-  email: string;
-
-  @ApiProperty({ example: '482931' })
-  @IsString()
-  @Length(6, 6, { message: 'OTP must be exactly 6 digits' })
-  @Matches(/^\d{6}$/, { message: 'OTP must contain only digits' })
-  otp: string;
-
-  @ApiProperty({ example: 'SecurePass@123' })
-  @IsString()
-  @MinLength(6)
-  new_password: string;
 }
