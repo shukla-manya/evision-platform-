@@ -178,7 +178,7 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
   if (loading) {
     return (
       <SuperadminShell>
-        <main className="mx-auto w-full min-w-0 max-w-3xl flex items-center gap-2 py-8 text-ev-muted px-3 sm:px-4">
+        <main className="w-full min-w-0 flex items-center gap-2 py-8 text-ev-muted">
           <Loader2 className="animate-spin text-ev-primary" size={22} />
           Loading…
         </main>
@@ -188,7 +188,7 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
 
   return (
     <SuperadminShell>
-      <main className="mx-auto w-full min-w-0 max-w-3xl px-3 pb-6 sm:px-4 md:px-6">
+      <main className="w-full min-w-0 pb-6">
         <Link
           href="/super/products"
           className="ev-btn-secondary mb-4 inline-flex w-full min-h-11 shrink-0 items-center justify-center gap-2 py-2.5 text-sm sm:mb-5 sm:w-auto sm:min-h-0 sm:justify-start sm:px-4"
