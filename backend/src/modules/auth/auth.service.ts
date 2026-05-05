@@ -25,115 +25,50 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
-  // ── OTP (email only; Dynamo partition attribute is still `phone` for legacy table keys) ──
-  private normalizeOtpEmail(raw: string): string {
-    return String(raw || '')
-      .trim()
-      .toLowerCase();
+  private normalizeEmail(raw: string): string {
+    return String(raw || '').trim().toLowerCase();
   }
 
-  async sendOtp(emailRaw: string, opts?: { purpose?: 'login' | 'signup' }): Promise<{ message: string }> {
-    const email = this.normalizeOtpEmail(emailRaw);
-    if (!email) {
-      throw new BadRequestException('Email is required');
-    }
+  async login(dto: LoginDto): Promise<{ access_token: string; electrician_status?: 'pending' | 'rejected' }> {
+    const email = this.normalizeEmail(dto.email);
 
-    const purpose = opts?.purpose ?? 'login';
-    if (purpose === 'signup') {
-      const [existingEmailUser, ecEmail] = await Promise.all([
-        this.findUserByEmail(email),
-        this.findElectricianByEmail(email),
-      ]);
-      if (existingEmailUser) {
-        throw new ConflictException('Email already registered');
+    const user = await this.findUserByEmail(email);
+    if (user) {
+      const hash = String(user.password_hash || '');
+      if (!hash || !(await bcrypt.compare(dto.password, hash))) {
+        throw new UnauthorizedException('Invalid email or password');
       }
-      if (ecEmail) {
-        throw new ConflictException('Email already registered for a technician account');
-      }
-    }
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Math.floor(Date.now() / 1000) + 600; // 10 min TTL
-
-    await this.dynamo.put(this.dynamo.tableName('otps'), {
-      phone: email,
-      otp,
-      expires_at: expiresAt,
-    });
-
-    // Only skip SMTP when explicitly enabled (local dev). Previously `unset` behaved like
-    // console-only, so production often returned "OTP sent" while never emailing.
-    const flag = String(this.config.get<string | boolean>('OTP_CONSOLE_ONLY') ?? '')
-      .trim()
-      .toLowerCase();
-    const consoleOnly = flag === '1' || flag === 'true' || flag === 'yes';
-
-    if (consoleOnly) {
-      this.logger.log(`[OTP email] ${email} → ${otp} (valid 10 minutes, OTP_CONSOLE_ONLY=true)`);
-      return { message: 'OTP sent successfully' };
-    }
-
-    const { ok, error } = await this.email.sendAuthOtpEmail(email, { code: otp, purpose });
-    if (!ok) {
-      await this.dynamo.delete(this.dynamo.tableName('otps'), { phone: email });
-      throw new ServiceUnavailableException(
-        error ||
-          'Unable to send verification email. Configure SMTP (SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM) or set EMAIL_TRANSPORT=ses with a verified SES identity.',
-      );
-    }
-
-    return { message: 'OTP sent successfully' };
-  }
-
-  async verifyOtp(
-    emailRaw: string,
-    otp: string,
-  ): Promise<{
-    access_token: string;
-    is_registered: boolean;
-    electrician_status?: 'pending' | 'rejected';
-  }> {
-    const email = this.normalizeOtpEmail(emailRaw);
-    await this.consumeOtp(email, otp);
-
-    const existing = await this.findUserByEmail(email);
-    if (existing) {
-      const ph = String(existing.phone || '');
-      const token = this.signToken(existing.id, existing.role, existing.email, ph);
-      return { access_token: token, is_registered: true };
+      const token = this.signToken(String(user.id), String(user.role), email, String(user.phone || ''));
+      return { access_token: token };
     }
 
     const electrician = await this.findElectricianByEmail(email);
     if (electrician) {
+      const hash = String(electrician.password_hash || '');
+      if (!hash || !(await bcrypt.compare(dto.password, hash))) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
       const ph = String(electrician.phone || '');
       const st = String(electrician.status || '').toLowerCase();
       if (st === 'approved') {
-        const token = this.signToken(String(electrician.id), 'electrician', String(electrician.email || ''), ph);
-        return { access_token: token, is_registered: true };
+        return { access_token: this.signToken(String(electrician.id), 'electrician', email, ph) };
       }
       if (st === 'pending') {
-        const token = this.signToken(
-          String(electrician.id),
-          'electrician_pending',
-          String(electrician.email || ''),
-          ph,
-        );
-        return { access_token: token, is_registered: true, electrician_status: 'pending' as const };
+        return {
+          access_token: this.signToken(String(electrician.id), 'electrician_pending', email, ph),
+          electrician_status: 'pending',
+        };
       }
       if (st === 'rejected') {
-        const token = this.signToken(
-          String(electrician.id),
-          'electrician_rejected',
-          String(electrician.email || ''),
-          ph,
-        );
-        return { access_token: token, is_registered: true, electrician_status: 'rejected' as const };
+        return {
+          access_token: this.signToken(String(electrician.id), 'electrician_rejected', email, ph),
+          electrician_status: 'rejected',
+        };
       }
       throw new UnauthorizedException('Technician account is not available for sign-in.');
     }
 
-    const tempToken = this.jwt.sign({ sub: `temp_${email}`, role: 'unregistered', email }, { expiresIn: '15m' });
-    return { access_token: tempToken, is_registered: false };
+    throw new UnauthorizedException('Invalid email or password');
   }
 
   // ── Registration ──────────────────────────────────────────────────────────
