@@ -4,14 +4,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
-import { Camera, User, Mail, MapPin, ArrowRight, Loader2, Navigation } from 'lucide-react';
+import { Camera, User, Mail, MapPin, ArrowRight, Loader2, Navigation, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi } from '@/lib/api';
 import { getApiErrorMessage } from '@/lib/api-errors';
 import { saveToken, parseJwt, redirectByRole } from '@/lib/auth';
 import { TechnicianApplicationForm } from '@/components/register/TechnicianApplicationForm';
 import { publicBrandName } from '@/lib/public-brand';
-import { OtpCells } from '@/components/auth/OtpCells';
 import {
   getBrowserGeolocation,
   isBrowserGeolocationContextBlocked,
@@ -22,9 +21,6 @@ import { suggestPincodeForIndianCity } from '@/lib/india-postal-lookup';
 import { REGISTER_SELF_SERVE_TABS } from '@/lib/user-roles';
 
 type AccountTab = 'customer' | 'dealer' | 'technician';
-type RegisterStep = 'details' | 'otp';
-
-const OTP_ATTEMPTS = 5;
 
 /** Side panel art for split register layout (desktop left / mobile top). */
 const REGISTER_PANEL_IMAGE =
