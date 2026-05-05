@@ -23,7 +23,6 @@ export class AuthService {
     private dynamo: DynamoService,
     private jwt: JwtService,
     private config: ConfigService,
-    private email: EmailService,
   ) {}
 
   // ── OTP (email only; Dynamo partition attribute is still `phone` for legacy table keys) ──
