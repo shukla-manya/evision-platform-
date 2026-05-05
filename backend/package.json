@@ -7,7 +7,6 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
-    "postinstall": "npm run build",
     "start": "node dist/main",
     "dev": "nest start --watch",
     "start:dev": "nest start --watch",
