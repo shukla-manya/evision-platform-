@@ -182,6 +182,7 @@
     @apply bg-ev-bg text-ev-text font-sans antialiased;
     min-height: 100vh;
     min-width: 0;
+    margin: 0;
     overflow-x: clip;
   }
 
@@ -290,8 +291,10 @@
    * Keeps touch-friendly gutters on phones and safe-area padding at the bottom.
    */
   .ev-shell-body {
-    @apply w-full min-w-0 px-4 py-4 sm:px-5 sm:py-5 md:px-6 md:py-6 lg:px-8 lg:py-8;
+    @apply w-full min-w-0 py-4 sm:py-5 md:py-6 lg:py-8;
     padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
 
   /**
@@ -303,24 +306,8 @@
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
-    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
-  }
-
-  @media (min-width: 640px) {
-    .ev-page-gutter,
-    .ev-container {
-      padding-left: max(1rem, env(safe-area-inset-left, 0px));
-      padding-right: max(1rem, env(safe-area-inset-right, 0px));
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .ev-page-gutter,
-    .ev-container {
-      padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
-      padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
-    }
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
 
   .ev-container {
