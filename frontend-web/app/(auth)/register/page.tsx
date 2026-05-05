@@ -490,68 +490,56 @@ export default function RegisterPage() {
                         </>
                       )}
 
-                      <button
-                        type="submit"
-                        className="ev-btn-primary flex min-h-[48px] w-full items-center justify-center gap-2 text-base"
-                        disabled={otpSending || !canSendShopperOtp}
-                      >
-                        {otpSending ? (
-                          <>
-                            <Loader2 size={16} className="animate-spin" />
-                            Sending…
-                          </>
-                        ) : (
-                          <>
-                            Send OTP to {emailMasked}
-                            <ArrowRight size={16} />
-                          </>
-                        )}
-                      </button>
-                    </form>
-
-                    <p className="text-center text-ev-subtle text-sm mt-6">
-                      Already have an account?{' '}
-                      <Link href="/login" className="text-ev-primary hover:text-ev-primary-light font-medium">
-                        Sign in
-                      </Link>
-                    </p>
-                  </div>
-                ) : (
-                  <div className="ev-card p-4 sm:p-6 lg:p-8">
-                    <form onSubmit={submitShopper} className="space-y-6">
-                      <OtpCells
-                        key={registerOtpKey}
-                        autoFocusKey={registerOtpKey}
-                        cells={registerOtpCells}
-                        onCellsChange={setRegisterOtpCells}
-                        disabled={loading}
-                      />
-                      <button
-                        type="submit"
-                        className="ev-btn-primary flex min-h-[48px] w-full items-center justify-center gap-2 text-base"
-                        disabled={loading || registerOtpCells.join('').length !== 6}
-                      >
-                        {loading ? <Loader2 size={16} className="animate-spin" /> : (
-                          <>
-                            <span>Verify and create account</span>
-                            <ArrowRight size={16} />
-                          </>
-                        )}
-                      </button>
-                      <p className="text-center text-ev-subtle text-sm leading-relaxed">
-                        {resendSeconds > 0 ? (
-                          <span>Didn&apos;t get it? Resend OTP in {resendSeconds} seconds</span>
-                        ) : (
-                          <button
-                            type="button"
-                            className="text-ev-primary hover:text-ev-primary-light font-medium disabled:opacity-50"
-                            disabled={loading || otpSending}
-                            onClick={() => void sendShopperOtp()}
-                          >
-                            Resend OTP
+                      <div>
+                        <label className="ev-label">Password</label>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            className="ev-input pr-11"
+                            placeholder="Min. 6 characters"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            autoComplete="new-password"
+                            required
+                            minLength={6}
+                          />
+                          <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-ev-subtle hover:text-ev-muted" onClick={() => setShowPassword(v => !v)} tabIndex={-1}>
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                           </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="ev-label">Confirm password</label>
+                        <div className="relative">
+                          <input
+                            type={showConfirm ? 'text' : 'password'}
+                            className="ev-input pr-11"
+                            placeholder="Re-enter password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            autoComplete="new-password"
+                            required
+                          />
+                          <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-ev-subtle hover:text-ev-muted" onClick={() => setShowConfirm(v => !v)} tabIndex={-1}>
+                            {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="ev-btn-primary flex min-h-[48px] w-full items-center justify-center gap-2 text-base"
+                        disabled={loading || !canSubmit}
+                      >
+                        {loading ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <>
+                            Create account
+                            <ArrowRight size={16} />
+                          </>
                         )}
-                      </p>
+                      </button>
                     </form>
 
                     <p className="text-center text-ev-subtle text-sm mt-6">
@@ -561,7 +549,6 @@ export default function RegisterPage() {
                       </Link>
                     </p>
                   </div>
-                )}
           </>
         )}
         </div>

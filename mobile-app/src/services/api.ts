@@ -32,19 +32,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export type OtpVerifyResponse = {
+export type LoginResponse = {
   access_token: string;
-  is_registered: boolean;
+  electrician_status?: 'pending' | 'rejected';
 };
-
-export type PasswordResetRole = 'electrician';
 
 export type RegisterRequest = {
   name: string;
   phone: string;
   email: string;
   role: 'customer' | 'dealer';
-  otp: string;
+  password: string;
   gst_no?: string;
   address?: string;
   business_name?: string;
@@ -175,20 +173,9 @@ export type ElectricianProfile = {
 };
 
 export const authApi = {
-  sendOtp: (email: string, extra?: { purpose?: 'signup' }) =>
-    api.post('/auth/send-otp', { email: email.trim().toLowerCase(), ...extra }),
-  verifyOtp: (email: string, otp: string) =>
-    api.post<OtpVerifyResponse>('/auth/verify-otp', { email: email.trim().toLowerCase(), otp }),
+  login: (email: string, password: string) =>
+    api.post<LoginResponse>('/auth/login', { email: email.trim().toLowerCase(), password }),
   register: (payload: RegisterRequest) => api.post('/auth/register', payload),
-  passwordResetStart: (role: PasswordResetRole, email: string) =>
-    api.post('/auth/password/reset/start', { role, email: email.trim().toLowerCase() }),
-  passwordResetComplete: (role: PasswordResetRole, email: string, otp: string, newPassword: string) =>
-    api.post('/auth/password/reset/complete', {
-      role,
-      email: email.trim().toLowerCase(),
-      otp,
-      new_password: newPassword,
-    }),
   me: () => api.get('/auth/me'),
   replaceAddressBook: (addresses: Record<string, unknown>[]) =>
     api.put<{ address_book?: Record<string, unknown>[] }>('/auth/me/address-book', { addresses }),
