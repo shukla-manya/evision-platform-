@@ -55,19 +55,8 @@ api.interceptors.response.use(
 
 // ── Auth ───────────────────────────────────────────────────────────────────
 export const authApi = {
-  sendOtp: (email: string, extra?: { purpose?: 'signup' }) =>
-    api.post('/auth/send-otp', { email: email.trim().toLowerCase(), ...extra }),
-  verifyOtp: (email: string, otp: string) =>
-    api.post('/auth/verify-otp', { email: email.trim().toLowerCase(), otp }),
-  passwordResetStart: (role: string, email: string) =>
-    api.post('/auth/password/reset/start', { role, email: email.trim().toLowerCase() }),
-  passwordResetComplete: (role: string, email: string, otp: string, new_password: string) =>
-    api.post('/auth/password/reset/complete', {
-      role,
-      email: email.trim().toLowerCase(),
-      otp,
-      new_password,
-    }),
+  login: (email: string, password: string) =>
+    api.post('/auth/login', { email: email.trim().toLowerCase(), password }),
   register: (data: Record<string, unknown>) => api.post('/auth/register', data),
   superadminLogin: (email: string, password: string) => api.post('/auth/superadmin/login', { email, password }),
   me: () => api.get('/auth/me'),
