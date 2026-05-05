@@ -153,12 +153,13 @@ export default function RegisterPage() {
   }, [firstName, lastName, email, phoneDigits, password, confirmPassword, address, city, pincode, accountTab, gstNo, businessName, businessAddress, businessCity, businessPincode]);
 
   const phoneLast10 = phoneDigits.replace(/\D/g, '').slice(-10);
-  const canSendShopperOtp = useMemo(() => {
+  const canSubmit = useMemo(() => {
     if (accountTab !== 'customer' && accountTab !== 'dealer') return false;
     const name = `${firstName.trim()} ${lastName.trim()}`.trim();
     if (name.length < 2) return false;
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return false;
     if (phoneLast10.length !== 10) return false;
+    if (password.length < 6 || password !== confirmPassword) return false;
     if (accountTab === 'customer') {
       if (!address.trim() || !city.trim() || !/^\d{6}$/.test(pincode.replace(/\D/g, ''))) return false;
     } else {
@@ -166,74 +167,28 @@ export default function RegisterPage() {
       if (!/^\d{6}$/.test(businessPincode.replace(/\D/g, ''))) return false;
     }
     return true;
-  }, [
-    firstName,
-    lastName,
-    email,
-    phoneLast10,
-    accountTab,
-    address,
-    city,
-    pincode,
-    gstNo,
-    businessName,
-    businessAddress,
-    businessCity,
-    businessPincode,
-  ]);
-
-  const sendShopperOtp = useCallback(async () => {
-    if (!validateDetailsBeforeOtp()) return;
-    setOtpSending(true);
-    try {
-      await authApi.sendOtp(email.trim().toLowerCase(), { purpose: 'signup' });
-      setRegisterOtpCells(['', '', '', '', '', '']);
-      setRegisterOtpKey((k) => k + 1);
-      setOtpAttemptsLeft(OTP_ATTEMPTS);
-      setRegisterStep('otp');
-      setResendSeconds(30);
-    } catch (err: unknown) {
-      toast.error(getApiErrorMessage(err, 'Failed to send OTP'));
-    } finally {
-      setOtpSending(false);
-    }
-  }, [email, validateDetailsBeforeOtp]);
-
-  useEffect(() => {
-    if (registerStep !== 'otp' || resendSeconds <= 0) return;
-    const id = window.setTimeout(() => setResendSeconds((s) => s - 1), 1000);
-    return () => window.clearTimeout(id);
-  }, [registerStep, resendSeconds]);
+  }, [firstName, lastName, email, phoneLast10, password, confirmPassword, accountTab, address, city, pincode, gstNo, businessName, businessAddress, businessCity, businessPincode]);
 
   async function submitShopper(e: React.FormEvent) {
     e.preventDefault();
-    const otp = registerOtpCells.join('');
-    if (otp.length !== 6) {
-      toast.error('Enter the 6-digit OTP');
-      return;
-    }
+    if (!validate()) return;
     const name = `${firstName.trim()} ${lastName.trim()}`.trim();
     setLoading(true);
     try {
       const phone = formatPhoneE164(phoneDigits);
       const fullAddress =
         accountTab === 'dealer'
-          ? [businessAddress.trim(), businessCity.trim(), `Pincode: ${businessPincode.replace(/\D/g, '').slice(0, 6)}`]
-              .filter(Boolean)
-              .join('\n')
-          : [address.trim(), city.trim(), `Pincode: ${pincode.replace(/\D/g, '').slice(0, 6)}`]
-              .filter(Boolean)
-              .join('\n');
+          ? [businessAddress.trim(), businessCity.trim(), `Pincode: ${businessPincode.replace(/\D/g, '').slice(0, 6)}`].filter(Boolean).join('\n')
+          : [address.trim(), city.trim(), `Pincode: ${pincode.replace(/\D/g, '').slice(0, 6)}`].filter(Boolean).join('\n');
       const geoCity = accountTab === 'dealer' ? businessCity : city;
-      const geoPin =
-        accountTab === 'dealer' ? businessPincode.replace(/\D/g, '').slice(0, 6) : pincode.replace(/\D/g, '').slice(0, 6);
+      const geoPin = accountTab === 'dealer' ? businessPincode.replace(/\D/g, '').slice(0, 6) : pincode.replace(/\D/g, '').slice(0, 6);
       const geo = await resolveRegistrationCoordinates(geoCity, geoPin);
       const { data } = await authApi.register({
         name,
         phone,
         email: email.trim().toLowerCase(),
         role: accountTab,
-        otp,
+        password,
         gst_no: accountTab === 'dealer' ? gstNo.trim() : undefined,
         business_name: accountTab === 'dealer' ? businessName.trim() : undefined,
         business_address: accountTab === 'dealer' ? businessAddress.trim() : undefined,
@@ -243,15 +198,10 @@ export default function RegisterPage() {
         ...(geo ? { lat: geo.lat, lng: geo.lng } : {}),
       });
       const payload = parseJwt(data.access_token);
-      if (!payload || typeof payload.role !== 'string') {
-        toast.error('Invalid session');
-        return;
-      }
+      if (!payload || typeof payload.role !== 'string') { toast.error('Invalid session'); return; }
       saveToken(data.access_token, payload.role);
       if (accountTab === 'dealer') {
-        toast.success(
-          "Welcome! Your dealer account is active. Dealer pricing will be unlocked once your GST number is verified (usually within 24 hours). Until then, you can browse at regular prices.",
-        );
+        toast.success("Welcome! Your dealer account is active. Dealer pricing will be unlocked once your GST number is verified (usually within 24 hours).");
         router.push('/dealer/dashboard');
         return;
       }
@@ -259,51 +209,7 @@ export default function RegisterPage() {
       router.push(redirectByRole(String(payload.role)));
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        const status = err.response?.status;
-        const msg = getApiErrorMessage(err, 'Registration failed');
-        if (status === 409) {
-          toast.error(msg);
-          setRegisterStep('details');
-          setRegisterOtpCells(['', '', '', '', '', '']);
-          setResendSeconds(0);
-          return;
-        }
-        if (status === 400) {
-          toast.error(msg);
-          return;
-        }
-        if (status === 401) {
-          const lower = msg.toLowerCase();
-          if (
-            lower.includes('otp') ||
-            lower.includes('invalid') ||
-            lower.includes('expired') ||
-            lower.includes('not found')
-          ) {
-            setOtpAttemptsLeft((prev) => {
-              const next = prev - 1;
-              if (next <= 0) {
-                queueMicrotask(() => {
-                  toast.error('Too many incorrect codes. Go back and request a new OTP.');
-                  setRegisterStep('details');
-                  setRegisterOtpCells(['', '', '', '', '', '']);
-                  setResendSeconds(0);
-                });
-                return OTP_ATTEMPTS;
-              }
-              queueMicrotask(() => {
-                toast.error(
-                  `Incorrect code. Please check and try again. ${next} attempt${next === 1 ? '' : 's'} remaining.`,
-                );
-              });
-              return next;
-            });
-            return;
-          }
-          toast.error(msg);
-          return;
-        }
-        toast.error(msg);
+        toast.error(getApiErrorMessage(err, 'Registration failed'));
         return;
       }
       toast.error('Something went wrong. Please try again.');
@@ -311,14 +217,6 @@ export default function RegisterPage() {
       setLoading(false);
     }
   }
-
-  const emailMasked = (() => {
-    const em = email.trim().toLowerCase();
-    const [u, d] = em.split('@');
-    if (!d) return em || 'your email';
-    if (u.length <= 2) return `${u[0] ?? '*'}***@${d}`;
-    return `${u.slice(0, 2)}***@${d}`;
-  })();
 
   return (
     <div className="relative min-h-[100dvh] w-full ev-page-gutter pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:py-8">
