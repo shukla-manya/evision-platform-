@@ -274,36 +274,19 @@ export default function RegisterPage() {
           <TechnicianApplicationForm embedded />
         ) : (
           <>
-            {registerStep === 'details' ? (
-              <div className="mb-6 text-center lg:text-left">
-                <p className="mx-auto max-w-md text-sm leading-relaxed text-ev-muted lg:mx-0">
-                  {accountTab === 'dealer' ? (
-                    <>
-                      Get wholesale pricing, bulk order support and GST invoices. Your GST number will be verified
-                      within 24 hours.
-                    </>
-                  ) : (
-                    <>Shop cameras, lenses and accessories from top stores</>
-                  )}
-                </p>
-              </div>
-            ) : (
-              <div className="mb-6 space-y-2 text-center lg:text-left">
-                <p className="text-xs font-semibold uppercase tracking-wider text-ev-subtle">Step 2 of 2</p>
-                <h2 className="text-2xl font-bold text-ev-text">Verify your email</h2>
-                <p className="mx-auto max-w-md text-sm leading-relaxed text-ev-muted lg:mx-0">
-                  We sent a 6-digit code to {emailMasked}. It expires in 10 minutes.
-                </p>
-              </div>
-            )}
+            <div className="mb-6 text-center lg:text-left">
+              <p className="mx-auto max-w-md text-sm leading-relaxed text-ev-muted lg:mx-0">
+                {accountTab === 'dealer' ? (
+                  <>Get wholesale pricing, bulk order support and GST invoices. Your GST number will be verified within 24 hours.</>
+                ) : (
+                  <>Shop cameras, lenses and accessories from top stores</>
+                )}
+              </p>
+            </div>
 
-            {registerStep === 'details' ? (
-                  <div className="ev-card p-4 sm:p-6 lg:p-8">
+            <div className="ev-card p-4 sm:p-6 lg:p-8">
                     <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        void sendShopperOtp();
-                      }}
+                      onSubmit={submitShopper}
                       className="space-y-5 [&_input.ev-input]:text-base [&_input.ev-input]:sm:text-sm [&_textarea.ev-input]:text-base [&_textarea.ev-input]:sm:text-sm"
                     >
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
