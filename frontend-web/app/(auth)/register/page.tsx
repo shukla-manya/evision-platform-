@@ -260,13 +260,7 @@ export default function RegisterPage() {
                 <button
                   key={key}
                   type="button"
-                  onClick={() => {
-                    setAccountTab(key);
-                    setRegisterStep('details');
-                    setRegisterOtpCells(['', '', '', '', '', '']);
-                    setResendSeconds(0);
-                    setOtpAttemptsLeft(OTP_ATTEMPTS);
-                  }}
+                  onClick={() => setAccountTab(key)}
                   className={`flex min-h-[48px] items-center justify-center rounded-lg px-1.5 text-center text-xs font-medium transition-all sm:flex-1 sm:rounded-xl sm:px-3 sm:text-sm ${
                     accountTab === key ? 'bg-ev-primary text-white shadow-ev-glow' : 'text-ev-muted hover:text-ev-text'
                   }`}
