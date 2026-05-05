@@ -130,72 +130,27 @@ export default function RegisterPage() {
     }
   }
 
-  const validateDetailsBeforeOtp = useCallback((): boolean => {
+  const validate = useCallback((): boolean => {
     const name = `${firstName.trim()} ${lastName.trim()}`.trim();
-    if (name.length < 2) {
-      toast.error('Please enter your first and last name');
-      return false;
-    }
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      toast.error('Enter a valid email address');
-      return false;
-    }
+    if (name.length < 2) { toast.error('Please enter your first and last name'); return false; }
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { toast.error('Enter a valid email address'); return false; }
     const phone = formatPhoneE164(phoneDigits);
-    if (phone.length < 12) {
-      toast.error('Enter a valid 10-digit mobile number');
-      return false;
-    }
+    if (phone.length < 12) { toast.error('Enter a valid 10-digit mobile number'); return false; }
+    if (password.length < 6) { toast.error('Password must be at least 6 characters'); return false; }
+    if (password !== confirmPassword) { toast.error('Passwords do not match'); return false; }
     if (accountTab === 'customer') {
-      if (!address.trim()) {
-        toast.error('Enter your delivery address');
-        return false;
-      }
-      if (!city.trim()) {
-        toast.error('Enter your city');
-        return false;
-      }
-      if (!/^\d{6}$/.test(pincode.replace(/\D/g, ''))) {
-        toast.error('Enter a valid 6-digit pincode');
-        return false;
-      }
+      if (!address.trim()) { toast.error('Enter your delivery address'); return false; }
+      if (!city.trim()) { toast.error('Enter your city'); return false; }
+      if (!/^\d{6}$/.test(pincode.replace(/\D/g, ''))) { toast.error('Enter a valid 6-digit pincode'); return false; }
     } else {
-      if (!gstNo.trim()) {
-        toast.error('GST number is required for dealer accounts');
-        return false;
-      }
-      if (!businessName.trim()) {
-        toast.error('Business name is required');
-        return false;
-      }
-      if (!businessAddress.trim()) {
-        toast.error('Business address is required');
-        return false;
-      }
-      if (!businessCity.trim()) {
-        toast.error('Enter your business city');
-        return false;
-      }
-      if (!/^\d{6}$/.test(businessPincode.replace(/\D/g, ''))) {
-        toast.error('Enter a valid 6-digit business pincode');
-        return false;
-      }
+      if (!gstNo.trim()) { toast.error('GST number is required for dealer accounts'); return false; }
+      if (!businessName.trim()) { toast.error('Business name is required'); return false; }
+      if (!businessAddress.trim()) { toast.error('Business address is required'); return false; }
+      if (!businessCity.trim()) { toast.error('Enter your business city'); return false; }
+      if (!/^\d{6}$/.test(businessPincode.replace(/\D/g, ''))) { toast.error('Enter a valid 6-digit business pincode'); return false; }
     }
     return true;
-  }, [
-    firstName,
-    lastName,
-    email,
-    phoneDigits,
-    address,
-    city,
-    pincode,
-    accountTab,
-    gstNo,
-    businessName,
-    businessAddress,
-    businessCity,
-    businessPincode,
-  ]);
+  }, [firstName, lastName, email, phoneDigits, password, confirmPassword, address, city, pincode, accountTab, gstNo, businessName, businessAddress, businessCity, businessPincode]);
 
   const phoneLast10 = phoneDigits.replace(/\D/g, '').slice(-10);
   const canSendShopperOtp = useMemo(() => {
