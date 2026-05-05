@@ -120,7 +120,7 @@ export default function CheckoutPage() {
 
   return (
     <PublicShell>
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <main className="ev-container py-8 space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-ev-text">Checkout</h1>

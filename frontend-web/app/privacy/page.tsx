@@ -22,7 +22,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export default function PrivacyPage() {
   return (
     <PublicShell>
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+      <main className="ev-container py-12 sm:py-16">
         <p className="text-ev-muted text-sm font-medium uppercase tracking-wide mb-2">Legal</p>
         <h1 className="text-3xl sm:text-4xl font-bold text-ev-text mb-2">Privacy policy</h1>
         <p className="text-ev-subtle text-sm mb-10">Last updated: April 2026 · {publicCompanyLegalName}</p>

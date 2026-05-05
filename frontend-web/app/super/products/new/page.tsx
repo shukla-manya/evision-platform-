@@ -105,7 +105,7 @@ export default function AdminProductNewPage() {
 
   return (
     <SuperadminShell>
-      <main className="mx-auto w-full min-w-0 max-w-3xl pb-6">
+      <main className="w-full min-w-0 pb-6">
         <Link
           href="/super/products"
           className="text-ev-muted text-sm inline-flex min-w-0 max-w-full items-center gap-1 hover:text-ev-text mb-3 sm:mb-4"

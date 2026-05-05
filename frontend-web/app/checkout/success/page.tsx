@@ -13,7 +13,7 @@ function SuccessInner() {
 
   return (
     <PublicShell>
-      <main className="max-w-lg mx-auto px-4 py-16 text-center">
+      <main className="ev-container py-16 text-center">
         <div className="ev-card p-10">
           <div className="w-16 h-16 bg-ev-success/10 border-2 border-ev-success rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 size={32} className="text-ev-success" />

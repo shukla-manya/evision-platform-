@@ -51,7 +51,7 @@ function ReviewInner() {
 
   if (!ok) {
     return (
-      <main className="max-w-md mx-auto px-4 py-16 text-center">
+      <main className="ev-container py-16 text-center">
         <Link href="/login" className="ev-btn-primary">
           Sign in
         </Link>
@@ -61,14 +61,14 @@ function ReviewInner() {
 
   if (!electricianId) {
     return (
-      <main className="max-w-md mx-auto px-4 py-16 text-center text-ev-muted">
+      <main className="ev-container py-16 text-center text-ev-muted">
         Invalid link.
       </main>
     );
   }
 
   return (
-    <main className="max-w-md mx-auto px-4 sm:px-6 py-10">
+    <main className="ev-container py-10">
       <h1 className="text-2xl font-bold text-ev-text mb-2">How was your service?</h1>
       <p className="text-ev-muted text-sm mb-8">
         Your review helps other customers choose the right technician.

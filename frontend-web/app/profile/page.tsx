@@ -68,7 +68,7 @@ export default function ProfilePage() {
   if (!ok) {
     return (
       <PublicShell>
-        <main className="w-full min-w-0 max-w-md mx-auto px-4 sm:px-6 py-16 text-center text-ev-muted">
+        <main className="w-full min-w-0 py-16 text-center text-ev-muted">
           <Link href="/login" className="ev-btn-primary">
             Sign in
           </Link>
@@ -79,7 +79,7 @@ export default function ProfilePage() {
 
   return (
     <PublicShell>
-      <main className="w-full min-w-0 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 pb-12 space-y-6 sm:space-y-8">
+      <main className="w-full min-w-0 py-8 sm:py-10 pb-12 space-y-6 sm:space-y-8">
         <h1 className="text-xl font-bold text-ev-text sm:text-2xl lg:text-3xl">Profile</h1>
 
         {loading ? (

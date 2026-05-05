@@ -65,7 +65,7 @@ export default function WishlistPage() {
 
   return (
     <PublicShell>
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+      <main className="ev-container py-10">
         <h1 className="text-2xl font-bold text-ev-text flex items-center gap-2 mb-2">
           <Heart className="text-ev-primary" size={26} />
           Wishlist

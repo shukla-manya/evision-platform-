@@ -158,7 +158,7 @@ export default function MyOrdersPage() {
   if (!canUseOrders) {
     return (
       <PublicShell>
-        <main className="max-w-lg mx-auto px-4 py-20 text-center text-ev-muted">
+        <main className="ev-container py-20 text-center text-ev-muted">
           Sign in as a customer or dealer to view orders.
         </main>
       </PublicShell>

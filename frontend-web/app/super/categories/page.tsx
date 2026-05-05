@@ -65,7 +65,7 @@ export default function SuperCategoriesPage() {
 
   return (
     <SuperadminShell>
-      <main className="mx-auto w-full min-w-0 max-w-3xl overflow-x-hidden">
+      <main className="w-full min-w-0 overflow-x-hidden">
         <h1 className="text-xl font-bold text-ev-text sm:text-2xl mb-2">Categories</h1>
         <p className="text-ev-muted text-sm mb-6 max-w-prose">
           Used by the public shop and catalogue (customer / dealer pricing is on products).

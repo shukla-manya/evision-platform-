@@ -30,7 +30,7 @@ export default function CustomerDashboardPage() {
 
   return (
     <PublicShell>
-      <main className="max-w-5xl mx-auto px-4 py-24 flex justify-center items-center gap-2 text-ev-muted">
+      <main className="ev-container py-24 flex justify-center items-center gap-2 text-ev-muted">
         <Loader2 className="animate-spin text-ev-primary" size={22} aria-hidden />
         <span>Loading…</span>
       </main>

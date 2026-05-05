@@ -12,7 +12,7 @@ function DoneInner() {
 
   return (
     <PublicShell>
-      <main className="max-w-md mx-auto px-4 py-16 text-center">
+      <main className="ev-container py-16 text-center">
         <div className="ev-card p-10">
           <CheckCircle2 className="mx-auto text-ev-success mb-4" size={40} />
           <p className="text-ev-text font-medium leading-relaxed">

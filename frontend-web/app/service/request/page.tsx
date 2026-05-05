@@ -92,7 +92,7 @@ function RequestFormInner() {
 
   if (!ok) {
     return (
-      <main className="max-w-lg mx-auto px-4 py-16 text-center text-ev-muted">
+      <main className="ev-container py-16 text-center text-ev-muted">
         <p className="text-ev-text font-medium mb-2">Sign in required</p>
         <Link href="/login" className="ev-btn-primary inline-flex mt-4">
           Sign in
@@ -102,7 +102,7 @@ function RequestFormInner() {
   }
 
   return (
-    <main className="max-w-xl mx-auto px-4 sm:px-6 py-8">
+    <main className="ev-container py-8">
       <Link href="/orders" className="text-ev-muted text-sm inline-flex items-center gap-1 hover:text-ev-text mb-6">
         <ArrowLeft size={14} /> Orders
       </Link>

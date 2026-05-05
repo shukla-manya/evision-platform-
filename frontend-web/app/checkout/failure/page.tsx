@@ -5,7 +5,7 @@ import { PublicShell } from '@/components/public/PublicShell';
 export default function CheckoutFailurePage() {
   return (
     <PublicShell>
-      <main className="max-w-lg mx-auto px-4 py-16 text-center">
+      <main className="ev-container py-16 text-center">
         <div className="ev-card p-10">
           <div className="w-16 h-16 bg-ev-error/10 border-2 border-ev-error/30 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle size={32} className="text-ev-error" />

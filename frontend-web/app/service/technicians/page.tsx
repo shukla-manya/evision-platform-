@@ -133,7 +133,7 @@ function TechniciansInner() {
 
   if (!ok) {
     return (
-      <main className="max-w-lg mx-auto px-4 py-16 text-center">
+      <main className="ev-container py-16 text-center">
         <Link href="/login" className="ev-btn-primary">
           Sign in
         </Link>
@@ -143,7 +143,7 @@ function TechniciansInner() {
 
   if (!requestId) {
     return (
-      <main className="max-w-lg mx-auto px-4 py-16 text-center text-ev-muted">
+      <main className="ev-container py-16 text-center text-ev-muted">
         <p className="text-ev-text font-medium mb-2">Start from a service request</p>
         <Link href="/service/request" className="ev-btn-primary inline-flex mt-4">
           Tell us about the issue
@@ -153,7 +153,7 @@ function TechniciansInner() {
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+    <main className="ev-container py-8">
       <Link href="/service/request" className="ev-btn-secondary text-sm py-2 px-3 inline-flex items-center gap-1.5 mb-6">
         <ArrowLeft size={14} /> Back
       </Link>

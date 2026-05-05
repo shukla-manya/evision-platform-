@@ -56,7 +56,7 @@ export default function AdminProductsPage() {
 
   return (
     <SuperadminShell>
-      <main className="w-full min-w-0 max-w-6xl">
+      <main className="w-full min-w-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-ev-text">My products</h1>
